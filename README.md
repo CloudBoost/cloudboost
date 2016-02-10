@@ -1,14 +1,13 @@
 #CloudBoost 
 
-CloudBoost is the Complete NoSQL Database Service for your app. Think of CloudBoost as Parse + Firebase + Algolia + Iron.io all combined into one :
-
-Data-Storage / JSON Storage / BLOB Storage
-100% data ownership
-Realtime
-Search
-Cache
-Queues
-More - ACL's, User Authentication, Server-less apps and more.
+CloudBoost is the Complete NoSQL Database Service for your app. **Think of CloudBoost as Parse + Firebase + Algolia + Iron.io all combined into one** :
+ - Data-Storage / JSON Storage / BLOB Storage
+ - 100% data ownership
+ - Realtime 
+ - Search
+ - Cache
+ - Queues
+ - More - ACL's, User Authentication, Server-less apps and more. 
 
 #Running the server
 

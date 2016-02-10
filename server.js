@@ -2,7 +2,6 @@ var express = require('express');
 global.request = require('request');
 var pjson = require('./package.json');
 var fs = require('fs');
-global.grex = require('grex');
 
 try{
   global.config = require('./config/cloudboost');
