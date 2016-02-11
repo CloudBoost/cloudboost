@@ -210,7 +210,7 @@ function attachAPI() {
         require('./api/file/File.js')();
         require('./api/queue/Queue.js')();
         require('./api/cache/Cache.js')();
-        require('./api/server/server.js')();
+        require('./api/server/Server.js')();
 
         console.log('+++++++++++ API Status : OK ++++++++++++++++++');
 
