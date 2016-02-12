@@ -32,7 +32,28 @@ var bodyParser = require('body-parser');
 var cookies = require("cookies");
 var session = require('express-session');
 global.app = express();
-var http = require('http').Server(global.app);
+
+var http = null;
+try{
+  if(fs.statSync('./config/key.pem').isFile() && fs.statSync('./config/key-cert.pem').isFile() ){
+    //use https
+    console.log("Running on HTTPS protocol.");
+    var httpsOptions = {
+      key: fs.readFileSync('./config/key.pem'),
+      cert: fs.readFileSync('./config/key-cert.pem')
+    };
+
+    http = require('https').Server(httpsOptions, global.app);
+  
+  }else{
+    console.log("Running on HTTP protocol.");
+    http = require('http').createServer(global.app);
+  }
+}catch(e){
+  console.log("Running on HTTP protocol.");
+  http = require('http').createServer(global.app);
+}
+
 require('./database-connect/cors.js')(); //cors!
 var io = require('socket.io')(http);
 var multer = require('multer');
