@@ -35,12 +35,12 @@ global.app = express();
 
 var http = null;
 try{
-  if(fs.statSync('./config/key.pem').isFile() && fs.statSync('./config/key-cert.pem').isFile() ){
+  if(fs.statSync('./config/cert.crt').isFile() && fs.statSync('./config/key.key').isFile() ){
     //use https
     console.log("Running on HTTPS protocol.");
     var httpsOptions = {
-      key: fs.readFileSync('./config/key.pem'),
-      cert: fs.readFileSync('./config/key-cert.pem')
+      key: fs.readFileSync('./config/key.key'),
+      cert: fs.readFileSync('./config/cert.crt')
     };
 
     http = require('https').Server(httpsOptions, global.app);
