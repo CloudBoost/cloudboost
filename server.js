@@ -34,6 +34,7 @@ var session = require('express-session');
 global.app = express();
 
 var http = null;
+var https = null;
 try{
   if(fs.statSync('./config/cert.crt').isFile() && fs.statSync('./config/key.key').isFile() ){
     //use https
@@ -43,18 +44,16 @@ try{
       cert: fs.readFileSync('./config/cert.crt')
     };
 
-    http = require('https').Server(httpsOptions, global.app);
+    https = require('https').Server(httpsOptions, global.app);
   
-  }else{
-    console.log("Running on HTTP protocol.");
-    http = require('http').createServer(global.app);
   }
 }catch(e){
-  console.log("Running on HTTP protocol.");
-  console.log("HTTPS Error : ");
+  console.log("HTTPS Protocol Error : ");
   console.log(e);
-  http = require('http').createServer(global.app);
+  console.log("Switching ONLY to HTTP...");
 }
+
+http = require('http').createServer(global.app);
 
 require('./database-connect/cors.js')(); //cors!
 var io = require('socket.io')(http);
@@ -301,8 +300,13 @@ http.listen(app.get('port'), function () {
         console.log("ERROR : Server init error.");
         console.log(e);
     }
-
 });
+
+if(https){
+    http.listen(4731, function () {
+        console.log("HTTPS Server started.");
+    });
+}
 
 //this fucntion add connections to the DB.
 function addConnections(){ 
