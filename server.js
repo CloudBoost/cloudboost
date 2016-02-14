@@ -371,9 +371,6 @@ function setUpRedis(){
             }
        }
    }
-  
-   console.log("Redis Connection String");
-   console.log(hosts);
    
    if(isCluster){
         global.redisClient = new Redis.Cluster(hosts);
@@ -438,9 +435,6 @@ function setUpElasticSearch(){
        }
       
    } 
-   
-   console.log("Elastic Search Connection String");
-   console.log(global.keys.elasticSearch);
 }
 
 function setUpMongoDB(){
@@ -518,9 +512,6 @@ function setUpMongoDB(){
        global.keys.prodSchemaConnectionString+=str;
        global.keys.mongoConnectionString+=str;
    }
-
-   console.log("Mongo Global DB : "+global.keys.prodSchemaConnectionString);
-   console.log("Mongo DB Server: "+global.keys.mongoConnectionString);
    
    var mongoose = require('./database-connect/schemaDb')();
 
