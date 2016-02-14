@@ -48,7 +48,7 @@ try{
   
   }
 }catch(e){
-  console.log("HTTPS Protocol Error : ");
+  console.log("SSL Certificate not found or is invalid.");
   console.log(e);
   console.log("Switching ONLY to HTTP...");
 }
@@ -303,7 +303,7 @@ http.listen(app.get('port'), function () {
 });
 
 if(https){
-    http.listen(4731, function () {
+    https.listen(4731, function () {
         console.log("HTTPS Server started.");
     });
 }
