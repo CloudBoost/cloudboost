@@ -51,6 +51,8 @@ try{
   }
 }catch(e){
   console.log("Running on HTTP protocol.");
+  console.log("HTTPS Error : ");
+  console.log(e);
   http = require('http').createServer(global.app);
 }
 
