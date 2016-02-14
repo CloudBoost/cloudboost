@@ -950,55 +950,53 @@ function _encryptPasswordInQuery(appId, collectionName, query){
 
     var deferred = global.q.defer();
 
-    if(collectionName === 'File'){
+    if(collectionName === '_File'){
         deferred.resolve(query);
+    }else{
+        _getSchema(appId, collectionName).then(function (columns) {
+            var passwordColumnNames = [];
+            
+            for (var i = 0; i < columns.length; i++) {
+                if (columns[i].dataType === 'EncryptedText') { 
+                    passwordColumnNames.push(columns[i].name);
+                }
+            }
+            
+            //resolve if there are no password fields. 
+            if (passwordColumnNames.length === 0) {
+                deferred.resolve(query);
+            } else {
+                //or modify the query and resolve it. 
+                function _recursiveEncryptQuery(query, passwordColumnNames) {
+                    
+                    for (var key in query) {
+                        if (key === '$or') {
+                            for (var i = 0; i < query[key].length; i++) { 
+                                query[key][i] = _recursiveEncryptQuery(query[key][i], passwordColumnNames);
+                            }
+                            
+                        }
+                    }     
+                    
+                    return _.mapObject(query, function (val, key) {
+                        if (passwordColumnNames.indexOf(key) > -1) {
+                            if (typeof val !== 'object') {
+                                return _encrypt(val);
+                            }
+                        }
+                        return val;
+                    });
+                }
+                
+                query = _recursiveEncryptQuery(query, passwordColumnNames);
+                
+                deferred.resolve(query);
+            }
+        }, function (error) {
+            deferred.reject(error);
+        });    
     }
-
-    _getSchema(appId, collectionName).then(function (columns) {
-        var passwordColumnNames = [];
-        
-        for (var i = 0; i < columns.length; i++) {
-            if (columns[i].dataType === 'EncryptedText') { 
-                passwordColumnNames.push(columns[i].name);
-            }
-        }
-        
-        //resolve if there are no password fields. 
-        if (passwordColumnNames.length === 0) {
-            deferred.resolve(query);
-        } else {
-            
-            //or modify the query and resolve it. 
-            function _recursiveEncryptQuery(query, passwordColumnNames) {
-                
-                for (var key in query) {
-                    if (key === '$or') {
-                        for (var i = 0; i < query[key].length; i++) { 
-                            query[key][i] = _recursiveEncryptQuery(query[key][i], passwordColumnNames);
-                        }
-                        
-                    }
-                }     
-                
-                return _.mapObject(query, function (val, key) {
-                    if (passwordColumnNames.indexOf(key) > -1) {
-                        if (typeof val !== 'object') {
-                            return _encrypt(val);
-                        }
-                    }
-                    return val;
-                });
-            }
-            
-            query = _recursiveEncryptQuery(query, passwordColumnNames);
-
-            
-            deferred.resolve(query);
-        }
-    }, function (error) {
-        deferred.reject(error);
-    });
-
+    
     return deferred.promise;
 }
 

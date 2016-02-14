@@ -14,6 +14,12 @@ module.exports = function (){
             global.cacheService.put(appId, cacheName, key, item).then(function(item){
                 console.log('+++ PUT Success +++');
                 console.log(item);
+                
+                //convert number to string because express res.send() considers sending numbber as HTTP Status Code
+                if(typeof item === "number"){
+                    item = item.toString();
+                }
+                
                 res.status(200).send(item);
             }).catch(function(err){
                 console.log('++++++ PUT Error +++++++');
