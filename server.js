@@ -338,15 +338,21 @@ function addConnections(){
 }
 
 function setUpAnalytics(){
-     if(process.env["CLOUDBOOST_ANALYTICS_SERVICE_HOST"]){
-           //this is running on Kubernetes
-           console.log("CloudBoost Analytics is running on Kubernetes");
-           global.keys.analyticsUrl = "http://"+process.env["CLOUDBOOST_ANALYTICS_SERVICE_HOST"]+":"+process.env["CLOUDBOOST_ANALYTICS_SERVICE_PORT"];
-           console.log(global.keys.analyticsUrl);
-       }else{
-           console.log("Analytics URL : ");
-           console.log(global.keys.analyticsUrl);
-       }
+    if(!global.config){
+        if(process.env["CLOUDBOOST_ANALYTICS_SERVICE_HOST"]){
+            //this is running on Kubernetes
+            console.log("CloudBoost Analytics is running on Kubernetes");
+            global.keys.analyticsUrl = "http://"+process.env["CLOUDBOOST_ANALYTICS_SERVICE_HOST"]+":"+process.env["CLOUDBOOST_ANALYTICS_SERVICE_PORT"];
+            console.log(global.keys.analyticsUrl);
+        }else{
+            console.log("Analytics URL : ");
+            console.log(global.keys.analyticsUrl);
+        }
+    }else{
+        global.keys.analyticsUrl = "http://localhost:5555";
+        console.log("Analytics URL : ");
+        console.log(global.keys.analyticsUrl);
+    }
 }
 
 function setUpRedis(){
