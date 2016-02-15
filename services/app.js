@@ -8,6 +8,7 @@ var util = require('../helpers/util.js');
 module.exports = function() {
 
 	return {
+        
 		getApp: function(appId) {
 			var deferred = q.defer();
 			//check redis cache first. 

@@ -3,7 +3,7 @@
 ## Code of Conduct
 
 The Code of Conduct explains the *bare minimum* behavior
-expectations the Node Foundation requires of its contributors.
+expectations the CloudBoost requires of its contributors.
 [Please read it before participating.](./CODE_OF_CONDUCT.md)
 
 ## Issue Contributions

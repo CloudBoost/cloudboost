@@ -2,7 +2,12 @@ var util = require('../../helpers/util.js');
 
 module.exports = function() {
 
-    global.app.post('/server/url', function(req, res) { //get the app object containing keys
+    //Description : Used to change server URL form localhost to any DNS. 
+    //Params : secureKey : Used to validate the request. 
+    //         url : New Server URL. 
+    //Returns : 200 - success
+    //            400 - Invalid URL, 401 - Unauthoroized, 500 - Internal Server Error.     
+    global.app.post('/server/url', function(req, res) {
         try {
             console.log("++++ Change Server URL ++++++");
             console.log("New URL : "+req.body.url);

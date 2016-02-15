@@ -5,7 +5,7 @@ module.exports = function (){
         cacheAppPrefix : 'app',
         cacheSchemaPrefix: 'schema',
         schemaExpirationTimeFromCache: 86400, 
-        analyticsUrl: 'https://analytics.cloudboost.io/api/store',
+        analyticsUrl: 'https://analytics.cloudboost.io',
         globalDb : "_GLOBAL",
         globalSettings : "_Settings",
         analyticsKey : "109eb359-3d22-4165-9e21-21439637f975",

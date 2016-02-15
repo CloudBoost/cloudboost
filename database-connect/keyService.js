@@ -6,7 +6,8 @@ var uuid = require('node-uuid');
 module.exports = {
         initSecureKey : function () {
             try {
-
+                var deferred = q.defer();
+                
                 console.log("Initializing Secure Key...");
 
                 var key = null;
@@ -17,8 +18,6 @@ module.exports = {
                 } else {
 
                     //get it from mongodb, If does not exist, create a new random key and return;
-                    var deferred = q.defer();
-
                     var collection = global.mongoClient.db(global.keys.globalDb).collection(global.keys.globalSettings);
 
                     collection.find({}).toArray(function (err, docs) {

@@ -78,6 +78,7 @@ global.userService = null;
 global.appService = null;
 global.fileService = null;
 global.queueService = null;
+global.serverService = null;
 
 global.mongoUtil = null;
 global.elasticSearchUtil = null;
@@ -117,11 +118,11 @@ global.app.use(function(req,res,next){
    }
 });
 
-global.app.use(['/file/:appId', '/data/:appId', '/user/:appId','/cache/:appId', '/queue/:appId'], function (req, res, next) {
+global.app.use(['/file/:appId', '/data/:appId','/app/:appId/:tableName','/user/:appId','/cache/:appId', '/queue/:appId'], function (req, res, next) {
  	 //This is the Middleware for authenticating the app access using appID and key
  	 //check if all the services are loaded first.
 
-     if(!customService || !mongoService || !userService || !roleService || !appService || !fileService || !cacheService){
+     if(!customService || !serverService || !mongoService || !userService || !roleService || !appService || !fileService || !cacheService){
          return res.status(400).send("Services Not Loaded");
      }
 
@@ -143,12 +144,23 @@ global.app.use(['/file/:appId', '/data/:appId', '/user/:appId','/cache/:appId', 
  		if (!appKey) {
  			return res.status(401).send("Error : Key not found.");
  		} else {
- 			global.appService.isKeyValid(appId, appKey).then(function(result) {
- 				if (!result) {
+            //check if app is in the plan. 
+            var promises = [];
+            promises.push(global.apiTracker.isInPlanLimit(appId));
+            promises.push(global.appService.isKeyValid(appId, appKey));
+ 			global.q.all(promises).then(function(result) {
+                var isAppKeyValid = result[1];
+                var isInPlan = result[0];
+                if(!isInPlan){
+                    return res.status(402).send("Reached Plan Limit. Upgrade Plan.");
+                }
+                
+ 				if (!isAppKeyValid) {
  					return res.status(401).send("App ID or App Key is invalid.");
  				} else {
  					next();
  				}
+                
  			}, function(err) {
                  global.winston.log('error',err);
  				return res.status(500).send(err.message);
@@ -210,6 +222,7 @@ function attachServices() {
         global.queueService = require('./services/queue.js')();
         global.fileService = require('./services/file.js')();
         global.cacheService = require('./services/cache.js')();
+        global.serverService = require('./services/server.js')();
         console.log('+++++++++++ Services Status : OK. ++++++++++++++++++');
     }catch(e){
         console.log("FATAL : Cannot attach services");
@@ -320,12 +333,24 @@ function addConnections(){
    setUpRedis();
    //ELASTIC SEARCH
    setUpElasticSearch();
+   //ANALYTICS.
+   setUpAnalytics();
+}
+
+function setUpAnalytics(){
+     if(process.env["CLOUDBOOST_ANALYTICS_SERVICE_HOST"]){
+           //this is running on Kubernetes
+           console.log("CloudBoost Analytics is running on Kubernetes");
+           global.keys.analyticsUrl = "http://"+process.env["CLOUDBOOST_ANALYTICS_SERVICE_HOST"]+":"+process.env["CLOUDBOOST_ANALYTICS_SERVICE_PORT"];
+           console.log(global.keys.analyticsUrl);
+       }else{
+           console.log("Analytics URL : ");
+           console.log(global.keys.analyticsUrl);
+       }
 }
 
 function setUpRedis(){
    //Set up Redis.
- 
-
    if(!global.config && !process.env["REDIS_1_PORT_6379_TCP_ADDR"] && !process.env["REDIS_SENTINEL_SERVICE_HOST"]){
       console.error("FATAL : Redis Cluster Not found. Use docker-compose from https://github.com/cloudboost/docker or Kubernetes from https://github.com/cloudboost/kubernetes");
    }
@@ -538,7 +563,17 @@ function servicesKickstart() {
         try{
             global.mongoClient = db;
             //Init Secure key for this cluster. Secure key is used for Encryption / Creating apps , etc.
-            global.keyService.initSecureKey();
+            global.keyService.initSecureKey().then(function(key){
+                console.log("Registering Cluster...");
+                global.serverService.registerServer(key).then(function(){
+                    console.log("Cluster Registered.");
+                }, function(error){
+                    console.log("Cluster registration failed.");
+                    console.log(error);
+                });
+            }, function(error){
+                console.log("Failed to register the cluster.");  
+            });
             //Cluster Key is used to differentiate which cluster is the request coming from in Analytics.
             global.keyService.initClusterKey();
             attachServices();
