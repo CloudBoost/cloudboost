@@ -152,7 +152,9 @@ global.app.use(['/file/:appId', '/data/:appId','/app/:appId/:tableName','/user/:
                 var isAppKeyValid = result[1];
                 var isInPlan = result[0];
                 if(!isInPlan){
-                    return res.status(402).send("Reached Plan Limit. Upgrade Plan.");
+                    res.status(402).send("Reached Plan Limit. Upgrade Plan.");
+                    //check if the appIsReleased. 
+                    global.apiTracker.log(appId, "isReleased/isReleased","","JavaScript",true);
                 }
                 
  				if (!isAppKeyValid) {

@@ -3,58 +3,58 @@ var q = require('q');
 
 module.exports = function (){
     var obj={};
-    obj.log = function(appId, actionName, url,sdk){     
-            global.keyService.getMyUrl().then(function (url) { 
-                var post_data = JSON.stringify({
-                    host : global.keys.secureKey,
-                    appId : appId, 
-                    category : actionName.split('/')[0] || null,
-                    subCategory : actionName.split('/')[1] || null,
-                    sdk : sdk || "REST"
-                });
-                
-                global.request.post({
-                    url: global.keys.analyticsUrl+"/api/store", 
-                    headers: {
-                        'content-type': 'application/json',
-                        'content-length': post_data.length
-                    },
-                    body: post_data
-                }, function (err,response,body){
-                    if(!err){
-                        try{
-                            var body = JSON.parse(body);
-                            if(body.limitExceeded){
-                                obj.blockApp(body.appId).then(function(){
-                                    console.log("App blocked because it exceededthe current plan. ");
-                                }, function(error){
-                                    console.log("App Block Error");
-                                    console.log(error);
-                                });
-                            }else{
-                                obj.releaseApp(body.appId).then(function(){
-                                    console.log("App released.");
-                                }, function(error){
-                                    console.log("App Release Error");
-                                    console.log(error);
-                                });
-                            }
-                        }catch(e){
-                            obj.releaseApp(body.appId).then(function(){
-                                console.log("App released.");
-                            }, function(error){
-                                console.log("App Release Error");
-                                console.log(error);
-                            });
-                        }
-                       
+    obj.log = function(appId, actionName, url,sdk, checkReleaseRequest){     
+        var url = null;
+        if(checkReleaseRequest){
+            url: global.keys.analyticsUrl+"/app/isReleased"
+        }else{
+            url= global.keys.analyticsUrl+"/api/store";
+        } 
+        var post_data = JSON.stringify({
+            host : global.keys.secureKey,
+            appId : appId, 
+            category : actionName.split('/')[0] || null,
+            subCategory : actionName.split('/')[1] || null,
+            sdk : sdk || "REST"
+        });
+        
+        global.request.post({
+            url: url, 
+            headers: {
+                'content-type': 'application/json',
+                'content-length': post_data.length
+            },
+            body: post_data
+        }, function (err,response,body){
+            if(!err){
+                try{
+                    var body = JSON.parse(body);
+                    if(body.limitExceeded){
+                        obj.blockApp(body.appId).then(function(){
+                            console.log("App blocked because it exceededthe current plan. ");
+                        }, function(error){
+                            console.log("App Block Error");
+                            console.log(error);
+                        });
+                    }else{
+                        obj.releaseApp(body.appId).then(function(){
+                            console.log("App released.");
+                        }, function(error){
+                            console.log("App Release Error");
+                            console.log(error);
+                        });
                     }
-                });
-
-            }, function (error) { 
-                console.log("The Application URL not found.");
-                console.log(error);
-            });
+                }catch(e){
+                    obj.releaseApp(body.appId).then(function(){
+                        console.log("App released.");
+                    }, function(error){
+                        console.log("App Release Error");
+                        console.log(error);
+                    });
+                }
+                
+            }
+        });
     };
     
     //Description : Checks weather the current app is in the Plan Limit. 
