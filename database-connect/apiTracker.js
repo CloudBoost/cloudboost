@@ -6,7 +6,7 @@ module.exports = function (){
     obj.log = function(appId, actionName, url,sdk, checkReleaseRequest){     
         var url = null;
         if(checkReleaseRequest){
-            url: global.keys.analyticsUrl+"/app/isReleased"
+            url= global.keys.analyticsUrl+"/app/isReleased";
         }else{
             url= global.keys.analyticsUrl+"/api/store";
         } 
