@@ -25,10 +25,12 @@
     "grunt-bumpup": "^0.6.2",
     "grunt-env": "^0.4.4",
     "ioredis": "^1.13.0",
+    "jimp": "^0.2.21",
     "mongodb": "^2.0.20",
     "mongoose": "^4.2.4",
     "multer": "^0.1.8",
     "node-uuid": "^1.4.7",
+    "nodemailer": "^2.1.0",
     "q": "^2.0.3",
     "request": "^2.55.0",
     "should": "^4.6.5",
@@ -37,7 +39,6 @@
     "underscore": "^1.7.0",
     "uuid": "^2.0.1",
     "winston": "^1.1.2",
-    "winston-loggly": "^1.1.0",
-    "jimp": "^0.2.21"
+    "winston-loggly": "^1.1.0"
   }
 }

@@ -9,29 +9,32 @@ module.exports = function() {
 	return {
 
 		upload: function(appId,filePath,fileObj) {
-
 			console.log('+++++ In File Upload Service ++++++++');
 			var deferred = q.defer();
             var promises = [];
             var newFileName ='';
-            if(!fileObj._id){
-                fileObj._id = util.getId();
-                fileObj._version = 0;
-                newFileName = fileObj._id+fileObj.name.slice(fileObj.name.indexOf('.'),fileObj.name.length);
-                fileObj.url = global.keys.fileUrl + appId + "/" + fileObj._id+fileObj.name.slice(fileObj.name.indexOf('.'),fileObj.name.length);
-                console.log("File URL : ");
-                console.log(fileObj.url);
-            }else{
-                fileObj._version = fileObj._version+1;
-            }
-            promises.push(_saveFile(appId, filePath,fileObj._id));
-            promises.push(_saveFileObj(appId,fileObj));
-            global.q.all(promises).then(function(array){
-                deferred.resolve(array[1]);
-            },function(err){
-               deferred.reject(err);
+            global.keyService.getMyUrl().then(function(url){
+                if(!fileObj._id){
+                    fileObj._id = util.getId();
+                    fileObj._version = 0;
+                    newFileName = fileObj._id+fileObj.name.slice(fileObj.name.indexOf('.'),fileObj.name.length);
+                    fileObj.url = url+"/file/"+appId + "/" + fileObj._id+fileObj.name.slice(fileObj.name.indexOf('.'),fileObj.name.length);
+                    console.log("File URL : ");
+                    console.log(fileObj.url);
+                }else{
+                    fileObj._version = fileObj._version+1;
+                }
+                promises.push(_saveFile(appId, filePath,fileObj._id));
+                promises.push(_saveFileObj(appId,fileObj));
+                global.q.all(promises).then(function(array){
+                    deferred.resolve(array[1]);
+                },function(err){
+                deferred.reject(err);
+                });
+            }, function(error){
+                 deferred.reject(error);
             });
-
+            
 			return deferred.promise;
 		},
 

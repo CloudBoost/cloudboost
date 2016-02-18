@@ -29,6 +29,24 @@ module.exports = function() {
 
 			return deferred.promise;
 		},
+        
+        resetPassword: function(appId, email, accessList, isMasterKey){
+            var deferred = q.defer();
+			global.customService.findOne(appId, Collections.User, {
+				email: email
+			},null,null,null,accessList, isMasterKey).then(function(user) {
+				if (!user) {
+					deferred.reject("User with email "+email+" not found.");
+					return;
+				}
+
+                //Send an email to reset user password here. 
+                
+			}, function(error) {
+				deferred.reject(error);
+			});
+			return deferred.promise;
+        },
 
 		signup: function(appId, document, accessList, isMasterKey) {
 			var deferred = q.defer();

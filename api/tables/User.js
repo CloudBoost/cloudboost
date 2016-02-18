@@ -83,6 +83,42 @@ module.exports = function() {
         global.apiTracker.log(appId,"User / Logout", req.url,sdk);
     });
     
+     /**
+     * User Reset Password 
+     */
+
+	global.app.post('/user/:appId/resetPassword', function(req, res) { //for logging user out
+        var appId = req.params.appId || null;
+        var email = req.body.email || null;
+		var sdk = req.body.sdk || "REST";
+        
+        if(!email){
+            return res.status(400).json({
+				"message": "Email not found."
+			});
+        }
+        
+		if (req.session.loggedIn === true) {
+            return res.status(400).json({
+				"message": "Password cannot be reset because the user is already logged in."
+			});
+ 		} 
+         
+        global.appService.isMasterKey(appId,appKey).then(function(isMasterKey){
+            return global.userService.resetPassword(appId, email, customHelper.getAccessList(req), isMasterKey)
+        }).then(function(result) {
+            res.status(200).json({
+				"message": "Password reset email sent."
+			});
+        }, function(error) {
+            res.json(400, {
+                error: error
+            });
+        });
+		
+        global.apiTracker.log(appId,"User / ResetPassword", req.url,sdk);
+    });
+    
     /**
      * Add To Role Api 
      */
@@ -127,6 +163,7 @@ module.exports = function() {
 				error: error
 			});
 		});
+        
         global.apiTracker.log(appId,"User / Role / Remove", req.url,sdk);
 	});
 

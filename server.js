@@ -48,8 +48,7 @@ try{
   
   }
 }catch(e){
-  console.log("SSL Certificate not found or is invalid.");
-  console.log(e);
+  console.log("INFO : SSL Certificate not found or is invalid.");
   console.log("Switching ONLY to HTTP...");
 }
 
