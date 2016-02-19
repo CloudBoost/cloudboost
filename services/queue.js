@@ -293,7 +293,7 @@ module.exports = function () {
                     var promises = [];
                     
                     for(var i=0; i<result.length;i++){
-                        promises.push(global.mongoService.document.count(appId, "_QueueMessage", {_queueName:result[i].name },9999999, 0, accessList, isMasterKey));
+                        promises.push(global.mongoService.document.count(appId, "_QueueMessage", {_queueName:result[i].name, $or : [{ "expires" : { $gte: new Date() } }, { "expires": null }] },9999999, 0, accessList, isMasterKey));
                     }
                     
                     q.all(promises).then(function(messageCounts){
