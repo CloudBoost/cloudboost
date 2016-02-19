@@ -547,13 +547,22 @@ function _checkDataTypeUtil(data, datatype, columnName,  tableName){
         isValid = false;
     }
 
-    if(data && datatype === 'Email' && typeof data !== 'string' && util.isEmailValid(data)){
+    if(data && datatype === 'Email' && typeof data !== 'string'){
         isValid = false;
     }
-
-    if(data && datatype === 'URL' && typeof data !== 'string' && util.isUrlValid(data)){
+    
+    if(data && datatype === 'Email' && typeof data === 'string' && !util.isEmailValid(data)){
+        isValid = false;
+    }   
+    
+    if(data && datatype === 'URL' && typeof data !== 'string'){
         isValid = false;
     }
+    
+    if(data && datatype === 'URL' && typeof data === 'string' && !util.isUrlValid(data)){
+        isValid = false;
+    }
+    
 
     if(data && datatype === 'EncryptedText' && typeof data !== 'string'){
         isValid = false;
