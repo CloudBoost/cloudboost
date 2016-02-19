@@ -26,15 +26,19 @@ module.exports = function () {
             delete document.messages;
             
             //find the queue in the queue collection. 
-            
             _getOrCreateQueue(appId, document, accessList, isMasterKey).then(function (queue) {
                 for (var i = 0; i < messages.length; i++) {
                     if (!messages[i]._id)
                         messages[i]._id = util.getId();
                     messages[i]._tableName = "_QueueMessage";
                     messages[i]._queueName = queue.name;
+                    
                     if (!messages[i].createdAt) {
                         messages[i].createdAt = new Date();
+                    }
+                    
+                    if (messages[i].expires && typeof new Date() !== typeof messages[i].expires) {
+                        messages[i].expires = new Date(messages[i].expires);
                     }
                     
                     messages[i].updatedAt = new Date();
@@ -199,6 +203,7 @@ module.exports = function () {
                     aggregate.push({ "$match": { $or : [{ "availableBy" : { $lte: new Date() } }, { "availableBy": null }] } });
                     aggregate.push({ "$project" : { delayedTo: { $add: ["$createdAt", "$delay"] }, _type : 1, expires : 1, ACL: 1, timeout: 1, availableBy: 1, delay : 1, message: 1, _tableName : 1, _queueName : 1, createdAt: 1, updatedAt: 1 } });
                     aggregate.push({ "$match" : { $or : [{ "delayedTo" : { $lte: new Date() } }, { "delayedTo": null }] } });
+                    aggregate.push({ "$match" : { $or : [{ "expires" : { $gte: new Date() } }, { "expires": null }] } });
                     aggregate.push({ $sort: { "createdAt": 1 } });
            
                     global.mongoService.document.aggregate(appId, "_QueueMessage", aggregate, count, 0, accessList, isMasterKey).then(function (result) {
@@ -206,7 +211,6 @@ module.exports = function () {
                             deferred.resolve(null);
                         } else {
                             //update message
-                            
                             if (!result[0].timeout)
                                 result[0].timeout = 1800; //30 mins. 
                             
@@ -284,9 +288,27 @@ module.exports = function () {
             //first get the queue. 
             global.mongoService.document.find(appId, "_Queue", { }, null, null, 9999999, 0, accessList, isMasterKey).then(function (result) {
                 if (result.length === 0) {
-                    deferred.reject(null);
+                    deferred.resolve(null);
                 } else {
-                    deferred.resolve(result);
+                    var promises = [];
+                    
+                    for(var i=0; i<result.length;i++){
+                        promises.push(global.mongoService.document.count(appId, "_QueueMessage", {_queueName:result[i].name },9999999, 0, accessList, isMasterKey));
+                    }
+                    
+                    q.all(promises).then(function(messageCounts){
+                        
+                        for(var i=0;i<messageCounts.length;i++){
+                            result[i].size = messageCounts[i];
+                        }
+                        
+                        deferred.resolve(result);
+                        
+                    }, function(error){
+                        deferred.reject("Failed to retrieve queues.");
+                    });
+                    
+                   
                 }
             }, function (error) {
                 deferred.reject(error);
@@ -456,12 +478,12 @@ module.exports = function () {
             
             global.mongoService.document.find(appId, "_Queue", { name : document.name }, null, null, 1, 0, accessList, true).then(function (result) {
                 if (result.length === 0) {
-                    deferred.reject("Queue does not exists.");
+                    deferred.resolve(document);
                 } else {
                     if (customHelper.checkWriteAcl(appId, result[0], accessList, isMasterKey)) {
                         global.mongoService.document.deleteByQuery(appId, "_QueueMessage", { _queueName : document.name }).then(function (deleteResult) {
                             if (deleteResult.n === 0) {
-                                deferred.resolve(null);
+                                deferred.resolve(document);
                             } else {
                                 deferred.resolve(document);
                             }
@@ -640,6 +662,8 @@ module.exports = function () {
                     document.createdAt = new Date();
                     document.updatedAt = new Date();
                 }
+                
+                delete document.size;
                     
                 global.mongoService.document.save(appId, [{ document: document }]).then(function (result) {
                     if (result.length > 0) {
@@ -674,10 +698,9 @@ module.exports = function () {
         }, function (err) {
             deferred.reject(err);
         });
-        
+           
         return deferred.promise;
     }
-    
 };
 
 //Cron Job : Cron job at /cron/pushQueue.js

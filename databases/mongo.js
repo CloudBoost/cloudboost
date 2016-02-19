@@ -700,27 +700,11 @@ module.exports = function() {
             collection.remove(query, {
                 w: 1 //returns the number of documents removed
             }, function (err, doc) {
-                if (err || doc.result.n === 0) {
-                    if (doc.result.n === 0) {
-                        err = {
-                            "code": 401,
-                            "message": "You do not have permission to delete"
-                        };
-                        global.winston.log('error', err);
-                        deferred.reject(err);
-                    }
-                }
                 if (err) {
                     global.winston.log('error', err);
                     deferred.reject(err);
-                } else if (doc.result.n !== 0) {
-                    deferred.resolve(doc.result);
-                } else {
-                    deferred.reject({
-                        "code": 500,
-                        "message": "Server Error"
-                    })
-                }
+                } 
+                deferred.resolve(doc.result);
             });
             
             return deferred.promise;
