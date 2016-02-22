@@ -1,7 +1,7 @@
 {
   "server" : "smtp.zoho.com",
-  "username": "no-reply@cloudboost.io",
-  "password":"WhiteHouse123",
+  "username": "hello@cloudboost.io",
+  "password":"CloudBoost123",
   "smtps":true,
-  "from":"CloudBoost <no-reply@cloudboost.io>"
+  "from":"CloudBoost <hello@cloudboost.io>"
 }

@@ -248,9 +248,11 @@ module.exports = function() {
                  select["_type"] = 1;
                  select["expires"] = 1;
             }
+            
             if (!sort) {
                 sort = {};
             }
+            
             if (!limit || limit === -1) {
                 limit = 20;
             }

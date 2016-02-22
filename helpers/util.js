@@ -1,8 +1,12 @@
+var URL = require('url');
+
 module.exports = {
 	
 	isUrlValid : function(data){
-        var pattern = '[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)'; // fragment locator
-        return pattern.test(data);
+            var obj = URL.parse(data);
+            if(!obj.protocol || !obj.hostname)
+                return false;
+            return true;
 	},
 
 	isEmailValid : function(data){

@@ -141,6 +141,75 @@ module.exports = function() {
         global.apiTracker.log(appId,"App / Table / Create", req.url,sdk);
 
     });
+    
+    //Settings for the App
+    global.app.put('/settings/:appId/:category',function(req,res){
+
+        console.log('++++++++ General App Settings API +++++++++');
+
+        var appId = req.params.appId;
+        var body = req.body || {};
+        var category = req.params.category;
+        var sdk = req.body.sdk || "REST";
+        var settings = req.body.settings || {};
+        var appKey = req.body.key || req.params.key;
+
+        global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
+            if(isMasterKey){
+                
+                if(global.mongoDisconnected || global.elasticDisconnected){
+                    return res.status(500).send('Storage / Search / Cache Backend are temporarily down.');
+                }
+                
+                global.appService.updateSettings(appId,category,settings).then(function(settings){
+                    return res.status(200).send(settings);
+                },function(err){
+                    return res.status(500).send('Error');
+                });
+                
+            }else{
+                return res.status(401).send({status : 'Unauthorized'});
+            }
+        }, function(error){
+            return res.status(500).send('Cannot retrieve security keys.');
+        });
+
+        global.apiTracker.log(appId,"App / Settings", req.url,sdk);
+
+    });
+    
+    global.app.post('/settings/:appId',function(req,res){
+
+        console.log('++++++++ General App Settings API +++++++++');
+
+        var appId = req.params.appId;
+        var body = req.body || {};
+        var sdk = req.body.sdk || "REST";
+        var appKey = req.body.key || req.params.key;
+
+        global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
+            if(isMasterKey){
+
+                if(global.mongoDisconnected || global.elasticDisconnected){
+                    return res.status(500).send('Storage / Search / Cache Backend are temporarily down.');
+                }
+
+                global.appService.getAllSettings(appId).then(function(settings){
+                    return res.status(200).send(settings);
+                },function(err){
+                    return res.status(500).send('Error');
+                });
+                
+            }else{
+                return res.status(401).send({status : 'Unauthorized'});
+            }
+        }, function(error){
+            return res.status(500).send('Cannot retrieve security keys.');
+        });
+
+        global.apiTracker.log(appId,"App / Settings", req.url,sdk);
+
+    });
 
     //get a table.
     global.app.post('/app/:appId/:tableName',_getTable);

@@ -1,4 +1,4 @@
-var express = require('express');
+global.express = require('express');
 global.request = require('request');
 var pjson = require('./package.json');
 var fs = require('fs');
@@ -31,7 +31,7 @@ global.uuid=require('uuid');
 var bodyParser = require('body-parser');
 var cookies = require("cookies");
 var session = require('express-session');
-global.app = express();
+global.app = global.express();
 
 var http = null;
 var https = null;
@@ -78,6 +78,7 @@ global.appService = null;
 global.fileService = null;
 global.queueService = null;
 global.serverService = null;
+global.mailService = null;
 
 global.mongoUtil = null;
 global.elasticSearchUtil = null;
@@ -203,6 +204,7 @@ global.app.use(function(req,res,next) {
 //Attach services -
 function attachServices() {
     try {
+        
         if(!global.mongoClient){
             console.log("Error : Could Not Attach Services Mongo DB not loaded.");
             return;
@@ -224,12 +226,13 @@ function attachServices() {
         global.fileService = require('./services/file.js')();
         global.cacheService = require('./services/cache.js')();
         global.serverService = require('./services/server.js')();
+        global.mailService = require('./services/mail.js')();
+        
         console.log('+++++++++++ Services Status : OK. ++++++++++++++++++');
     }catch(e){
         console.log("FATAL : Cannot attach services");
         console.log(e);
     }
-
 }
 
 
@@ -275,13 +278,16 @@ function attachAPI() {
 function ignoreUrl(requestUrl) {
 
 	var ignoreUrl = [ //for the routes to check whether the particular service is active/not
-		"/api/userService", "/api/customService", "/api/roleService", "/api/status", "/file","/api/createIndex"
+		"/api/userService", "/api/customService", "/api/roleService", "/api/status", "/file","/api/createIndex","/pages"
 	];
 
 	for (var i = 0; i < ignoreUrl.length; i++) {
 		if (requestUrl.indexOf(ignoreUrl[i]) >= 0) {
 			return true;
-		}
+		}else{
+            var arr = ignoreUrl[i].split("/");
+            
+        }
 	}
 
 	return false;

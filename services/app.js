@@ -8,6 +8,40 @@ var util = require('../helpers/util.js');
 module.exports = function() {
 
 	return {
+        updateSettings : function(appId, category, settings){
+            var deferred = q.defer();
+            global.mongoService.document.findOne(appId, "_Settings", {category:category}, null, null, 0, null, true).then(function(document){
+                if(!document){
+                    document = {};
+                    document._id = util.getId();
+                    document.category = category;
+                }
+                document.settings = settings;
+                document._tableName = "_Settings";
+
+                global.mongoService.document.save(appId, [{document: document}]).then(function(documents){
+                    deferred.resolve(documents[0].value);
+                }, function(error){
+                    deferred.reject(error);
+                });
+            }, function(error){
+                deferred.reject(error);
+            });
+
+            return deferred.promise;
+        },
+
+        getAllSettings : function(appId){
+            var deferred = q.defer();
+            //check redis cache first. 
+            global.mongoService.document.find(appId, "_Settings", {}, null, null, 9999, 0, null, true).then(function(documents){
+                deferred.resolve(documents);
+            }, function(error){
+                deferred.reject(error);
+            });
+
+            return deferred.promise;
+        },
         
 		getApp: function(appId) {
 			var deferred = q.defer();

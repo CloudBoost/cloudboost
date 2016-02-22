@@ -1,6 +1,9 @@
 var crypto = require('crypto');
 var q = require('q');
 var Collections = require('../database-connect/collections.js');
+var jsdom = require("jsdom");
+var fs = require("fs");
+
 
 module.exports = function() {
 
@@ -30,9 +33,41 @@ module.exports = function() {
 			return deferred.promise;
 		},
         
+        changePassword: function(appId, userId, oldPassword, newPassword, accessList, isMasterKey) {
+			var deferred = q.defer();
+			global.customService.findOne(appId, Collections.User, {
+				_id: userId
+			},null,null,null,accessList, isMasterKey).then(function(user) {
+				if (!user) {
+					deferred.reject('Invalid User');
+					return;
+                }
+
+				var encryptedPassword = crypto.pbkdf2Sync(oldPassword, global.keys.secureKey, 10000, 64).toString('base64');
+				if (encryptedPassword === user.password) { //authenticate user.
+					 user.password = crypto.pbkdf2Sync(newPassword, global.keys.secureKey, 10000, 64).toString('base64');
+				     global.customService.save(appId, Collections.User, user,accessList,isMasterKey).then(function(user) {
+                        deferred.resolve(user); 
+                     }, function(error) {
+                        deferred.reject(error);
+                     });
+                } else {
+					deferred.reject('Invalid Old Password');
+				}
+				
+			}, function(error) {
+				deferred.reject(error);
+            });
+
+			return deferred.promise;
+		},
+        
+        
+        
         resetPassword: function(appId, email, accessList, isMasterKey){
             var deferred = q.defer();
-			global.customService.findOne(appId, Collections.User, {
+			
+            global.customService.findOne(appId, Collections.User, {
 				email: email
 			},null,null,null,accessList, isMasterKey).then(function(user) {
 				if (!user) {
@@ -41,7 +76,73 @@ module.exports = function() {
 				}
 
                 //Send an email to reset user password here. 
+                var passwordResetKey = crypto.pbkdf2Sync(user.password, global.keys.secureKey, 10000, 64).toString('base64');
                 
+                fs.readFile('./mail-templates/reset-password.html', 'utf8', function(error, data) {
+                    
+                    if(error){
+                        deferred.reject("Cannot read the mail template");
+                    }else{
+                    
+                        jsdom.env(data, [], function (errors, window) {
+                             if(error){
+                                deferred.reject("Cannot parse mail template.");
+                             }else{
+                                var $ = require('jquery')(window);
+                            
+                                $("span[edit='link']").each(function () {
+                                    var content = "<a href='https://api.cloudboost.io/page/x/"+appId+"/reset-password?user="+user.username+"&resetKey="+passwordResetKey+"' class='btn-primary'>Change Password</a>";
+                                    $(this).html(content);
+                                });
+                                
+                                $("span[edit='username']").each(function () {
+                                    var content = user.name || user.firstName || user.firstname;
+                                    if(content)
+                                        $(this).text(content);
+                                });
+
+                                global.mailService.send(appId, email, "Reset your password.",null, window.document.documentElement.outerHTML, null).then(function(){
+                                    console.log("Mail sent successfully!");
+                                }, function(error){
+                                    console.log(error);
+                                }); 
+                                
+                                deferred.resolve();   
+                             }
+                        });
+                    }
+                });
+                
+			}, function(error) {
+				deferred.reject(error);
+			});
+			return deferred.promise;
+        },
+        
+        resetUserPassword: function(appId, email, newPassword, resetKey, accessList, isMasterKey){
+            var deferred = q.defer();
+			
+            global.customService.findOne(appId, Collections.User, {
+				email: email
+			},null,null,null,accessList, true).then(function(user) {
+				if (!user) {
+					deferred.reject("User with email "+email+" not found.");
+					return;
+				}
+
+                //Send an email to reset user password here. 
+                var passwordResetKey = crypto.pbkdf2Sync(user.password, global.keys.secureKey, 10000, 64).toString('base64');
+                
+                if(passwordResetKey === resetKey){
+                    user.password = crypto.pbkdf2Sync(newPassword, global.keys.secureKey, 10000, 64).toString('base64');
+                    global.customService.save(appId, Collections.User, document,accessList,true).then(function(user) {
+                        deferred.resolve(); //returns no. of items matched
+                    }, function(error) {
+                        deferred.reject(error);
+                    });
+                }else{
+                    deferred.reject("Reset Key is invalid.");
+                }
 			}, function(error) {
 				deferred.reject(error);
 			});
@@ -62,7 +163,7 @@ module.exports = function() {
 					deferred.resolve(user); //returns no. of items matched
 				}, function(error) {
 					deferred.reject(error);
-				})
+				});
 			}, function(error) {
 				deferred.reject(error);
 			});
