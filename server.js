@@ -346,10 +346,12 @@ function addConnections(){
 
 function setUpAnalytics(){
     if(!global.config){
-        if(process.env["CLOUDBOOST_ANALYTICS_SERVICE_HOST"]){
+        console.log("PROCESS ENV");
+        console.log(process.env);
+        if(process.env["CLOUDBOOST-ANALYTICS_SERVICE_HOST"]){
             //this is running on Kubernetes
             console.log("CloudBoost Analytics is running on Kubernetes");
-            global.keys.analyticsUrl = "http://"+process.env["CLOUDBOOST_ANALYTICS_SERVICE_HOST"]+":"+process.env["CLOUDBOOST_ANALYTICS_SERVICE_PORT"];
+            global.keys.analyticsUrl = "http://"+process.env["CLOUDBOOST-ANALYTICS_SERVICE_HOST"];
             console.log(global.keys.analyticsUrl);
         }else{
             console.log("Analytics URL : ");
