@@ -75,43 +75,50 @@ module.exports = function() {
 					return;
 				}
 
-                //Send an email to reset user password here. 
-                var passwordResetKey = crypto.pbkdf2Sync(user.password, global.keys.secureKey, 10000, 64).toString('base64');
-                
-                fs.readFile('./mail-templates/reset-password.html', 'utf8', function(error, data) {
+                global.keyService.getMyUrl().then(function(myUrl){
+                    //Send an email to reset user password here. 
+                    var passwordResetKey = crypto.createHmac('sha256', global.keys.secureKey)
+                                            .update(user.password)
+                                            .digest('hex');
                     
-                    if(error){
-                        deferred.reject("Cannot read the mail template");
-                    }else{
-                    
-                        jsdom.env(data, [], function (errors, window) {
-                             if(error){
-                                deferred.reject("Cannot parse mail template.");
-                             }else{
-                                var $ = require('jquery')(window);
-                            
-                                $("span[edit='link']").each(function () {
-                                    var content = "<a href='https://api.cloudboost.io/page/x/"+appId+"/reset-password?user="+user.username+"&resetKey="+passwordResetKey+"' class='btn-primary'>Change Password</a>";
-                                    $(this).html(content);
-                                });
-                                
-                                $("span[edit='username']").each(function () {
-                                    var content = user.name || user.firstName || user.firstname;
-                                    if(content)
-                                        $(this).text(content);
-                                });
+                    fs.readFile('./mail-templates/reset-password.html', 'utf8', function(error, data) {
+                        
+                        if(error){
+                            deferred.reject("Cannot read the mail template");
+                        }else{
+                            jsdom.env(data, [], function (errors, window) {
+                                if(error){
+                                    deferred.reject("Cannot parse mail template.");
+                                }else{
+                                    var $ = require('jquery')(window);
+                                    
+                                    $("span[edit='link']").each(function () {
+                                        var uri = encodeURI(myUrl+"/page/"+appId+"/reset-password?user="+user.username+"&resetKey="+passwordResetKey);
+                                        var content = "<a href='"+uri+"' class='btn-primary'>Change Password</a>";
+                                        $(this).html(content);
+                                    });
+                                    
+                                    $("span[edit='username']").each(function () {
+                                        var content = user.name || user.firstName || user.firstname;
+                                        if(content)
+                                            $(this).text(content);
+                                    });
 
-                                global.mailService.send(appId, email, "Reset your password.",null, window.document.documentElement.outerHTML, null).then(function(){
-                                    console.log("Mail sent successfully!");
-                                }, function(error){
-                                    console.log(error);
-                                }); 
-                                
-                                deferred.resolve();   
-                             }
-                        });
-                    }
+                                    global.mailService.send(appId, email, "Reset your password.",null, window.document.documentElement.outerHTML, null).then(function(){
+                                        console.log("Mail sent successfully!");
+                                    }, function(error){
+                                        console.log(error);
+                                    }); 
+                                    
+                                    deferred.resolve();   
+                                }
+                            });
+                        }
+                    });
+                }, function(error){
+                    deferred.reject(error);
                 });
+                
                 
 			}, function(error) {
 				deferred.reject(error);
@@ -131,11 +138,13 @@ module.exports = function() {
 				}
 
                 //Send an email to reset user password here. 
-                var passwordResetKey = crypto.pbkdf2Sync(user.password, global.keys.secureKey, 10000, 64).toString('base64');
+                var passwordResetKey = crypto.createHmac('sha256', global.keys.secureKey)
+                   .update(user.password)
+                   .digest('hex');
                 
                 if(passwordResetKey === resetKey){
                     user.password = crypto.pbkdf2Sync(newPassword, global.keys.secureKey, 10000, 64).toString('base64');
-                    global.customService.save(appId, Collections.User, document,accessList,true).then(function(user) {
+                    global.mongoService.document.save(appId,  [{document:user}]).then(function(user) {
                         deferred.resolve(); //returns no. of items matched
                     }, function(error) {
                         deferred.reject(error);

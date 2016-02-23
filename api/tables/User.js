@@ -136,7 +136,7 @@ module.exports = function() {
     * Reset Password : This API is used from CloudBoost Reset Password Page. 
     */
     
-    global.app.put('/page/:appId/reset-user-password', function(req, res) { //for logging user out
+    global.app.post('/page/:appId/reset-user-password', function(req, res) { 
         var appId = req.params.appId || null;
         var email = req.body.email || null;
 		var sdk = req.body.sdk || "REST";
@@ -149,10 +149,9 @@ module.exports = function() {
 			});
         }
             
-        global.appService.isMasterKey(appId,appKey).then(function(isMasterKey){
-            return global.userService.resetUserPassword(appId, email, newPassword, resetKey, customHelper.getAccessList(req), isMasterKey)
-        }).then(function(result) {
-            res.json(result);
+        global.userService.resetUserPassword(appId, email, newPassword, resetKey, customHelper.getAccessList(req), true)
+        .then(function(result) {
+            res.json({message : "Password changed successfully."});
         }, function(error) {
             res.json(400, {
                 error: error
