@@ -347,6 +347,8 @@ function addConnections(){
 function setUpAnalytics(){
     console.log("PROCESS ENV");
     console.log(process.env);
+    console.log("Global Config");
+    console.log(global.config);
     
     if(!global.config){    
         if(process.env["CLOUDBOOST-ANALYTICS_SERVICE_HOST"]){
