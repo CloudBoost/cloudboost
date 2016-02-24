@@ -3,7 +3,13 @@ var smtpConfig = null;
 var defaultTransporter = null;
 
 module.exports = function(){
-     try{
+         
+    
+    var obj = {};
+    
+    obj.send = function(appId, to, subject, text, html, from){
+            
+        try{
             console.log("In mail service");
             smtpConfig = require('../config/smtp.json');
             var transporterConnectionString = "";
@@ -20,11 +26,7 @@ module.exports = function(){
             console.log("Mail services disabled because SMTP Config not found or is invalid. Please add correct smtp.json in config to enable mail services."); 
             smtpConfig = null;
         }    
-    
-    var obj = {};
-    
-    obj.send = function(appId, to, subject, text, html, from){
-        
+                    
         console.log("Sending an email.");
         console.log("App ID : "+appId);
         console.log("To "+to);
