@@ -73,8 +73,11 @@ module.exports = function() {
 					deferred.reject("User with email "+email+" not found.");
 					return;
 				}
-
+                
+                console.log("User with "+email+" found");
+                
                 global.keyService.getMyUrl().then(function(myUrl){
+                    console.log("Server URL : "+myUrl);
                     //Send an email to reset user password here. 
                     var passwordResetKey = crypto.createHmac('sha256', global.keys.secureKey)
                                             .update(user.password)
