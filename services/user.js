@@ -46,15 +46,14 @@ module.exports = function() {
 				var encryptedPassword = crypto.pbkdf2Sync(oldPassword, global.keys.secureKey, 10000, 64).toString('base64');
 				if (encryptedPassword === user.password) { //authenticate user.
 					 user.password = crypto.pbkdf2Sync(newPassword, global.keys.secureKey, 10000, 64).toString('base64');
-				     global.customService.save(appId, Collections.User, user,accessList,isMasterKey).then(function(user) {
-                        deferred.resolve(user); 
+				     global.mongoService.document.save(appId,  [{document:user}]).then(function(document) {
+                        deferred.resolve(user); //returns no. of items matched
                      }, function(error) {
                         deferred.reject(error);
                      });
                 } else {
 					deferred.reject('Invalid Old Password');
 				}
-				
 			}, function(error) {
 				deferred.reject(error);
             });
