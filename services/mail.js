@@ -4,7 +4,6 @@ var defaultTransporter = null;
 
 module.exports = function(){
          
-    
     var obj = {};
     
     obj.send = function(appId, to, subject, text, html, from){
@@ -59,7 +58,7 @@ module.exports = function(){
         defaultTransporter.sendMail(mailOptions, function(error, info){
             if(error){
                 console.log("Mail Error.");
-                console.log(error);    
+                console.log(JSON.stringify(error));    
                 deferred.reject(error);
             }else{
                 console.log('Message sent : ' + info.response);
