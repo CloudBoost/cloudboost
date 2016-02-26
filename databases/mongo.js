@@ -231,7 +231,7 @@ module.exports = function() {
                         delete old_query[1].$includeList;
                     }
                 }
-                query.$and=[{"$or":old_query},{"$or":[{"expires":null},{"expires":{$gte:new Date()}}]}];
+                query.$and=[{"$or":old_query},{"$or":[{"expires":null},{"expires":{$gte:new Date().getTime()}}]}];
                 delete query.$or;
             }
 
