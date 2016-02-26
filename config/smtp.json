@@ -1,7 +1,5 @@
 {
-  "server" : "smtp.zoho.com",
-  "username": "hello@cloudboost.io",
-  "password":"CloudBoost123",
-  "smtps":true,
-  "from":"CloudBoost <hello@cloudboost.io>"
+  "mandrill_api_key" : "qiDZR_J-NKKKfg6ieTPSYw",
+  "from":"hello@cloudboost.io",
+  "from_name" : "CloudBoost.io"
 }
