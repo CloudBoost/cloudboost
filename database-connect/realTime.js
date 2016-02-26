@@ -27,13 +27,24 @@ module.exports = function (io){
 	  });
 
 	  socket.on('publish-custom-channel', function (data) {
-	  		console.log('++++++++ Publish Realtime Channel+++++');
-	  		console.log(data);
-		   io.to(data.channel).emit(data.channel,data.data);
+	  	   console.log('++++++++ Publish Realtime Channel+++++');
+	  	   console.log(data);
+           //if this doucment is an instance of a table Object.
+           var roomSockets = io.to(data.channel);
+           var sockets = roomSockets.sockets;
+           
+            if(typeof sockets === "object"){
+                for(var key in sockets){
+                    if(sockets[key]){
+                          sockets[key].emit(data.channel, data.data);
+                    }
+                }
+            }
+           
+		   io.emit(data.channel,data.data);
 	  });
 
 	  /* CloudObject Channel Listeners. */
-
 	  socket.on('join-object-channel', function (data) {
             console.log('++++++++ Joined Object Realtime Channel+++++');
             console.log(data);
@@ -93,8 +104,7 @@ module.exports = function (io){
             });
 		}
 	};
-
-
+    
     return g;
 
 };
