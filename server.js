@@ -56,10 +56,13 @@ http = require('http').createServer(global.app);
 
 require('./database-connect/cors.js')(); //cors!
 var io = require('socket.io')();
-io.attach(http);
+
 if(https){
     io.attach(https);
+}else{
+    io.attach(http);
 }
+
 var multer = require('multer');
 var Redis = require('ioredis');
 
