@@ -1,19 +1,23 @@
 var q =           require("q");
 var fs =          require('fs');
 var GridStore =   require('mongodb').GridStore;
+var Grid =        require('gridfs-stream');
 var util =        require("../helpers/util.js");
 var jimp =        require("jimp");
+
 
 module.exports = function() {
 
 	return {
 
-		upload: function(appId,filePath,fileObj) {
+		upload: function(appId,fileStream,contentType,fileObj) {
 			console.log('+++++ In File Upload Service ++++++++');
 			var deferred = q.defer();
             var promises = [];
-            var newFileName ='';
+            var newFileName ='';      
+
             global.keyService.getMyUrl().then(function(url){
+
                 if(!fileObj._id){
                     fileObj._id = util.getId();
                     fileObj._version = 0;
@@ -24,15 +28,17 @@ module.exports = function() {
                 }else{
                     fileObj._version = fileObj._version+1;
                 }
-                promises.push(_saveFile(appId, filePath,fileObj._id));
+
+                promises.push(_saveFile(appId,fileStream,fileObj._id,contentType));
                 promises.push(_saveFileObj(appId,fileObj));
                 global.q.all(promises).then(function(array){
                     deferred.resolve(array[1]);
                 },function(err){
-                deferred.reject(err);
+                    deferred.reject(err);
                 });
+
             }, function(error){
-                 deferred.reject(error);
+                deferred.reject(error);
             });
             
 			return deferred.promise;
@@ -97,27 +103,24 @@ module.exports = function() {
 
 
 function _getFile(appId,filename){
-    var deferred = global.q.defer();
-    var gs = new GridStore(global.mongoClient.db(appId), filename, "r");
-    gs.open(function(err, gstore){
-        if(err){
-            console.log(err);
-            deferred.reject(err);
-        }else{
-            gs.read(function(err, fileData){
-                if(err){
-                    console.log("Reading File " + err);
-                    deferred.reject(err);
-                }else{
-                    gs.close(function(err, result){
-                        deferred.resolve(fileData);
-                    });
-                }
-            });
-        }
-    });
-    return deferred.promise;
 
+    var deferred = global.q.defer();
+
+    var gfs = Grid(global.mongoClient.db(appId), require('mongodb'));
+
+    gfs.findOne({filename: filename},function (err, file) {
+        if (err){
+            console.log("Reading File " + err); 
+            return deferred.reject(err);
+        }    
+        if(!file){
+            return deferred.reject(null);                    
+        }  
+
+        return deferred.resolve(file);  
+    });
+
+    return deferred.promise;
 }
 
 function _saveFileObj(appId,document){
@@ -146,67 +149,69 @@ function _deleteFileObj(appId,document){
     return deferred.promise;
 }
 
-function _saveFile(appId, filePath,fileId){
+function _saveFile(appId,fileStream,fileName,contentType){
 
     var deferred = global.q.defer();
-    var gs = new GridStore(global.mongoClient.db(appId) , fileId , "w",{
-        "metadata":{
-            "author": appId
-        }
-    });
-    gs.open(function(err, gs) {
-        if (err) {
-            console.log("error upload file");
-            deferred.reject(err);
-        } else {
-            console.log("this file was uploaded at " + gs.contentType + "  " + gs.length + "  " + gs.metadata);
-            gs.writeFile(filePath, function (err, gs) {
-                if (err) {
-                    console.log("error writing file");
-                    _unlinkFile(filePath);
-                    deferred.reject(err);
-                } else {
-                    gs.close(function (err, gs) {
-                        console.log("this file was written at " + gs.contentType + "  " + gs.length + "  " + gs.metadata);
-                        gs['_url'] = global.keys.fileUrl + appId + "/" + gs.filename;
-                        _unlinkFile(filePath);
-                        deferred.resolve(gs);
-                    });
-                }
-            });
-        }
 
+    var gfs = Grid(global.mongoClient.db(appId), require('mongodb'));
+
+    //streaming to gridfs    
+    var writestream = gfs.createWriteStream({
+        filename: fileName,
+        mode: 'w',
+        content_type:contentType
     });
+
+    fileStream.pipe(writestream);
+
+    writestream.on('close', function (file) {             
+        console.log(file.filename + ' is written To DB');                
+        deferred.resolve(file);
+    });
+
+    writestream.on('error', function (error) {             
+        console.log("error writing file");       
+        deferred.reject(error);
+    }); 
+
     return deferred.promise;
 }
 
 
 
 function _deleteFile(appId,filename){
-    var deferred = global.q.defer();
-    GridStore.exist(global.mongoClient.db(appId), filename, function(err, result) {
-        console.log("File existence checking");
-        if(!err){
-            if(result){
-                console.log("File exists");
-                GridStore.unlink(global.mongoClient.db(appId), filename, function(err, gs) {
-                    if(err){
-                        deferred.reject(err);
-                        console.log("unable to delete");
-                    }else{
-                        deferred.resolve(gs);
-                        console.log("deleted");
-                    }
-                });
+    var deferred = global.q.defer(); 
+
+    var gfs = Grid(global.mongoClient.db(appId), require('mongodb'));
+
+    console.log("File existence checking");
+    gfs.exist({filename: filename}, function (err, found) {
+      if (err){
+        console.log("Error while checking file existence");
+        deferred.reject(err);
+      }
+      if(found){
+
+        console.log("File exists");
+        gfs.remove({filename: filename},function (err) {
+            if (err){
+                deferred.reject(err);
+                console.log("unable to delete");     
             }else{
-                console.log("file does not exists");
-                deferred.reject("file does not exists");
-            }
-        }else{
-            console.log("Error while checking file existence");
-            deferred.reject(err);
-        }
+                deferred.resolve(true);
+                console.log("deleted");
+            }                            
+            
+            return deferred.resolve("Success");  
+        });
+
+      }else{
+        console.log("file does not exists");
+        deferred.reject("file does not exists");
+      }
+
     });
+    
     return deferred.promise;
 }
 
@@ -352,18 +357,6 @@ function _readFileACL(appId,collectionName,fileId,accessList,isMasterKey){
     }
 
     return deferred.promise;
-}
-
-function _unlinkFile(filePath){
-    fs.unlink(filePath, function (err) {
-        if (err) {
-            console.log(err);
-                            // Could not delete file;
-        } else {
-            // file deleted from uploads
-            console.log("Unable to Remove File locally");
-        }
-    });
 }
 
 

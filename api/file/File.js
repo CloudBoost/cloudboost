@@ -2,59 +2,63 @@ var q = require("q");
 var fs = require('fs');
 var customHelper = require('../../helpers/custom.js');
 var util = require("../../helpers/util.js");
+var BusBoy  = require('busboy');
+var Stream = require('stream');
+var Grid = require('gridfs-stream');
+
 
 module.exports = function () {
 
-	global.app.post('/file/:appId', function(req, res) {
+    global.app.post('/file/:appId',function(req, res) {
+
         console.log("FILE UPLOAD");
-		console.log('+++++++++ In File Upload Service API ++++++++');
+        console.log('+++++++++ In File Upload Service API ++++++++'); 
+
+        var userId = req.session.userId || null;
+        var appId = req.params.appId;      
+
         var fileObj = null;
         var sdk = req.body.sdk || "REST";
-        if(req.body.data){
-            var fileName = _createFile(req.body.data);
-            var filePath = './uploads/'+fileName;
-            fileObj = req.body.fileObj;
-        }else {
-            var filePath = req.files.fileToUpload.path,
-                fileName = req.files.fileToUpload.name,
-                originalName = req.files.fileToUpload.originalname;
-            fileObj = JSON.parse(req.body.fileObj);
-        }
-        var userId = req.session.userId || null;
-        var appId = req.params.appId;
+
+
+        _getFileStream(req).then(function(result){
+            
+            global.keys.fileUrl = global.keys.myURL+"/file/";
+
+            return global.fileService.upload(appId,result.fileStream,result.contentType,result.fileObj);
+
+        }).then(function(file){
+            return res.status(200).send(file);
+        },function(err){
+            return res.status(500).send(err);
+        });
+
+        global.apiTracker.log(appId,"File / Upload", req.url,sdk);
         
-        global.keys.fileUrl = global.keys.myURL+"/file/";
+    });
 
-		global.fileService.upload(appId,filePath,fileObj).then(function(file) {
-			return res.status(200).send(file);
-		}, function(err) {
-			return res.status(500).send(err);
-		});
-	
-		global.apiTracker.log(appId,"File / Upload", req.url,sdk);
-	});
-
-	global.app.delete('/file/:appId/:fileId', function(req, res) {
+    global.app.delete('/file/:appId/:fileId', function(req, res) {
         console.log("FILE DELETE");
-		console.log('+++++++++ In File Delete Service API ++++++++');
+        console.log('+++++++++ In File Delete Service API ++++++++');
 
-		var appId = req.params.appId;
-		var fileObj = req.body.fileObj;
+        var appId = req.params.appId;
+        var fileObj = req.body.fileObj;
         var userId = req.session.userId || null;
         var sdk = req.body.sdk || "REST";
         global.keys.fileUrl = global.keys.myURL + "/file/";
-		global.fileService.delete(appId, fileObj,customHelper.getAccessList(req)).then(function(file) {
+
+        global.fileService.delete(appId, fileObj,customHelper.getAccessList(req)).then(function(file) {
             console.log("File successfully deleted.");
-			return res.status(200).send(null);
-		}, function(err) {
+            return res.status(200).send(null);
+        }, function(err) {
             console.log("Error deletig file.");
             console.log(err);
-			return res.status(500).send(err);
-		});
-		
+            return res.status(500).send(err);
+        });
+
         global.apiTracker.log(appId,"File / Delete", req.url,sdk);
 
-	});
+    });
 
     global.app.get('/file/:appId/:fileId', _getFile);
     global.app.post('/file/:appId/:fileId', _getFile);
@@ -88,27 +92,120 @@ function _getFile(req, res) {
     }
 
     global.fileService.getFile(appId, fileId,customHelper.getAccessList(req)).then(function (file) {
+
         if(typeof resizeWidth === 'undefined' && typeof resizeHeight === 'undefined' && typeof quality === 'undefined' && typeof opacity === 'undefined' && typeof scale === 'undefined' && typeof containWidth === 'undefined' && typeof containHeight === 'undefined' && typeof rDegs === 'undefined' && typeof bSigma === 'undefined' && typeof cropX === 'undefined' && typeof cropY === 'undefined' && typeof cropW && typeof cropH === 'undefined' ){
-        return res.status(200).send(file);
-    }else{
-        console.log('+++++ Proccesing Image ++++++++');
-        global.fileService.processImage(appId,file, resizeWidth, resizeHeight, cropX, cropY, cropW, cropH, quality, opacity, scale, containWidth, containHeight, rDegs, bSigma).then(function (file) {
-                 return res.status(200).send(file);
-          }, function (err) {
-        return res.status(500).send(err);
-    });
-    }
+            //return res.status(200).send(file);
+
+            var gfs = Grid(global.mongoClient.db(appId), require('mongodb'));
+
+            res.set('Content-Type', file.contentType);
+            res.set('Content-Disposition', 'attachment; filename="' + file.filename + '"');
+            
+            var readstream = gfs.createReadStream({
+              _id: file._id
+            });
+
+            readstream.on("error", function(err) {                  
+              res.send(500, "Got error while processing stream " + err.message);
+              res.end();
+            });           
+            
+            readstream.on('end', function() {
+                res.end();        
+            });
+
+            readstream.pipe(res);            
+
+        }else{
+            console.log('+++++ Proccesing Image ++++++++');
+            global.fileService.processImage(appId,file, resizeWidth, resizeHeight, cropX, cropY, cropW, cropH, quality, opacity, scale, containWidth, containHeight, rDegs, bSigma).then(function (file) {
+                return res.status(200).send(file);
+            },function (err) {
+                return res.status(500).send(err);
+            });
+        }
+
     }, function (err) {
         return res.status(500).send(err);
     });
-    
+
     global.apiTracker.log(appId,"File / Get", req.url,sdk);
 }
 
-function _createFile(data, name, path){
-    var name = util.getId();
-    var path = './uploads/'+name;
-    var fd = fs.openSync(path,'w+');
-    fs.write(fd,data);
-    return name;
+
+function _getFileStream(req){
+
+    var deferred = q.defer();
+
+    var resObj={      
+        fileStream:null,
+        fileObj:null,
+        contentType:null
+    };
+
+    if(req.body.data){         
+        
+        //Create a FileStream(add data)
+        var Readable = require('stream').Readable;
+        var readableStream = new Readable;
+        readableStream.push(req.body.data);// the string you want
+        readableStream.push(null); 
+        
+        resObj.fileStream=readableStream;
+        resObj.fileObj=req.body.fileObj;
+        resObj.contentType="text/plain";
+
+        deferred.resolve(resObj);       
+
+    }else{
+
+        var busboy = new BusBoy({headers: req.headers});
+       
+        var Readable = require('stream').Readable;
+        var readableStream = new Readable;       
+
+        busboy.on('file', function (fieldname, file, filename, encoding, mimetype) {       
+            
+            var buffer = ''; 
+            var isArray=false;           
+
+            console.log(mimetype);          
+            file.on('data', function(chunk) {                
+                console.log('File [' + fieldname + '] got ' + chunk.length + ' bytes');
+
+                console.log(mimetype);
+                if(mimetype=="text/plain" || mimetype=="text/html"){
+                    buffer+=chunk;
+                    isArray=true;
+                }else{
+                   readableStream.push(chunk);  
+                }                   
+                                             
+            });
+
+            file.on('end', function() { 
+                if(isArray){
+                   readableStream.push(buffer); 
+                }                                            
+                readableStream.push(null);
+                resObj.fileStream=readableStream;
+                resObj.contentType=mimetype;                
+            });            
+            
+        });
+
+        busboy.on('field', function (fieldname, val) {
+            if(fieldname=="fileObj"){
+                resObj[fieldname] = JSON.parse(val);
+            }            
+        });
+
+        busboy.on('finish', function () {                     
+            deferred.resolve(resObj);
+        });
+
+        req.pipe(busboy);
+    }    
+
+   return deferred.promise;
 }

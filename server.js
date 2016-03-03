@@ -95,10 +95,6 @@ global.model = {};
 app.use(bodyParser.urlencoded({ extended: true}));
 app.use(bodyParser.json());
 
-global.app.use(multer({
-	dest: './uploads/'
-}));
-
 global.app.use(function(req, res, next){
     if (req.is('text/*')) {
         req.text = '';
@@ -152,13 +148,13 @@ global.app.use(['/file/:appId', '/data/:appId','/app/:appId/:tableName','/user/:
             promises.push(global.apiTracker.isInPlanLimit(appId));
             promises.push(global.appService.isKeyValid(appId, appKey));
  			global.q.all(promises).then(function(result) {
-                var isAppKeyValid = result[1];
-                var isInPlan = result[0];
-                if(!isInPlan){
-                    res.status(402).send("Reached Plan Limit. Upgrade Plan.");
-                    //check if the appIsReleased. 
-                    global.apiTracker.log(appId, "isReleased/isReleased","","JavaScript",true);
-                }
+          var isAppKeyValid = result[1];
+          var isInPlan = result[0];
+          if(!isInPlan){
+              res.status(402).send("Reached Plan Limit. Upgrade Plan.");
+              //check if the appIsReleased. 
+              global.apiTracker.log(appId, "isReleased/isReleased","","JavaScript",true);
+          }
                 
  				if (!isAppKeyValid) {
  					return res.status(401).send("App ID or App Key is invalid.");
