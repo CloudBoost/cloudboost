@@ -94,8 +94,7 @@ function _getFile(req, res) {
     global.fileService.getFile(appId, fileId,customHelper.getAccessList(req)).then(function (file) {
 
         if(typeof resizeWidth === 'undefined' && typeof resizeHeight === 'undefined' && typeof quality === 'undefined' && typeof opacity === 'undefined' && typeof scale === 'undefined' && typeof containWidth === 'undefined' && typeof containHeight === 'undefined' && typeof rDegs === 'undefined' && typeof bSigma === 'undefined' && typeof cropX === 'undefined' && typeof cropY === 'undefined' && typeof cropW && typeof cropH === 'undefined' ){
-            //return res.status(200).send(file);
-
+            
             var gfs = Grid(global.mongoClient.db(appId), require('mongodb'));
 
             res.set('Content-Type', file.contentType);
@@ -172,9 +171,9 @@ function _getFileStream(req){
             console.log(mimetype);          
             file.on('data', function(chunk) {                
                 console.log('File [' + fieldname + '] got ' + chunk.length + ' bytes');
-
-                console.log(mimetype);
-                if(mimetype=="text/plain" || mimetype=="text/html"){
+                
+                var result=mimetype.split("/");
+                if(result[0]=="text"){
                     buffer+=chunk;
                     isArray=true;
                 }else{
