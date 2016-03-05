@@ -9,7 +9,12 @@ var jimp =        require("jimp");
 module.exports = function() {
 
 	return {
-
+        /*Desc   : Save FileStream & CloudBoostFileObject
+          Params : appId,fileStream,fileContentType,CloudBoostFileObj
+          Returns: Promise
+                   Resolve->cloudBoostFileObj
+                   Reject->Error on getMyUrl() or saving filestream or saving cloudBoostFileObject
+        */
 		upload: function(appId,fileStream,contentType,fileObj) {
 			console.log('+++++ In File Upload Service ++++++++');
 			var deferred = q.defer();
@@ -29,7 +34,7 @@ module.exports = function() {
                     fileObj._version = fileObj._version+1;
                 }
 
-                promises.push(_saveFile(appId,fileStream,fileObj._id,contentType));
+                promises.push(_saveFileStream(appId,fileStream,fileObj._id,contentType));
                 promises.push(_saveFileObj(appId,fileObj));
                 global.q.all(promises).then(function(array){
                     deferred.resolve(array[1]);
@@ -44,6 +49,12 @@ module.exports = function() {
 			return deferred.promise;
 		},
 
+        /*Desc   : delete file from gridFs & delete CloudBoostFileObj
+          Params : appId,cloudBoostFileObj,accessList,masterKey
+          Returns: Promise
+                   Resolve->cloudBoostFileObj
+                   Reject->Error on getMyUrl() or saving filestream or saving cloudBoostFileObject
+        */
 		delete: function(appId,fileObj,accessList,isMasterKey) {
 			console.log('+++++ In File Delete Service ++++++++');
 
@@ -56,7 +67,7 @@ module.exports = function() {
             var promises = [];
 
             _checkWriteACL(appId,collectionName,fileObj._id,accessList,isMasterKey).then(function(){
-                promises.push(_deleteFile(appId,fileObj._id));
+                promises.push(_deleteFileFromGridFs(appId,fileObj._id));
                 promises.push(_deleteFileObj(appId,fileObj));
 
                 global.q.all(promises).then(function(){
@@ -70,6 +81,12 @@ module.exports = function() {
 			return deferred.promise;
 		},
 
+        /*Desc   : get File
+          Params : appId,fileName,accessList,masterKey
+          Returns: Promise
+                   Resolve->gridFsFileObject
+                   Reject->Error on _readFileACL() or getFile from gridFs
+        */
 		getFile: function(appId, filename,accessList,isMasterKey) {
 			console.log('+++++ In Get File Service ++++++++');
 			var deferred = q.defer();
@@ -96,12 +113,30 @@ module.exports = function() {
                 deferred.reject(err);
             });
             return deferred.promise;
-        }
+        },
 
+        /*Desc   : get fileStream from gridFs
+          Params : appId,gridFsFileId
+          Returns: fileStream
+        */
+        getFileStreamById: function(appId,fileId){
+            var gfs = Grid(global.mongoClient.db(appId), require('mongodb'));
+
+            var readstream = gfs.createReadStream({
+              _id: fileId
+            });
+
+            return readstream;
+        },
 	};
 };
 
-
+/*Desc   : get File from gridFs
+  Params : appId,fileName(without extension)
+  Returns: Promise
+           Resolve->gridFsFileObject
+           Reject->Error on retrieving file or file not found(null)
+*/
 function _getFile(appId,filename){
 
     var deferred = global.q.defer();
@@ -109,8 +144,7 @@ function _getFile(appId,filename){
     var gfs = Grid(global.mongoClient.db(appId), require('mongodb'));
 
     gfs.findOne({filename: filename},function (err, file) {
-        if (err){
-            console.log("Reading File " + err); 
+        if (err){           
             return deferred.reject(err);
         }    
         if(!file){
@@ -123,6 +157,12 @@ function _getFile(appId,filename){
     return deferred.promise;
 }
 
+/*Desc   : Save cloudBoostFileObject
+  Params : appId,cloudBoostFileObject
+  Returns: Promise
+           Resolve->saved cloudBoostFileObject
+           Reject->Error on saving
+*/
 function _saveFileObj(appId,document){
     var deferred = global.q.defer();
     var collectionName = "_File";
@@ -136,6 +176,12 @@ function _saveFileObj(appId,document){
     return deferred.promise;
 }
 
+/*Desc   : delete cloudBoostFileObject
+  Params : appId,cloudBoostFileObject
+  Returns: Promise
+           Resolve->deleted cloudBoostFileObject
+           Reject->Error on deleting
+*/
 function _deleteFileObj(appId,document){
     var deferred = global.q.defer();
     var collectionName = "_File";
@@ -149,7 +195,13 @@ function _deleteFileObj(appId,document){
     return deferred.promise;
 }
 
-function _saveFile(appId,fileStream,fileName,contentType){
+/*Desc   : Save FileStream to GridFs
+  Params : appId,fileStream,fileName,fileContentType
+  Returns: Promise
+           Resolve->saved GridFsFileObject
+           Reject->Error on error writing file to gridfs
+*/
+function _saveFileStream(appId,fileStream,fileName,contentType){
 
     var deferred = global.q.defer();
 
@@ -164,13 +216,11 @@ function _saveFile(appId,fileStream,fileName,contentType){
 
     fileStream.pipe(writestream);
 
-    writestream.on('close', function (file) {             
-        console.log(file.filename + ' is written To DB');                
+    writestream.on('close', function (file) {               
         deferred.resolve(file);
     });
 
-    writestream.on('error', function (error) {             
-        console.log("error writing file");       
+    writestream.on('error', function (error) {           
         deferred.reject(error);
     }); 
 
@@ -178,38 +228,39 @@ function _saveFile(appId,fileStream,fileName,contentType){
 }
 
 
-
-function _deleteFile(appId,filename){
+/*Desc   : delete file from GridFs
+  Params : appId,fileName(without extension)
+  Returns: Promise
+           Resolve->true(deleted)
+           Reject->Error on file existence or file doesn't exist or unable to delete
+*/
+function _deleteFileFromGridFs(appId,filename){
     var deferred = global.q.defer(); 
 
     var gfs = Grid(global.mongoClient.db(appId), require('mongodb'));
 
-    console.log("File existence checking");
+    //File existence checking
     gfs.exist({filename: filename}, function (err, found) {
       if (err){
-        console.log("Error while checking file existence");
+        //Error while checking file existence
         deferred.reject(err);
       }
-      if(found){
-
-        console.log("File exists");
+      if(found){       
         gfs.remove({filename: filename},function (err) {
             if (err){
                 deferred.reject(err);
-                console.log("unable to delete");     
+                //unable to delete     
             }else{
                 deferred.resolve(true);
-                console.log("deleted");
+                //deleted
             }                            
             
             return deferred.resolve("Success");  
         });
-
       }else{
-        console.log("file does not exists");
+        //file does not exists
         deferred.reject("file does not exists");
       }
-
     });
     
     return deferred.promise;

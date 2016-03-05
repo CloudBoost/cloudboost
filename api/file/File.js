@@ -9,18 +9,13 @@ var Grid = require('gridfs-stream');
 
 module.exports = function () {
 
-    global.app.post('/file/:appId',function(req, res) {
-
-        console.log("FILE UPLOAD");
-        console.log('+++++++++ In File Upload Service API ++++++++'); 
+    global.app.post('/file/:appId',function(req, res) {        
 
         var userId = req.session.userId || null;
-        var appId = req.params.appId;      
-
-        var fileObj = null;
+        var appId = req.params.appId; 
+       
         var sdk = req.body.sdk || "REST";
-
-
+                  
         _getFileStream(req).then(function(result){
             
             global.keys.fileUrl = global.keys.myURL+"/file/";
@@ -94,26 +89,22 @@ function _getFile(req, res) {
     global.fileService.getFile(appId, fileId,customHelper.getAccessList(req)).then(function (file) {
 
         if(typeof resizeWidth === 'undefined' && typeof resizeHeight === 'undefined' && typeof quality === 'undefined' && typeof opacity === 'undefined' && typeof scale === 'undefined' && typeof containWidth === 'undefined' && typeof containHeight === 'undefined' && typeof rDegs === 'undefined' && typeof bSigma === 'undefined' && typeof cropX === 'undefined' && typeof cropY === 'undefined' && typeof cropW && typeof cropH === 'undefined' ){
-            
-            var gfs = Grid(global.mongoClient.db(appId), require('mongodb'));
+                   
+            var fileStream=global.fileService.getFileStreamById(appId,file._id);
 
             res.set('Content-Type', file.contentType);
-            res.set('Content-Disposition', 'attachment; filename="' + file.filename + '"');
-            
-            var readstream = gfs.createReadStream({
-              _id: file._id
-            });
+            res.set('Content-Disposition', 'attachment; filename="' + file.filename + '"');            
 
-            readstream.on("error", function(err) {                  
+            fileStream.on("error", function(err) {                  
               res.send(500, "Got error while processing stream " + err.message);
               res.end();
             });           
             
-            readstream.on('end', function() {
+            fileStream.on('end', function() {
                 res.end();        
             });
 
-            readstream.pipe(res);            
+            fileStream.pipe(res);            
 
         }else{
             console.log('+++++ Proccesing Image ++++++++');
@@ -131,7 +122,12 @@ function _getFile(req, res) {
     global.apiTracker.log(appId,"File / Get", req.url,sdk);
 }
 
-
+/*Desc   : Get file params from upload request
+  Params : req
+  Returns: Promise
+           Resolve->JSON{filestream,contentType,cloudBoostFileObj} 
+           Reject->
+*/
 function _getFileStream(req){
 
     var deferred = q.defer();
@@ -150,6 +146,7 @@ function _getFileStream(req){
         readableStream.push(req.body.data);// the string you want
         readableStream.push(null); 
         
+        //Setting response
         resObj.fileStream=readableStream;
         resObj.fileObj=req.body.fileObj;
         resObj.contentType="text/plain";
@@ -166,18 +163,16 @@ function _getFileStream(req){
         busboy.on('file', function (fieldname, file, filename, encoding, mimetype) {       
             
             var buffer = ''; 
-            var isArray=false;           
+            var isArray=false;
 
-            console.log(mimetype);          
-            file.on('data', function(chunk) {                
-                console.log('File [' + fieldname + '] got ' + chunk.length + ' bytes');
+            file.on('data', function(chunk) {                 
                 
                 var result=mimetype.split("/");
-                if(result[0]=="text"){
+                if(result[0]=="text"){//for Text files
                     buffer+=chunk;
                     isArray=true;
                 }else{
-                   readableStream.push(chunk);  
+                   readableStream.push(chunk); //other media(adding chunks to stream) 
                 }                   
                                              
             });
@@ -194,7 +189,7 @@ function _getFileStream(req){
         });
 
         busboy.on('field', function (fieldname, val) {
-            if(fieldname=="fileObj"){
+            if(fieldname=="fileObj"){//Picking up other fields from request
                 resObj[fieldname] = JSON.parse(val);
             }            
         });
