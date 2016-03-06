@@ -6,7 +6,7 @@ module.exports = function() {
     //Params : secureKey : Used to validate the request. 
     //         url : New Server URL. 
     //Returns : 200 - success
-    //            400 - Invalid URL, 401 - Unauthoroized, 500 - Internal Server Error.     
+    //          400 - Invalid URL, 401 - Unauthoroized, 500 - Internal Server Error.     
     global.app.post('/server/url', function(req, res) {
         try {
             console.log("++++ Change Server URL ++++++");
