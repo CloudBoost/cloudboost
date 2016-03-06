@@ -2,6 +2,8 @@ global.express = require('express');
 global.request = require('request');
 var pjson = require('./package.json');
 var fs = require('fs');
+var busboyBodyParser = require('busboy-body-parser');
+
 
 try{
   global.config = require('./config/cloudboost');
@@ -94,6 +96,7 @@ global.model = {};
 
 app.use(bodyParser.urlencoded({ extended: true}));
 app.use(bodyParser.json());
+app.use(busboyBodyParser());
 
 global.app.use(function(req, res, next){
     if (req.is('text/*')) {

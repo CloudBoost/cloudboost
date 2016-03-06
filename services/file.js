@@ -214,14 +214,22 @@ function _saveFileStream(appId,fileStream,fileName,contentType){
         content_type:contentType
     });
 
-    fileStream.pipe(writestream);
-
+    fileStream.pipe(writestream);   
+    
+    writestream.on('finish', function () {
+        writestream.destroy();
+    });
+    
     writestream.on('close', function (file) {               
         deferred.resolve(file);
+        writestream.destroy();
+        console.log("Successfully saved in gridfs");
     });
 
     writestream.on('error', function (error) {           
         deferred.reject(error);
+        writestream.destroy();
+        console.log("Failed to saved in gridfs");
     }); 
 
     return deferred.promise;

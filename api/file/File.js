@@ -2,7 +2,6 @@ var q = require("q");
 var fs = require('fs');
 var customHelper = require('../../helpers/custom.js');
 var util = require("../../helpers/util.js");
-var BusBoy  = require('busboy');
 var Stream = require('stream');
 var Grid = require('gridfs-stream');
 
@@ -138,67 +137,33 @@ function _getFileStream(req){
         contentType:null
     };
 
-    if(req.body.data){         
+    //Create a FileStream(add data)
+    var Readable = require('stream').Readable;
+    var readableStream = new Readable;
+
+    if(req.body.data){        
         
-        //Create a FileStream(add data)
-        var Readable = require('stream').Readable;
-        var readableStream = new Readable;
         readableStream.push(req.body.data);// the string you want
         readableStream.push(null); 
         
         //Setting response
         resObj.fileStream=readableStream;
-        resObj.fileObj=req.body.fileObj;
         resObj.contentType="text/plain";
+        resObj.fileObj=req.body.fileObj;        
 
         deferred.resolve(resObj);       
 
-    }else{
+    }else{              
 
-        var busboy = new BusBoy({headers: req.headers});
-       
-        var Readable = require('stream').Readable;
-        var readableStream = new Readable;       
+        readableStream.push(req.files.fileToUpload.data);
+        readableStream.push(null);
 
-        busboy.on('file', function (fieldname, file, filename, encoding, mimetype) {       
-            
-            var buffer = ''; 
-            var isArray=false;
-
-            file.on('data', function(chunk) {                 
-                
-                var result=mimetype.split("/");
-                if(result[0]=="text"){//for Text files
-                    buffer+=chunk;
-                    isArray=true;
-                }else{
-                   readableStream.push(chunk); //other media(adding chunks to stream) 
-                }                   
-                                             
-            });
-
-            file.on('end', function() { 
-                if(isArray){
-                   readableStream.push(buffer); 
-                }                                            
-                readableStream.push(null);
-                resObj.fileStream=readableStream;
-                resObj.contentType=mimetype;                
-            });            
-            
-        });
-
-        busboy.on('field', function (fieldname, val) {
-            if(fieldname=="fileObj"){//Picking up other fields from request
-                resObj[fieldname] = JSON.parse(val);
-            }            
-        });
-
-        busboy.on('finish', function () {                     
-            deferred.resolve(resObj);
-        });
-
-        req.pipe(busboy);
+        //Setting response
+        resObj.fileStream=readableStream;
+        resObj.contentType=req.files.fileToUpload.mimetype;
+        resObj.fileObj=JSON.parse(req.body.fileObj);
+         
+        deferred.resolve(resObj);      
     }    
 
    return deferred.promise;
