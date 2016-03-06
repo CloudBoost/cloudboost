@@ -8,6 +8,12 @@ var util = require('../helpers/util.js');
 module.exports = function() {
 
 	return {
+        /*Desc   : Update Settings
+          Params : appId,categoryName,SettingsObject
+          Returns: Promise
+                   Resolve->saved Settings Object
+                   Reject->Error on findOne() or failed to update
+        */
         updateSettings : function(appId, category, settings){
             var deferred = q.defer();
             global.mongoService.document.findOne(appId, "_Settings", {category:category}, null, null, 0, null, true).then(function(document){
@@ -31,6 +37,12 @@ module.exports = function() {
             return deferred.promise;
         },
 
+        /*Desc   : get Settings
+          Params : appId
+          Returns: Promise
+                   Resolve->Array of Setting JSON Objects
+                   Reject->Error on find
+        */
         getAllSettings : function(appId){
             var deferred = q.defer();
             //check redis cache first. 
