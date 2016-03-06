@@ -5,7 +5,6 @@ var util = require("../../helpers/util.js");
 var Stream = require('stream');
 var Grid = require('gridfs-stream');
 
-
 module.exports = function () {
 
     global.app.post('/file/:appId',function(req, res) {        
