@@ -15,7 +15,7 @@ module.exports = function(){
                Resolve->Mail Sent successfully('success')
                Reject->failed to send mail
     */
-    obj.send = function(appId, to, subject, text, html, from,fromName,mandrillApiKey){
+    obj.send = function(appId, to, subject, text, html, from, fromName, mandrillApiKey){
          
         console.log("***************Reset Password Email***********************");
          
@@ -43,6 +43,7 @@ module.exports = function(){
                     deferred.resolve(result[0].status);
                 }
                 if(result[0].status=="rejected"){
+                    console.log("Reset password email rejected");
                     deferred.reject(result[0].status);
                 }
             }else{
@@ -63,7 +64,7 @@ module.exports = function(){
                Resolve->Success Message
                Reject->Error on getAllSettings() or _getDefaultTemplate() or _mergeVariableInTemplate() or _getCredentials() or self.send()
     */
-    obj.sendResetPassword = function(appId,to,subject,text,from,user,passwordResetKey,myUrl){
+    obj.sendResetPassword = function(appId,to,subject,text,from,user,passwordResetKey){
 
         var deferred = q.defer();
 
@@ -79,7 +80,7 @@ module.exports = function(){
             if(settings && settings.length>0){
                 emailSettings=_.where(settings, {category: "email"});
                 if(emailSettings && emailSettings.length>0){                  
-                    if(emailSettings[0].settings.template && emailSettings[0].settings.template!=""){ 
+                    if(emailSettings[0].settings && emailSettings[0].settings.template && emailSettings[0].settings.template!=""){ 
                         emailSettingsFound=true;
                     }                                   
                 } 
@@ -95,7 +96,7 @@ module.exports = function(){
             }
                 
         }).then(function(template){
-            return _mergeVariableInTemplate(template,appId,user,passwordResetKey,myUrl);
+            return _mergeVariablesInTemplate(template,appId,user,passwordResetKey);
         }).then(function(mergedHtml){
             html=mergedHtml;
             return _getCredentials(emailSettings,from);
@@ -119,39 +120,46 @@ module.exports = function(){
   Params : template,appId,userObj,passwordResetKey,resetURL
   Returns: Promise
            Resolve->mergedHtml
-           Reject->Error on parsing 
+           Reject->Error on getMyUrl() or parsing template
 */
-function _mergeVariableInTemplate(template,appId,user,passwordResetKey,myUrl){
+function _mergeVariablesInTemplate(template,appId,user,passwordResetKey){
 
     var deferred = q.defer();
 
-    var uri = encodeURI(myUrl+"/page/"+appId+"/reset-password?user="+user.username+"&resetKey="+passwordResetKey);
-    var linkBtn = "<a href='"+uri+"' style='padding:3px;border-radius:2px;text-decoration:none;display: inline-block;background-color: #159CEE;color:white;'>Change Password</a>";
+    global.keyService.getMyUrl().then(function(myUrl){
 
-    var userName = user.name || user.firstName || user.firstname;
-    if(!userName){
-        userName=" ";
-    }
+        var uri = encodeURI(myUrl+"/page/"+appId+"/reset-password?user="+user.username+"&resetKey="+passwordResetKey);
+        var linkBtn = "<a href='"+uri+"' style='padding:3px;border-radius:2px;text-decoration:none;display: inline-block;background-color: #159CEE;color:white;'>Change Password</a>";
 
-    jsdom.env(template, [], function (error, window) {
-        if(error){
-            deferred.reject("Cannot parse mail template.");
-        }else{
-            var $ = require('jquery')(window);        
-
-            $('body').children().each(function(){ 
-                if(userName){
-                    $(this).text( $(this).text().replace('*|NAME|*',userName));
-                } 
-                if(linkBtn){
-                    $(this).text( $(this).text().replace('*|LINK|*',linkBtn));
-                    $(this).html($.parseHTML($(this).text()));
-                }                 
-            });
-            
-            deferred.resolve(window.document.documentElement.outerHTML);   
+        var userName = user.name || user.firstName || user.firstname;
+        if(!userName){
+            userName=" ";
         }
-    });
+
+        //Parse Template
+        jsdom.env(template, [], function (error, window) {
+            if(error){
+                deferred.reject("Cannot parse mail template.");
+            }else{
+                var $ = require('jquery')(window);        
+
+                $('body').children().each(function(){ 
+                    if(userName){
+                        $(this).text( $(this).text().replace('*|NAME|*',userName));
+                    } 
+                    if(linkBtn){
+                        $(this).text( $(this).text().replace('*|LINK|*',linkBtn));
+                        $(this).html($.parseHTML($(this).text()));
+                    }                 
+                });
+                
+                deferred.resolve(window.document.documentElement.outerHTML);   
+            }
+        });
+
+    },function(error){
+        deferred.reject(error);
+    });   
 
     return deferred.promise;
 }   
@@ -191,6 +199,7 @@ function _getCredentials(emailSettings,fromEmail){
         fromEmail:fromEmail
     };    
 
+    //Init with Default values of cloudboost
     try{        
         smtpConfig = require('../config/smtp.json');     
         if(!smtpConfig){
@@ -210,6 +219,7 @@ function _getCredentials(emailSettings,fromEmail){
         return deferred.reject("Mail services disabled because SMTP Config not found or is invalid. Please add correct smtp.json in config to enable mail services.");
     } 
 
+    //Checking in Email Settings to overwrite(Set only if mandrillApiKey and email are found)
     if(emailSettings && emailSettings.length>0 && emailSettings[0].settings.mandrillApiKey){
 
       if(emailSettings[0].settings.email && emailSettings[0].settings.email!=""){

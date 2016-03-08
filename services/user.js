@@ -65,7 +65,7 @@ module.exports = function() {
 	      Params : appId, email, accessList, masterKey
 	      Returns: Promise
 	               Resolve->Mail Sent successfully
-	               Reject->Error on find User or No user or getMyUrl() or sendResetPassword()
+	               Reject->Error on find User or No user or sendResetPassword()
 	    */        
         resetPassword: function(appId, email, accessList, isMasterKey){
             var deferred = q.defer();
@@ -74,33 +74,27 @@ module.exports = function() {
 				email: email
 			},null,null,null,accessList, isMasterKey).then(function(user) {
 				if (!user) {
-					deferred.reject("User with email "+email+" not found.");
-					return;
+					return deferred.reject("User with email "+email+" not found.");					
 				}
-                
-                console.log("User with "+email+" found");
-                
-                global.keyService.getMyUrl().then(function(myUrl){
-                    console.log("Server URL : "+myUrl);
-                    //Send an email to reset user password here. 
-                    var passwordResetKey = crypto.createHmac('sha256', global.keys.secureKey)
-                                            .update(user.password)
-                                            .digest('hex');
-                                          
-                   	global.mailService.sendResetPassword(appId, email, "Reset your password",null, null,user,passwordResetKey,myUrl).then(function(resp){
-                       deferred.resolve(resp);
-                    }, function(error){
-                        deferred.reject(error);
-                    });
-
+				
+				console.log("User with "+email+" found");
+            
+                //Send an email to reset user password here. 
+                var passwordResetKey = crypto.createHmac('sha256', global.keys.secureKey)
+                                        .update(user.password)
+                                        .digest('hex');
+                                      
+               	global.mailService.sendResetPassword(appId, email, "Reset your password",null, null,user,passwordResetKey).then(function(resp){
+                   deferred.resolve(resp);
                 }, function(error){
                     deferred.reject(error);
                 });
-                
+
                 
 			}, function(error) {
 				deferred.reject(error);
 			});
+			
 			return deferred.promise;
         },
         
