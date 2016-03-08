@@ -1,40 +1,28 @@
 var smtpConfig = null;
 var defaultTransporter = null;
 var mandrill = require('mandrill-api/mandrill');
-
+var _ = require('underscore');
+var jsdom = require("jsdom");
+var fs = require("fs");
 
 module.exports = function(){
          
     var obj = {};
     
-    obj.send = function(appId, to, subject, text, html, from){
-            
-        try{
-            console.log("In mail service");
-            smtpConfig = require('../config/smtp.json');
-            var mandrill_client = new mandrill.Mandrill(smtpConfig.mandrill_api_key);
-        }catch(e){
-            //probably file not found or is in incorrect format.
-            console.log("Mail services disabled because SMTP Config not found or is invalid. Please add correct smtp.json in config to enable mail services."); 
-            smtpConfig = null;
-        }    
-        
+    /*Desc   : Send Mail
+      Params : appId, toEmail, subject, text, htmlTemplate, fromEmail,fromName,mandrillApiKey
+      Returns: Promise
+               Resolve->Mail Sent successfully('success')
+               Reject->failed to send mail
+    */
+    obj.send = function(appId, to, subject, text, html, from, fromName, mandrillApiKey){
+         
+        console.log("***************Reset Password Email***********************");
+         
         var deferred = q.defer();
-        
-        // create reusable transporter object using the default SMTP transport
-        if(!smtpConfig){
-            return;
-        }
-        
-        if(!from){
-            from = smtpConfig.from;
-        }
-        
-        var fromName  = null;
-        
-        if(!fromName)
-            fromName = smtpConfig.from_name;
-        
+       
+        var mandrill_client = new mandrill.Mandrill(mandrillApiKey);
+
         var message = {
             "html": html,
             "text": text,
@@ -49,15 +37,204 @@ module.exports = function(){
         var async = false;
         
         mandrill_client.messages.send({"message": message, "async": async, "ip_pool": null, "send_at": null}, function(result) {
-            deferred.resolve();
+            if(result && result[0]){
+                if(result[0].status=="sent"){ 
+                    console.log("Reset password email sent!.");                   
+                    deferred.resolve(result[0].status);
+                }
+                if(result[0].status=="rejected"){
+                    console.log("Reset password email rejected");
+                    deferred.reject(result[0].status);
+                }
+            }else{
+                console.log("Failed to send reset password email!.");
+                deferred.reject("Failed to send!");
+            }
+            
         }, function(e) {
             deferred.reject(e);
-        });
+        });                    
         
         return deferred.promise;
     };
+
+    /*Desc   : Send Reset Password Email
+      Params : appId,to,subject,text,from,userObj,passwordResetKey,urlToReset
+      Returns: Promise
+               Resolve->Success Message
+               Reject->Error on getAllSettings() or _getDefaultTemplate() or _mergeVariableInTemplate() or _getCredentials() or self.send()
+    */
+    obj.sendResetPassword = function(appId,to,subject,text,from,user,passwordResetKey){
+
+        var deferred = q.defer();
+
+        var self = this;
+
+        var emailSettings=null;
+        var emailSettingsFound=false;
+        var html=null;
+
+        global.appService.getAllSettings(appId).then(function(settings){                         
+
+            //Check Template in Email Settings
+            if(settings && settings.length>0){
+                emailSettings=_.where(settings, {category: "email"});
+                if(emailSettings && emailSettings.length>0){                  
+                    if(emailSettings[0].settings && emailSettings[0].settings.template && emailSettings[0].settings.template!=""){ 
+                        emailSettingsFound=true;
+                    }                                   
+                } 
+            }
+
+            if(!emailSettingsFound){
+                //Get Default CloudBoost Mail Template
+                return _getDefaultTemplate();
+            }else{                
+                var templatePromise= q.defer();
+                templatePromise.resolve(emailSettings[0].settings.template);
+                return templatePromise.promise;
+            }
+                
+        }).then(function(template){
+            return _mergeVariablesInTemplate(template,appId,user,passwordResetKey);
+        }).then(function(mergedHtml){
+            html=mergedHtml;
+            return _getCredentials(emailSettings,from);
+        }).then(function(credentialsJson){
+            //Send Email
+            return self.send(appId, to, subject, text, html, credentialsJson.fromEmail,credentialsJson.fromName,credentialsJson.mandrillApiKey);
+        }).then(function(resp){
+            return deferred.resolve(resp);
+        },function(error){
+            return deferred.reject(error);
+        }); 
+
+        return deferred.promise;
+         
+    };    
     
     return obj;
 };
-   
-   
+
+/*Desc   : Merge Variables in htmlTemplate
+  Params : template,appId,userObj,passwordResetKey,resetURL
+  Returns: Promise
+           Resolve->mergedHtml
+           Reject->Error on getMyUrl() or parsing template
+*/
+function _mergeVariablesInTemplate(template,appId,user,passwordResetKey){
+
+    var deferred = q.defer();
+
+    global.keyService.getMyUrl().then(function(myUrl){
+
+        var uri = encodeURI(myUrl+"/page/"+appId+"/reset-password?user="+user.username+"&resetKey="+passwordResetKey);
+        var linkBtn = "<a href='"+uri+"' style='padding:3px;border-radius:2px;text-decoration:none;display: inline-block;background-color: #159CEE;color:white;'>Change Password</a>";
+
+        var userName = user.name || user.firstName || user.firstname;
+        if(!userName){
+            userName=" ";
+        }
+
+        //Parse Template
+        jsdom.env(template, [], function (error, window) {
+            if(error){
+                deferred.reject("Cannot parse mail template.");
+            }else{
+                var $ = require('jquery')(window);        
+
+                $('body').children().each(function(){ 
+                    if(userName){
+                        $(this).text( $(this).text().replace('*|NAME|*',userName));
+                    } 
+                    if(linkBtn){
+                        $(this).text( $(this).text().replace('*|LINK|*',linkBtn));
+                        $(this).html($.parseHTML($(this).text()));
+                    }                 
+                });
+                
+                deferred.resolve(window.document.documentElement.outerHTML);   
+            }
+        });
+
+    },function(error){
+        deferred.reject(error);
+    });   
+
+    return deferred.promise;
+}   
+
+/*Desc   : Get Default Email Template
+  Params : 
+  Returns: Promise
+           Resolve->email Template
+           Reject->Error on reading file 
+*/
+function _getDefaultTemplate(){
+    var deferred = q.defer();
+
+    fs.readFile('./mail-templates/reset-password.html', 'utf8', function(error, data) {                        
+        if(error){
+            deferred.reject(error);
+        }else if(data){
+            deferred.resolve(data);
+        } 
+    });
+
+    return deferred.promise;
+}
+
+/*Desc   : Get Credentials of mail to send
+  Params : emailSettingsArray,fromEmail
+  Returns: Promise
+           Resolve->JSON(mandrillApiKey,fromName,fromEmail)
+           Reject->Error on no smtpConfig 
+*/
+function _getCredentials(emailSettings,fromEmail){
+    var deferred = q.defer();
+
+    var credentialsJson={
+        mandrillApiKey:null,
+        fromName:null,
+        fromEmail:fromEmail
+    };    
+
+    //Init with Default values of cloudboost
+    try{        
+        smtpConfig = require('../config/smtp.json');     
+        if(!smtpConfig){
+            return deferred.reject("SMTP Configuration file not found.");
+        } 
+        if(!credentialsJson.mandrillApiKey){
+            credentialsJson.mandrillApiKey=smtpConfig.mandrill_api_key;
+        }               
+        if(!credentialsJson.fromEmail){
+            credentialsJson.fromEmail = smtpConfig.from;
+        }
+        if(!credentialsJson.fromName){
+            credentialsJson.fromName = smtpConfig.from_name;
+        }
+
+    }catch(e){        
+        return deferred.reject("Mail services disabled because SMTP Config not found or is invalid. Please add correct smtp.json in config to enable mail services.");
+    } 
+
+    //Checking in Email Settings to overwrite(Set only if mandrillApiKey and email are found)
+    if(emailSettings && emailSettings.length>0 && emailSettings[0].settings.mandrillApiKey){
+
+      if(emailSettings[0].settings.email && emailSettings[0].settings.email!=""){
+
+        credentialsJson.mandrillApiKey=emailSettings[0].settings.mandrillApiKey;
+        credentialsJson.fromEmail=emailSettings[0].settings.email;
+
+        if(emailSettings[0].settings.from && emailSettings[0].settings.from!=""){
+            credentialsJson.fromName=emailSettings[0].settings.from;
+        }
+      }                
+      
+    }
+
+    deferred.resolve(credentialsJson);
+
+    return deferred.promise;    
+}   

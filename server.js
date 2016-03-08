@@ -330,7 +330,7 @@ http.listen(app.get('port'), function () {
 
 if(https){
     https.listen(4731, function () {
-        console.log("HTTPS Server started.");
+      console.log("HTTPS Server started.");
     });
 }
 
@@ -393,10 +393,10 @@ function setUpRedis(){
            console.log("Redis is running on Kubernetes.");
            
            var obj = {
-                        host : process.env["REDIS_SENTINEL_SERVICE_HOST"],
-                        port : process.env["REDIS_SENTINEL_SERVICE_PORT"],
-                        enableReadyCheck : false
-                    };
+                      host : process.env["REDIS_SENTINEL_SERVICE_HOST"],
+                      port : process.env["REDIS_SENTINEL_SERVICE_PORT"],
+                      enableReadyCheck : false
+                  };
            hosts.push(obj); 
        }else{
             //take from env variables.

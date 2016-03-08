@@ -142,7 +142,7 @@ module.exports = function() {
 
     });
     
-    //Settings for the App
+    //Update Settings for the App
     global.app.put('/settings/:appId/:category',function(req,res){
 
         console.log('++++++++ General App Settings API +++++++++');
@@ -153,6 +153,10 @@ module.exports = function() {
         var sdk = req.body.sdk || "REST";
         var settings = req.body.settings || {};
         var appKey = req.body.key || req.params.key;
+
+        if(typeof settings=="string"){
+            settings=JSON.parse(settings);
+        }
 
         global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
             if(isMasterKey){
@@ -178,9 +182,10 @@ module.exports = function() {
 
     });
     
+    //Get Settings for the App
     global.app.post('/settings/:appId',function(req,res){
 
-        console.log('++++++++ General App Settings API +++++++++');
+        console.log('++++++++ General App Settings API +++++++++');       
 
         var appId = req.params.appId;
         var body = req.body || {};
