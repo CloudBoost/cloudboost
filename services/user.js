@@ -61,8 +61,12 @@ module.exports = function() {
 			return deferred.promise;
 		},
         
-        
-        
+        /*Desc   : Reset Password
+	      Params : appId, email, accessList, masterKey
+	      Returns: Promise
+	               Resolve->Mail Sent successfully
+	               Reject->Error on find User or No user or getMyUrl() or sendResetPassword()
+	    */        
         resetPassword: function(appId, email, accessList, isMasterKey){
             var deferred = q.defer();
 			
@@ -82,41 +86,13 @@ module.exports = function() {
                     var passwordResetKey = crypto.createHmac('sha256', global.keys.secureKey)
                                             .update(user.password)
                                             .digest('hex');
-                    
-                    fs.readFile('./mail-templates/reset-password.html', 'utf8', function(error, data) {
-                        
-                        if(error){
-                            deferred.reject("Cannot read the mail template");
-                        }else{
-                            jsdom.env(data, [], function (errors, window) {
-                                if(error){
-                                    deferred.reject("Cannot parse mail template.");
-                                }else{
-                                    var $ = require('jquery')(window);
-                                    
-                                    $("span[edit='link']").each(function () {
-                                        var uri = encodeURI(myUrl+"/page/"+appId+"/reset-password?user="+user.username+"&resetKey="+passwordResetKey);
-                                        var content = "<a href='"+uri+"' class='btn-primary'>Change Password</a>";
-                                        $(this).html(content);
-                                    });
-                                    
-                                    $("span[edit='username']").each(function () {
-                                        var content = user.name || user.firstName || user.firstname;
-                                        if(content)
-                                            $(this).text(content);
-                                    });
-
-                                    global.mailService.send(appId, email, "Reset your password.",null, window.document.documentElement.outerHTML, null).then(function(){
-                                        console.log("Mail sent successfully!");
-                                    }, function(error){
-                                        console.log(error);
-                                    }); 
-                                    
-                                    deferred.resolve();   
-                                }
-                            });
-                        }
+                                          
+                   	global.mailService.sendResetPassword(appId, email, "Reset your password",null, null,user,passwordResetKey,myUrl).then(function(resp){
+                       deferred.resolve(resp);
+                    }, function(error){
+                        deferred.reject(error);
                     });
+
                 }, function(error){
                     deferred.reject(error);
                 });
@@ -138,7 +114,6 @@ module.exports = function() {
 					deferred.reject("User with email "+email+" not found.");
 					return;
 				}
-
                 //Send an email to reset user password here. 
                 var passwordResetKey = crypto.createHmac('sha256', global.keys.secureKey)
                    .update(user.password)
@@ -275,3 +250,4 @@ module.exports = function() {
 		}
 	}
 }
+
