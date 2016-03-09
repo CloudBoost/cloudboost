@@ -138,7 +138,7 @@ module.exports = function() {
     
     global.app.post('/page/:appId/reset-user-password', function(req, res) { 
         var appId = req.params.appId || null;
-        var email = req.body.email || null;
+        var username = req.body.username || null;
 		var sdk = req.body.sdk || "REST";
         var resetKey = req.body.resetKey || "";
         var newPassword = req.body.newPassword || "";
@@ -149,7 +149,7 @@ module.exports = function() {
 			});
         }
             
-        global.userService.resetUserPassword(appId, email, newPassword, resetKey, customHelper.getAccessList(req), true)
+        global.userService.resetUserPassword(appId, username, newPassword, resetKey, customHelper.getAccessList(req), true)
         .then(function(result) {
             res.json({message : "Password changed successfully."});
         }, function(error) {
