@@ -98,14 +98,14 @@ module.exports = function() {
 			return deferred.promise;
         },
         
-        resetUserPassword: function(appId, email, newPassword, resetKey, accessList, isMasterKey){
+        resetUserPassword: function(appId, username, newPassword, resetKey, accessList, isMasterKey){
             var deferred = q.defer();
 			
             global.customService.findOne(appId, Collections.User, {
-				email: email
+				username: username
 			},null,null,null,accessList, true).then(function(user) {
 				if (!user) {
-					deferred.reject("User with email "+email+" not found.");
+					deferred.reject("User with username "+username+" not found.");
 					return;
 				}
                 //Send an email to reset user password here. 
