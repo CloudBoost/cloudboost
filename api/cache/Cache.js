@@ -36,7 +36,10 @@ module.exports = function (){
     });
     
     //Delete Cache
-    global.app.delete('/cache/:appId/:name', function(req, res){
+    global.app.delete('/cache/:appId/:name', _deleteCache);
+    global.app.put('/cache/:appId/:name', _deleteCache);
+
+    function _deleteCache(req, res){
         var appId =       req.params.appId;
         var cacheName =   req.params.name;
         var appKey =     req.body.key;
@@ -58,10 +61,13 @@ module.exports = function (){
         });
         
         global.apiTracker.log(appId,"Cache / Delete", req.url,sdk);
-    });
+    }
     
     //delete item.
-     global.app.delete('/cache/:appId/:name/item/:key', function(req, res){
+    global.app.delete('/cache/:appId/:name/item/:key', _deleteItem);
+    global.app.put('/cache/:appId/:name/item/:key', _deleteItem);
+
+    function _deleteItem(req, res){
         var appId =       req.params.appId;
         var cacheName =   req.params.name;
         var key = req.params.key;
@@ -84,7 +90,7 @@ module.exports = function (){
         });
         
         global.apiTracker.log(appId,"Cache / Item  / Delete", req.url,sdk);
-    });
+    }
     
     //Create a Cache
     global.app.post('/cache/:appId/:name/create', function (req, res) {
@@ -112,7 +118,10 @@ module.exports = function (){
     });
     
     //Clear Cache
-    global.app.delete('/cache/:appId/:name/clear', function (req, res) {
+    global.app.delete('/cache/:appId/:name/clear', _clearCache);
+    global.app.put('/cache/:appId/:name/clear', _clearCache);
+
+    function _clearCache(req, res) {
         var appId = req.params.appId;
         var cacheName = req.params.name;
         var appKey = req.body.key;
@@ -134,7 +143,7 @@ module.exports = function (){
         });
         
         global.apiTracker.log(appId,"Cache / Clear", req.url,sdk);
-    });
+    }
     
     //get single item from a cache. 
     global.app.post('/cache/:appId/:name/:key/item', _getItem);
@@ -158,7 +167,10 @@ module.exports = function (){
     
     
     //Delete All Caches
-    global.app.delete('/cache/:appId', function(req, res){
+    global.app.delete('/cache/:appId', _deleteAllCache);
+    global.app.put('/cache/:appId', _deleteAllCache);
+
+    function _deleteAllCache(req, res){
         var appId = req.params.appId;
         var appKey = req.body.key;
         var sdk = req.body.sdk || "REST";
@@ -179,7 +191,7 @@ module.exports = function (){
         });
         
         global.apiTracker.log(appId,"Cache / DeleteAll", req.url,sdk);
-    });
+    }
 
 
     function _getItem(req, res, next){

@@ -30,7 +30,11 @@ module.exports = function () {
         
     });
 
-    global.app.delete('/file/:appId/:fileId', function(req, res) {
+    //Delete File
+    global.app.delete('/file/:appId/:fileId', _deleteFile);
+    global.app.put('/file/:appId/:fileId', _deleteFile);
+
+    function _deleteFile(req, res) {
         console.log("FILE DELETE");
         console.log('+++++++++ In File Delete Service API ++++++++');
 
@@ -51,12 +55,13 @@ module.exports = function () {
 
         global.apiTracker.log(appId,"File / Delete", req.url,sdk);
 
-    });
+    }
 
     global.app.get('/file/:appId/:fileId', _getFile);
     global.app.post('/file/:appId/:fileId', _getFile);
-
 };
+
+
 
 
 function _getFile(req, res) {
