@@ -4,27 +4,35 @@ module.exports = function() {
 
 
     global.app.put('/data/:appId/:tableName', function (req, res, next) { //save a new document into <tableName> of app
-        console.log("SAVE API");
-        var appId = req.params.appId;
-        var document = req.body.document;
-        var collectionName = req.params.tableName;
-        var userId = req.session.userId || null;
-        var appKey = req.body.key || req.params.key;
-        var sdk = req.body.sdk || "REST";
-        
-        global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
-            return global.customService.save(appId, collectionName, document, customHelper.getAccessList(req), isMasterKey);
-        }).then(function (result) {
-            console.log('+++ Save Success +++');
-            console.log(result);
-            res.status(200).send(result);
-        }, function (error) {
-            console.log('++++++ Save Error +++++++');
-            console.log(error);
-            res.status(400).send(error);
-        });
+        if(req.body && req.body.method=="DELETE"){
+            /******************DELETE API*********************/
+            _deleteApi(req, res);
+            /******************DELETE API*********************/
+        }else{
+            /******************SAVE API*********************/
+            console.log("SAVE API");
+            var appId = req.params.appId;
+            var document = req.body.document;
+            var collectionName = req.params.tableName;
+            var userId = req.session.userId || null;
+            var appKey = req.body.key || req.params.key;
+            var sdk = req.body.sdk || "REST";
+            
+            global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
+                return global.customService.save(appId, collectionName, document, customHelper.getAccessList(req), isMasterKey);
+            }).then(function (result) {
+                console.log('+++ Save Success +++');
+                console.log(result);
+                res.status(200).send(result);
+            }, function (error) {
+                console.log('++++++ Save Error +++++++');
+                console.log(error);
+                res.status(400).send(error);
+            });
 
-        global.apiTracker.log(appId,"Object / Save", req.url,sdk);
+            global.apiTracker.log(appId,"Object / Save", req.url,sdk);
+            /******************SAVE API*********************/
+        }
     });
     
 	
@@ -43,26 +51,28 @@ module.exports = function() {
     global.app.get('/data/:appId/:tableName/search', _search);
     global.app.post('/data/:appId/:tableName/search', _search);
 
-	global.app.delete('/data/:appId/:tableName', function(req, res, next) { //delete a document matching the <objectId>
+	global.app.delete('/data/:appId/:tableName', _deleteApi);
+
+    function _deleteApi(req, res, next) { //delete a document matching the <objectId>
         console.log("DELETE API");
         var appId = req.params.appId;
-		var collectionName = req.params.tableName;
-		var userId = req.session.userId || null;
-		var document = req.body.document;
-		var appKey = req.body.key || req.param('key');
+        var collectionName = req.params.tableName;
+        var userId = req.session.userId || null;
+        var document = req.body.document;
+        var appKey = req.body.key || req.param('key');
         var sdk = req.body.sdk || "REST";
 
-		global.appService.isMasterKey(appId,appKey).then(function(isMasterKey){
-			return global.customService.delete(appId, collectionName, document, customHelper.getAccessList(req),isMasterKey);
-		}).then(function(result) {
-			res.json(result);
+        global.appService.isMasterKey(appId,appKey).then(function(isMasterKey){
+            return global.customService.delete(appId, collectionName, document, customHelper.getAccessList(req),isMasterKey);
+        }).then(function(result) {
+            res.json(result);
         }, function(error) {
-			res.status(400).send(error);
-		});
+            res.status(400).send(error);
+        });
        
         global.apiTracker.log(appId,"Object / Delete", req.url,sdk);
        
-    });
+    }
 
 };
 

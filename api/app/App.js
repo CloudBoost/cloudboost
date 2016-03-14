@@ -40,37 +40,41 @@ module.exports = function() {
     });
 
     //delete app.
-	global.app.delete('/app/:appId', function(req, res) { //delete the app and all of its data.
+	global.app.delete('/app/:appId', _deleteApp);
+    global.app.put('/app/:appId', _deleteApp);
+
+    function _deleteApp(req, res){ //delete the app and all of its data.
         console.log('+++++++++++++ APP DELETE HANDLER +++++++++++');
-		var appId = req.params.appId;
+        var appId = req.params.appId;
         var sdk = req.body.sdk || "REST";
 
-		var body = req.body || {};
+        var body = req.body || {};
 
-		if(global.keys.secureKey === body.secureKey){
+        if(global.keys.secureKey === body.secureKey){
             console.log("Authorized");
             //delete all code here.
-			global.appService.deleteApp(appId).then(function(){
+            global.appService.deleteApp(appId).then(function(){
                 console.log("App deleted");
-				return res.status(200).send({status : 'Success'});
-     		}, function(){
+                return res.status(200).send({status : 'Success'});
+            }, function(){
                 console.log("Internal Server Error");
-				return res.status(500).send({status : 'Error'});
-			});
-		}else{
+                return res.status(500).send({status : 'Error'});
+            });
+        }else{
             console.log("Unauthorized");
-			return res.status(401).send({status : 'Unauthorized'});
-		}
+            return res.status(401).send({status : 'Unauthorized'});
+        }
 
         global.apiTracker.log(appId,"App / Delete", req.url,sdk);
         
-	});
+    }
 
     //delete a table.
-	global.app.delete('/app/:appId/:tableName', function(req, res) { //delete the app and all of its data.
+	global.app.delete('/app/:appId/:tableName', _deleteTable);
+
+    function _deleteTable(req, res) { //delete the app and all of its data.
 
         try {
-
             //this method is to delete a particular collection from an global.app.
             console.log('++++++ Table Delete API+++++++');
             var appId = req.params.appId;
@@ -104,41 +108,49 @@ module.exports = function() {
         }
         
         global.apiTracker.log(appId,"App / Table / Delete", req.url,sdk);
-	});
+    }
 
     //create a table.
     global.app.put('/app/:appId/:tableName',function(req,res){
 
-        console.log('++++++++ UPDATE TABLE API +++++++++');
+        if(req.body && req.body.method=="DELETE"){
+            /***************************DELETE******************************/
+            _deleteTable(req,res);
+            /***************************DELETE******************************/
+        }else{
 
-        var appId = req.params.appId;
-        var tableName = req.params.tableName;
-        var body = req.body || {};
-        var schema = req.body.schema;
-        var sdk = req.body.sdk || "REST";
-        var appKey = req.body.key || req.params.key;
+            /***************************UPDATE******************************/
+            console.log('++++++++ UPDATE TABLE API +++++++++');
+            var appId = req.params.appId;
+            var tableName = req.params.tableName;
+            var body = req.body || {};
+            var schema = req.body.schema;
+            var sdk = req.body.sdk || "REST";
+            var appKey = req.body.key || req.params.key;
 
-        global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
-            if(isMasterKey){
-                //delete all code here.
+            global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
+                if(isMasterKey){
+                    //delete all code here.
 
-                if(global.mongoDisconnected || global.elasticDisconnected){
-                    return res.status(500).send('Storage / Search / Cache Backend are temporarily down.');
+                    if(global.mongoDisconnected || global.elasticDisconnected){
+                        return res.status(500).send('Storage / Search / Cache Backend are temporarily down.');
+                    }
+
+                    global.appService.upsertTable(appId,tableName,body.data.columns).then(function(table){
+                        return res.status(200).send(table);
+                    },function(err){
+                        return res.status(500).send('Error');
+                    });
+                }else{
+                    return res.status(401).send({status : 'Unauthorized'});
                 }
+            }, function(error){
+                return res.status(500).send('Cannot retrieve security keys.');
+            });
 
-                global.appService.upsertTable(appId,tableName,body.data.columns).then(function(table){
-                    return res.status(200).send(table);
-                },function(err){
-                    return res.status(500).send('Error');
-                });
-            }else{
-                return res.status(401).send({status : 'Unauthorized'});
-            }
-        }, function(error){
-            return res.status(500).send('Cannot retrieve security keys.');
-        });
-
-        global.apiTracker.log(appId,"App / Table / Create", req.url,sdk);
+            global.apiTracker.log(appId,"App / Table / Create", req.url,sdk);
+            /***************************UPDATE******************************/
+        }
 
     });
     

@@ -123,8 +123,6 @@ module.exports = function () {
 
     });
 
-
-
     global.app.post('/queue/:appId/:queueName/getMessage', function (req, res) {
 
         //This handler pushes or updates a message in a queue.
@@ -188,8 +186,11 @@ module.exports = function () {
     });
 
 
+    //Delete Message
+    global.app.delete('/queue/:appId/:queueName/message/:id', _deleteMessage);
+    global.app.put('/queue/:appId/:queueName/message/:id', _deleteMessage);
 
-    global.app.delete('/queue/:appId/:queueName/message/:id', function (req, res) {
+    function _deleteMessage(req, res) {
 
         //This handler dleetes the message from the queue.
         console.log('DELETE QUEUE MESSAGE HANDLER');
@@ -218,7 +219,7 @@ module.exports = function () {
 
        global.apiTracker.log(appId,"Queue / Message / Delete", req.url,sdk);
 
-    });
+    }
 
 
     global.app.post('/queue/:appId/:queueName/subscriber', function (req, res) {
@@ -251,7 +252,11 @@ module.exports = function () {
 
     });
 
-    global.app.delete('/queue/:appId/:queueName/subscriber', function (req, res) {
+    //Remove subscriber
+    global.app.delete('/queue/:appId/:queueName/subscriber', _removeSubscriber);
+    global.app.put('/queue/:appId/:queueName/subscriber', _removeSubscriber);
+
+    function _removeSubscriber(req, res) {
         //check if the queue has a write access.
         //if yes, Update the queue.
         console.log('Remove SUBSCRIBER QUEUE MESSAGE HANDLER');
@@ -277,9 +282,11 @@ module.exports = function () {
         });
 
        global.apiTracker.log(appId,"Queue / Subscriber / Delete", req.url,sdk);
-    });
+    }
 
-    global.app.delete('/queue/:appId/:queueName', function (req, res) {
+    global.app.delete('/queue/:appId/:queueName', _deleteQueue);
+
+    function _deleteQueue(req, res) {
         //check if the queue has a write access.
         //if yes, Update the queue.
         console.log('DELETE');
@@ -305,9 +312,50 @@ module.exports = function () {
         });
 
         global.apiTracker.log(appId,"Queue / Delete", req.url,sdk);
+    }
+
+    global.app.put('/queue/:appId/:queueName', function (req, res) {
+
+        if(req.body && req.body.method=="DELETE"){
+            /***********************DELETE Q**********************/
+            _deleteQueue(req, res);
+            /***********************DELETE Q**********************/
+        }else{
+            /***********************UPDATE Q**********************/
+            //check if the queue has a write access.
+            //if yes, Update the queue.
+            console.log('Update Queue');
+
+            var appId = req.params.appId;
+            var queueName = req.params.queueName;
+
+            var userId = req.session.userId || null;
+            var appKey = req.body.key;
+            var document = req.body.document;
+            var sdk = req.body.sdk || "REST";
+
+            global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
+                return global.queueService.updateQueue(appId, document, customHelper.getAccessList(req), isMasterKey);
+            }).then(function (result) {
+                console.log('+++ Uopdate Queue Success +++');
+                console.log(result);
+                res.status(200).send(result);
+            }, function (error) {
+                console.log('++++++ Update Queue Error +++++++');
+                console.log(error);
+                res.status(400).send(error);
+            });
+
+            global.apiTracker.log(appId,"Queue / Update", req.url,sdk);
+            /***********************UPDATE Q**********************/
+        }
     });
 
-    global.app.delete('/queue/:appId/:queueName/clear', function (req, res) {
+    //Clear Queue
+    global.app.delete('/queue/:appId/:queueName/clear', _clearQueue);
+    global.app.put('/queue/:appId/:queueName/clear', _clearQueue);
+
+    function _clearQueue(req, res) {
         //check if the queue has a write access.
         //if yes, Update the queue.
         console.log('CLEAR QUEUE');
@@ -334,7 +382,7 @@ module.exports = function () {
 
         global.apiTracker.log(appId,"Queue / Clear", req.url,sdk);
 
-    });
+    }
 
     global.app.post('/queue/:appId/:queueName', function (req, res) {
         //check if the queue has a write access.
@@ -393,36 +441,7 @@ module.exports = function () {
         });
 
         global.apiTracker.log(appId,"Queue / Message / RefreshTimeout", req.url,sdk);
-    });
-
-
-    global.app.put('/queue/:appId/:queueName', function (req, res) {
-        //check if the queue has a write access.
-        //if yes, Update the queue.
-        console.log('Update Queue');
-
-        var appId = req.params.appId;
-        var queueName = req.params.queueName;
-
-        var userId = req.session.userId || null;
-        var appKey = req.body.key;
-        var document = req.body.document;
-        var sdk = req.body.sdk || "REST";
-
-        global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
-            return global.queueService.updateQueue(appId, document, customHelper.getAccessList(req), isMasterKey);
-        }).then(function (result) {
-            console.log('+++ Uopdate Queue Success +++');
-            console.log(result);
-            res.status(200).send(result);
-        }, function (error) {
-            console.log('++++++ Update Queue Error +++++++');
-            console.log(error);
-            res.status(400).send(error);
-        });
-
-        global.apiTracker.log(appId,"Queue / Update", req.url,sdk);
-    });
+    });   
 
     global.app.post('/queue/:appId/', function (req, res) {
         //check if the queue has a write access.
