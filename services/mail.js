@@ -129,12 +129,14 @@ function _mergeVariablesInTemplate(template,appId,user,passwordResetKey){
     global.keyService.getMyUrl().then(function(myUrl){
 
         var uri = encodeURI(myUrl+"/page/"+appId+"/reset-password?user="+user.username+"&resetKey="+passwordResetKey);
-        var linkBtn = "<a href='"+uri+"' style='padding:3px;border-radius:2px;text-decoration:none;display: inline-block;background-color: #159CEE;color:white;'>Change Password</a>";
+        
 
-        var userName = user.name || user.firstName || user.firstname;
+        var userName = user.name || user.firstName || user.username;
         if(!userName){
             userName=" ";
         }
+
+        console.log("This is the user name:"+userName);
 
         //Parse Template
         jsdom.env(template, [], function (error, window) {
@@ -146,12 +148,10 @@ function _mergeVariablesInTemplate(template,appId,user,passwordResetKey){
                 $('body').children().each(function(){ 
                     if(userName){
                         $(this).text( $(this).text().replace('*|NAME|*',userName));
-                    } 
-                    if(linkBtn){
-                        $(this).text( $(this).text().replace('*|LINK|*',linkBtn));
-                        $(this).html($.parseHTML($(this).text()));
-                    }                 
+                    }                                     
                 });
+
+                $('body').find("a[href='*|LINK|*']").attr("href",uri);               
                 
                 deferred.resolve(window.document.documentElement.outerHTML);   
             }
