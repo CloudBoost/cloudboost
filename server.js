@@ -229,6 +229,7 @@ function attachServices() {
         global.cacheService = require('./services/cache.js')();
         global.serverService = require('./services/server.js')();
         global.mailService = require('./services/mail.js')();
+        global.pushService = require('./services/push.js')();
         
         console.log('+++++++++++ Services Status : OK. ++++++++++++++++++');
     }catch(e){
@@ -256,6 +257,7 @@ function attachAPI() {
         require('./api/queue/Queue.js')();
         require('./api/cache/Cache.js')();
         require('./api/server/Server.js')();
+        require('./api/pushNotifications/Push.js')();
 
         console.log('+++++++++++ API Status : OK ++++++++++++++++++');
 

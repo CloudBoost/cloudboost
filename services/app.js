@@ -375,11 +375,14 @@ module.exports = function() {
                 else if (tableName === "Role") {
                     tableType = "role";
                 }
+                else if (tableName === "Device") {
+                    tableType = "device";
+                }
                 else {
                     tableType = "custom";
                 }
 
-                if (tableType === 'user' || tableType === 'role') {
+                if (tableType === 'user' || tableType === 'role' || tableType === 'device') {
                     maxCount = 1;
                 } else {
                     maxCount = 99999;
@@ -632,6 +635,9 @@ function _getDefaultColumnList(type) {
         defaultColumn.concat(['username', 'email', 'password', 'roles']);
     } else if (type == 'role') {
         defaultColumn.push('name');
+
+    }else if (type == 'device') {
+        defaultColumn.concat(['channels', 'deviceToken', 'deviceOS', 'timezone','metadata']);
     }
     return defaultColumn;
 }
@@ -710,6 +716,32 @@ function _checkValidDataType(columns, deafultDataType) {
                 return false;
         }
 
+        //channels for device table
+        if (key === 'channels') {
+            if (columns[index].relationType != null || columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'List')
+                return false;
+        }
+        //deviceToken for device table
+        if (key === 'deviceToken') {
+            if (columns[index].relationType != null || columns[index].required != false || columns[index].unique != true || columns[index].dataType != 'Text')
+                return false;
+        }
+        //deviceOS for device table
+        if (key === 'deviceOS') {
+            if (columns[index].relationType != null || columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'Text')
+                return false;
+        }
+        //timezone for device table
+        if (key === 'timezone') {
+            if (columns[index].relationType != null || columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'Text')
+                return false;
+        }
+        //metadata for device table
+        if (key === 'metadata') {
+            if (columns[index].relationType != null || columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'Object')
+                return false;
+        }
+
         if (columns[index].isRenamable !== false || columns[index].isEditable !== false || columns[index].isDeletable !== false) {
             return false;
         }
@@ -783,8 +815,15 @@ function _getDefaultColumnWithDataType(type) {
         defaultColumn['email'] = 'Email';
         defaultColumn['password'] = 'EncryptedText'
         defaultColumn['roles'] = 'List';
-    } else if (type == 'role') {
+    }else if (type == 'role') {        
         defaultColumn['name'] = 'Text';
+
+    }else if (type == 'device') {
+        defaultColumn['channels'] = 'List';
+        defaultColumn['deviceToken'] = 'Text';
+        defaultColumn['deviceOS'] = 'Text';
+        defaultColumn['timezone'] = 'Text';
+        defaultColumn['metadata'] = 'Object';
     }
     return defaultColumn;
 }
