@@ -1,5 +1,6 @@
 module.exports = {
 	Schema: 'Schema',
 	Role: 'Role',
-	User: 'User'
+	User: 'User',
+	Device: 'Device'
 };

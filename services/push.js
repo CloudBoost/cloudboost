@@ -3,21 +3,146 @@ var q = require('q');
 var fs = require('fs');
 var crypto = require("crypto");
 var uuid = require('uuid');
+var customHelper = require('../helpers/custom.js');
 var _ = require('underscore');
 var util = require('../helpers/util.js');
 var Stream = require('stream');
 var Grid = require('gridfs-stream');
 
+var gcm = require('node-gcm');
+var apn = require('apn');
+var mpns = require('mpns');
+var wns = require('wns');
+
 module.exports = function() {
 
 	return {
+
+		/*Desc   : Send Push Notification
+		  Params : appId,collectionName,query, sort, limit, skip,accessList,isMasterKey,pushData
+		  Returns: Promise
+		           Resolve->No devices found or Result of sending notifications
+		           Reject->Error on find() or getAllSettings() or pushSettings not found or q.all(Promises)
+		*/
+		sendPush: function(appId,collectionName,query, sort, limit, skip,accessList,isMasterKey,pushData){
+
+			_self=this;
+
+			var deferred = global.q.defer();
+
+			var pushNotificationSettings=null;
+			var appleCertificate=null;
+			
+			global.customService.find(appId, collectionName, query, null, sort, limit, skip,accessList,isMasterKey)
+			.then(function(deviceObjects){
+
+				if(!deviceObjects || deviceObjects.length==0){
+					return deferred.resolve("No Device objects found.");
+				}
+
+				global.appService.getAllSettings(appId).then(function(appSettings){
+
+					var pushSettingsFound=false;
+
+					if(appSettings && appSettings.length>0){
+		                var pushSettings=_.where(appSettings, {category: "push"});
+		                if(pushSettings && pushSettings.length>0){
+
+		                    pushSettingsFound=true;
+		                    pushNotificationSettings=pushSettings[0].settings;
+
+		                    if(pushSettings[0].settings.apple.certificates && pushSettings[0].settings.apple.certificates.length>0){
+		                    	var fileName=pushSettings[0].settings.apple.certificates[0].split("/").reverse()[0];
+		                    	return _self.getFile(appId,fileName);
+		                    }                     
+		                }
+		            }
+
+		            if(!pushSettingsFound){
+		            	return deferred.reject("Push Notification Settings not found.");
+		            } 
+
+		            if(pushSettingsFound){
+		            	var emptyAppleCert = global.q.defer();
+		            	emptyAppleCert.resolve(null);
+		            	return emptyAppleCert.promise
+		            }	            
+
+				}).then(function(appleCertFileObj){
+
+					if(appleCertFileObj){
+						appleCertificate=_self.getFileStreamById(appId,appleCertFileObj._id)
+					}
+
+					if(deviceObjects && deviceObjects.length>0){            	
+
+		            	var appleTokens  =[];
+		            	var googleTokens  =[];
+		            	var microsoftUris=[];
+		            	var windowsUris  =[];
+
+		            	for(var i=0;i<deviceObjects.length;++i){
+
+		            		if(deviceObjects[i].deviceOS=="ios"){	            			
+		            			appleTokens.push(deviceObjects[i].deviceToken);
+		            		}
+		            		if(deviceObjects[i].deviceOS=="android" && appleCertificate){
+		            			googleTokens.push(deviceObjects[i].deviceToken);
+		            		}
+		            		if(deviceObjects[i].deviceOS=="windowsPhone" && appleCertificate){
+		            			microsoftUris.push(deviceObjects[i].deviceToken);
+		            		}
+		            		if(deviceObjects[i].deviceOS=="windowsApp" && appleCertificate){
+		            			windowsUris.push(deviceObjects[i].deviceToken);
+		            		}
+		            	}
+
+		            	var promises=[];
+
+		            	if(appleTokens && appleTokens.length>0 && appleCertificate){
+		            		promises.push(_applePush(appleTokens,appleCertificate,pushData));
+		            	}
+
+		            	var andriod=pushNotificationSettings.andriod.credentials[0];
+		            	if(googleTokens && googleTokens.length>0 && andriod.apiKey){
+		            		promises.push(_googlePush(googleTokens,andriod.senderId,andriod.apiKey,pushData));
+		            	}
+
+		            	var windows=pushNotificationSettings.windows.credentials[0];
+		            	if(microsoftUris && microsoftUris.length>0 && windows.securityId){
+		            		promises.push(_microsoftPush(windows.securityId,windows.clientSecret,microsoftUris,pushData));
+		            	}
+		            	
+		            	if(windowsUris && windowsUris.length>0 && windows.securityId){
+		            		promises.push(_windowsPush(windows.securityId,windows.clientSecret,windowsUris,pushData));
+		            	}
+
+		            	//Promise List
+		            	q.all(promises).then(function(resultList){
+		            		deferred.resolve(resultList);
+		            	},function(error){
+							deferred.reject(error);
+						});		
+		            }
+
+				},function(error){
+					deferred.reject(error);
+				});
+
+			},function(error){
+				deferred.reject(error);
+			});	
+
+			return deferred.promise
+		},
+
 		/*Desc   : Get file from gridfs
 		  Params : appId,filename
 		  Returns: Promise
 		           Resolve->file
 		           Reject->Error on findOne() or file not found(null)
 		*/
-		getFile:function(appId,filename){
+		getFile : function(appId,filename){
 
 		    var deferred = global.q.defer();
 
@@ -28,7 +153,7 @@ module.exports = function() {
 		            return deferred.reject(err);
 		        }    
 		        if(!file){
-		            return deferred.reject(null);                    
+		            return deferred.resolve(null);                    
 		        }  
 
 		        return deferred.resolve(file);  
@@ -125,3 +250,145 @@ module.exports = function() {
 
 };
 
+
+/*Desc   : send Apple push notification
+  Params : tokens,certifcate,data
+  Returns: Promise
+           Resolve->Success
+           Reject->Error on connecting to apn
+*/
+function _applePush(tokens,certifcate,data){
+    var deferred = global.q.defer();
+
+    var options = {cert: certifcate};
+    
+    var apnConnection = new apn.Connection(options);
+
+    //sending data to devices using device token.
+	var note = new apn.Notification();
+	note.expiry = Math.floor(Date.now() / 1000) + 3600; // Expires 1 hour from now.
+	note.badge = data.badge || 1;
+	note.sound = data.sound || "ping.aiff";
+	note.alert = "\uD83D\uDCE7 \u2709"+ data.title;
+	note.payload = {'messageFrom': data.message};
+
+	apnConnection.on("connected", function() {
+	    console.log("Connected");
+	});
+    apnConnection.on("error", function(error) {
+	   return deferred.reject(error);
+	});
+
+	apnConnection.pushNotification(note, tokens);
+
+	apnConnection.on("transmitted", function(notification, device) {
+	    console.log("Notification transmitted to:" + device.token.toString("hex"));
+	});
+
+	apnConnection.on("transmissionError", function(errCode, notification, device) {
+	    console.error("Notification caused error: " + errCode + " for device ", device, notification);
+	    if (errCode === 8) {
+	        console.log("A error code of 8 indicates that the device token is invalid. This could be for a number of reasons - are you using the correct environment? i.e. Production vs. Sandbox");
+	    }
+	});
+
+	apnConnection.on("timeout", function () {
+	    console.log("Connection Timeout");
+	});
+
+	apnConnection.on("disconnected", function() {
+	    console.log("Disconnected from APNS");
+	});
+
+	apnConnection.on("socketError", function(){
+		console.log("socketError");
+	});
+
+	deferred.resolve("sent");
+
+	return deferred.promise;    
+}
+
+/*Desc   : send Google push notification
+  Params : senderId,apiKey,devicesTokens,data
+  Returns: Promise
+           Resolve->Success
+           Reject->Fail to send
+*/
+function _googlePush(senderId,apiKey,devicesTokens,data){
+            
+    var defer = global.q.defer();
+    
+    var sender = gcm.Sender(apiKey);    
+    
+    var message = new gcm.Message({
+        collapseKey: 'demo',
+        priority: 'high',
+        contentAvailable: true,
+        delayWhileIdle: true,
+        timeToLive: 3,
+        dryRun: false,
+        data: {
+            data: 'Cloudboost-PN-Service'
+        },
+        notification: {
+            title: data.title,
+            icon: data.icon || 'ic_launcher',
+            body: data.message
+        }
+    });   
+    
+    //send notification
+    sender.send(message, { registrationTokens: devices }, function (error, response) {
+        if(!error){
+            defer.resolve(response);
+        }else{
+            defer.reject(error);
+        } 	
+    });
+            
+    
+    return defer.promise;
+}
+
+/*Desc   : send Microsoft push notification
+  Params : securityId,clientSecret,pushUris,data
+  Returns: Promise
+           Resolve->Success
+           Reject->Fail to send
+*/
+function _microsoftPush(securityId,clientSecret,pushUris,data){
+    var defer = global.q.defer();   
+   
+    mpns.sendToast(pushUris, data.title, data.message, function(err, res){
+        if(!err){
+            defer.resolve(res);
+        }else{
+            defer.reject(err);
+        }
+    });
+        
+   
+    return defer.promise;
+}
+
+/*Desc   : send Windows push notification
+  Params : securityId,clientSecret,pushUris,data
+  Returns: Promise
+           Resolve->Success
+           Reject->Fail to send
+*/
+function _windowsPush(securityId,clientSecret,pushUris,data){
+
+    var defer = global.q.defer();	 
+
+	wns.sendToast(pushUris, data.message, {client_id:securityId,client_secret:clientSecret}, function(err, res){
+	    if(!err){
+	        defer.resolve(res);
+	    }else{
+	        defer.reject(err);
+	    }
+	});  
+    
+    return defer.promise;
+}
