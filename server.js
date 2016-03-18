@@ -263,7 +263,7 @@ function attachAPI() {
 
         app.use(function(err, req, res, next) {
             if(err.status !== 500) {
-                return next();
+              return next();
             }
 
             console.log("FATAL : Internal Server Error");
@@ -289,9 +289,8 @@ function ignoreUrl(requestUrl) {
 		if (requestUrl.indexOf(ignoreUrl[i]) >= 0) {
 			return true;
 		}else{
-            var arr = ignoreUrl[i].split("/");
-            
-        }
+      var arr = ignoreUrl[i].split("/");            
+    }
 	}
 
 	return false;
