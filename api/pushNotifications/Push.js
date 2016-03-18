@@ -73,29 +73,7 @@ module.exports = function() {
 
         var appId = req.params.appId;
         var fileId = req.params.fileId;
-        var appKey = req.body.key || req.params.key;
-
-        /*global.pushService.getFile(appId, fileId).then(function (file) {
-                    
-            var fileStream=global.pushService.getFileStreamById(appId,file._id);
-
-            res.set('Content-Type', file.contentType);
-            res.set('Content-Disposition', 'attachment; filename="' + file.filename + '"');            
-
-            fileStream.on("error", function(err) {                  
-              res.send(500, "Got error while processing stream " + err.message);
-              res.end();
-            });           
-            
-            fileStream.on('end', function() {
-                res.end();        
-            });
-
-            fileStream.pipe(res);
-
-        }, function (err) {
-            return res.status(500).send(err);
-        });*/
+        var appKey = req.body.key || req.params.key;    
 
     });
 
@@ -127,7 +105,7 @@ module.exports = function() {
                 res.status(400).send(error);
             });
         }else{
-            res.status(400).send("query select is not allowed");
+            res.status(400).send("Select param in CloudQuery is not allowed.");
         }       
         
         global.apiTracker.log(appId,"Push / Send", req.url,sdk);                
