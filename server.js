@@ -229,8 +229,7 @@ function attachServices() {
         global.cacheService = require('./services/cache.js')();
         global.serverService = require('./services/server.js')();
         global.mailService = require('./services/mail.js')();
-        global.pushService = require('./services/push.js')();
-        global.deviceService = require('./services/device.js')();
+        global.pushService = require('./services/push.js')();        
         
         console.log('+++++++++++ Services Status : OK. ++++++++++++++++++');
     }catch(e){
@@ -252,8 +251,7 @@ function attachAPI() {
     
         require('./api/tables/Custom.js')();
         require('./api/tables/User.js')();
-        require('./api/tables/Role.js')();
-        require('./api/tables/Device.js')();
+        require('./api/tables/Role.js')();        
         require('./api/app/App.js')();
         require('./api/file/File.js')();
         require('./api/queue/Queue.js')();

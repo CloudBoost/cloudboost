@@ -373,8 +373,7 @@ function _windowsPhonePush(securityId,clientSecret,pushUris,data){
         }else{
             defer.reject(err);
         }
-    });
-        
+    });        
    
     return defer.promise;
 }
