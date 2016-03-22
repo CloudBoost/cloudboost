@@ -1,4 +1,8 @@
 module.exports = function(){
-  var cors = require('cors');
-  global.app.use(cors());
+	try{	
+	  var cors = require('cors');
+	  global.app.use(cors());
+ 	} catch(err){           
+        global.winston.log('error',err);                      
+    }
 };

@@ -7,122 +7,155 @@ var job = new CronJob('15 * * * * *', function () {
 job.start();
 
 function getMessages(){
-    //if(global.orientDisconnected || global.mongoDisconnected || global.elasticDisconnected)
-    if(global.mongoDisconnected || global.elasticDisconnected)
-        return "";
-    global.queue.getMessages(global.keys.deleteQueue, function (error, message) {
-        if (!error) {
-            if (message.length > 0) {
-                _delete(message[0].messagetext).then(function () {
-                    deleteFromQueue(message);
-                    getMessages();
-                }, function (err) {
-                    deleteFromQueue(message);
-                    global.winston.log("error",err);
-                });
-            } else {
-                return '';
+    try{
+        //if(global.orientDisconnected || global.mongoDisconnected || global.elasticDisconnected)
+        if(global.mongoDisconnected || global.elasticDisconnected)
+            return "";
+        global.queue.getMessages(global.keys.deleteQueue, function (error, message) {
+            if (!error) {
+                if (message.length > 0) {
+                    _delete(message[0].messagetext).then(function () {
+                        deleteFromQueue(message);
+                        getMessages();
+                    }, function (err) {
+                        deleteFromQueue(message);
+                        global.winston.log("error",err);
+                    });
+                } else {
+                    return '';
+                }
             }
-        }
-    });
+        });
+
+    } catch(err){           
+        global.winston.log('error',err);        
+    }
 }
 
 function deleteFromQueue(message){
-    global.queue.deleteMessage(global.keys.deleteQueue, message[0].messageid, message[0].popreceipt,function (err,res) {
-        if(err){
-            console.log("Unable to delete");
-        }else
-            console.log("Done");
-    });
+    try{
+        global.queue.deleteMessage(global.keys.deleteQueue, message[0].messageid, message[0].popreceipt,function (err,res) {
+            if(err){
+                console.log("Unable to delete");
+            }else
+                console.log("Done");
+        });
+    } catch(err){           
+        global.winston.log('error',err);        
+    }
 }
 
 function _delete(message){
     var deferred = global.q.defer();
-    var promise = null;
-    if (message) {
-        message = JSON.parse(message);
-        if (message.operation === 'tableDelete')
-            promise = _tableDelete(message.appId, message.tableName, message.db);
-        else if(message.operation === 'appDelete')
-            promise = _appDelete(message.appId,message.db);
-        else
-            promise = _columnDelete(message.appId, message.tableName, message.columnName, message.db);
-    }
-    promise.then(function () {
-        deferred.resolve();
-    }, function (err) {
-        deferred.reject(err);
-    });
-    return deferred.promise;
+    try{
+        var promise = null;
+        if (message) {
+            message = JSON.parse(message);
+            if (message.operation === 'tableDelete')
+                promise = _tableDelete(message.appId, message.tableName, message.db);
+            else if(message.operation === 'appDelete')
+                promise = _appDelete(message.appId,message.db);
+            else
+                promise = _columnDelete(message.appId, message.tableName, message.columnName, message.db);
+        }
+        promise.then(function () {
+            deferred.resolve();
+        }, function (err) {
+            deferred.reject(err);
+        });
 
+    } catch(err){           
+        global.winston.log('error',err);
+        deferred.reject(err);        
+    }
+    return deferred.promise;
 }
 
 function _appDelete(appId,db){
     var deferred = global.q.defer();
-    var promises = [];
-    if (db.length > 0) {
-        if(db.indexOf('mongo') >= 0)
-            promises.push(global.mongoUtil.app.drop(appId));
-        if (db.indexOf('elasticSearch') >= 0)
-            promises.push(global.elasticSearchUtil.app.drop(appId));
-        /*  if (db.indexOf('orient') >= 0)
-         promises.push(global.orientUtil.collection.dropCollection(appId, tableName));
-         */
-    }
-    if (promises.length > 0) {
-        global.q.all(promises).then(function () {
+    try{
+        var promises = [];
+        if (db.length > 0) {
+            if(db.indexOf('mongo') >= 0)
+                promises.push(global.mongoUtil.app.drop(appId));
+            if (db.indexOf('elasticSearch') >= 0)
+                promises.push(global.elasticSearchUtil.app.drop(appId));
+            /*  if (db.indexOf('orient') >= 0)
+             promises.push(global.orientUtil.collection.dropCollection(appId, tableName));
+             */
+        }
+        if (promises.length > 0) {
+            global.q.all(promises).then(function () {
+                deferred.resolve();
+            }, function () {
+                deferred.reject();
+            });
+        } else
             deferred.resolve();
-        }, function () {
-            deferred.reject();
-        });
-    } else
-        deferred.resolve();
+
+    } catch(err){           
+        global.winston.log('error',err);
+        deferred.reject(err);        
+    }    
     return deferred.promise;
 }
 
 function _tableDelete(appId, tableName, db){
     var deferred = global.q.defer();
-    var promises = [];
-    if (db.length > 0) {
-        if(db.indexOf('mongo') >= 0)
-            promises.push(global.mongoUtil.collection.dropCollection(appId, tableName));
-        if (db.indexOf('elasticSearch') >= 0)
-            promises.push(global.elasticSearchUtil.collection.drop(appId, tableName));
-      /*  if (db.indexOf('orient') >= 0)
-            promises.push(global.orientUtil.collection.dropCollection(appId, tableName));
-    */
-    }
-    if (promises.length > 0) {
-        global.q.all(promises).then(function () {
+
+    try{
+        var promises = [];
+        if (db.length > 0) {
+            if(db.indexOf('mongo') >= 0)
+                promises.push(global.mongoUtil.collection.dropCollection(appId, tableName));
+            if (db.indexOf('elasticSearch') >= 0)
+                promises.push(global.elasticSearchUtil.collection.drop(appId, tableName));
+          /*  if (db.indexOf('orient') >= 0)
+                promises.push(global.orientUtil.collection.dropCollection(appId, tableName));
+        */
+        }
+        if (promises.length > 0) {
+            global.q.all(promises).then(function () {
+                deferred.resolve();
+            }, function () {
+                deferred.reject();
+            });
+        } else
             deferred.resolve();
-        }, function () {
-            deferred.reject();
-        });
-    } else
-        deferred.resolve();
+
+    } catch(err){           
+        global.winston.log('error',err);
+        deferred.reject(err);        
+    }
     return deferred.promise;
 }
 
 function _columnDelete(appId, tableName, columnName, db){
     var deferred = global.q.defer();
-    var promises = [];
-    if (db.length > 0) {
-        if (db.indexOf('mongo') >= 0)
-            promises.push(global.mongoUtil.collection.dropColumn(appId, tableName,columnName));
-        if (db.indexOf('elasticSearch') >= 0)
-            promises.push(global.elasticSearchUtil.column.drop(appId, tableName,columnName));
-    /*    if (db.indexOf('orient') >= 0)
-            promises.push(global.orientUtil.collection.dropColumn(appId, tableName,columnName));
-    */
-    }
-    if (promises.length > 0) {
-        global.q.all(promises).then(function () {
+    try{
+        var promises = [];
+        if (db.length > 0) {
+            if (db.indexOf('mongo') >= 0)
+                promises.push(global.mongoUtil.collection.dropColumn(appId, tableName,columnName));
+            if (db.indexOf('elasticSearch') >= 0)
+                promises.push(global.elasticSearchUtil.column.drop(appId, tableName,columnName));
+        /*    if (db.indexOf('orient') >= 0)
+                promises.push(global.orientUtil.collection.dropColumn(appId, tableName,columnName));
+        */
+        }
+        if (promises.length > 0) {
+            global.q.all(promises).then(function () {
+                deferred.resolve();
+            }, function () {
+                deferred.reject();
+            });
+        } else
             deferred.resolve();
-        }, function () {
-            deferred.reject();
-        });
-    } else
-        deferred.resolve();
+
+    } catch(err){           
+        global.winston.log('error',err);
+        deferred.reject(err);        
+    }
     return deferred.promise;
 
 }

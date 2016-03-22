@@ -4,19 +4,29 @@ module.exports = function(){
 
     obj = {
         getAllDataTypesInclId : function(){
-            var types = ['Object', 'ACL', 'DateTime', 'Boolean', 'EncryptedText', 'URL', 'Email', 'Text', 'File', 'Number',
-                'GeoPoint','Relation','List'];
-            return types;
+            try{
+                var types = ['Object', 'ACL', 'DateTime', 'Boolean', 'EncryptedText', 'URL', 'Email', 'Text', 'File', 'Number',
+                    'GeoPoint','Relation','List'];
+                return types;
+
+            }catch(err){                    
+                global.winston.log('error',err);                                                  
+            }
         },
 
         isBasicDataType: function (dataType) {
-            var types = ['Object', 'ACL', 'DateTime', 'Boolean', 'EncryptedText', 'URL', 'Email', 'Text', 'File', 'Number', 'GeoPoint'];
+            try{
+                var types = ['Object', 'ACL', 'DateTime', 'Boolean', 'EncryptedText', 'URL', 'Email', 'Text', 'File', 'Number', 'GeoPoint'];
 
-            if (types.indexOf(dataType) > -1) {
-                return true;
+                if (types.indexOf(dataType) > -1) {
+                    return true;
+                }
+
+                return false;
+
+            }catch(err){                    
+                global.winston.log('error',err);                                                  
             }
-
-            return false;
         }
     };
 

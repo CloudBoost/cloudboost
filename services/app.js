@@ -16,23 +16,30 @@ module.exports = function() {
         */
         updateSettings : function(appId, category, settings){
             var deferred = q.defer();
-            global.mongoService.document.findOne(appId, "_Settings", {category:category}, null, null, 0, null, true).then(function(document){
-                if(!document){
-                    document = {};
-                    document._id = util.getId();
-                    document.category = category;
-                }
-                document.settings = settings;
-                document._tableName = "_Settings";
 
-                global.mongoService.document.save(appId, [{document: document}]).then(function(documents){
-                    deferred.resolve(documents[0].value);
+            try{
+                global.mongoService.document.findOne(appId, "_Settings", {category:category}, null, null, 0, null, true).then(function(document){
+                    if(!document){
+                        document = {};
+                        document._id = util.getId();
+                        document.category = category;
+                    }
+                    document.settings = settings;
+                    document._tableName = "_Settings";
+
+                    global.mongoService.document.save(appId, [{document: document}]).then(function(documents){
+                        deferred.resolve(documents[0].value);
+                    }, function(error){
+                        deferred.reject(error);
+                    });
                 }, function(error){
                     deferred.reject(error);
                 });
-            }, function(error){
-                deferred.reject(error);
-            });
+
+            } catch(err){           
+                global.winston.log('error',err);
+                deferred.reject(err);
+            }
 
             return deferred.promise;
         },
@@ -45,48 +52,62 @@ module.exports = function() {
         */
         getAllSettings : function(appId){
             var deferred = q.defer();
-            //check redis cache first. 
-            global.mongoService.document.find(appId, "_Settings", {}, null, null, 9999, 0, null, true).then(function(documents){
-                deferred.resolve(documents);
-            }, function(error){
-                deferred.reject(error);
-            });
+
+            try{
+                //check redis cache first. 
+                global.mongoService.document.find(appId, "_Settings", {}, null, null, 9999, 0, null, true).then(function(documents){
+                    deferred.resolve(documents);
+                }, function(error){
+                    deferred.reject(error);
+                });
+
+            } catch(err){           
+                global.winston.log('error',err);
+                deferred.reject(err);
+            }
 
             return deferred.promise;
         },
         
 		getApp: function(appId) {
 			var deferred = q.defer();
-			//check redis cache first. 
-			console.log('+++++ Redis Get App +++++++');
-			global.redisClient.get(global.keys.cacheAppPrefix+':'+appId, function (err, res){
-				
-				if(res) {
-					res = JSON.parse(res);
-					console.log('App found in Redis :');
-					console.log(res);
-					deferred.resolve(res);
-				}else{
-					console.log('App not found in Redis. Retrieving from Storage.');
-					//if not found in cache then hit the Db. 
-					global.model.Project.findOne({appId: appId}, function(err, project){
-						if(err)
-							deferred.reject(err);
-						else{
-                            if(!project)
-                                deferred.reject("App Not found");
-							else if(project._doc){
-								console.log('Redis App SET');
-								global.redisClient.setex(global.keys.cacheAppPrefix+':'+appId, global.keys.appExpirationTimeFromCache, JSON.stringify(project._doc) );
-								deferred.resolve(project._doc);
-							}else{
-								deferred.reject('App not found.');
-							}
-						}
-					});
-				}
 
-			}); 
+            try{
+    			//check redis cache first. 
+    			console.log('+++++ Redis Get App +++++++');
+    			global.redisClient.get(global.keys.cacheAppPrefix+':'+appId, function (err, res){
+    				
+    				if(res) {
+    					res = JSON.parse(res);
+    					console.log('App found in Redis :');
+    					console.log(res);
+    					deferred.resolve(res);
+    				}else{
+    					console.log('App not found in Redis. Retrieving from Storage.');
+    					//if not found in cache then hit the Db. 
+    					global.model.Project.findOne({appId: appId}, function(err, project){
+    						if(err)
+    							deferred.reject(err);
+    						else{
+                                if(!project)
+                                    deferred.reject("App Not found");
+    							else if(project._doc){
+    								console.log('Redis App SET');
+    								global.redisClient.setex(global.keys.cacheAppPrefix+':'+appId, global.keys.appExpirationTimeFromCache, JSON.stringify(project._doc) );
+    								deferred.resolve(project._doc);
+    							}else{
+    								deferred.reject('App not found.');
+    							}
+    						}
+    					});
+    				}
+
+    			});
+
+            } catch(err){           
+                global.winston.log('error',err);
+                deferred.reject(err);
+            } 
 
 			return deferred.promise;
         },
@@ -95,13 +116,19 @@ module.exports = function() {
 
             var deferred = q.defer();
 
-            global.model.Project.find({}, function(err, projects){
-                if(err)
-                    deferred.reject(err);
-                else{
-                   deferred.resolve(_.pluck(projects,"_doc"));
-                }
-            });
+            try{
+                global.model.Project.find({}, function(err, projects){
+                    if(err)
+                        deferred.reject(err);
+                    else{
+                       deferred.resolve(_.pluck(projects,"_doc"));
+                    }
+                });
+
+            } catch(err){           
+                global.winston.log('error',err);
+                deferred.reject(err);
+            }
 
             return deferred.promise;
         },
@@ -142,6 +169,7 @@ module.exports = function() {
                     }
                 });
             }catch(e){
+                 global.winston.log('error',e);
                 console.log("FATAL : Cannot create app.");
                 console.log(e);
                 deferred.reject("Cannot create an app right now.");
@@ -154,30 +182,36 @@ module.exports = function() {
 			
 			var deferred = q.defer();
 
-			var promises = [];
+            try{
+    			var promises = [];
 
-            global.model.Project.remove({appId:appId}, function (err) {
-                if(err){
-                    console.log('++++++++ App Cannot be deleted from Storage. ++++++++++');
-                    console.log(err);
-                    deferred.reject(err);
-                }else{
-                    global.redisClient.del(global.keys.cacheAppPrefix+':'+appId); //delete the app from redis.
+                global.model.Project.remove({appId:appId}, function (err) {
+                    if(err){
+                        console.log('++++++++ App Cannot be deleted from Storage. ++++++++++');
+                        console.log(err);
+                        deferred.reject(err);
+                    }else{
+                        global.redisClient.del(global.keys.cacheAppPrefix+':'+appId); //delete the app from redis.
 
-                    //delete all the databases.
-                    promises.push(global.mongoUtil.app.drop(appId)); //delete all mongo app data.
-                    promises.push(global.elasticSearchUtil.app.drop(appId)); //delete all elastic app data.
+                        //delete all the databases.
+                        promises.push(global.mongoUtil.app.drop(appId)); //delete all mongo app data.
+                        promises.push(global.elasticSearchUtil.app.drop(appId)); //delete all elastic app data.
 
-                    q.allSettled(promises).then(function(res){
-                        if(res[0].state === 'fulfilled' && res[1].state === 'fulfilled'){
-                            deferred.resolve();
-                        }else {
-                           //TODO : Something wrong happened. Roll back.
-                            deferred.resolve();
-                        }
-                    });
-                }
-            });
+                        q.allSettled(promises).then(function(res){
+                            if(res[0].state === 'fulfilled' && res[1].state === 'fulfilled'){
+                                deferred.resolve();
+                            }else {
+                               //TODO : Something wrong happened. Roll back.
+                                deferred.resolve();
+                            }
+                        });
+                    }
+                });
+
+            } catch(err){           
+                global.winston.log('error',err);
+                deferred.reject(err);
+            }
 
             //delete app from cache
 			return deferred.promise;
@@ -187,24 +221,29 @@ module.exports = function() {
 
             var deferred = q.defer();
 
-            var self = this;
+            try{
+                var self = this;
 
-            global.model.Table.findOne({appId: appId, name: tableName}, function (err, table) {
+                global.model.Table.findOne({appId: appId, name: tableName}, function (err, table) {
 
-                if (err)
-                {
-                    deferred.reject("Error : Failed to retrieve the table.");
-                    console.log("Error : Failed to retrieve the table.")
-                    console.log(err);
-                }
+                    if (err)
+                    {
+                        deferred.reject("Error : Failed to retrieve the table.");
+                        console.log("Error : Failed to retrieve the table.")
+                        console.log(err);
+                    }
 
-                if (table) {
-                    deferred.resolve(table._doc);
-                }else{
-                    deferred.resolve(null);
-                }
-            });
+                    if (table) {
+                        deferred.resolve(table._doc);
+                    }else{
+                        deferred.resolve(null);
+                    }
+                });
 
+            } catch(err){           
+                global.winston.log('error',err);
+                deferred.reject(err);
+            }
 
             return deferred.promise;
         },
@@ -213,24 +252,29 @@ module.exports = function() {
 
             var deferred = q.defer();
 
-            var self = this;
+            try{
+                var self = this;
 
-            global.model.Table.find({appId: appId}, function (err, tables) {
+                global.model.Table.find({appId: appId}, function (err, tables) {
 
-                if (err)
-                {
-                    deferred.reject("Error : Failed to retrieve the table.");
-                    console.log("Error : Failed to retrieve the table.")
-                    console.log(err);
-                }
+                    if (err)
+                    {
+                        deferred.reject("Error : Failed to retrieve the table.");
+                        console.log("Error : Failed to retrieve the table.")
+                        console.log(err);
+                    }
 
-                if (tables.length>0) {
-                    deferred.resolve(_.pluck(tables,"_doc"));
-                }else{
-                    deferred.resolve([]);
-                }
-            });
+                    if (tables.length>0) {
+                        deferred.resolve(_.pluck(tables,"_doc"));
+                    }else{
+                        deferred.resolve([]);
+                    }
+                });
 
+            } catch(err){           
+                global.winston.log('error',err);
+                deferred.reject(err);
+            }
 
             return deferred.promise;
         },
@@ -239,54 +283,59 @@ module.exports = function() {
 
             var deferred = q.defer();
 
-            var self = this;
+            try{
+                var self = this;
 
-            global.model.Table.findOne({appId: appId, name: tableName}, function (err, table) {
+                global.model.Table.findOne({appId: appId, name: tableName}, function (err, table) {
 
-                if (err)
-                {
-                    deferred.reject("Error : Failed to retrieve the table.");
-                    console.log("Error : Failed to retrieve the table.")
-                    console.log(err);
-                }
+                    if (err)
+                    {
+                        deferred.reject("Error : Failed to retrieve the table.");
+                        console.log("Error : Failed to retrieve the table.")
+                        console.log(err);
+                    }
 
-                if (table) {
-                    table.remove(function (err,res) {
-                        if (err){
-                            deferred.reject("Error : Failed to delete the table.");
-                            console.log("Error : Failed to delete the table.")
-                            console.log(err);
-                        }
-
-                        //send a post request to DataServices.
-                        console.log("Success : Table "+tableName+ " deleted.");
-
-                        //delete table from cache.
-                        global.redisClient.del(global.keys.cacheSchemaPrefix + '-' + appId + ':' + tableName);
-
-                        //delete this from all the databases as well.
-                        //call
-                        var promises = [];
-
-                        promises.push(global.mongoUtil.collection.dropCollection(appId, tableName)); //delete all mongo app data.
-                        promises.push(global.elasticSearchUtil.collection.drop(appId, tableName)); //delete all elastic app data.
-
-                        q.allSettled(promises).then(function (res){
-                            if(res[0].state === 'fulfilled' && res[1].state === 'fulfilled')
-                                deferred.resolve(table);
-                            else {
-                                //TODO : Something went wrong. Roll back code required.
-                                deferred.resolve(table);
+                    if (table) {
+                        table.remove(function (err,res) {
+                            if (err){
+                                deferred.reject("Error : Failed to delete the table.");
+                                console.log("Error : Failed to delete the table.")
+                                console.log(err);
                             }
+
+                            //send a post request to DataServices.
+                            console.log("Success : Table "+tableName+ " deleted.");
+
+                            //delete table from cache.
+                            global.redisClient.del(global.keys.cacheSchemaPrefix + '-' + appId + ':' + tableName);
+
+                            //delete this from all the databases as well.
+                            //call
+                            var promises = [];
+
+                            promises.push(global.mongoUtil.collection.dropCollection(appId, tableName)); //delete all mongo app data.
+                            promises.push(global.elasticSearchUtil.collection.drop(appId, tableName)); //delete all elastic app data.
+
+                            q.allSettled(promises).then(function (res){
+                                if(res[0].state === 'fulfilled' && res[1].state === 'fulfilled')
+                                    deferred.resolve(table);
+                                else {
+                                    //TODO : Something went wrong. Roll back code required.
+                                    deferred.resolve(table);
+                                }
+                            });
+
                         });
+                    }else{
+                        deferred.reject("Error : Table not found.");
+                        console.log("Error : Table not found.");
+                    }
+                });
 
-                    });
-                }else{
-                    deferred.reject("Error : Table not found.");
-                    console.log("Error : Table not found.");
-                }
-            });
-
+            } catch(err){           
+                global.winston.log('error',err);
+                deferred.reject(err);
+            }
 
             return deferred.promise;
         },
@@ -295,19 +344,25 @@ module.exports = function() {
 			
 			var deferred = q.defer();
 
-            var promises = [];
+            try{
+                var promises = [];
 
-            promises.push(global.mongoUtil.collection.dropColumn(appId, collectionName, columnName));
-            promises.push(global.elasticSearchUtil.column.drop(appId, collectionName, columnName));
-            
-            q.allSettled(promises).then(function (res) {
-                if (res[0].state === 'fulfilled' && res[1].state === 'fulfilled')
-                    deferred.resolve("Success");
-                else {
-                    //TODO : Soemthing went wrong. Rollback immediately.
-                    deferred.resolve("Success");
-                }
-            });
+                promises.push(global.mongoUtil.collection.dropColumn(appId, collectionName, columnName));
+                promises.push(global.elasticSearchUtil.column.drop(appId, collectionName, columnName));
+                
+                q.allSettled(promises).then(function (res) {
+                    if (res[0].state === 'fulfilled' && res[1].state === 'fulfilled')
+                        deferred.resolve("Success");
+                    else {
+                        //TODO : Soemthing went wrong. Rollback immediately.
+                        deferred.resolve("Success");
+                    }
+                });
+
+            } catch(err){           
+                global.winston.log('error',err);
+                deferred.reject(err);
+            }
 
 			return deferred.promise;
 		},
@@ -315,15 +370,21 @@ module.exports = function() {
 		isMasterKey: function(appId, key) {
 			var deferred = q.defer();
 
-			var _self = this;
+            try{
+    			var _self = this;
 
-			_self.getApp(appId).then(function(project){
-				if(project.keys.master === key){
-					deferred.resolve(true);
-				}else{
-					deferred.resolve(false);
-				}
-			}, function(){});
+    			_self.getApp(appId).then(function(project){
+    				if(project.keys.master === key){
+    					deferred.resolve(true);
+    				}else{
+    					deferred.resolve(false);
+    				}
+    			}, function(){});
+
+            } catch(err){           
+                global.winston.log('error',err);
+                deferred.reject(err);
+            }
 
 			return deferred.promise;
 		},
@@ -331,17 +392,23 @@ module.exports = function() {
 		isKeyValid: function(appId, key) {
 			var deferred = q.defer();
 
-			var _self = this;
+            try{
+    			var _self = this;
 
-			_self.getApp(appId).then(function(project){
-				if(project.keys.master === key || project.keys.js === key){
-					deferred.resolve(true);
-				}else{
-					deferred.resolve(false);
-				}
-			}, function(){
-				deferred.reject("Error in getting key");
-			});
+    			_self.getApp(appId).then(function(project){
+    				if(project.keys.master === key || project.keys.js === key){
+    					deferred.resolve(true);
+    				}else{
+    					deferred.resolve(false);
+    				}
+    			}, function(){
+    				deferred.reject("Error in getting key");
+    			});
+
+            } catch(err){           
+                global.winston.log('error',err);
+                deferred.reject(err);
+            }
 
 			return deferred.promise;
 		},
@@ -450,6 +517,7 @@ module.exports = function() {
                         }catch(e){
                             console.log("Error");
                             console.log(e);
+                            global.winston.log('error',e);
                         }
 
                         table.columns = schema;
@@ -523,6 +591,7 @@ module.exports = function() {
                     });
                 });
             }catch(e){
+                global.winston.log('error',e);
                 console.log("FATAL : Error updating a table");
                 console.log(e);
                 deferred.reject("Error saving a table.");
@@ -534,18 +603,24 @@ module.exports = function() {
         createColumn: function (appId, collectionName, column){
 
             var deferred = global.q.defer();
-            
-            var mongoPromise = global.mongoUtil.collection.addColumn(appId, collectionName, column);
-            var elasticSearchPromise = global.elasticSearchUtil.column.add(appId, collectionName, column);
-            
-            q.allSettled([mongoPromise , elasticSearchPromise]).then(function (res) {
-                if(res[0].state === 'fulfilled' && res[1].state === 'fulfilled') {
-                    deferred.resolve("Success");
-                } else {
-                    //TODO : Rollback.
-                    deferred.reject("Unable to create column");
-                }
-            });
+
+            try{
+                var mongoPromise = global.mongoUtil.collection.addColumn(appId, collectionName, column);
+                var elasticSearchPromise = global.elasticSearchUtil.column.add(appId, collectionName, column);
+                
+                q.allSettled([mongoPromise , elasticSearchPromise]).then(function (res) {
+                    if(res[0].state === 'fulfilled' && res[1].state === 'fulfilled') {
+                        deferred.resolve("Success");
+                    } else {
+                        //TODO : Rollback.
+                        deferred.reject("Unable to create column");
+                    }
+                });
+
+            } catch(err){           
+                global.winston.log('error',err);
+                deferred.reject(err);
+            }
         	
         	return deferred.promise;
         },
@@ -554,18 +629,24 @@ module.exports = function() {
 
             var deferred = q.defer();
 
-            var self = this;
+            try{
+                var self = this;
 
-            var newKey = _generateKey();
+                var newKey = _generateKey();
 
-            Project.findOneAndUpdate({appId:appId},{$set: {"keys.master":newKey }},{'new': true}, function (err, project) {
-                if (err) deferred.reject(err);
-                if(newProject){
-                    deferred.resolve(project);
-                }else{
-                    deferred.resolve("Invalid App ID.");
-                }
-            });
+                Project.findOneAndUpdate({appId:appId},{$set: {"keys.master":newKey }},{'new': true}, function (err, project) {
+                    if (err) deferred.reject(err);
+                    if(newProject){
+                        deferred.resolve(project);
+                    }else{
+                        deferred.resolve("Invalid App ID.");
+                    }
+                });
+
+            } catch(err){           
+                global.winston.log('error',err);
+                deferred.reject(err);
+            }
 
             return deferred.promise;
 
@@ -575,18 +656,24 @@ module.exports = function() {
 
             var deferred = q.defer();
 
-            var self = this;
+            try{
+                var self = this;
 
-            var newKey = _generateKey();
+                var newKey = _generateKey();
 
-            Project.findOneAndUpdate({appId:appId},{$set: {"keys.js":newKey }},{'new': true}, function (err, project) {
-                if (err) deferred.reject(err);
-                if(newProject){
-                    deferred.resolve(project);
-                }else{
-                    deferred.resolve("Invalid App ID.");
-                }
-            });
+                Project.findOneAndUpdate({appId:appId},{$set: {"keys.js":newKey }},{'new': true}, function (err, project) {
+                    if (err) deferred.reject(err);
+                    if(newProject){
+                        deferred.resolve(project);
+                    }else{
+                        deferred.resolve("Invalid App ID.");
+                    }
+                });
+
+            } catch(err){           
+                global.winston.log('error',err);
+                deferred.reject(err);
+            }
 
             return deferred.promise;
 
@@ -598,232 +685,279 @@ module.exports = function() {
 
 
 function _isBasicDataType(dataType){
-    var types = global.cloudBoostHelper.getBasicDataTypes();
+    try{
+        var types = global.cloudBoostHelper.getBasicDataTypes();
 
-    if(types.indexOf(dataType)>-1){
-        return true;
+        if(types.indexOf(dataType)>-1){
+            return true;
+        }
+        return false;
+
+    } catch(err){           
+        global.winston.log('error',err);
+        return false;
     }
-
-    return false;
 }
 
 
 function _generateKey(){
-    return uuid.v4();
+    try{
+        return uuid.v4();
+    } catch(err){           
+        global.winston.log('error',err);
+        return null;
+    }
 }
 
 //check for duplicate column
 function _checkDuplicateColumns(columns) {
-    var length = columns.length;
-    columns = _.pluck(columns, 'name');
-    columns = _.filter(columns, Boolean);
-    columns = _.filter(columns, function (value) {
-        return value.toLowerCase();
-    });
-    columns = _.uniq(columns);
-    if (length != columns.length)
-        return false;
+    try{
+        var length = columns.length;
+        columns = _.pluck(columns, 'name');
+        columns = _.filter(columns, Boolean);
+        columns = _.filter(columns, function (value) {
+            return value.toLowerCase();
+        });
+        columns = _.uniq(columns);
+        if (length != columns.length)
+            return false;
 
-    return true;
+        return true;
+
+    }catch(e){
+        global.winston.log('error',err);
+        return null;
+    }
 }
 
 function _getDefaultColumnList(type) {
-    var defaultColumn = ['id', 'expires' ,'createdAt', 'updatedAt', 'ACL'];
-    var index;
+    try{
+        var defaultColumn = ['id', 'expires' ,'createdAt', 'updatedAt', 'ACL'];
+        var index;
 
-    if (type == 'user') {
-        defaultColumn.concat(['username', 'email', 'password', 'roles']);
-    } else if (type == 'role') {
-        defaultColumn.push('name');
+        if (type == 'user') {
+            defaultColumn.concat(['username', 'email', 'password', 'roles']);
+        } else if (type == 'role') {
+            defaultColumn.push('name');
 
-    }else if (type == 'device') {
-        defaultColumn.concat(['channels', 'deviceToken', 'deviceOS', 'timezone','metadata']);
+        }else if (type == 'device') {
+            defaultColumn.concat(['channels', 'deviceToken', 'deviceOS', 'timezone','metadata']);
+        }
+        return defaultColumn;
+
+    }catch(e){
+        global.winston.log('error',e);
+        return null;
     }
-    return defaultColumn;
 }
 
 function _checkValidDataType(columns, deafultDataType) {
-    var index;
-    var defaultColumns = [];
-    if (columns.length <= 0) {
-        return false;
-    }
 
-    var coloumnDataType = _.pluck(columns, 'dataType');
-    coloumnDataType = _.filter(coloumnDataType, Boolean);
-    for (var key in deafultDataType) {
-        index = coloumnDataType.indexOf(deafultDataType[key]);
-        if (index < 0)
-            return false;
-
-        for(var l=0;l<columns.length;l++){
-            if(columns[l].name == key){
-                index = l;
-                l = columns.length;
-            }
-        }
-
-        if (key === 'id') {
-            if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != true || columns[index].dataType != 'Id')
-                return false;
-        }
-
-        //createdAt for every table
-        if (key === 'createdAt') {
-            if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'DateTime')
-                return false;
-        }
-
-        //updatedAt for every table
-        if (key === 'updatedAt') {
-            if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'DateTime')
-                return false;
-        }
-
-        //ACL for every table
-        if (key === 'ACL') {
-            if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'ACL')
-                return false;
-        }
-
-        //username for user table
-        if (key === 'username') {
-            if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != true || columns[index].dataType != 'Text')
-                return false;
-        }
-
-        //email for user table
-        if (key === 'email') {
-            if (columns[index].relationType != null || columns[index].required != false || columns[index].unique != true || columns[index].dataType != 'Email')
-                return false;
-        }
-
-        //password for user table
-        if (key === 'password') {
-            if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'EncryptedText')
-                return false;
-        }
-
-        //roles property for user table
-        if (key === 'roles') {
-            if (columns[index].relationType != 'table' || columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'List' || columns[index].relatedTo !== 'Role')
-                return false;
-        }
-
-        //name for role table
-        if (key === 'name') {
-            if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != true || columns[index].dataType != 'Text')
-                return false;
-        }
-
-        //channels for device table
-        if (key === 'channels') {
-            if (columns[index].relationType != null || columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'List')
-                return false;
-        }
-        //deviceToken for device table
-        if (key === 'deviceToken') {
-            if (columns[index].relationType != null || columns[index].required != false || columns[index].unique != true || columns[index].dataType != 'Text')
-                return false;
-        }
-        //deviceOS for device table
-        if (key === 'deviceOS') {
-            if (columns[index].relationType != null || columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'Text')
-                return false;
-        }
-        //timezone for device table
-        if (key === 'timezone') {
-            if (columns[index].relationType != null || columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'Text')
-                return false;
-        }
-        //metadata for device table
-        if (key === 'metadata') {
-            if (columns[index].relationType != null || columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'Object')
-                return false;
-        }
-
-        if (columns[index].isRenamable !== false || columns[index].isEditable !== false || columns[index].isDeletable !== false) {
+    try{
+        var index;
+        var defaultColumns = [];
+        if (columns.length <= 0) {
             return false;
         }
-        defaultColumns.push(key);
 
-    }//end of for-loop
-
-    //check for userdefined column & its properties
-    var validDataTypeForUser = ['Text', 'Email', 'URL', 'Number', 'Boolean','EncryptedText', 'DateTime', 'GeoPoint', 'File', 'List', 'Relation', 'Object'];
-
-    for (var i = 0; i < columns.length; i++) {
-        if (defaultColumns.indexOf(columns[i].name) < 0) {
-
-            var index = validDataTypeForUser.indexOf(columns[i].dataType);
-
+        var coloumnDataType = _.pluck(columns, 'dataType');
+        coloumnDataType = _.filter(coloumnDataType, Boolean);
+        for (var key in deafultDataType) {
+            index = coloumnDataType.indexOf(deafultDataType[key]);
             if (index < 0)
                 return false;
 
-            if (columns[i].dataType === 'List' || columns[i].dataType === 'Relation') {
-                if (!columns[i].relatedTo)
+            for(var l=0;l<columns.length;l++){
+                if(columns[l].name == key){
+                    index = l;
+                    l = columns.length;
+                }
+            }
+
+            if (key === 'id') {
+                if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != true || columns[index].dataType != 'Id')
                     return false;
             }
 
-        }
-    }
+            //createdAt for every table
+            if (key === 'createdAt') {
+                if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'DateTime')
+                    return false;
+            }
 
-    return true;
+            //updatedAt for every table
+            if (key === 'updatedAt') {
+                if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'DateTime')
+                    return false;
+            }
+
+            //ACL for every table
+            if (key === 'ACL') {
+                if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'ACL')
+                    return false;
+            }
+
+            //username for user table
+            if (key === 'username') {
+                if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != true || columns[index].dataType != 'Text')
+                    return false;
+            }
+
+            //email for user table
+            if (key === 'email') {
+                if (columns[index].relationType != null || columns[index].required != false || columns[index].unique != true || columns[index].dataType != 'Email')
+                    return false;
+            }
+
+            //password for user table
+            if (key === 'password') {
+                if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'EncryptedText')
+                    return false;
+            }
+
+            //roles property for user table
+            if (key === 'roles') {
+                if (columns[index].relationType != 'table' || columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'List' || columns[index].relatedTo !== 'Role')
+                    return false;
+            }
+
+            //name for role table
+            if (key === 'name') {
+                if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != true || columns[index].dataType != 'Text')
+                    return false;
+            }
+
+            //channels for device table
+            if (key === 'channels') {
+                if (columns[index].relationType != null || columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'List')
+                    return false;
+            }
+            //deviceToken for device table
+            if (key === 'deviceToken') {
+                if (columns[index].relationType != null || columns[index].required != false || columns[index].unique != true || columns[index].dataType != 'Text')
+                    return false;
+            }
+            //deviceOS for device table
+            if (key === 'deviceOS') {
+                if (columns[index].relationType != null || columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'Text')
+                    return false;
+            }
+            //timezone for device table
+            if (key === 'timezone') {
+                if (columns[index].relationType != null || columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'Text')
+                    return false;
+            }
+            //metadata for device table
+            if (key === 'metadata') {
+                if (columns[index].relationType != null || columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'Object')
+                    return false;
+            }
+
+            if (columns[index].isRenamable !== false || columns[index].isEditable !== false || columns[index].isDeletable !== false) {
+                return false;
+            }
+            defaultColumns.push(key);
+
+        }//end of for-loop
+
+        //check for userdefined column & its properties
+        var validDataTypeForUser = ['Text', 'Email', 'URL', 'Number', 'Boolean','EncryptedText', 'DateTime', 'GeoPoint', 'File', 'List', 'Relation', 'Object'];
+
+        for (var i = 0; i < columns.length; i++) {
+            if (defaultColumns.indexOf(columns[i].name) < 0) {
+
+                var index = validDataTypeForUser.indexOf(columns[i].dataType);
+
+                if (index < 0)
+                    return false;
+
+                if (columns[i].dataType === 'List' || columns[i].dataType === 'Relation') {
+                    if (!columns[i].relatedTo)
+                        return false;
+                }
+
+            }
+        }
+
+        return true;
+
+    }catch(e){
+        global.winston.log('error',e);
+        return null;
+    }
 }
 
 function _getColumnsToDelete(oldColumns, newColumns){
+    var deferred = q.defer()
+    try{
+        var originalColumns = oldColumns;
 
-    var deferred = q.defer();
-    var originalColumns = oldColumns;
+        for (var i = 0; i < newColumns.length; i++) {
+            var column = _.first(_.where(originalColumns, {name: newColumns[i].name}));
+            originalColumns.splice(originalColumns.indexOf(column), 1);
+        }
 
-    for (var i = 0; i < newColumns.length; i++) {
-        var column = _.first(_.where(originalColumns, {name: newColumns[i].name}));
-        originalColumns.splice(originalColumns.indexOf(column), 1);
+        return originalColumns;
+    }catch(e){
+        global.winston.log('error',e);
+        return null;
     }
-
-    return originalColumns;
+    
 }
 
 function _getColumnsToAdd(oldColumns, newColumns){
 
     var deferred = q.defer();
-    var originalColumns = oldColumns;
 
-    var addedColumns = [];
+    try{
+        var originalColumns = oldColumns;
 
-    for (var i = 0; i < newColumns.length; i++) {
-        var column = _.first(_.where(originalColumns, {name: newColumns[i].name}));
-        if (!column) {
-            addedColumns.push(newColumns[i]);
+        var addedColumns = [];
+
+        for (var i = 0; i < newColumns.length; i++) {
+            var column = _.first(_.where(originalColumns, {name: newColumns[i].name}));
+            if (!column) {
+                addedColumns.push(newColumns[i]);
+            }
         }
+        return addedColumns;
+    }catch(e){
+        global.winston.log('error',e);
+        return null;
     }
-
-    return addedColumns;
+    
 }
 
 function _getDefaultColumnWithDataType(type) {
-    var defaultColumn = new Object();
-    defaultColumn['id'] = 'Id';
-    defaultColumn['createdAt'] = 'DateTime';
-    defaultColumn['updatedAt'] = 'DateTime';
-    defaultColumn['ACL'] = 'ACL';
-    defaultColumn['expires'] = 'DateTime';
-    var index;
 
-    if (type == 'user') {
-        defaultColumn['username'] = 'Text';
-        defaultColumn['email'] = 'Email';
-        defaultColumn['password'] = 'EncryptedText'
-        defaultColumn['roles'] = 'List';
-    }else if (type == 'role') {        
-        defaultColumn['name'] = 'Text';
+    try{
+        var defaultColumn = new Object();
+        defaultColumn['id'] = 'Id';
+        defaultColumn['createdAt'] = 'DateTime';
+        defaultColumn['updatedAt'] = 'DateTime';
+        defaultColumn['ACL'] = 'ACL';
+        defaultColumn['expires'] = 'DateTime';
+        var index;
 
-    }else if (type == 'device') {
-        defaultColumn['channels'] = 'List';
-        defaultColumn['deviceToken'] = 'Text';
-        defaultColumn['deviceOS'] = 'Text';
-        defaultColumn['timezone'] = 'Text';
-        defaultColumn['metadata'] = 'Object';
+        if (type == 'user') {
+            defaultColumn['username'] = 'Text';
+            defaultColumn['email'] = 'Email';
+            defaultColumn['password'] = 'EncryptedText'
+            defaultColumn['roles'] = 'List';
+        }else if (type == 'role') {        
+            defaultColumn['name'] = 'Text';
+
+        }else if (type == 'device') {
+            defaultColumn['channels'] = 'List';
+            defaultColumn['deviceToken'] = 'Text';
+            defaultColumn['deviceOS'] = 'Text';
+            defaultColumn['timezone'] = 'Text';
+            defaultColumn['metadata'] = 'Object';
+        }
+        return defaultColumn;
+
+    }catch(e){
+        global.winston.log('error',e);
+        return null;
     }
-    return defaultColumn;
 }

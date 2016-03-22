@@ -30,115 +30,122 @@ module.exports = function() {
 
 			var deferred = global.q.defer();
 
-			var pushNotificationSettings=null;
-			var appleCertificate=null;
-			
-			global.customService.find(appId, collectionName, query, null, sort, limit, skip,accessList,isMasterKey)
-			.then(function(deviceObjects){
+			try{
 
-				if(!deviceObjects || deviceObjects.length==0){
-					return deferred.resolve("No Device objects found.");
-				}
+				var pushNotificationSettings=null;
+				var appleCertificate=null;
+				
+				global.customService.find(appId, collectionName, query, null, sort, limit, skip,accessList,isMasterKey)
+				.then(function(deviceObjects){
 
-				global.appService.getAllSettings(appId).then(function(appSettings){
-
-					var pushSettingsFound=false;
-					var appleCertificateFound=false;
-
-					if(appSettings && appSettings.length>0){
-		                var pushSettings=_.where(appSettings, {category: "push"});
-		                if(pushSettings && pushSettings.length>0){
-
-		                    pushSettingsFound=true;
-		                    pushNotificationSettings=pushSettings[0].settings;
-
-		                    if(pushSettings[0].settings.apple.certificates && pushSettings[0].settings.apple.certificates.length>0){
-		                    	
-		                    	//Get file name from uri
-		                    	var fileName=pushSettings[0].settings.apple.certificates[0].split("/").reverse()[0];
-		                    	if(fileName){
-		                    		appleCertificateFound=true;
-		                    		return _self.getFile(appId,fileName);
-		                    	}
-		                    	
-		                    }                     
-		                }
-		            }
-
-		            if(!pushSettingsFound){
-		            	return deferred.reject("Push Notification Settings not found.");
-		            } 
-
-		            if(pushSettingsFound && !appleCertificateFound){
-		            	var emptyAppleCert = global.q.defer();
-		            	emptyAppleCert.resolve(null);
-		            	return emptyAppleCert.promise
-		            }	            
-
-				}).then(function(appleCertFileObj){
-
-					if(appleCertFileObj){
-						appleCertificate=_self.getFileStreamById(appId,appleCertFileObj._id);
+					if(!deviceObjects || deviceObjects.length==0){
+						return deferred.resolve("No Device objects found.");
 					}
 
-					if(deviceObjects && deviceObjects.length>0){            	
+					global.appService.getAllSettings(appId).then(function(appSettings){
 
-		            	var appleTokens  =[];
-		            	var googleTokens  =[];
-		            	var windowsPhoneUris=[];
-		            	var windowsDesktopUris=[];
+						var pushSettingsFound=false;
+						var appleCertificateFound=false;
 
-		            	for(var i=0;i<deviceObjects.length;++i){
+						if(appSettings && appSettings.length>0){
+			                var pushSettings=_.where(appSettings, {category: "push"});
+			                if(pushSettings && pushSettings.length>0){
 
-		            		if(deviceObjects[i].deviceOS=="ios" && appleCertificate){	            			
-		            			appleTokens.push(deviceObjects[i].deviceToken);
-		            		}
-		            		if(deviceObjects[i].deviceOS=="android"){
-		            			googleTokens.push(deviceObjects[i].deviceToken);
-		            		}
-		            		if(deviceObjects[i].deviceOS=="windowsPhone"){
-		            			windowsPhoneUris.push(deviceObjects[i].deviceToken);
-		            		}
-		            		if(deviceObjects[i].deviceOS=="windowsApp"){
-		            			windowsDesktopUris.push(deviceObjects[i].deviceToken);
-		            		}
-		            	}
+			                    pushSettingsFound=true;
+			                    pushNotificationSettings=pushSettings[0].settings;
 
-		            	var promises=[];
+			                    if(pushSettings[0].settings.apple.certificates && pushSettings[0].settings.apple.certificates.length>0){
+			                    	
+			                    	//Get file name from uri
+			                    	var fileName=pushSettings[0].settings.apple.certificates[0].split("/").reverse()[0];
+			                    	if(fileName){
+			                    		appleCertificateFound=true;
+			                    		return _self.getFile(appId,fileName);
+			                    	}
+			                    	
+			                    }                     
+			                }
+			            }
 
-		            	if(appleTokens && appleTokens.length>0 && appleCertificate){
-		            		promises.push(_applePush(appleTokens,appleCertificate,pushData));
-		            	}
+			            if(!pushSettingsFound){
+			            	return deferred.reject("Push Notification Settings not found.");
+			            } 
 
-		            	var andriod=pushNotificationSettings.andriod.credentials[0];
-		            	if(googleTokens && googleTokens.length>0 && andriod.apiKey){
-		            		promises.push(_googlePush(googleTokens,andriod.senderId,andriod.apiKey,pushData));
-		            	}
+			            if(pushSettingsFound && !appleCertificateFound){
+			            	var emptyAppleCert = global.q.defer();
+			            	emptyAppleCert.resolve(null);
+			            	return emptyAppleCert.promise
+			            }	            
 
-		            	var windows=pushNotificationSettings.windows.credentials[0];
-		            	if(windowsPhoneUris && windowsPhoneUris.length>0 && windows.securityId){
-		            		promises.push(_windowsPhonePush(windows.securityId,windows.clientSecret,windowsPhoneUris,pushData));
-		            	}
-		            	
-		            	if(windowsDesktopUris && windowsDesktopUris.length>0 && windows.securityId){
-		            		promises.push(_windowsDesktopPush(windows.securityId,windows.clientSecret,windowsDesktopUris,pushData));
-		            	}
+					}).then(function(appleCertFileObj){
 
-		            	//Promise List
-		            	q.all(promises).then(function(resultList){
-		            		deferred.resolve(resultList);
-		            	},function(error){
-							deferred.reject(error);
-						});		
-		            }
+						if(appleCertFileObj){
+							appleCertificate=_self.getFileStreamById(appId,appleCertFileObj._id);
+						}
+
+						if(deviceObjects && deviceObjects.length>0){            	
+
+			            	var appleTokens  =[];
+			            	var googleTokens  =[];
+			            	var windowsPhoneUris=[];
+			            	var windowsDesktopUris=[];
+
+			            	for(var i=0;i<deviceObjects.length;++i){
+
+			            		if(deviceObjects[i].deviceOS=="ios" && appleCertificate){	            			
+			            			appleTokens.push(deviceObjects[i].deviceToken);
+			            		}
+			            		if(deviceObjects[i].deviceOS=="android"){
+			            			googleTokens.push(deviceObjects[i].deviceToken);
+			            		}
+			            		if(deviceObjects[i].deviceOS=="windowsPhone"){
+			            			windowsPhoneUris.push(deviceObjects[i].deviceToken);
+			            		}
+			            		if(deviceObjects[i].deviceOS=="windowsApp"){
+			            			windowsDesktopUris.push(deviceObjects[i].deviceToken);
+			            		}
+			            	}
+
+			            	var promises=[];
+
+			            	if(appleTokens && appleTokens.length>0 && appleCertificate){
+			            		promises.push(_applePush(appleTokens,appleCertificate,pushData));
+			            	}
+
+			            	var andriod=pushNotificationSettings.andriod.credentials[0];
+			            	if(googleTokens && googleTokens.length>0 && andriod.apiKey){
+			            		promises.push(_googlePush(googleTokens,andriod.senderId,andriod.apiKey,pushData));
+			            	}
+
+			            	var windows=pushNotificationSettings.windows.credentials[0];
+			            	if(windowsPhoneUris && windowsPhoneUris.length>0 && windows.securityId){
+			            		promises.push(_windowsPhonePush(windows.securityId,windows.clientSecret,windowsPhoneUris,pushData));
+			            	}
+			            	
+			            	if(windowsDesktopUris && windowsDesktopUris.length>0 && windows.securityId){
+			            		promises.push(_windowsDesktopPush(windows.securityId,windows.clientSecret,windowsDesktopUris,pushData));
+			            	}
+
+			            	//Promise List
+			            	q.all(promises).then(function(resultList){
+			            		deferred.resolve(resultList);
+			            	},function(error){
+								deferred.reject(error);
+							});		
+			            }
+
+					},function(error){
+						deferred.reject(error);
+					});
 
 				},function(error){
 					deferred.reject(error);
 				});
 
-			},function(error){
-				deferred.reject(error);
-			});	
+			} catch(err){           
+                global.winston.log('error',err);
+                deferred.reject(err);
+            }	
 
 			return deferred.promise
 		},
@@ -153,18 +160,24 @@ module.exports = function() {
 
 		    var deferred = global.q.defer();
 
-		    var gfs = Grid(global.mongoClient.db(appId), require('mongodb'));
+		    try{
+			    var gfs = Grid(global.mongoClient.db(appId), require('mongodb'));
 
-		    gfs.findOne({filename: filename},function (err, file) {
-		        if (err){           
-		            return deferred.reject(err);
-		        }    
-		        if(!file){
-		            return deferred.resolve(null);                    
-		        }  
+			    gfs.findOne({filename: filename},function (err, file) {
+			        if (err){           
+			            return deferred.reject(err);
+			        }    
+			        if(!file){
+			            return deferred.resolve(null);                    
+			        }  
 
-		        return deferred.resolve(file);  
-		    });
+			        return deferred.resolve(file);  
+			    });
+
+			} catch(err){           
+                global.winston.log('error',err);
+                deferred.reject(err);
+            }
 
 		    return deferred.promise;
 		},
@@ -173,13 +186,19 @@ module.exports = function() {
 		  Returns: fileStream 
 		*/
 		getFileStreamById: function(appId,fileId){
-            var gfs = Grid(global.mongoClient.db(appId), require('mongodb'));
+			try{
+	            var gfs = Grid(global.mongoClient.db(appId), require('mongodb'));
 
-            var readstream = gfs.createReadStream({
-              _id: fileId
-            });
+	            var readstream = gfs.createReadStream({
+	              _id: fileId
+	            });
 
-            return readstream;
+	            return readstream;
+
+        	} catch(err){           
+                global.winston.log('error',err);
+                return null;
+            }
         },
         /*Desc   : Delete file from gridfs
 		  Params : appId,filename
@@ -191,31 +210,37 @@ module.exports = function() {
 
 		    var deferred = global.q.defer(); 
 
-		    var gfs = Grid(global.mongoClient.db(appId), require('mongodb'));
+		    try{
+			    var gfs = Grid(global.mongoClient.db(appId), require('mongodb'));
 
-		    //File existence checking
-		    gfs.exist({filename: filename}, function (err, found) {
-		      if (err){
-		        //Error while checking file existence
-		        deferred.reject(err);
-		      }
-		      if(found){       
-		        gfs.remove({filename: filename},function (err) {
-		            if (err){
-		                deferred.reject(err);
-		                //unable to delete     
-		            }else{
-		                deferred.resolve(true);
-		                //deleted
-		            }                            
-		            
-		            return deferred.resolve("Success");  
-		        });
-		      }else{
-		        //file does not exists
-		        deferred.reject("file does not exists");
-		      }
-		    });
+			    //File existence checking
+			    gfs.exist({filename: filename}, function (err, found) {
+			      if (err){
+			        //Error while checking file existence
+			        deferred.reject(err);
+			      }
+			      if(found){       
+			        gfs.remove({filename: filename},function (err) {
+			            if (err){
+			                deferred.reject(err);
+			                //unable to delete     
+			            }else{
+			                deferred.resolve(true);
+			                //deleted
+			            }                            
+			            
+			            return deferred.resolve("Success");  
+			        });
+			      }else{
+			        //file does not exists
+			        deferred.reject("file does not exists");
+			      }
+			    });
+
+			} catch(err){           
+                global.winston.log('error',err);
+                deferred.reject(err);
+            }
 		    
 		    return deferred.promise;
 		},
@@ -229,27 +254,33 @@ module.exports = function() {
 
 		    var deferred = global.q.defer();
 
-		    var gfs = Grid(global.mongoClient.db(appId), require('mongodb'));
+		    try{
+			    var gfs = Grid(global.mongoClient.db(appId), require('mongodb'));
 
-		    //streaming to gridfs    
-		    var writestream = gfs.createWriteStream({
-		        filename: fileName,
-		        mode: 'w',
-		        content_type:contentType
-		    });
+			    //streaming to gridfs    
+			    var writestream = gfs.createWriteStream({
+			        filename: fileName,
+			        mode: 'w',
+			        content_type:contentType
+			    });
 
-		    fileStream.pipe(writestream); 		    
-		    
-		    writestream.on('close', function (file) {               
-		        deferred.resolve(file);		        
-		        console.log("Successfully saved in gridfs");
-		    });
+			    fileStream.pipe(writestream); 		    
+			    
+			    writestream.on('close', function (file) {               
+			        deferred.resolve(file);		        
+			        console.log("Successfully saved in gridfs");
+			    });
 
-		    writestream.on('error', function (error) {           
-		        deferred.reject(error);
-		        writestream.destroy();
-		        console.log("Failed to saved in gridfs");
-		    }); 
+			    writestream.on('error', function (error) {           
+			        deferred.reject(error);
+			        writestream.destroy();
+			        console.log("Failed to saved in gridfs");
+			    }); 
+
+			} catch(err){           
+                global.winston.log('error',err);
+                deferred.reject(err);
+            }
 
 		    return deferred.promise;
 		},
@@ -267,51 +298,57 @@ module.exports = function() {
 function _applePush(tokens,certifcate,data){
     var deferred = global.q.defer();
 
-    var options = {cert: certifcate};
-    
-    var apnConnection = new apn.Connection(options);
+    try{
+	    var options = {cert: certifcate};
+	    
+	    var apnConnection = new apn.Connection(options);
 
-    //sending data to devices using device token.
-	var note = new apn.Notification();
-	note.expiry = Math.floor(Date.now() / 1000) + 3600; // Expires 1 hour from now.
-	note.badge = data.badge || 1;
-	note.sound = data.sound || "ping.aiff";
-	note.alert = "\uD83D\uDCE7 \u2709"+ data.title;
-	note.payload = {'messageFrom': data.message};
+	    //sending data to devices using device token.
+		var note = new apn.Notification();
+		note.expiry = Math.floor(Date.now() / 1000) + 3600; // Expires 1 hour from now.
+		note.badge = data.badge || 1;
+		note.sound = data.sound || "ping.aiff";
+		note.alert = "\uD83D\uDCE7 \u2709"+ data.title;
+		note.payload = {'messageFrom': data.message};
 
-	apnConnection.on("connected", function() {
-	    console.log("Connected");
-	});
-    apnConnection.on("error", function(error) {
-	   return deferred.reject(error);
-	});
+		apnConnection.on("connected", function() {
+		    console.log("Connected");
+		});
+	    apnConnection.on("error", function(error) {
+		   return deferred.reject(error);
+		});
 
-	apnConnection.pushNotification(note, tokens);
+		apnConnection.pushNotification(note, tokens);
 
-	apnConnection.on("transmitted", function(notification, device) {
-	    console.log("Notification transmitted to:" + device.token.toString("hex"));
-	});
+		apnConnection.on("transmitted", function(notification, device) {
+		    console.log("Notification transmitted to:" + device.token.toString("hex"));
+		});
 
-	apnConnection.on("transmissionError", function(errCode, notification, device) {
-	    console.error("Notification caused error: " + errCode + " for device ", device, notification);
-	    if (errCode === 8) {
-	        console.log("A error code of 8 indicates that the device token is invalid. This could be for a number of reasons - are you using the correct environment? i.e. Production vs. Sandbox");
-	    }
-	});
+		apnConnection.on("transmissionError", function(errCode, notification, device) {
+		    console.error("Notification caused error: " + errCode + " for device ", device, notification);
+		    if (errCode === 8) {
+		        console.log("A error code of 8 indicates that the device token is invalid. This could be for a number of reasons - are you using the correct environment? i.e. Production vs. Sandbox");
+		    }
+		});
 
-	apnConnection.on("timeout", function () {
-	    console.log("Connection Timeout");
-	});
+		apnConnection.on("timeout", function () {
+		    console.log("Connection Timeout");
+		});
 
-	apnConnection.on("disconnected", function() {
-	    console.log("Disconnected from APNS");
-	});
+		apnConnection.on("disconnected", function() {
+		    console.log("Disconnected from APNS");
+		});
 
-	apnConnection.on("socketError", function(){
-		console.log("Socket Error");
-	});
+		apnConnection.on("socketError", function(){
+			console.log("Socket Error");
+		});
 
-	deferred.resolve("Notification Sent");
+		deferred.resolve("Notification Sent");
+
+	} catch(err){           
+        global.winston.log('error',err);
+        deferred.reject(err);
+    }
 
 	return deferred.promise;    
 }
@@ -326,34 +363,38 @@ function _googlePush(senderId,apiKey,devicesTokens,data){
             
     var defer = global.q.defer();
     
-    var sender = gcm.Sender(apiKey);    
-    
-    var message = new gcm.Message({
-        collapseKey: 'demo',
-        priority: 'high',
-        contentAvailable: true,
-        delayWhileIdle: true,
-        timeToLive: 3,
-        dryRun: false,
-        data: {
-            data: 'Cloudboost-PN-Service'
-        },
-        notification: {
-            title: data.title,
-            icon: data.icon || 'ic_launcher',
-            body: data.message
-        }
-    });   
-    
-    //send notification
-    sender.send(message, { registrationTokens: devices }, function (error, response) {
-        if(!error){
-            defer.resolve(response);
-        }else{
-            defer.reject(error);
-        } 	
-    });
-            
+    try{
+	    var sender = gcm.Sender(apiKey);    
+	    
+	    var message = new gcm.Message({
+	        collapseKey: 'demo',
+	        priority: 'high',
+	        contentAvailable: true,
+	        delayWhileIdle: true,
+	        timeToLive: 3,
+	        dryRun: false,
+	        data: {
+	            data: 'Cloudboost-PN-Service'
+	        },
+	        notification: {
+	            title: data.title,
+	            icon: data.icon || 'ic_launcher',
+	            body: data.message
+	        }
+	    });   
+	    
+	    //send notification
+	    sender.send(message, { registrationTokens: devices }, function (error, response) {
+	        if(!error){
+	            defer.resolve(response);
+	        }else{
+	            defer.reject(error);
+	        } 	
+	    });
+    } catch(err){           
+        global.winston.log('error',err);
+        defer.reject(err);
+    }        
     
     return defer.promise;
 }
@@ -367,13 +408,19 @@ function _googlePush(senderId,apiKey,devicesTokens,data){
 function _windowsPhonePush(securityId,clientSecret,pushUris,data){
     var defer = global.q.defer();   
    
-    mpns.sendToast(pushUris, data.title, data.message, function(err, res){
-        if(!err){
-            defer.resolve(res);
-        }else{
-            defer.reject(err);
-        }
-    });        
+   	try{
+	    mpns.sendToast(pushUris, data.title, data.message, function(err, res){
+	        if(!err){
+	            defer.resolve(res);
+	        }else{
+	            defer.reject(err);
+	        }
+	    }); 
+
+    } catch(err){           
+        global.winston.log('error',err);
+        defer.reject(err);
+    }      
    
     return defer.promise;
 }
@@ -388,13 +435,19 @@ function _windowsDesktopPush(securityId,clientSecret,pushUris,data){
 
     var defer = global.q.defer();	 
 
-	wns.sendToast(pushUris, data.message, {client_id:securityId,client_secret:clientSecret}, function(err, res){
-	    if(!err){
-	        defer.resolve(res);
-	    }else{
-	        defer.reject(err);
-	    }
-	});  
+    try{
+		wns.sendToast(pushUris, data.message, {client_id:securityId,client_secret:clientSecret}, function(err, res){
+		    if(!err){
+		        defer.resolve(res);
+		    }else{
+		        defer.reject(err);
+		    }
+		}); 
+
+	} catch(err){           
+        global.winston.log('error',err);
+        defer.reject(err);
+    } 
     
     return defer.promise;
 }

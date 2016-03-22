@@ -20,40 +20,47 @@ module.exports = function(){
         console.log("***************Reset Password Email***********************");
          
         var deferred = q.defer();
-       
-        var mandrill_client = new mandrill.Mandrill(mandrillApiKey);
 
-        var message = {
-            "html": html,
-            "text": text,
-            "subject": subject,
-            "from_email": from,
-            "from_name": fromName,
-            "to": [{
-                    "email": to
-                }]
-        };
-        
-        var async = false;
-        
-        mandrill_client.messages.send({"message": message, "async": async, "ip_pool": null, "send_at": null}, function(result) {
-            if(result && result[0]){
-                if(result[0].status=="sent"){ 
-                    console.log("Reset password email sent!.");                   
-                    deferred.resolve(result[0].status);
-                }
-                if(result[0].status=="rejected"){
-                    console.log("Reset password email rejected");
-                    deferred.reject(result[0].status);
-                }
-            }else{
-                console.log("Failed to send reset password email!.");
-                deferred.reject("Failed to send!");
-            }
+        try{
+           
+            var mandrill_client = new mandrill.Mandrill(mandrillApiKey);
+
+            var message = {
+                "html": html,
+                "text": text,
+                "subject": subject,
+                "from_email": from,
+                "from_name": fromName,
+                "to": [{
+                        "email": to
+                    }]
+            };
             
-        }, function(e) {
-            deferred.reject(e);
-        });                    
+            var async = false;
+            
+            mandrill_client.messages.send({"message": message, "async": async, "ip_pool": null, "send_at": null}, function(result) {
+                if(result && result[0]){
+                    if(result[0].status=="sent"){ 
+                        console.log("Reset password email sent!.");                   
+                        deferred.resolve(result[0].status);
+                    }
+                    if(result[0].status=="rejected"){
+                        console.log("Reset password email rejected");
+                        deferred.reject(result[0].status);
+                    }
+                }else{
+                    console.log("Failed to send reset password email!.");
+                    deferred.reject("Failed to send!");
+                }
+                
+            }, function(e) {
+                deferred.reject(e);
+            }); 
+
+        } catch(err){           
+            global.winston.log('error',err);
+            deferred.reject(err);
+        }                   
         
         return deferred.promise;
     };
@@ -68,46 +75,52 @@ module.exports = function(){
 
         var deferred = q.defer();
 
-        var self = this;
+        try{
+            var self = this;
 
-        var emailSettings=null;
-        var emailSettingsFound=false;
-        var html=null;
+            var emailSettings=null;
+            var emailSettingsFound=false;
+            var html=null;
 
-        global.appService.getAllSettings(appId).then(function(settings){                         
+            global.appService.getAllSettings(appId).then(function(settings){                         
 
-            //Check Template in Email Settings
-            if(settings && settings.length>0){
-                emailSettings=_.where(settings, {category: "email"});
-                if(emailSettings && emailSettings.length>0){                  
-                    if(emailSettings[0].settings && emailSettings[0].settings.template && emailSettings[0].settings.template!=""){ 
-                        emailSettingsFound=true;
-                    }                                   
-                } 
-            }
+                //Check Template in Email Settings
+                if(settings && settings.length>0){
+                    emailSettings=_.where(settings, {category: "email"});
+                    if(emailSettings && emailSettings.length>0){                  
+                        if(emailSettings[0].settings && emailSettings[0].settings.template && emailSettings[0].settings.template!=""){ 
+                            emailSettingsFound=true;
+                        }                                   
+                    } 
+                }
 
-            if(!emailSettingsFound){
-                //Get Default CloudBoost Mail Template
-                return _getDefaultTemplate();
-            }else{                
-                var templatePromise= q.defer();
-                templatePromise.resolve(emailSettings[0].settings.template);
-                return templatePromise.promise;
-            }
-                
-        }).then(function(template){
-            return _mergeVariablesInTemplate(template,appId,user,passwordResetKey);
-        }).then(function(mergedHtml){
-            html=mergedHtml;
-            return _getCredentials(emailSettings,from);
-        }).then(function(credentialsJson){
-            //Send Email
-            return self.send(appId, to, subject, text, html, credentialsJson.fromEmail,credentialsJson.fromName,credentialsJson.mandrillApiKey);
-        }).then(function(resp){
-            return deferred.resolve(resp);
-        },function(error){
-            return deferred.reject(error);
-        }); 
+                if(!emailSettingsFound){
+                    //Get Default CloudBoost Mail Template
+                    return _getDefaultTemplate();
+                }else{                
+                    var templatePromise= q.defer();
+                    templatePromise.resolve(emailSettings[0].settings.template);
+                    return templatePromise.promise;
+                }
+                    
+            }).then(function(template){
+                return _mergeVariablesInTemplate(template,appId,user,passwordResetKey);
+            }).then(function(mergedHtml){
+                html=mergedHtml;
+                return _getCredentials(emailSettings,from);
+            }).then(function(credentialsJson){
+                //Send Email
+                return self.send(appId, to, subject, text, html, credentialsJson.fromEmail,credentialsJson.fromName,credentialsJson.mandrillApiKey);
+            }).then(function(resp){
+                return deferred.resolve(resp);
+            },function(error){
+                return deferred.reject(error);
+            }); 
+
+        } catch(err){           
+            global.winston.log('error',err);
+            deferred.reject(err);
+        }
 
         return deferred.promise;
          
@@ -126,41 +139,47 @@ function _mergeVariablesInTemplate(template,appId,user,passwordResetKey){
 
     var deferred = q.defer();
 
-    global.keyService.getMyUrl().then(function(myUrl){
+    try{
+        global.keyService.getMyUrl().then(function(myUrl){
 
-        var uri = encodeURI(myUrl+"/page/"+appId+"/reset-password?user="+user.username+"&resetKey="+passwordResetKey);
-        
+            var uri = encodeURI(myUrl+"/page/"+appId+"/reset-password?user="+user.username+"&resetKey="+passwordResetKey);
+            
 
-        var userName = user.name || user.firstName || user.username;
-        if(!userName){
-            userName=" ";
-        }
-
-        console.log("This is the user name:"+userName);
-
-        //Parse Template
-        jsdom.env(template, [], function (error, window) {
-            if(error){
-                deferred.reject("Cannot parse mail template.");
-            }else{
-
-                var $ = require('jquery')(window);                 
-
-                $('body').find("a[href='*|LINK|*']").attr("href",uri);
-                $('body').children().each(function(){ 
-                    if(userName){
-                        $(this).html( $(this).html().replace('*|NAME|*',userName));
-                    } 
-                    $(this).html( $(this).html().replace('*|LINK|*',uri));                                                       
-                });                           
-                
-                deferred.resolve(window.document.documentElement.outerHTML);   
+            var userName = user.name || user.firstName || user.username;
+            if(!userName){
+                userName=" ";
             }
-        });
 
-    },function(error){
-        deferred.reject(error);
-    });   
+            console.log("This is the user name:"+userName);
+
+            //Parse Template
+            jsdom.env(template, [], function (error, window) {
+                if(error){
+                    deferred.reject("Cannot parse mail template.");
+                }else{
+
+                    var $ = require('jquery')(window);                 
+
+                    $('body').find("a[href='*|LINK|*']").attr("href",uri);
+                    $('body').children().each(function(){ 
+                        if(userName){
+                            $(this).html( $(this).html().replace('*|NAME|*',userName));
+                        } 
+                        $(this).html( $(this).html().replace('*|LINK|*',uri));                                                       
+                    });                           
+                    
+                    deferred.resolve(window.document.documentElement.outerHTML);   
+                }
+            });
+
+        },function(error){
+            deferred.reject(error);
+        }); 
+
+    } catch(err){           
+        global.winston.log('error',err);
+        deferred.reject(err);
+    }  
 
     return deferred.promise;
 }   
@@ -173,14 +192,19 @@ function _mergeVariablesInTemplate(template,appId,user,passwordResetKey){
 */
 function _getDefaultTemplate(){
     var deferred = q.defer();
+    try{
+        fs.readFile('./mail-templates/reset-password.html', 'utf8', function(error, data) {                        
+            if(error){
+                deferred.reject(error);
+            }else if(data){
+                deferred.resolve(data);
+            } 
+        });
 
-    fs.readFile('./mail-templates/reset-password.html', 'utf8', function(error, data) {                        
-        if(error){
-            deferred.reject(error);
-        }else if(data){
-            deferred.resolve(data);
-        } 
-    });
+    } catch(err){           
+        global.winston.log('error',err);
+        deferred.reject(err);
+    }
 
     return deferred.promise;
 }
@@ -194,48 +218,53 @@ function _getDefaultTemplate(){
 function _getCredentials(emailSettings,fromEmail){
     var deferred = q.defer();
 
-    var credentialsJson={
-        mandrillApiKey:null,
-        fromName:null,
-        fromEmail:fromEmail
-    };    
+    try{
+        var credentialsJson={
+            mandrillApiKey:null,
+            fromName:null,
+            fromEmail:fromEmail
+        };    
 
-    //Init with Default values of cloudboost
-    try{        
-        smtpConfig = require('../config/smtp.json');     
-        if(!smtpConfig){
-            return deferred.reject("SMTP Configuration file not found.");
+        //Init with Default values of cloudboost
+        try{        
+            smtpConfig = require('../config/smtp.json');     
+            if(!smtpConfig){
+                return deferred.reject("SMTP Configuration file not found.");
+            } 
+            if(!credentialsJson.mandrillApiKey){
+                credentialsJson.mandrillApiKey=smtpConfig.mandrill_api_key;
+            }               
+            if(!credentialsJson.fromEmail){
+                credentialsJson.fromEmail = smtpConfig.from;
+            }
+            if(!credentialsJson.fromName){
+                credentialsJson.fromName = smtpConfig.from_name;
+            }
+
+        }catch(e){        
+            return deferred.reject("Mail services disabled because SMTP Config not found or is invalid. Please add correct smtp.json in config to enable mail services.");
         } 
-        if(!credentialsJson.mandrillApiKey){
-            credentialsJson.mandrillApiKey=smtpConfig.mandrill_api_key;
-        }               
-        if(!credentialsJson.fromEmail){
-            credentialsJson.fromEmail = smtpConfig.from;
+
+        //Checking in Email Settings to overwrite(Set only if mandrillApiKey and email are found)
+        if(emailSettings && emailSettings.length>0 && emailSettings[0].settings.mandrillApiKey){
+
+          if(emailSettings[0].settings.email && emailSettings[0].settings.email!=""){
+
+            credentialsJson.mandrillApiKey=emailSettings[0].settings.mandrillApiKey;
+            credentialsJson.fromEmail=emailSettings[0].settings.email;
+
+            if(emailSettings[0].settings.from && emailSettings[0].settings.from!=""){
+                credentialsJson.fromName=emailSettings[0].settings.from;
+            }
+          }                
+          
         }
-        if(!credentialsJson.fromName){
-            credentialsJson.fromName = smtpConfig.from_name;
-        }
 
-    }catch(e){        
-        return deferred.reject("Mail services disabled because SMTP Config not found or is invalid. Please add correct smtp.json in config to enable mail services.");
-    } 
-
-    //Checking in Email Settings to overwrite(Set only if mandrillApiKey and email are found)
-    if(emailSettings && emailSettings.length>0 && emailSettings[0].settings.mandrillApiKey){
-
-      if(emailSettings[0].settings.email && emailSettings[0].settings.email!=""){
-
-        credentialsJson.mandrillApiKey=emailSettings[0].settings.mandrillApiKey;
-        credentialsJson.fromEmail=emailSettings[0].settings.email;
-
-        if(emailSettings[0].settings.from && emailSettings[0].settings.from!=""){
-            credentialsJson.fromName=emailSettings[0].settings.from;
-        }
-      }                
-      
+        deferred.resolve(credentialsJson);
+    
+    } catch(err){           
+        global.winston.log('error',err);
+        deferred.reject(err);
     }
-
-    deferred.resolve(credentialsJson);
-
     return deferred.promise;    
 }   

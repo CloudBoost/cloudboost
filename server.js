@@ -15,14 +15,15 @@ try{
 global.mongoDisconnected = false;
 global.elasticDisconnected = false;
 global.winston = require('winston');
+expressWinston = require('express-winston');
 require('winston-loggly');
 
 global.keys = require('./database-connect/keys.js')();
 
 global.winston.add(global.winston.transports.Loggly, {
-    token: global.keys.logToken,
+    inputToken: global.keys.logToken,
     subdomain: "cloudboost",
-    tags: ["NodeJS"],
+    tags: ["cloudboost-server"],
     json:true
 });
 
@@ -52,6 +53,7 @@ try{
 }catch(e){
   console.log("INFO : SSL Certificate not found or is invalid.");
   console.log("Switching ONLY to HTTP...");
+  global.winston.log('error',e);          
 }
 
 http = require('http').createServer(global.app);
@@ -115,6 +117,7 @@ global.app.use(function(req,res,next){
        req.body = JSON.parse(req.text);
        next();
    }catch(e){
+      global.winston.log('error',e);
         //cannot convert to JSON.
        next();
    }
@@ -124,6 +127,7 @@ global.app.use(['/file/:appId', '/data/:appId','/app/:appId/:tableName','/user/:
  	 //This is the Middleware for authenticating the app access using appID and key
  	 //check if all the services are loaded first.
 
+    try{
      if(!customService || !serverService || !mongoService || !userService || !roleService || !appService || !fileService || !cacheService){
          return res.status(400).send("Services Not Loaded");
      }
@@ -134,71 +138,81 @@ global.app.use(['/file/:appId', '/data/:appId','/app/:appId/:tableName','/user/:
      {
          req.body=JSON.parse(req.text);
      }
- 	 
-      var requestRecvd = req.originalUrl; //this is the relative url.
- 	if (ignoreUrl(requestRecvd)) {
- 		next();
- 	} else {
+   	 
+        var requestRecvd = req.originalUrl; //this is the relative url.
+     	if (ignoreUrl(requestRecvd)) {
+     		next();
+     	} else {
 
- 		var appKey = req.body.key || req.params.key; //key is extracted from body/url parameters
+     		var appKey = req.body.key || req.params.key; //key is extracted from body/url parameters
 
- 		var appId = req.params.appId;
- 		if (!appKey) {
- 			return res.status(401).send("Error : Key not found.");
- 		} else {
-            //check if app is in the plan. 
-            var promises = [];
-            promises.push(global.apiTracker.isInPlanLimit(appId));
-            promises.push(global.appService.isKeyValid(appId, appKey));
- 			global.q.all(promises).then(function(result) {
-          var isAppKeyValid = result[1];
-          var isInPlan = result[0];
-          if(!isInPlan){
-              res.status(402).send("Reached Plan Limit. Upgrade Plan.");
-              //check if the appIsReleased. 
-              global.apiTracker.log(appId, "isReleased/isReleased","","JavaScript",true);
-          }
-                
- 				if (!isAppKeyValid) {
- 					return res.status(401).send("App ID or App Key is invalid.");
- 				} else {
- 					next();
- 				}
-                
- 			}, function(err) {
-                 global.winston.log('error',err);
- 				return res.status(500).send(err.message);
- 			});
- 		}
- 	}
+     		var appId = req.params.appId;
+     		if (!appKey) {
+     			return res.status(401).send("Error : Key not found.");
+     		} else {
+                //check if app is in the plan. 
+                var promises = [];
+                promises.push(global.apiTracker.isInPlanLimit(appId));
+                promises.push(global.appService.isKeyValid(appId, appKey));
+     			global.q.all(promises).then(function(result) {
+              var isAppKeyValid = result[1];
+              var isInPlan = result[0];
+              if(!isInPlan){
+                  res.status(402).send("Reached Plan Limit. Upgrade Plan.");
+                  //check if the appIsReleased. 
+                  global.apiTracker.log(appId, "isReleased/isReleased","","JavaScript",true);
+              }
+                    
+     				if (!isAppKeyValid) {
+     					return res.status(401).send("App ID or App Key is invalid.");
+     				} else {
+     					next();
+     				}
+                    
+     			}, function(err) {
+                     global.winston.log('error',err);
+     				return res.status(500).send(err.message);
+     			});
+     		}
+     	}
+
+  }catch(err){
+    global.winston.log('error',err);
+  }
+
  });
 
 global.app.use(function(req,res,next) {
 
-    // Middleware for retrieving sessions
-    console.log('Session Middleware');
-    
-    res.header('Access-Control-Expose-Headers','sessionID');
-    
-    if(req.headers.sessionid) {
-        console.log('Session Found.');
-        res.header('sessionID',req.headers.sessionid);
-        global.sessionHelper.getSession(req.headers.sessionid,function(err,session){
-            if(!err) {
-                    req.session = session;
-                    next();
-            }
-            else{
-                console.log(err);
-                req.session = {};
-                req.session.id = req.header.sessionid;
-                next();
-            }
-        });
-    } else {
-        console.log('No Session Found. Creating a new session.');
-        _setSession(req,res);
-        next();
+  try{
+      // Middleware for retrieving sessions
+      console.log('Session Middleware');
+      
+      res.header('Access-Control-Expose-Headers','sessionID');
+      
+      if(req.headers.sessionid) {
+          console.log('Session Found.');
+          res.header('sessionID',req.headers.sessionid);
+          global.sessionHelper.getSession(req.headers.sessionid,function(err,session){
+              if(!err) {
+                      req.session = session;
+                      next();
+              }
+              else{
+                  console.log(err);
+                  req.session = {};
+                  req.session.id = req.header.sessionid;
+                  next();
+              }
+          });
+      } else {
+          console.log('No Session Found. Creating a new session.');
+          _setSession(req,res);
+          next();
+      }
+
+    }catch(err){
+      global.winston.log('error',err);
     }
     
 });
@@ -235,6 +249,7 @@ function attachServices() {
     }catch(e){
         console.log("FATAL : Cannot attach services");
         console.log(e);
+        global.winston.log('error',err);  
     }
 }
 
@@ -259,6 +274,21 @@ function attachAPI() {
         require('./api/server/Server.js')();
         require('./api/pushNotifications/Push.js')();
 
+        global.app.use(expressWinston.errorLogger({
+          transports: [   
+            new winston.transports.Console({
+              json: true,
+              colorize: true
+            }),        
+            new global.winston.transports.Loggly({
+              subdomain: 'cloudboost',
+              inputToken: global.keys.logToken,
+              json: true,
+              tags: ["cloudboost-server"]
+            })
+          ]
+        }));
+
         console.log('+++++++++++ API Status : OK ++++++++++++++++++');
 
         app.use(function(err, req, res, next) {
@@ -270,30 +300,37 @@ function attachAPI() {
             console.log(err);
 
             res.statusCode(500).send({status : "500", message: "Internal Server Error" });
-        });
+        });      
 
         console.log("CloudBoost Server Started on PORT : " + app.get('port'));
     }catch(e){
         console.log("FATAL : Error attaching API. ");
         console.log(e);
+        global.winston.log('error',err);
     }
 }
 
 function ignoreUrl(requestUrl) {
 
-	var ignoreUrl = [ //for the routes to check whether the particular service is active/not
-		"/api/userService", "/api/customService", "/api/roleService", "/api/status", "/file","/api/createIndex","/pages"
-	];
+  try{
 
-	for (var i = 0; i < ignoreUrl.length; i++) {
-		if (requestUrl.indexOf(ignoreUrl[i]) >= 0) {
-			return true;
-		}else{
-      var arr = ignoreUrl[i].split("/");            
-    }
-	}
+  	var ignoreUrl = [ //for the routes to check whether the particular service is active/not
+  		"/api/userService", "/api/customService", "/api/roleService", "/api/status", "/file","/api/createIndex","/pages"
+  	];
 
-	return false;
+  	for (var i = 0; i < ignoreUrl.length; i++) {
+  		if (requestUrl.indexOf(ignoreUrl[i]) >= 0) {
+  			return true;
+  		}else{
+        var arr = ignoreUrl[i].split("/");            
+      }
+  	}
+
+  	return false;
+
+  }catch(err){
+    global.winston.log('error',err);
+  }
 }
 
 /*
@@ -326,6 +363,7 @@ http.listen(app.get('port'), function () {
     } catch (e) {
         console.log("ERROR : Server init error.");
         console.log(e);
+        global.winston.log('error',e);
     }
 });
 
@@ -348,225 +386,245 @@ function addConnections(){
 }
 
 function setUpAnalytics(){
-    if(process.env["CLOUDBOOST_ANALYTICS_SERVICE_HOST"]){
-        //this is running on Kubernetes
-        console.log("CloudBoost Analytics is running on Kubernetes");
-        global.keys.analyticsUrl = "http://"+process.env["CLOUDBOOST_ANALYTICS_SERVICE_HOST"];
-        console.log(global.keys.analyticsUrl);
-    }else{
-        console.log("Analytics URL : ");
-        console.log(global.keys.analyticsUrl);
-    }
+    try{
+      if(process.env["CLOUDBOOST_ANALYTICS_SERVICE_HOST"]){
+          //this is running on Kubernetes
+          console.log("CloudBoost Analytics is running on Kubernetes");
+          global.keys.analyticsUrl = "http://"+process.env["CLOUDBOOST_ANALYTICS_SERVICE_HOST"];
+          console.log(global.keys.analyticsUrl);
+      }else{
+          console.log("Analytics URL : ");
+          console.log(global.keys.analyticsUrl);
+      }
+    }catch(err){
+      global.winston.log('error',err);
+    }    
 }
 
 function setUpRedis(){
-   //Set up Redis.
-   if(!global.config && !process.env["REDIS_1_PORT_6379_TCP_ADDR"] && !process.env["REDIS_SENTINEL_SERVICE_HOST"]){
-      console.error("FATAL : Redis Cluster Not found. Use docker-compose from https://github.com/cloudboost/docker or Kubernetes from https://github.com/cloudboost/kubernetes");
-   }
 
-   var hosts = [];
-   
-   var isCluster = false;
+  try{
+     //Set up Redis.
+     if(!global.config && !process.env["REDIS_1_PORT_6379_TCP_ADDR"] && !process.env["REDIS_SENTINEL_SERVICE_HOST"]){
+        console.error("FATAL : Redis Cluster Not found. Use docker-compose from https://github.com/cloudboost/docker or Kubernetes from https://github.com/cloudboost/kubernetes");
+     }
 
-   if(global.config && global.config.redis && global.config.redis.length>0){
-       //take from config file
-       for(var i=0;i<global.config.redis.length;i++){
-           hosts.push({
-                host : global.config.redis[i].host,
-                port : global.config.redis[i].port,
-                enableReadyCheck : false
-           });
-           
-           if(global.config.redis[i].password){
-               hosts[i].password = global.config.redis[i].password;
-           }
-       }
-       
-       if(global.config.redis.length>1){
-           isCluster = true;
-       }
-       
-   }else{
-       
-       if(process.env["REDIS_SENTINEL_SERVICE_HOST"]){
-           //this is running on Kubernetes
-           console.log("Redis is running on Kubernetes.");
-           
-           var obj = {
-                      host : process.env["REDIS_SENTINEL_SERVICE_HOST"],
-                      port : process.env["REDIS_SENTINEL_SERVICE_PORT"],
-                      enableReadyCheck : false
-                  };
-           hosts.push(obj); 
-       }else{
-            //take from env variables.
-            var i=1;
-            while(process.env["REDIS_"+i+"_PORT_6379_TCP_ADDR"] && process.env["REDIS_"+i+"_PORT_6379_TCP_PORT"]){
-                    if(i>1){
-                        isCluster = true;
-                    }
-                    var obj = {
-                        host : process.env["REDIS_"+i+"_PORT_6379_TCP_ADDR"],
-                        port : process.env["REDIS_"+i+"_PORT_6379_TCP_PORT"],
+     var hosts = [];
+     
+     var isCluster = false;
+
+     if(global.config && global.config.redis && global.config.redis.length>0){
+         //take from config file
+         for(var i=0;i<global.config.redis.length;i++){
+             hosts.push({
+                  host : global.config.redis[i].host,
+                  port : global.config.redis[i].port,
+                  enableReadyCheck : false
+             });
+             
+             if(global.config.redis[i].password){
+                 hosts[i].password = global.config.redis[i].password;
+             }
+         }
+         
+         if(global.config.redis.length>1){
+             isCluster = true;
+         }
+         
+     }else{
+         
+         if(process.env["REDIS_SENTINEL_SERVICE_HOST"]){
+             //this is running on Kubernetes
+             console.log("Redis is running on Kubernetes.");
+             
+             var obj = {
+                        host : process.env["REDIS_SENTINEL_SERVICE_HOST"],
+                        port : process.env["REDIS_SENTINEL_SERVICE_PORT"],
                         enableReadyCheck : false
                     };
-                    hosts.push(obj);       
-                    i++;
-            }
-       }
-   }
-   
-   if(isCluster){
-        global.redisClient = new Redis.Cluster(hosts);
-        
-        io.adapter(ioRedisAdapter({
-            pubClient: new Redis.Cluster(hosts),
-            subClient: new Redis.Cluster(hosts)
-        }));
-        
-   }else{
-       global.redisClient = new Redis(hosts[0]);
-       
-       io.adapter(ioRedisAdapter({
-            pubClient: new Redis(hosts[0]),
-            subClient: new Redis(hosts[0])
-       }));
-   }
-    
-   global.realTime = require('./database-connect/realTime')(io);
+             hosts.push(obj); 
+         }else{
+              //take from env variables.
+              var i=1;
+              while(process.env["REDIS_"+i+"_PORT_6379_TCP_ADDR"] && process.env["REDIS_"+i+"_PORT_6379_TCP_PORT"]){
+                      if(i>1){
+                          isCluster = true;
+                      }
+                      var obj = {
+                          host : process.env["REDIS_"+i+"_PORT_6379_TCP_ADDR"],
+                          port : process.env["REDIS_"+i+"_PORT_6379_TCP_PORT"],
+                          enableReadyCheck : false
+                      };
+                      hosts.push(obj);       
+                      i++;
+              }
+         }
+     }
+     
+     if(isCluster){
+          global.redisClient = new Redis.Cluster(hosts);
+          
+          io.adapter(ioRedisAdapter({
+              pubClient: new Redis.Cluster(hosts),
+              subClient: new Redis.Cluster(hosts)
+          }));
+          
+     }else{
+         global.redisClient = new Redis(hosts[0]);
+         
+         io.adapter(ioRedisAdapter({
+              pubClient: new Redis(hosts[0]),
+              subClient: new Redis(hosts[0])
+         }));
+     }
+      
+     global.realTime = require('./database-connect/realTime')(io);
+
+  }catch(err){
+    global.winston.log('error',err);
+  } 
 }
 
 function setUpElasticSearch(){
 
-   var hosts = [];
+  try{
+     var hosts = [];
 
-   if(!global.config && !process.env["ELASTICSEARCH_1_PORT_9200_TCP_ADDR"] && !process.env["ELASTICSEARCH_SERVICE_HOST"]){
-      console.error("FATAL : ElasticSearch Cluster Not found. Use docker-compose from https://github.com/cloudboost/docker or Kubernetes from https://github.com/cloudboost/kubernetes");
-   }
+     if(!global.config && !process.env["ELASTICSEARCH_1_PORT_9200_TCP_ADDR"] && !process.env["ELASTICSEARCH_SERVICE_HOST"]){
+        console.error("FATAL : ElasticSearch Cluster Not found. Use docker-compose from https://github.com/cloudboost/docker or Kubernetes from https://github.com/cloudboost/kubernetes");
+     }
 
-   if(global.config && global.config.elasticsearch && global.config.elasticsearch.length>0){
-       //take from config file
-       
-       for(var i=0;i<global.config.elasticsearch.length;i++){
-           hosts.push(
-                global.config.elasticsearch[i].host +":"+global.config.elasticsearch[i].port
-           );
-       }
-       
-       global.keys.elasticSearch = hosts;
-       
-   }else{
-       
-       if(process.env["ELASTICSEARCH_SERVICE_HOST"]){
-           //this is running on Kubernetes
-           console.log("ELASTICSEARCH is running on Kubernetes.");
-           
-           if(!global.keys.elasticSearch || global.keys.elasticSearch.length===0){
-               global.keys.elasticSearch = [];
-           }
-           
-           global.keys.elasticSearch.push(process.env["ELASTICSEARCH_SERVICE_HOST"]+":"+process.env["ELASTICSEARCH_SERVICE_PORT"]); 
-       }else{
-            //ELASTIC SEARCH. 
-            var i=1;
-            
-            global.keys.elasticSearch = [];
+     if(global.config && global.config.elasticsearch && global.config.elasticsearch.length>0){
+         //take from config file
+         
+         for(var i=0;i<global.config.elasticsearch.length;i++){
+             hosts.push(
+                  global.config.elasticsearch[i].host +":"+global.config.elasticsearch[i].port
+             );
+         }
+         
+         global.keys.elasticSearch = hosts;
+         
+     }else{
+         
+         if(process.env["ELASTICSEARCH_SERVICE_HOST"]){
+             //this is running on Kubernetes
+             console.log("ELASTICSEARCH is running on Kubernetes.");
+             
+             if(!global.keys.elasticSearch || global.keys.elasticSearch.length===0){
+                 global.keys.elasticSearch = [];
+             }
+             
+             global.keys.elasticSearch.push(process.env["ELASTICSEARCH_SERVICE_HOST"]+":"+process.env["ELASTICSEARCH_SERVICE_PORT"]); 
+         }else{
+              //ELASTIC SEARCH. 
+              var i=1;
+              
+              global.keys.elasticSearch = [];
 
-            while(process.env["ELASTICSEARCH_"+i+"_PORT_9200_TCP_ADDR"] && process.env["ELASTICSEARCH_"+i+"_PORT_9200_TCP_PORT"]){
-                global.keys.elasticSearch.push(process.env["ELASTICSEARCH_"+i+"_PORT_9200_TCP_ADDR"]+":"+process.env["ELASTICSEARCH_"+i+"_PORT_9200_TCP_PORT"]); 
-                i++;
-            }
-       }
-      
-   } 
+              while(process.env["ELASTICSEARCH_"+i+"_PORT_9200_TCP_ADDR"] && process.env["ELASTICSEARCH_"+i+"_PORT_9200_TCP_PORT"]){
+                  global.keys.elasticSearch.push(process.env["ELASTICSEARCH_"+i+"_PORT_9200_TCP_ADDR"]+":"+process.env["ELASTICSEARCH_"+i+"_PORT_9200_TCP_PORT"]); 
+                  i++;
+              }
+         }
+        
+     } 
+
+  }catch(err){
+    global.winston.log('error',err);
+  } 
 }
 
 function setUpMongoDB(){
    //MongoDB connections. 
 
-   if(!global.config && !process.env["MONGO_1_PORT_27017_TCP_ADDR"] && !process.env["MONGO_SERVICE_HOST"]){
-      console.error("FATAL : MongoDB Cluster Not found. Use docker-compose from https://github.com/cloudboost/docker or Kubernetes from https://github.com/cloudboost/kubernetes");
-   }
+   try{
+     if(!global.config && !process.env["MONGO_1_PORT_27017_TCP_ADDR"] && !process.env["MONGO_SERVICE_HOST"]){
+        console.error("FATAL : MongoDB Cluster Not found. Use docker-compose from https://github.com/cloudboost/docker or Kubernetes from https://github.com/cloudboost/kubernetes");
+     }
 
-   var mongoConnectionString = "mongodb://";
-   
-   var isReplicaSet = false;
-   
-   if(global.config && global.config.mongo && global.config.mongo.length>0){
-       //take from config file
-       
-       if(global.config.mongo.length>1){
-           isReplicaSet = true;
-       }
-       
-       for(var i=0;i<global.config.mongo.length;i++){
-            mongoConnectionString+=global.config.mongo[i].host +":"+global.config.mongo[i].port;
-            mongoConnectionString+=",";
-       }
+     var mongoConnectionString = "mongodb://";
+     
+     var isReplicaSet = false;
+     
+     if(global.config && global.config.mongo && global.config.mongo.length>0){
+         //take from config file
+         
+         if(global.config.mongo.length>1){
+             isReplicaSet = true;
+         }
+         
+         for(var i=0;i<global.config.mongo.length;i++){
+              mongoConnectionString+=global.config.mongo[i].host +":"+global.config.mongo[i].port;
+              mongoConnectionString+=",";
+         }
 
-   }else{
-        
-        if(!global.config){
-            global.config = {};
-        }
+     }else{
+          
+          if(!global.config){
+              global.config = {};
+          }
 
-        global.config.mongo = []; 
-        
-       if(process.env["MONGO_SERVICE_HOST"]){
-            console.log("MongoDB is running on Kubernetes");
-           
-            global.config.mongo.push({
-                host :  process.env["MONGO_SERVICE_HOST"],
-                port : process.env["MONGO_SERVICE_PORT"]
-            });
+          global.config.mongo = []; 
+          
+         if(process.env["MONGO_SERVICE_HOST"]){
+              console.log("MongoDB is running on Kubernetes");
+             
+              global.config.mongo.push({
+                  host :  process.env["MONGO_SERVICE_HOST"],
+                  port : process.env["MONGO_SERVICE_PORT"]
+              });
 
-            mongoConnectionString+=process.env["MONGO_SERVICE_HOST"]+":"+process.env["MONGO_SERVICE_PORT"]; 
-            mongoConnectionString+=",";
-            
-            isReplicaSet = true;
-            
-       }else{
-            var i=1;
-            
-            while(process.env["MONGO_"+i+"_PORT_27017_TCP_ADDR"] && process.env["MONGO_"+i+"_PORT_27017_TCP_PORT"]){
-                if(i>1){
-                  isReplicaSet = true;
-                }
+              mongoConnectionString+=process.env["MONGO_SERVICE_HOST"]+":"+process.env["MONGO_SERVICE_PORT"]; 
+              mongoConnectionString+=",";
+              
+              isReplicaSet = true;
+              
+         }else{
+              var i=1;
+              
+              while(process.env["MONGO_"+i+"_PORT_27017_TCP_ADDR"] && process.env["MONGO_"+i+"_PORT_27017_TCP_PORT"]){
+                  if(i>1){
+                    isReplicaSet = true;
+                  }
 
-                global.config.mongo.push({
-                    host :  process.env["MONGO_"+i+"_PORT_27017_TCP_ADDR"],
-                    port : process.env["MONGO_"+i+"_PORT_27017_TCP_PORT"]
-                });
+                  global.config.mongo.push({
+                      host :  process.env["MONGO_"+i+"_PORT_27017_TCP_ADDR"],
+                      port : process.env["MONGO_"+i+"_PORT_27017_TCP_PORT"]
+                  });
 
-                mongoConnectionString+=process.env["MONGO_"+i+"_PORT_27017_TCP_ADDR"]+":"+process.env["MONGO_"+i+"_PORT_27017_TCP_PORT"]; 
-                mongoConnectionString+=",";
-                i++;
-            }
-       }
-   }
-  
-   mongoConnectionString = mongoConnectionString.substring(0, mongoConnectionString.length - 1);
-   mongoConnectionString += "/"; //de limitter. 
-   global.keys.prodSchemaConnectionString = mongoConnectionString+global.keys.globalDb;
-   global.keys.mongoConnectionString = mongoConnectionString;
+                  mongoConnectionString+=process.env["MONGO_"+i+"_PORT_27017_TCP_ADDR"]+":"+process.env["MONGO_"+i+"_PORT_27017_TCP_PORT"]; 
+                  mongoConnectionString+=",";
+                  i++;
+              }
+         }
+     }
+    
+     mongoConnectionString = mongoConnectionString.substring(0, mongoConnectionString.length - 1);
+     mongoConnectionString += "/"; //de limitter. 
+     global.keys.prodSchemaConnectionString = mongoConnectionString+global.keys.globalDb;
+     global.keys.mongoConnectionString = mongoConnectionString;
 
-   if(isReplicaSet){
-       console.log("MongoDB is in ReplicaSet");
-       var str = "?replicaSet=cloudboost&slaveOk=true";
-       global.keys.prodSchemaConnectionString+=str;
-       global.keys.mongoConnectionString+=str;
-   }
-   
-   var mongoose = require('./database-connect/schemaDb')();
+     if(isReplicaSet){
+         console.log("MongoDB is in ReplicaSet");
+         var str = "?replicaSet=cloudboost&slaveOk=true";
+         global.keys.prodSchemaConnectionString+=str;
+         global.keys.mongoConnectionString+=str;
+     }
+     
+     var mongoose = require('./database-connect/schemaDb')();
 
-   global.model.Project = require('./model/Project')(mongoose);
-   global.model.Table = require('./model/Table')(mongoose);
+     global.model.Project = require('./model/Project')(mongoose);
+     global.model.Table = require('./model/Table')(mongoose);
+
+  }catch(err){
+    global.winston.log('error',err);
+  } 
 }
 
 //to kickstart database services
 function servicesKickstart() {
-
+  try{
     global.esClient = require('./database-connect/elasticSearchConnect.js')();
     var db = require('./database-connect/mongoConnect.js')().connect();
 	  db.then(function(db){
@@ -598,18 +656,31 @@ function servicesKickstart() {
         console.log("Cannot connect to MongoDB.");
         console.log(err);
     });
+
+  }catch(err){
+    global.winston.log('error',err);
+  }   
 }
 
 function attachDbDisconnectApi(){
+  try{
     require('./api/db/elasticSearch.js')();
     require('./api/db/mongo.js')();
+  }catch(err){
+    global.winston.log('error',err);
+  }   
 }
 
 function attachCronJobs() {
+  try{
     require('./cron/expire.js');
+  }catch(err){
+    global.winston.log('error',err);
+  } 
 }
 
 function _setSession(req, res) {
+  try{
     if(!req.session) {
         req.session = {};
         req.session.id = global.uuid.v1();
@@ -629,4 +700,8 @@ function _setSession(req, res) {
 
     req.session = obj;
     global.sessionHelper.saveSession(obj);
+
+  }catch(err){
+    global.winston.log('error',err);
+  }  
 }

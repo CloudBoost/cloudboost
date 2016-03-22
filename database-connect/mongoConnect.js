@@ -4,46 +4,62 @@ module.exports = function () {
     
     var obj = {
 
-    dbConnect: function(appId){
-        return global.mongoClient.db(appId);
-    },
+        dbConnect: function(appId){
+            try{
+                return global.mongoClient.db(appId);
+            }catch(e){                    
+                global.winston.log('error',e);              
+            }
 
-    replSet : function(){
+        },
 
-        var ReplSetServers = require('mongodb').ReplSetServers,
-            Server = require('mongodb').Server;
+        replSet : function(){
 
-        var servers = [];
+            try{
+                var ReplSetServers = require('mongodb').ReplSetServers,
+                    Server = require('mongodb').Server;
 
-        if(global.config.mongo.length===0){
-            return null;
-        }
+                var servers = [];
 
-        if(global.config.mongo.length===1){
-            return new Server(global.config.mongo[0].host, global.config.mongo[0].port);
-        }
+                if(global.config.mongo.length===0){
+                    return null;
+                }
 
-        for(var i=0;i<global.config.mongo.length; i++){
-            servers.push(new Server(lobal.config.mongo[i].host,lobal.config.mongo[i].port));
-        }
+                if(global.config.mongo.length===1){
+                    return new Server(global.config.mongo[0].host, global.config.mongo[0].port);
+                }
 
-        var replSet = new ReplSetServers(servers);
+                for(var i=0;i<global.config.mongo.length; i++){
+                    servers.push(new Server(lobal.config.mongo[i].host,lobal.config.mongo[i].port));
+                }
 
-        return replSet;
-    },
+                var replSet = new ReplSetServers(servers);
 
-    connect: function() {
+                return replSet;
+
+            }catch(e){                    
+                global.winston.log('error',e);              
+            }
+        },
+
+        connect: function() {
             
             var _self = obj;
             var deferred = q.defer();
-            var mongoClient = require('mongodb').MongoClient;
-            mongoClient.connect(global.keys.mongoConnectionString,function (err, db) {
-                if (err) {
-                    deferred.reject(err);
-                } else {
-                    deferred.resolve(db);
-                }
-            });
+            try{
+                var mongoClient = require('mongodb').MongoClient;
+                mongoClient.connect(global.keys.mongoConnectionString,function (err, db) {
+                    if (err) {
+                        deferred.reject(err);
+                    } else {
+                        deferred.resolve(db);
+                    }
+                });
+
+            }catch(e){                    
+                global.winston.log('error',e); 
+                deferred.reject(e);             
+            }
             return deferred.promise;
         }
     };
