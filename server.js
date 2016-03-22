@@ -356,7 +356,7 @@ function setUpAnalytics(){
     }else{
         console.log("Analytics URL : ");
         console.log(global.keys.analyticsUrl);
-    }    
+    }
 }
 
 function setUpRedis(){
