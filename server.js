@@ -356,9 +356,7 @@ function setUpAnalytics(){
     }else{
         console.log("Analytics URL : ");
         console.log(global.keys.analyticsUrl);
-    }
-    global.keys.analyticsUrl="http://localhost:5555";
-    console.log(global.keys.analyticsUrl);
+    }    
 }
 
 function setUpRedis(){

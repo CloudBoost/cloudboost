@@ -143,15 +143,16 @@ function _mergeVariablesInTemplate(template,appId,user,passwordResetKey){
             if(error){
                 deferred.reject("Cannot parse mail template.");
             }else{
-                var $ = require('jquery')(window);        
 
+                var $ = require('jquery')(window);                 
+
+                $('body').find("a[href='*|LINK|*']").attr("href",uri);
                 $('body').children().each(function(){ 
                     if(userName){
-                        $(this).text( $(this).text().replace('*|NAME|*',userName));
-                    }                                     
-                });
-
-                $('body').find("a[href='*|LINK|*']").attr("href",uri);               
+                        $(this).html( $(this).html().replace('*|NAME|*',userName));
+                    } 
+                    $(this).html( $(this).html().replace('*|LINK|*',uri));                                                       
+                });                           
                 
                 deferred.resolve(window.document.documentElement.outerHTML);   
             }
