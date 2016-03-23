@@ -119,7 +119,7 @@ global.app.use(function(req,res,next){
       try{
         req.body = JSON.parse(req.text);
       }catch(error){
-        req.body=req.text;
+        //req.body=req.text;
       }     
      
      next();
