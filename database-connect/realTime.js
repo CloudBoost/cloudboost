@@ -9,7 +9,7 @@ module.exports = function (io){
                 try{
     		       socket.join(data);
                 }catch(e){                    
-                    global.winston.log('error',e);                         
+                    global.winston.log('error',{"error":String(e),"stack": new Error().stack});                         
                 }
             });
 
@@ -22,7 +22,7 @@ module.exports = function (io){
                         socket.join(data);
 
                     }catch(e){                    
-                        global.winston.log('error',e);                         
+                        global.winston.log('error',{"error":String(e),"stack": new Error().stack});                         
                     }
             });
             
@@ -30,7 +30,7 @@ module.exports = function (io){
                 try{
                     socket.disconnect();
                 }catch(e){                    
-                    global.winston.log('error',e);                         
+                    global.winston.log('error',{"error":String(e),"stack": new Error().stack});                         
                 }
             });
 
@@ -40,7 +40,7 @@ module.exports = function (io){
                 		console.log(data);
                         socket.leave(data);
                     }catch(e){                    
-                        global.winston.log('error',e);                         
+                        global.winston.log('error',{"error":String(e),"stack": new Error().stack});                         
                     }
             });
 
@@ -63,7 +63,7 @@ module.exports = function (io){
                    io.emit(data.channel,data.data);
  
                 }catch(e){                    
-                    global.winston.log('error',e);                         
+                    global.winston.log('error',{"error":String(e),"stack": new Error().stack});                         
                 }
             });
 
@@ -81,7 +81,7 @@ module.exports = function (io){
                         global.socketSessionHelper.saveSession(socket.id, data.sessionId);
                     }
                 }catch(e){                    
-                    global.winston.log('error',e);                         
+                    global.winston.log('error',{"error":String(e),"stack": new Error().stack});                         
                 }
             });
 
@@ -91,7 +91,7 @@ module.exports = function (io){
             	    console.log(data);
                     socket.leave(data);
                 }catch(e){                    
-                    global.winston.log('error',e);                         
+                    global.winston.log('error',{"error":String(e),"stack": new Error().stack});                         
                 }    
             });
 
@@ -99,12 +99,12 @@ module.exports = function (io){
                 try{
                     global.socketSessionHelper.deleteSession(socket.id); //deletes the lnk between this socket and session.
                 }catch(e){                    
-                    global.winston.log('error',e);                         
+                    global.winston.log('error',{"error":String(e),"stack": new Error().stack});                         
                 }
             });
 
         }catch(e){                    
-            global.winston.log('error',e);                         
+            global.winston.log('error',{"error":String(e),"stack": new Error().stack});                         
         }
 
 	});
@@ -144,7 +144,7 @@ module.exports = function (io){
                 });
     		}
         }catch(e){                    
-            global.winston.log('error',e);                         
+            global.winston.log('error',{"error":String(e),"stack": new Error().stack});                         
         }
 	};
     
@@ -172,7 +172,7 @@ function _sendNotification(appId,document,socket,eventType) {
             }
         });
     }catch(e){                    
-        global.winston.log('error',e);
+        global.winston.log('error',{"error":String(e),"stack": new Error().stack});
         deferred.reject(e);                        
     }
     return deferred.promise;

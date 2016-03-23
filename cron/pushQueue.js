@@ -16,7 +16,7 @@ var job = new CronJob('* * * * * *', function () {
         });
 
     } catch(err){           
-        global.winston.log('error',err);               
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});               
     }
 
 });
@@ -43,7 +43,7 @@ function _getPushQueues(appId) {
         }
 
     } catch(err){           
-        global.winston.log('error',err);               
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});               
     }
 }
 
@@ -72,7 +72,7 @@ function _getQueueMessages(appId, queue) {
         });
 
     } catch(err){           
-        global.winston.log('error',err);               
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});               
     }
 
 }
@@ -85,7 +85,7 @@ function _pingSubscriber(appId,queue, message) {
             _postMessage(appId,queue.subscribers[i], message, queue.retry)
         }
     } catch(err){           
-        global.winston.log('error',err);               
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});               
     }
 }
 
@@ -113,7 +113,7 @@ function _postMessage(appId,subscriber, message, retry) {
         });
 
     } catch(err){           
-        global.winston.log('error',err);               
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});               
     }    
 }
 
@@ -122,7 +122,7 @@ function _deleteMessage(appId, message) {
     try{
         global.queueService.deleteMessage(appId, message._queueName, message.id, {}, true);
     } catch(err){           
-        global.winston.log('error',err);               
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});               
     }
 }
 

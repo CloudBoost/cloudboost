@@ -49,7 +49,7 @@ module.exports = function() {
                 });
 
             } catch(err){           
-                global.winston.log('error',err);
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
             
@@ -88,7 +88,7 @@ module.exports = function() {
                 });
 
             } catch(err){           
-                global.winston.log('error',err);
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
 			return deferred.promise;
@@ -119,7 +119,7 @@ module.exports = function() {
                 });
 
             } catch(err){           
-                global.winston.log('error',err);
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
             return deferred.promise;
@@ -134,7 +134,7 @@ module.exports = function() {
                     deferred.reject(err);
                 });
             } catch(err){           
-                global.winston.log('error',err);
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
             return deferred.promise;
@@ -155,7 +155,7 @@ module.exports = function() {
                 return readstream;
 
             } catch(err){           
-                global.winston.log('error',err);
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 return null;
             }
         },
@@ -186,7 +186,7 @@ function _getFile(appId,filename){
             return deferred.resolve(file);  
         });
     } catch(err){           
-        global.winston.log('error',err);
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
         deferred.reject(err);
     }
 
@@ -213,7 +213,7 @@ function _saveFileObj(appId,document){
         });
 
     } catch(err){           
-        global.winston.log('error',err);
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
         deferred.reject(err);
     }
 
@@ -235,12 +235,12 @@ function _deleteFileObj(appId,document){
             console.log('Document Deleted');
             deferred.resolve(doc);
         },function(err){
-            global.winston.log('error',err);
+            global.winston.log('error',{"error":String(err),"stack": new Error().stack});
             deferred.reject(err);
         });
 
     } catch(err){           
-        global.winston.log('error',err);
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
         deferred.reject(err);
     }
     return deferred.promise;
@@ -280,7 +280,7 @@ function _saveFileStream(appId,fileStream,fileName,contentType){
         });
 
     } catch(err){           
-        global.winston.log('error',err);
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
         deferred.reject(err);
     } 
 
@@ -325,7 +325,7 @@ function _deleteFileFromGridFs(appId,filename){
         });
 
     } catch(err){           
-        global.winston.log('error',err);
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
         deferred.reject(err);
     }
     
@@ -411,7 +411,7 @@ function _checkWriteACL(appId,collectionName,fileId,accessList,isMasterKey){
         }
 
     } catch(err){           
-        global.winston.log('error',err);
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
         deferred.reject(err);
     }
     return deferred.promise;
@@ -483,7 +483,7 @@ function _readFileACL(appId,collectionName,fileId,accessList,isMasterKey){
         }
 
     } catch(err){           
-        global.winston.log('error',err);
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
         deferred.reject(err);
     }
 
@@ -550,7 +550,7 @@ function _processImage(appId,fileName, resizeWidth, resizeHeight,cropX, cropY, c
         });
 
     } catch(err){           
-        global.winston.log('error',err);
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
         deferred.reject(err);
     }
 

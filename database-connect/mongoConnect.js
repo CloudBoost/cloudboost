@@ -8,7 +8,7 @@ module.exports = function () {
             try{
                 return global.mongoClient.db(appId);
             }catch(e){                    
-                global.winston.log('error',e);              
+                global.winston.log('error',{"error":String(e),"stack": new Error().stack});              
             }
 
         },
@@ -38,7 +38,7 @@ module.exports = function () {
                 return replSet;
 
             }catch(e){                    
-                global.winston.log('error',e);              
+                global.winston.log('error',{"error":String(e),"stack": new Error().stack});              
             }
         },
 
@@ -57,7 +57,7 @@ module.exports = function () {
                 });
 
             }catch(e){                    
-                global.winston.log('error',e); 
+                global.winston.log('error',{"error":String(e),"stack": new Error().stack}); 
                 deferred.reject(e);             
             }
             return deferred.promise;

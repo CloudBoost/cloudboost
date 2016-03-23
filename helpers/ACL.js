@@ -46,7 +46,7 @@
             return false;
 
         }catch(err){                    
-            global.winston.log('error',err);                                                  
+            global.winston.log('error',{"error":String(err),"stack": new Error().stack});                                                  
         }
     }
 };
@@ -67,6 +67,6 @@ function _contains(list1, list2) {
         return false;
 
     }catch(err){                    
-        global.winston.log('error',err);                                                  
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});                                                  
     }
 } 

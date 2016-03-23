@@ -83,7 +83,7 @@ module.exports = {
             }catch(e){
                 console.log("Error Init Encrypt Key");
                 console.log(e);
-                global.winston.log('error',e);   
+                global.winston.log('error',{"error":String(e),"stack": new Error().stack});   
             }
         },
 
@@ -166,7 +166,7 @@ module.exports = {
         }catch(e){
             console.log("Error Init Cluster Key");
             console.log(e);
-            global.winston.log('error',e);       
+            global.winston.log('error',{"error":String(e),"stack": new Error().stack});       
         }
     },
 
@@ -208,7 +208,7 @@ module.exports = {
                     }
 
                 }catch(e){                    
-                    global.winston.log('error',e); 
+                    global.winston.log('error',{"error":String(e),"stack": new Error().stack}); 
                     deferred.reject(e);  
                 }
                 
@@ -251,7 +251,7 @@ module.exports = {
             });
 
         }catch(e){                    
-            global.winston.log('error',e); 
+            global.winston.log('error',{"error":String(e),"stack": new Error().stack}); 
             deferred.reject(e);  
         }
 

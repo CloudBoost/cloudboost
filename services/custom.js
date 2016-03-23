@@ -35,7 +35,7 @@ module.exports = function() {
                 }
 
             } catch(err){           
-                global.winston.log('error',err);
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
 
@@ -55,7 +55,7 @@ module.exports = function() {
     		        deferred.reject(error);
                 });
             } catch(err){           
-                global.winston.log('error',err);
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
 
@@ -76,7 +76,7 @@ module.exports = function() {
     		    });
 
             } catch(err){           
-                global.winston.log('error',err);
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
 			return deferred.promise;
@@ -93,7 +93,7 @@ module.exports = function() {
     			});
 
             } catch(err){           
-                global.winston.log('error',err);
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
 			return deferred.promise;
@@ -113,7 +113,7 @@ module.exports = function() {
     		    });
 
             } catch(err){           
-                global.winston.log('error',err);
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
             return deferred.promise;
@@ -166,7 +166,7 @@ module.exports = function() {
                 }
 
             } catch(err){           
-                global.winston.log('error',err);
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
             return deferred.promise;
@@ -211,7 +211,7 @@ module.exports = function() {
                 }
 
             } catch(err){           
-                global.winston.log('error',err);
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
             return deferred.promise;
@@ -229,7 +229,7 @@ module.exports = function() {
                     deferred.reject(error);
                 });
             } catch(err){           
-                global.winston.log('error',err);
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
             return deferred.promise;
@@ -309,7 +309,7 @@ function _save(appId, collectionName, document, accessList, isMasterKey, reqType
         }
 
     } catch(err){           
-        global.winston.log('error',err);
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
         deferred.reject(err);
     }
     return deferred.promise;
@@ -346,7 +346,7 @@ function _delete(appId, collectionName, document, accessList,isMasterKey){
         }
 
     } catch(err){           
-        global.winston.log('error',err);
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
         deferred.reject(err);
     }
     return deferred.promise;
@@ -366,7 +366,7 @@ function _validateSchema(appId,listOfDocs,accessList,isMasterKey){
         });
 
     } catch(err){           
-        global.winston.log('error',err);
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
         deferred.reject(err);
     }
     return deferred.promise;
@@ -386,7 +386,7 @@ function _sendNotification(appId,res,reqType){
         return '';
 
     } catch(err){           
-        global.winston.log('error',err);
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
         return null;
     }
 }
@@ -581,7 +581,7 @@ var _isSchemaValid = function(appId,collectionName,document,accessList,isMasterK
 
     
     } catch(err){           
-        global.winston.log('error',err);
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
         mainPromise.reject(err);
     }
 
@@ -592,29 +592,29 @@ var _isSchemaValid = function(appId,collectionName,document,accessList,isMasterK
 function _checkBasicDataTypes(data, datatype, columnName, tableName){
 
     try{
-    if( Object.prototype.toString.call( data ) === '[object Array]' ) {
-        for(var i=0;i<data.length; i++){
+        if( Object.prototype.toString.call( data ) === '[object Array]' ) {
+            for(var i=0;i<data.length; i++){
 
-            var res = _checkDataTypeUtil(data[i],datatype, columnName, tableName);
+                var res = _checkDataTypeUtil(data[i],datatype, columnName, tableName);
 
-            if (!res.message) {
-                data[i] = res.data;
-            } else {
-                return res;
+                if (!res.message) {
+                    data[i] = res.data;
+                } else {
+                    return res;
+                }
             }
+        }else{
+            return _checkDataTypeUtil(data,datatype, columnName, tableName);
         }
-    }else{
-        return _checkDataTypeUtil(data,datatype, columnName, tableName);
-    }
-    var obj = {};
-    obj.data = data;
-    obj.message = null;
+        var obj = {};
+        obj.data = data;
+        obj.message = null;
 
-    return obj; //success!
+        return obj; //success!
 
     }catch(err){
-         global.winston.log('error',err);
-         return null;
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+        return null;
     }
 }
 
@@ -695,7 +695,7 @@ function _checkDataTypeUtil(data, datatype, columnName,  tableName){
         return obj; //success!
 
     } catch(err){           
-        global.winston.log('error',err);
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
         return null;
     }
 }
@@ -712,7 +712,7 @@ function _isBasicDataType(dataType){
         return false;
 
     } catch(err){           
-        global.winston.log('error',err);       
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});       
     }
 }
 
@@ -756,7 +756,7 @@ function _generateId(document,reqType) {
         return document;
 
     } catch(err){           
-        global.winston.log('error',err);
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
         return null;
     }
 }
@@ -770,7 +770,7 @@ function _checkForRelation(document) {
         }
         return false;
     } catch(err){           
-        global.winston.log('error',err);        
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});        
     }
 }
 
@@ -779,7 +779,7 @@ function _clone(document){
     try{
         return JSON.parse(JSON.stringify(document));
     } catch(err){           
-        global.winston.log('error',err);
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
        return null;
     }
 }
@@ -904,7 +904,7 @@ function _getModifiedDocs(document,unModDoc){
         return modifiedDocument;
 
     } catch(err){           
-        global.winston.log('error',err);
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
        return null;
     }
 }
@@ -946,7 +946,7 @@ function _stripChildDocs (document){
         return doc;
 
     } catch(err){           
-        global.winston.log('error',err);
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
        return null;
     }
 }
@@ -983,7 +983,7 @@ function _deleteRollback(appId, document, res){
         });
 
     } catch(err){           
-        global.winston.log('error',err);
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
         deferred.reject(err);
     }
     return deferred.promise;
@@ -1045,7 +1045,7 @@ function _merge(collectionId,listOfDocs,unModDoc){
         return document;
 
     } catch(err){           
-        global.winston.log('error',err);
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
         return null;
     }
 }
@@ -1085,7 +1085,7 @@ function _queryType(query,select){
         return false;
 
     } catch(err){           
-        global.winston.log('error',err);        
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});        
     }
 }
 
@@ -1102,7 +1102,7 @@ function _getSchema(appId, collectionName){
         });
 
     } catch(err){           
-        global.winston.log('error',err); 
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
         deferred.reject(err);       
     }
 
@@ -1162,7 +1162,7 @@ function _encryptPasswordInQuery(appId, collectionName, query){
             });    
         }
     } catch(err){           
-        global.winston.log('error',err); 
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
         deferred.reject(err);       
     }
     
@@ -1174,7 +1174,7 @@ function _encrypt(data) {
     try{
         return crypto.pbkdf2Sync(data, global.keys.secureKey, 10000, 64).toString('base64');
     } catch(err){           
-        global.winston.log('error',err); 
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
         return null;     
     }
 }
@@ -1193,7 +1193,7 @@ function _attachSchema(docsArray,oldDocs){
         }
         return oldDocs;
     } catch(err){           
-        global.winston.log('error',err); 
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
         return null;     
     }
 }
@@ -1240,7 +1240,7 @@ function _rollBack(appId,status,docsArray,oldDocs){
         });
 
     } catch(err){           
-        global.winston.log('error',err); 
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
         deferred.reject(err);     
     }
     return deferred.promise;
@@ -1265,7 +1265,7 @@ function _revertBack(appId, statusArray, docsArray, oldDocs){
         });
 
     } catch(err){           
-        global.winston.log('error',err); 
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
         deferred.reject(err);     
     }
     return deferred.promise;
@@ -1301,7 +1301,7 @@ function _orientRevert(appId, status, docsArray, oldDocs){
             });
         }
     } catch(err){           
-        global.winston.log('error',err); 
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
         deferred.reject(err);     
     }
     return deferred.promise;
@@ -1339,7 +1339,7 @@ function _mongoRevert(appId, status, docsArray, oldDocs){
         }
 
     } catch(err){           
-        global.winston.log('error',err); 
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
         deferred.reject(err);     
     }
     return deferred.promise;
@@ -1375,7 +1375,7 @@ function _elasticSearchRevert(appId, status, docsArray, oldDocs){
             });
         }
     } catch(err){           
-        global.winston.log('error',err); 
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
         deferred.reject(err);     
     }
     return deferred.promise;
@@ -1397,7 +1397,7 @@ function _seperateDocs(listOfDocs){
         return obj;
 
     } catch(err){           
-        global.winston.log('error',err); 
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
         return null;    
     }
 }
@@ -1431,7 +1431,7 @@ function _checkIdList(document,reqType){
         return document;
 
     } catch(err){           
-        global.winston.log('error',err); 
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
         return null;    
     }
 }

@@ -39,7 +39,7 @@ module.exports = function(){
     		});
 
         }catch(err){                    
-            global.winston.log('error',err); 
+            global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
             deferred.reject(err);                               
         }
 
@@ -79,7 +79,7 @@ module.exports = function(){
 
 
         }catch(err){                    
-            global.winston.log('error',err); 
+            global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
             deferred.reject(err);                               
         }
 
@@ -110,7 +110,7 @@ module.exports = function(){
             });
 
         }catch(err){                    
-            global.winston.log('error',err); 
+            global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
             deferred.reject(err);                               
         }
 		return deferred.promise;
@@ -166,7 +166,7 @@ module.exports = function(){
 
 
         }catch(err){                    
-            global.winston.log('error',err); 
+            global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
             deferred.reject(err);                               
         }
 
@@ -208,7 +208,7 @@ module.exports = function(){
 
 
         }catch(err){                    
-            global.winston.log('error',err); 
+            global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
             deferred.reject(err);                               
         }
 
@@ -289,7 +289,7 @@ module.exports = function(){
 
 
         }catch(err){                    
-            global.winston.log('error',err); 
+            global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
             deferred.reject(err);                               
         }
 
@@ -426,7 +426,7 @@ module.exports = function(){
 
 
         }catch(err){                    
-            global.winston.log('error',err); 
+            global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
             deferred.reject(err);                               
         }
 
@@ -452,7 +452,7 @@ function _serializeSearchFilter(query){
         return query;
 
     }catch(err){                    
-        global.winston.log('error',err); 
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
         return null;                              
     }
 }
@@ -499,7 +499,7 @@ function _save(appId, collectionName, document){
         });
 
     }catch(err){                    
-        global.winston.log('error',err); 
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
         deferred.reject(err);                               
     }
 
@@ -536,7 +536,7 @@ function _serialize(document){
         return document;
 
     }catch(err){                    
-        global.winston.log('error',err); 
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
         return null;                               
     }
 }
@@ -575,7 +575,7 @@ function _deserialize(document){
         return document;
 
     }catch(err){                    
-        global.winston.log('error',err);  
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
         return null;                                      
     }
 }

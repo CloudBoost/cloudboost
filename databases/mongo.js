@@ -24,7 +24,7 @@ module.exports = function() {
                 });
 
             }catch(err){                    
-                global.winston.log('error',err);  
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
                 deferred.reject(err);;                                      
             }
             return deferred.promise;
@@ -173,7 +173,7 @@ module.exports = function() {
                 });
 
             }catch(err){                    
-                global.winston.log('error',err);  
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
                 deferred.reject(err);;                                      
             }
             return deferred.promise;
@@ -203,7 +203,7 @@ module.exports = function() {
                 });
 
             }catch(err){                    
-                global.winston.log('error',err);  
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
                 includeDeferred.reject(err);;                                      
             }
             return includeDeferred.promise;
@@ -345,7 +345,7 @@ module.exports = function() {
                 });
 
             }catch(err){                    
-                global.winston.log('error',err);  
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
                 deferred.reject(err);;                                      
             }
 
@@ -376,7 +376,7 @@ module.exports = function() {
                 });
 
             }catch(err){                    
-                global.winston.log('error',err);  
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
                 mainPromise.reject(err);;                                      
             }
 
@@ -408,7 +408,7 @@ module.exports = function() {
                 });
 
             }catch(err){                    
-                global.winston.log('error',err);  
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
                 deferred.reject(err);;                                      
             }
             return deferred.promise;
@@ -449,7 +449,7 @@ module.exports = function() {
                 });
 
             }catch(err){                    
-                global.winston.log('error',err);  
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
                 deferred.reject(err);;                                      
             }
             return deferred.promise;
@@ -488,7 +488,7 @@ module.exports = function() {
                 });
 
             }catch(err){                    
-                global.winston.log('error',err);  
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
                 deferred.reject(err);;                                      
             }
             return deferred.promise;
@@ -588,7 +588,7 @@ module.exports = function() {
                 });
 
             }catch(err){                    
-                global.winston.log('error',err);  
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
                 deferred.reject(err);;                                      
             }
             return deferred.promise;
@@ -662,7 +662,7 @@ module.exports = function() {
                 });
 
             }catch(err){                    
-                global.winston.log('error',err);  
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
                 deferred.reject(err);;                                      
             }
 
@@ -698,7 +698,7 @@ module.exports = function() {
                 });
 
             }catch(err){                    
-                global.winston.log('error',err);  
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
                 deferred.reject(err);;                                      
             }
 
@@ -753,7 +753,7 @@ module.exports = function() {
                 }
 
             }catch(err){                    
-                global.winston.log('error',err);  
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
                 deferred.reject(err);;                                      
             }
 
@@ -784,7 +784,7 @@ module.exports = function() {
                 });
 
             }catch(err){                    
-                global.winston.log('error',err);  
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
                 deferred.reject(err);;                                      
             }
             
@@ -819,7 +819,7 @@ module.exports = function() {
             });
 
         }catch(err){                    
-            global.winston.log('error',err);  
+            global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
             deferred.reject(err);;                                      
         }
         return deferredMain.promise;
@@ -849,7 +849,7 @@ module.exports = function() {
             return document;
 
         }catch(err){                    
-            global.winston.log('error',err);                                                  
+            global.winston.log('error',{"error":String(err),"stack": new Error().stack});                                                  
         }
     }
     function _deserialize(docs){
@@ -917,7 +917,7 @@ module.exports = function() {
             }
             return docs;
         }catch(err){                    
-            global.winston.log('error',err);                                                  
+            global.winston.log('error',{"error":String(err),"stack": new Error().stack});                                                  
         }        
     }
     function _checkBasicDataTypes(data, datatype, columnName, tableName){
@@ -938,7 +938,7 @@ module.exports = function() {
             return ''; //success!
 
         }catch(err){                    
-            global.winston.log('error',err);                                                  
+            global.winston.log('error',{"error":String(err),"stack": new Error().stack});                                                  
         } 
     }
 
@@ -989,7 +989,7 @@ module.exports = function() {
             return ''; //success!
 
         }catch(err){                    
-            global.winston.log('error',err);                                                  
+            global.winston.log('error',{"error":String(err),"stack": new Error().stack});                                                  
         } 
     }
 
@@ -1004,7 +1004,7 @@ module.exports = function() {
             return false;
 
         }catch(err){                    
-            global.winston.log('error',err);                                                  
+            global.winston.log('error',{"error":String(err),"stack": new Error().stack});                                                  
         } 
     }
 
@@ -1043,7 +1043,7 @@ module.exports = function() {
             throw new Error("Unable to copy obj! Its type isn't supported.");
 
         }catch(err){                    
-            global.winston.log('error',err);                                                  
+            global.winston.log('error',{"error":String(err),"stack": new Error().stack});                                                  
         } 
     }
 

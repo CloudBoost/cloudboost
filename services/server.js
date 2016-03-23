@@ -18,7 +18,7 @@ module.exports = function() {
         }); 
 
       } catch(err){           
-          global.winston.log('error',err);
+          global.winston.log('error',{"error":String(err),"stack": new Error().stack});
           deferred.reject(err);
       }          
 
@@ -52,7 +52,7 @@ function _registerServerAnalytics(secureKey){
     });
 
   } catch(err){           
-    global.winston.log('error',err);
+    global.winston.log('error',{"error":String(err),"stack": new Error().stack});
     deferred.reject(err);
   }
 

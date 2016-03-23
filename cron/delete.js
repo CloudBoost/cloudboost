@@ -19,7 +19,7 @@ function getMessages(){
                         getMessages();
                     }, function (err) {
                         deleteFromQueue(message);
-                        global.winston.log("error",err);
+                        global.winston.log("error",{"error":String(err),"stack": new Error().stack});
                     });
                 } else {
                     return '';
@@ -28,7 +28,7 @@ function getMessages(){
         });
 
     } catch(err){           
-        global.winston.log('error',err);        
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});        
     }
 }
 
@@ -41,7 +41,7 @@ function deleteFromQueue(message){
                 console.log("Done");
         });
     } catch(err){           
-        global.winston.log('error',err);        
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});        
     }
 }
 
@@ -65,7 +65,7 @@ function _delete(message){
         });
 
     } catch(err){           
-        global.winston.log('error',err);
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
         deferred.reject(err);        
     }
     return deferred.promise;
@@ -94,7 +94,7 @@ function _appDelete(appId,db){
             deferred.resolve();
 
     } catch(err){           
-        global.winston.log('error',err);
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
         deferred.reject(err);        
     }    
     return deferred.promise;
@@ -124,7 +124,7 @@ function _tableDelete(appId, tableName, db){
             deferred.resolve();
 
     } catch(err){           
-        global.winston.log('error',err);
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
         deferred.reject(err);        
     }
     return deferred.promise;
@@ -153,7 +153,7 @@ function _columnDelete(appId, tableName, columnName, db){
             deferred.resolve();
 
     } catch(err){           
-        global.winston.log('error',err);
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
         deferred.reject(err);        
     }
     return deferred.promise;

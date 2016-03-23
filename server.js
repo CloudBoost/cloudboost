@@ -4,14 +4,6 @@ var pjson = require('./package.json');
 var fs = require('fs');
 var busboyBodyParser = require('busboy-body-parser');
 
-
-try{
-  global.config = require('./config/cloudboost');
-}catch(e){
-  //if this module is not found then,
-  global.config = null;
-}
-
 global.mongoDisconnected = false;
 global.elasticDisconnected = false;
 global.winston = require('winston');
@@ -26,6 +18,15 @@ global.winston.add(global.winston.transports.Loggly, {
     tags: ["cloudboost-server"],
     json:true
 });
+
+
+try{
+  global.config = require('./config/cloudboost');
+}catch(e){
+  //if this module is not found then,
+  global.config = null;
+  global.winston.log('error',{"error":String(e),"stack": new Error().stack});
+}
 
 global.keyService = require('./database-connect/keyService.js');
 
@@ -53,7 +54,7 @@ try{
 }catch(e){
   console.log("INFO : SSL Certificate not found or is invalid.");
   console.log("Switching ONLY to HTTP...");
-  global.winston.log('error',e);          
+  global.winston.log('error',{"error":String(e),"stack": new Error().stack});          
 }
 
 http = require('http').createServer(global.app);
@@ -117,7 +118,7 @@ global.app.use(function(req,res,next){
        req.body = JSON.parse(req.text);
        next();
    }catch(e){
-      global.winston.log('error',e);
+      global.winston.log('error',{"error":String(e),"stack": new Error().stack});
         //cannot convert to JSON.
        next();
    }
@@ -170,14 +171,14 @@ global.app.use(['/file/:appId', '/data/:appId','/app/:appId/:tableName','/user/:
      				}
                     
      			}, function(err) {
-                     global.winston.log('error',err);
+            global.winston.log('error',{"error":String(err),"stack": new Error().stack});
      				return res.status(500).send(err.message);
      			});
      		}
      	}
 
   }catch(err){
-    global.winston.log('error',err);
+    global.winston.log('error',{"error":String(err),"stack": new Error().stack});
   }
 
  });
@@ -212,7 +213,7 @@ global.app.use(function(req,res,next) {
       }
 
     }catch(err){
-      global.winston.log('error',err);
+      global.winston.log('error',{"error":String(err),"stack": new Error().stack});
     }
     
 });
@@ -249,7 +250,7 @@ function attachServices() {
     }catch(e){
         console.log("FATAL : Cannot attach services");
         console.log(e);
-        global.winston.log('error',err);  
+        global.winston.log('error',{"error":String(e),"stack": new Error().stack});  
     }
 }
 
@@ -306,7 +307,7 @@ function attachAPI() {
     }catch(e){
         console.log("FATAL : Error attaching API. ");
         console.log(e);
-        global.winston.log('error',err);
+        global.winston.log('error',{"error":String(e),"stack": new Error().stack});
     }
 }
 
@@ -329,7 +330,7 @@ function ignoreUrl(requestUrl) {
   	return false;
 
   }catch(err){
-    global.winston.log('error',err);
+    global.winston.log('error',{"error":String(err),"stack": new Error().stack});
   }
 }
 
@@ -397,7 +398,7 @@ function setUpAnalytics(){
           console.log(global.keys.analyticsUrl);
       }
     }catch(err){
-      global.winston.log('error',err);
+      global.winston.log('error',{"error":String(err),"stack": new Error().stack});
     }    
 }
 
@@ -481,7 +482,7 @@ function setUpRedis(){
      global.realTime = require('./database-connect/realTime')(io);
 
   }catch(err){
-    global.winston.log('error',err);
+    global.winston.log('error',{"error":String(err),"stack": new Error().stack});
   } 
 }
 
@@ -531,7 +532,7 @@ function setUpElasticSearch(){
      } 
 
   }catch(err){
-    global.winston.log('error',err);
+    global.winston.log('error',{"error":String(err),"stack": new Error().stack});
   } 
 }
 
@@ -618,7 +619,7 @@ function setUpMongoDB(){
      global.model.Table = require('./model/Table')(mongoose);
 
   }catch(err){
-    global.winston.log('error',err);
+    global.winston.log('error',{"error":String(err),"stack": new Error().stack});
   } 
 }
 
@@ -651,6 +652,7 @@ function servicesKickstart() {
             attachCronJobs();
         }catch(e){
             console.log(e);
+            global.winston.log('error',{"error":String(e),"stack": new Error().stack});
         }
     },function(err){
         console.log("Cannot connect to MongoDB.");
@@ -658,7 +660,7 @@ function servicesKickstart() {
     });
 
   }catch(err){
-    global.winston.log('error',err);
+    global.winston.log('error',{"error":String(err),"stack": new Error().stack});
   }   
 }
 
@@ -667,7 +669,7 @@ function attachDbDisconnectApi(){
     require('./api/db/elasticSearch.js')();
     require('./api/db/mongo.js')();
   }catch(err){
-    global.winston.log('error',err);
+    global.winston.log('error',{"error":String(err),"stack": new Error().stack});
   }   
 }
 
@@ -675,7 +677,7 @@ function attachCronJobs() {
   try{
     require('./cron/expire.js');
   }catch(err){
-    global.winston.log('error',err);
+    global.winston.log('error',{"error":String(err),"stack": new Error().stack});
   } 
 }
 
@@ -702,6 +704,6 @@ function _setSession(req, res) {
     global.sessionHelper.saveSession(obj);
 
   }catch(err){
-    global.winston.log('error',err);
+    global.winston.log('error',{"error":String(err),"stack": new Error().stack});
   }  
 }

@@ -48,6 +48,7 @@ module.exports = function (){
                                 });
                             }
                         }catch(e){
+                            global.winston.log('error',{"error":String(e),"stack": new Error().stack});
                             obj.releaseApp(body.appId).then(function(){
                                 console.log("App released.");
                             }, function(error){
@@ -61,7 +62,7 @@ module.exports = function (){
                 
                 });  
             } catch(err){           
-                global.winston.log('error',err);               
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});               
             }      
         };
     
@@ -90,7 +91,7 @@ module.exports = function (){
              });
 
         } catch(err){           
-            global.winston.log('error',err); 
+            global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
             deferred.reject(err);              
         } 
            
@@ -110,7 +111,7 @@ module.exports = function (){
                 deferred.resolve();
            });
         } catch(err){           
-            global.winston.log('error',err); 
+            global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
             deferred.reject(err);              
         }  
            
@@ -130,7 +131,7 @@ module.exports = function (){
             });
 
         } catch(err){           
-            global.winston.log('error',err); 
+            global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
             deferred.reject(err);              
         }           
         return deferred.promise;

@@ -143,7 +143,7 @@ module.exports = function() {
 				});
 
 			} catch(err){           
-                global.winston.log('error',err);
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }	
 
@@ -175,7 +175,7 @@ module.exports = function() {
 			    });
 
 			} catch(err){           
-                global.winston.log('error',err);
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
 
@@ -196,7 +196,7 @@ module.exports = function() {
 	            return readstream;
 
         	} catch(err){           
-                global.winston.log('error',err);
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 return null;
             }
         },
@@ -238,7 +238,7 @@ module.exports = function() {
 			    });
 
 			} catch(err){           
-                global.winston.log('error',err);
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
 		    
@@ -278,7 +278,7 @@ module.exports = function() {
 			    }); 
 
 			} catch(err){           
-                global.winston.log('error',err);
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
 
@@ -346,7 +346,7 @@ function _applePush(tokens,certifcate,data){
 		deferred.resolve("Notification Sent");
 
 	} catch(err){           
-        global.winston.log('error',err);
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
         deferred.reject(err);
     }
 
@@ -392,7 +392,7 @@ function _googlePush(senderId,apiKey,devicesTokens,data){
 	        } 	
 	    });
     } catch(err){           
-        global.winston.log('error',err);
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
         defer.reject(err);
     }        
     
@@ -418,7 +418,7 @@ function _windowsPhonePush(securityId,clientSecret,pushUris,data){
 	    }); 
 
     } catch(err){           
-        global.winston.log('error',err);
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
         defer.reject(err);
     }      
    
@@ -445,7 +445,7 @@ function _windowsDesktopPush(securityId,clientSecret,pushUris,data){
 		}); 
 
 	} catch(err){           
-        global.winston.log('error',err);
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
         defer.reject(err);
     } 
     

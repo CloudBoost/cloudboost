@@ -58,7 +58,7 @@ module.exports = function(){
             }); 
 
         } catch(err){           
-            global.winston.log('error',err);
+            global.winston.log('error',{"error":String(err),"stack": new Error().stack});
             deferred.reject(err);
         }                   
         
@@ -118,7 +118,7 @@ module.exports = function(){
             }); 
 
         } catch(err){           
-            global.winston.log('error',err);
+            global.winston.log('error',{"error":String(err),"stack": new Error().stack});
             deferred.reject(err);
         }
 
@@ -177,7 +177,7 @@ function _mergeVariablesInTemplate(template,appId,user,passwordResetKey){
         }); 
 
     } catch(err){           
-        global.winston.log('error',err);
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
         deferred.reject(err);
     }  
 
@@ -202,7 +202,7 @@ function _getDefaultTemplate(){
         });
 
     } catch(err){           
-        global.winston.log('error',err);
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
         deferred.reject(err);
     }
 
@@ -263,7 +263,7 @@ function _getCredentials(emailSettings,fromEmail){
         deferred.resolve(credentialsJson);
     
     } catch(err){           
-        global.winston.log('error',err);
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
         deferred.reject(err);
     }
     return deferred.promise;    

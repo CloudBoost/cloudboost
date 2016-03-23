@@ -19,7 +19,7 @@
             });
 
         }catch(err){                    
-            global.winston.log('error',err);                                                            
+            global.winston.log('error',{"error":String(err),"stack": new Error().stack});                                                            
         }
     },
     
@@ -34,7 +34,7 @@
                     callback(err, reply);
             });
         }catch(err){                    
-            global.winston.log('error',err);                                                            
+            global.winston.log('error',{"error":String(err),"stack": new Error().stack});                                                            
         }
         
     },
@@ -46,7 +46,7 @@
                     callback(err, reply);
             });
         }catch(err){                    
-            global.winston.log('error',err);                                                            
+            global.winston.log('error',{"error":String(err),"stack": new Error().stack});                                                            
         }
     },
 

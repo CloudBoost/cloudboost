@@ -24,7 +24,7 @@ var job= new CronJob('00 00 22 * * *', function(){
         });
 
     } catch(err){           
-        global.winston.log('error',err);               
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});               
     }
 },
 
@@ -51,7 +51,7 @@ function removeFiles(appId,curr) {
 
         });
     } catch(err){           
-        global.winston.log('error',err);               
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});               
     }
 }
 
@@ -64,7 +64,7 @@ function mongodb(appId,collectionName,curr){
             console.log("removed =" + number);
         });
     } catch(err){           
-        global.winston.log('error',err);               
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});               
     }
 }
 
@@ -119,7 +119,7 @@ function elasticSearch(appId,collectionName,curr) {
         });
 
     } catch(err){           
-        global.winston.log('error',err);               
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});               
     }
 }
 job.start();

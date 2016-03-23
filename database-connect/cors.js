@@ -3,6 +3,6 @@ module.exports = function(){
 	  var cors = require('cors');
 	  global.app.use(cors());
  	} catch(err){           
-        global.winston.log('error',err);                      
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});                      
     }
 };

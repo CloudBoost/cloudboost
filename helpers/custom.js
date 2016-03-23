@@ -20,7 +20,7 @@ module.exports = {
     		return accessList;
 
         }catch(err){                    
-            global.winston.log('error',err);  
+            global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
             return null;                                                
         }
     },
@@ -39,7 +39,7 @@ module.exports = {
             });
 
         }catch(err){                    
-            global.winston.log('error',err);
+            global.winston.log('error',{"error":String(err),"stack": new Error().stack});
             deferred.reject(err);                                                  
         }
         return deferred.promise;
@@ -82,7 +82,7 @@ module.exports = {
             return false;
 
         }catch(err){                    
-            global.winston.log('error',err);                                                              
+            global.winston.log('error',{"error":String(err),"stack": new Error().stack});                                                              
         }
     },
 
@@ -159,7 +159,7 @@ module.exports = {
             });
 
         }catch(err){                    
-            global.winston.log('error',err);
+            global.winston.log('error',{"error":String(err),"stack": new Error().stack});
             deferred.reject(err);                                                  
         }
         return deferred.promise;

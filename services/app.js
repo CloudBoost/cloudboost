@@ -37,7 +37,7 @@ module.exports = function() {
                 });
 
             } catch(err){           
-                global.winston.log('error',err);
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
 
@@ -62,7 +62,7 @@ module.exports = function() {
                 });
 
             } catch(err){           
-                global.winston.log('error',err);
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
 
@@ -105,7 +105,7 @@ module.exports = function() {
     			});
 
             } catch(err){           
-                global.winston.log('error',err);
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             } 
 
@@ -126,7 +126,7 @@ module.exports = function() {
                 });
 
             } catch(err){           
-                global.winston.log('error',err);
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
 
@@ -169,7 +169,7 @@ module.exports = function() {
                     }
                 });
             }catch(e){
-                 global.winston.log('error',e);
+                 global.winston.log('error',{"error":String(e),"stack": new Error().stack});
                 console.log("FATAL : Cannot create app.");
                 console.log(e);
                 deferred.reject("Cannot create an app right now.");
@@ -209,7 +209,7 @@ module.exports = function() {
                 });
 
             } catch(err){           
-                global.winston.log('error',err);
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
 
@@ -241,7 +241,7 @@ module.exports = function() {
                 });
 
             } catch(err){           
-                global.winston.log('error',err);
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
 
@@ -272,7 +272,7 @@ module.exports = function() {
                 });
 
             } catch(err){           
-                global.winston.log('error',err);
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
 
@@ -333,7 +333,7 @@ module.exports = function() {
                 });
 
             } catch(err){           
-                global.winston.log('error',err);
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
 
@@ -360,7 +360,7 @@ module.exports = function() {
                 });
 
             } catch(err){           
-                global.winston.log('error',err);
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
 
@@ -382,7 +382,7 @@ module.exports = function() {
     			}, function(){});
 
             } catch(err){           
-                global.winston.log('error',err);
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
 
@@ -406,7 +406,7 @@ module.exports = function() {
     			});
 
             } catch(err){           
-                global.winston.log('error',err);
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
 
@@ -517,7 +517,7 @@ module.exports = function() {
                         }catch(e){
                             console.log("Error");
                             console.log(e);
-                            global.winston.log('error',e);
+                            global.winston.log('error',{"error":String(e),"stack": new Error().stack});
                         }
 
                         table.columns = schema;
@@ -591,7 +591,7 @@ module.exports = function() {
                     });
                 });
             }catch(e){
-                global.winston.log('error',e);
+                global.winston.log('error',{"error":String(e),"stack": new Error().stack});
                 console.log("FATAL : Error updating a table");
                 console.log(e);
                 deferred.reject("Error saving a table.");
@@ -618,7 +618,7 @@ module.exports = function() {
                 });
 
             } catch(err){           
-                global.winston.log('error',err);
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
         	
@@ -644,7 +644,7 @@ module.exports = function() {
                 });
 
             } catch(err){           
-                global.winston.log('error',err);
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
 
@@ -671,7 +671,7 @@ module.exports = function() {
                 });
 
             } catch(err){           
-                global.winston.log('error',err);
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
 
@@ -694,7 +694,7 @@ function _isBasicDataType(dataType){
         return false;
 
     } catch(err){           
-        global.winston.log('error',err);
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
         return false;
     }
 }
@@ -704,7 +704,7 @@ function _generateKey(){
     try{
         return uuid.v4();
     } catch(err){           
-        global.winston.log('error',err);
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
         return null;
     }
 }
@@ -725,7 +725,7 @@ function _checkDuplicateColumns(columns) {
         return true;
 
     }catch(e){
-        global.winston.log('error',err);
+        global.winston.log('error',{"error":String(e),"stack": new Error().stack});
         return null;
     }
 }
@@ -746,7 +746,7 @@ function _getDefaultColumnList(type) {
         return defaultColumn;
 
     }catch(e){
-        global.winston.log('error',e);
+        global.winston.log('error',{"error":String(e),"stack": new Error().stack});
         return null;
     }
 }
@@ -882,7 +882,7 @@ function _checkValidDataType(columns, deafultDataType) {
         return true;
 
     }catch(e){
-        global.winston.log('error',e);
+        global.winston.log('error',{"error":String(e),"stack": new Error().stack});
         return null;
     }
 }
@@ -899,7 +899,7 @@ function _getColumnsToDelete(oldColumns, newColumns){
 
         return originalColumns;
     }catch(e){
-        global.winston.log('error',e);
+        global.winston.log('error',{"error":String(e),"stack": new Error().stack});
         return null;
     }
     
@@ -922,7 +922,7 @@ function _getColumnsToAdd(oldColumns, newColumns){
         }
         return addedColumns;
     }catch(e){
-        global.winston.log('error',e);
+        global.winston.log('error',{"error":String(e),"stack": new Error().stack});
         return null;
     }
     
@@ -957,7 +957,7 @@ function _getDefaultColumnWithDataType(type) {
         return defaultColumn;
 
     }catch(e){
-        global.winston.log('error',e);
+        global.winston.log('error',{"error":String(e),"stack": new Error().stack});
         return null;
     }
 }

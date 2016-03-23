@@ -6,6 +6,6 @@ module.exports = function(){
 	    mongoose.connect(global.keys.prodSchemaConnectionString);
 		return mongoose; 
 	}catch(e){                    
-        global.winston.log('error',e);                                
+        global.winston.log('error',{"error":String(e),"stack": new Error().stack});                                
     }
 };
