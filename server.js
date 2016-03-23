@@ -115,8 +115,14 @@ global.app.use(function(req, res, next){
 //This middleware converts text to JSON.
 global.app.use(function(req,res,next){
    try{
-       req.body = JSON.parse(req.text);
-       next();
+
+      try{
+        req.body = JSON.parse(req.text);
+      }catch(error){
+        req.body=req.text;
+      }     
+     
+     next();
    }catch(e){
       global.winston.log('error',{"error":String(e),"stack": new Error().stack});
         //cannot convert to JSON.
@@ -376,6 +382,7 @@ if(https){
 
 //this fucntion add connections to the DB.
 function addConnections(){ 
+  console.log(process.env);
    //MONGO DB
    setUpMongoDB();
    //setUp Redis
