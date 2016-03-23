@@ -17,7 +17,7 @@ module.exports = function () {
 
             try{
 
-                var ReplSetServers = require('mongodb').ReplSetServers,
+                var ReplSet = require('mongodb').ReplSet,
                     Server = require('mongodb').Server;
                     console.log(ReplSetServers);
 
@@ -35,7 +35,7 @@ module.exports = function () {
                     servers.push(new Server(global.config.mongo[i].host,global.config.mongo[i].port));
                 }
 
-                var replSet = new ReplSetServers(servers);
+                var replSet = new ReplSet(servers);
 
                 return replSet;
 
