@@ -16,8 +16,10 @@ module.exports = function () {
         replSet : function(){
 
             try{
+
                 var ReplSetServers = require('mongodb').ReplSetServers,
                     Server = require('mongodb').Server;
+                    console.log(ReplSetServers);
 
                 var servers = [];
 
