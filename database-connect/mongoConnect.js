@@ -31,6 +31,9 @@ module.exports = function () {
                 }
 
                 for(var i=0;i<global.config.mongo.length; i++){
+                    console.log("Connection strings in REPL function");
+                    console.log(global.config.mongo[i].host);
+                    console.log(global.config.mongo[i].port);
                     servers.push(new Server(global.config.mongo[i].host,global.config.mongo[i].port));
                 }
 
