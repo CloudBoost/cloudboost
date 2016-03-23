@@ -116,14 +116,11 @@ global.app.use(function(req, res, next){
 global.app.use(function(req,res,next){
    try{
 
-      try{
-        req.body = JSON.parse(req.text);
-      }catch(error){
-        console.log(error);
-        //req.body=req.text;
+      if(req.text){        
+        req.body = JSON.parse(req.text);        
       }     
-     
-     next();
+      next();
+
    }catch(e){
       global.winston.log('error',{"error":String(e),"stack": new Error().stack});
         //cannot convert to JSON.
