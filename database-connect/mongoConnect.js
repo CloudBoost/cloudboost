@@ -30,7 +30,7 @@ module.exports = function () {
                 }
 
                 for(var i=0;i<global.config.mongo.length; i++){
-                    servers.push(new Server(global.config.mongo[i].host,lobal.config.mongo[i].port));
+                    servers.push(new Server(global.config.mongo[i].host,global.config.mongo[i].port));
                 }
 
                 var replSet = new ReplSetServers(servers);
