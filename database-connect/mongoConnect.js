@@ -34,7 +34,7 @@ module.exports = function () {
                     console.log("Connection strings in REPL function");
                     console.log(global.config.mongo[i].host);
                     console.log(global.config.mongo[i].port);
-                    servers.push(new Server(global.config.mongo[i].host,global.config.mongo[i].port));
+                    servers.push(new Server(global.config.mongo[i].host,parseInt(global.config.mongo[i].port)));
                 }
 
                 var replSet = new ReplSet(servers);
@@ -42,7 +42,8 @@ module.exports = function () {
                 return replSet;
 
             }catch(e){                    
-                global.winston.log('error',{"error":String(e),"stack": new Error().stack});              
+                global.winston.log('error',{"error":String(e),"stack": new Error().stack});  
+                return [];            
             }
         },
 
