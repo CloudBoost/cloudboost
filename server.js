@@ -119,6 +119,7 @@ global.app.use(function(req,res,next){
       try{
         req.body = JSON.parse(req.text);
       }catch(error){
+        console.log(error);
         //req.body=req.text;
       }     
      
@@ -381,8 +382,7 @@ if(https){
 }
 
 //this fucntion add connections to the DB.
-function addConnections(){ 
-  console.log(process.env);
+function addConnections(){  
    //MONGO DB
    setUpMongoDB();
    //setUp Redis
@@ -587,12 +587,12 @@ function setUpMongoDB(){
               mongoConnectionString+=",";
 
               var i=2;
-              while(process.env["MONGO_"+i+"_SERVICE_HOST"]){
+              while(process.env["MONGO"+i+"_SERVICE_HOST"]){
                 global.config.mongo.push({
-                    host :  process.env["MONGO_"+i+"_SERVICE_HOST"],
-                    port : process.env["MONGO_"+i+"_SERVICE_PORT"]
+                    host :  process.env["MONGO"+i+"_SERVICE_HOST"],
+                    port : process.env["MONGO"+i+"_SERVICE_PORT"]
                 });
-                mongoConnectionString+=process.env["MONGO_"+i+"_SERVICE_HOST"]+":"+process.env["MONGO_"+i+"_SERVICE_PORT"]; 
+                mongoConnectionString+=process.env["MONGO"+i+"_SERVICE_HOST"]+":"+process.env["MONGO"+i+"_SERVICE_PORT"]; 
                 mongoConnectionString+=",";
                 ++i;
               }              
