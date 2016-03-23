@@ -578,6 +578,17 @@ function setUpMongoDB(){
 
               mongoConnectionString+=process.env["MONGO_SERVICE_HOST"]+":"+process.env["MONGO_SERVICE_PORT"]; 
               mongoConnectionString+=",";
+
+              var i=2;
+              while(process.env["MONGO_"+i+"_SERVICE_HOST"]){
+                global.config.mongo.push({
+                    host :  process.env["MONGO_"+i+"_SERVICE_HOST"],
+                    port : process.env["MONGO_"+i+"_SERVICE_PORT"]
+                });
+                mongoConnectionString+=process.env["MONGO_"+i+"_SERVICE_HOST"]+":"+process.env["MONGO_"+i+"_SERVICE_PORT"]; 
+                mongoConnectionString+=",";
+                ++i;
+              }              
               
               isReplicaSet = true;
               
@@ -605,6 +616,8 @@ function setUpMongoDB(){
      mongoConnectionString += "/"; //de limitter. 
      global.keys.prodSchemaConnectionString = mongoConnectionString+global.keys.globalDb;
      global.keys.mongoConnectionString = mongoConnectionString;
+
+     console.log("MongoDb connection string:"+global.keys.mongoConnectionString);
 
      if(isReplicaSet){
          console.log("MongoDB is in ReplicaSet");
