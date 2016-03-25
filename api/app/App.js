@@ -113,6 +113,8 @@ module.exports = function() {
     //create a table.
     global.app.put('/app/:appId/:tableName',function(req,res){
 
+        console.log("Create or Delete table Api...");
+
         if(req.body && req.body.method=="DELETE"){
             /***************************DELETE******************************/
             _deleteTable(req,res);

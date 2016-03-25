@@ -257,6 +257,8 @@ module.exports = function() {
 
         getAllTables: function(appId) {
 
+            console.log("Get all Tables...");
+
             var deferred = q.defer();
 
             try{
@@ -272,8 +274,10 @@ module.exports = function() {
                     }
 
                     if (tables.length>0) {
+                        console.log("Tabless found...");
                         deferred.resolve(_.pluck(tables,"_doc"));
                     }else{
+                        console.log("No Tables found");
                         deferred.resolve([]);
                     }
                 });

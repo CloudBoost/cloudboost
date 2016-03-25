@@ -35,9 +35,13 @@ var https = null;
 try{
 
   _checkFileExists('./config/cert.crt').then(function(certData){
-    if(certData){     
+    if(certData){ 
+
+      console.log("Config file found");
+
       _checkFileExists('./config/key.key').then(function(KeyData){
-        if(KeyData){     
+        if(KeyData){  
+          console.log("Key.key file found");   
           //use https
           console.log("Running on HTTPS protocol.");
           var httpsOptions = {
@@ -115,13 +119,14 @@ global.app.use(function(req, res, next){
 //This middleware converts text to JSON.
 global.app.use(function(req,res,next){
    try{
-
+      console.log("Middleware to convert text to JSON");
       if(req.text){        
         req.body = JSON.parse(req.text);        
       } 
       if(typeof(req.body)==="string"){
         req.body = JSON.parse(req.body);
-      }    
+      } 
+      console.log("Middleware to converted text to JSON successfully..");  
       next();
 
    }catch(e){
@@ -136,6 +141,8 @@ global.app.use(['/file/:appId', '/data/:appId','/app/:appId/:tableName','/user/:
  	 //check if all the services are loaded first.
 
     try{
+
+      console.log("This is the Middleware for authenticating the app access using appID and key");
 
      if(!global.customService || !global.serverService || !global.mongoService || !global.userService || !global.roleService || !global.appService || !global.fileService || !global.cacheService || !global.pushService){
         return res.status(400).send("Services Not Loaded");
@@ -161,6 +168,7 @@ global.app.use(['/file/:appId', '/data/:appId','/app/:appId/:tableName','/user/:
      		if (!appKey) {
      			return res.status(401).send("Error : Key not found.");
      		} else {
+          console.log("check if app is in the plan");
           //check if app is in the plan. 
           var promises = [];
           promises.push(global.apiTracker.isInPlanLimit(appId));
@@ -230,7 +238,7 @@ global.app.use(function(req,res,next) {
 //Attach services -
 function attachServices() {
     try {
-        
+        console.log("Attach services...");
         if(!global.mongoClient){
           console.log("Error : Could Not Attach Services Mongo DB not loaded.");
           return;
@@ -268,7 +276,7 @@ function attachServices() {
 function attachAPI() {
 
     try{        
-
+        console.log("Attach API's");
         if (!global.mongoClient || !global.customService || !global.mongoService || !global.userService || !global.roleService || !global.appService || !global.fileService || !global.cacheService || !global.pushService) {
             console.log("Failed to attach API's because services not loaded properly.");
             return;
@@ -324,6 +332,7 @@ function ignoreUrl(requestUrl) {
 
   try{
 
+    console.log("Adding Ingnore URLS....");
   	var ignoreUrl = [ //for the routes to check whether the particular service is active/not
   		"/api/userService", "/api/customService", "/api/roleService", "/api/status", "/file","/api/createIndex","/pages","/status"
   	];
@@ -355,6 +364,7 @@ app.get('/', function (req, res) {
 
 
 app.get('/getFile/:filename', function(req, res) { //for getting any file from resources/
+  console.log("Getting any file from resources");
 	res.sendFile("resources/" + req.params.filename, {
 		root: __dirname
 	});
@@ -419,6 +429,7 @@ function addConnections(){
 
 function setUpAnalytics(){
     try{
+      console.log("Setting up Analytics...");
       if(process.env["CLOUDBOOST_ANALYTICS_SERVICE_HOST"]){
           //this is running on Kubernetes
           console.log("CloudBoost Analytics is running on Kubernetes");
@@ -436,6 +447,7 @@ function setUpAnalytics(){
 function setUpRedis(){
 
   try{
+    console.log("Setting up Redis...");
      //Set up Redis.
      if(!global.config && !process.env["REDIS_1_PORT_6379_TCP_ADDR"] && !process.env["REDIS_SENTINEL_SERVICE_HOST"]){
         console.error("FATAL : Redis Cluster Not found. Use docker-compose from https://github.com/cloudboost/docker or Kubernetes from https://github.com/cloudboost/kubernetes");
@@ -465,6 +477,7 @@ function setUpRedis(){
          
      }else{
          
+         console.log("Setting up Redis with no config....");
          if(process.env["REDIS_SENTINEL_SERVICE_HOST"]){
              //this is running on Kubernetes
              console.log("Redis is running on Kubernetes.");
@@ -477,6 +490,7 @@ function setUpRedis(){
              hosts.push(obj); 
          }else{
               //take from env variables.
+              console.log("Setting up Redis take from env variables");
               var i=1;
               while(process.env["REDIS_"+i+"_PORT_6379_TCP_ADDR"] && process.env["REDIS_"+i+"_PORT_6379_TCP_PORT"]){
                       if(i>1){
@@ -496,14 +510,17 @@ function setUpRedis(){
      if(isCluster){
           global.redisClient = new Redis.Cluster(hosts);
           
+          console.log("Setting up IO adapter");
           io.adapter(ioRedisAdapter({
               pubClient: new Redis.Cluster(hosts),
               subClient: new Redis.Cluster(hosts)
           }));
           
      }else{
+
          global.redisClient = new Redis(hosts[0]);
          
+         console.log("Setting up IO adapter");
          io.adapter(ioRedisAdapter({
               pubClient: new Redis(hosts[0]),
               subClient: new Redis(hosts[0])
@@ -520,6 +537,7 @@ function setUpRedis(){
 function setUpElasticSearch(){
 
   try{
+      console.log("Setting up ElasticSearch...");
      var hosts = [];
 
      if(!global.config && !process.env["ELASTICSEARCH_1_PORT_9200_TCP_ADDR"] && !process.env["ELASTICSEARCH_SERVICE_HOST"]){
@@ -529,6 +547,7 @@ function setUpElasticSearch(){
      if(global.config && global.config.elasticsearch && global.config.elasticsearch.length>0){
          //take from config file
          
+          console.log("Setting up ElasticSearch from config file...");
          for(var i=0;i<global.config.elasticsearch.length;i++){
              hosts.push(
                   global.config.elasticsearch[i].host +":"+global.config.elasticsearch[i].port
@@ -539,6 +558,7 @@ function setUpElasticSearch(){
          
      }else{
          
+         console.log("Setting up ElasticSearch from this is running on Kubernetes...");
          if(process.env["ELASTICSEARCH_SERVICE_HOST"]){
              //this is running on Kubernetes
              console.log("ELASTICSEARCH is running on Kubernetes.");
@@ -550,6 +570,7 @@ function setUpElasticSearch(){
              global.keys.elasticSearch.push(process.env["ELASTICSEARCH_SERVICE_HOST"]+":"+process.env["ELASTICSEARCH_SERVICE_PORT"]); 
          }else{
               //ELASTIC SEARCH. 
+              console.log("Setting up ElasticSearch process env..");
               var i=1;
               
               global.keys.elasticSearch = [];
@@ -571,6 +592,7 @@ function setUpMongoDB(){
    //MongoDB connections. 
 
    try{
+    console.log("Setting up MongoDB..");
      if(!global.config && !process.env["MONGO_1_PORT_27017_TCP_ADDR"] && !process.env["MONGO_SERVICE_HOST"]){
         console.error("FATAL : MongoDB Cluster Not found. Use docker-compose from https://github.com/cloudboost/docker or Kubernetes from https://github.com/cloudboost/kubernetes");
      }
@@ -582,6 +604,7 @@ function setUpMongoDB(){
      if(global.config && global.config.mongo && global.config.mongo.length>0){
          //take from config file
          
+          console.log("Setting up MongoDB from config.....");
          if(global.config.mongo.length>1){
              isReplicaSet = true;
          }
@@ -624,6 +647,8 @@ function setUpMongoDB(){
               isReplicaSet = true;
               
          }else{
+
+            console.log("Setting up MongoDB from  process.env....");
               var i=1;
               
               while(process.env["MONGO_"+i+"_PORT_27017_TCP_ADDR"] && process.env["MONGO_"+i+"_PORT_27017_TCP_PORT"]){
@@ -670,6 +695,8 @@ function setUpMongoDB(){
 //to kickstart database services
 function servicesKickstart() {
   try{
+    console.log("Kickstart database services..");
+
     global.esClient = require('./database-connect/elasticSearchConnect.js')();
     var db = require('./database-connect/mongoConnect.js')().connect();
 	  db.then(function(db){
@@ -710,6 +737,7 @@ function servicesKickstart() {
 
 function attachDbDisconnectApi(){
   try{
+    console.log("attachDbDisconnectApi..");
     require('./api/db/elasticSearch.js')();
     require('./api/db/mongo.js')();
   }catch(err){
@@ -719,6 +747,7 @@ function attachDbDisconnectApi(){
 
 function attachCronJobs() {
   try{
+    console.log("attachCronJobs..");
     require('./cron/expire.js');
   }catch(err){
     global.winston.log('error',{"error":String(err),"stack": new Error().stack});
@@ -727,6 +756,7 @@ function attachCronJobs() {
 
 function _setSession(req, res) {
   try{
+    console.log("_setSession..");
     if(!req.session) {
         req.session = {};
         req.session.id = global.uuid.v1();
