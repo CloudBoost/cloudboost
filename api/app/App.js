@@ -19,7 +19,6 @@ module.exports = function() {
         try{
             console.log("SecureKey to create app:"+req.body.secureKey);
 
-
             var appId = req.params.appId;
             console.log("App ID : "+appId);
 
