@@ -16,27 +16,35 @@ module.exports = function() {
 
         console.log("++++ Create App API ++++++");
 
-        var appId = req.params.appId;
-        console.log("App ID : "+appId);
+        try{
+            console.log("SecureKey to create app:"+req.body.secureKey);
 
-        var sdk = req.body.sdk || "REST";
 
-        if (global.keys.secureKey === req.body.secureKey) {
-            console.log("Secure Key Valid. Creating app...");
-            global.appService.createApp(appId).then(function (app){
-                console.log("Success : App Successfully Created.");
-                res.status(200).send(app);
-            }, function (err){
-                console.log("Error : Cannot create an app.");
-                console.log(err);
-                res.status(500).send("Error");
-            });
-        } else {
-            console.log("Unauthorized: Invalid Secure Key ");
-            res.status(401).send("Unauthorized");
+            var appId = req.params.appId;
+            console.log("App ID : "+appId);
+
+            var sdk = req.body.sdk || "REST";
+
+            if (global.keys.secureKey === req.body.secureKey) {
+                console.log("Secure Key Valid. Creating app...");
+                global.appService.createApp(appId).then(function (app){
+                    console.log("Success : App Successfully Created.");
+                    res.status(200).send(app);
+                }, function (err){
+                    console.log("Error : Cannot create an app.");
+                    console.log(err);
+                    res.status(500).send("Error");
+                });
+            } else {
+                console.log("Unauthorized: Invalid Secure Key ");
+                res.status(401).send("Unauthorized");
+            }
+            
+            global.apiTracker.log(appId,"App / Create", req.url,sdk);
+
+        }catch(e){
+            console.log(e);
         }
-        
-        global.apiTracker.log(appId,"App / Create", req.url,sdk);
     });
 
     //delete app.
