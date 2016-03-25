@@ -3,6 +3,7 @@ global.request = require('request');
 var pjson = require('./package.json');
 var fs = require('fs');
 var busboyBodyParser = require('busboy-body-parser');
+var q = require("q");
 
 global.mongoDisconnected = false;
 global.elasticDisconnected = false;
@@ -19,15 +20,6 @@ global.winston.add(global.winston.transports.Loggly, {
     json:true
 });
 
-
-try{
-  global.config = require('./config/cloudboost');
-}catch(e){
-  //if this module is not found then,
-  global.config = null;
-  global.winston.log('error',{"error":String(e),"stack": new Error().stack});
-}
-
 global.keyService = require('./database-connect/keyService.js');
 
 global.q = require('q');
@@ -39,18 +31,26 @@ global.app = global.express();
 
 var http = null;
 var https = null;
-try{
-  if(fs.statSync('./config/cert.crt').isFile() && fs.statSync('./config/key.key').isFile() ){
-    //use https
-    console.log("Running on HTTPS protocol.");
-    var httpsOptions = {
-      key: fs.readFileSync('./config/key.key'),
-      cert: fs.readFileSync('./config/cert.crt')
-    };
 
-    https = require('https').Server(httpsOptions, global.app);
-  
-  }
+try{
+
+  _checkFileExists('./config/cert.crt').then(function(certData){
+    if(certData){     
+      _checkFileExists('./config/key.key').then(function(KeyData){
+        if(KeyData){     
+          //use https
+          console.log("Running on HTTPS protocol.");
+          var httpsOptions = {
+            key: fs.readFileSync('./config/key.key'),
+            cert: fs.readFileSync('./config/cert.crt')
+          };
+
+          https = require('https').Server(httpsOptions, global.app);
+        }    
+      });
+    }    
+  });
+
 }catch(e){
   console.log("INFO : SSL Certificate not found or is invalid.");
   console.log("Switching ONLY to HTTP...");
@@ -118,33 +118,39 @@ global.app.use(function(req,res,next){
 
       if(req.text){        
         req.body = JSON.parse(req.text);        
-      }     
+      } 
+      if(typeof(req.body)==="string"){
+        req.body = JSON.parse(req.body);
+      }    
       next();
 
    }catch(e){
       global.winston.log('error',{"error":String(e),"stack": new Error().stack});
-        //cannot convert to JSON.
-       next();
+      //cannot convert to JSON.
+      next();
    }
 });
 
-global.app.use(['/file/:appId', '/data/:appId','/app/:appId/:tableName','/user/:appId','/cache/:appId', '/queue/:appId'], function (req, res, next) {
+global.app.use(['/file/:appId', '/data/:appId','/app/:appId/:tableName','/user/:appId','/cache/:appId', '/queue/:appId','/push/:appId'], function (req, res, next) {
  	 //This is the Middleware for authenticating the app access using appID and key
  	 //check if all the services are loaded first.
 
     try{
-     if(!customService || !serverService || !mongoService || !userService || !roleService || !appService || !fileService || !cacheService){
-         return res.status(400).send("Services Not Loaded");
+
+     if(!global.customService || !global.serverService || !global.mongoService || !global.userService || !global.roleService || !global.appService || !global.fileService || !global.cacheService || !global.pushService){
+        return res.status(400).send("Services Not Loaded");
      }
 
      console.log('Checking if API Key is valid...');
      
-     if(req.text)
-     {
-         req.body=JSON.parse(req.text);
-     }
+      if(req.text){
+        req.body=JSON.parse(req.text);
+      }
+      if(typeof(req.body)==="string"){
+        req.body = JSON.parse(req.body);
+      }
    	 
-        var requestRecvd = req.originalUrl; //this is the relative url.
+      var requestRecvd = req.originalUrl; //this is the relative url.
      	if (ignoreUrl(requestRecvd)) {
      		next();
      	} else {
@@ -155,10 +161,10 @@ global.app.use(['/file/:appId', '/data/:appId','/app/:appId/:tableName','/user/:
      		if (!appKey) {
      			return res.status(401).send("Error : Key not found.");
      		} else {
-                //check if app is in the plan. 
-                var promises = [];
-                promises.push(global.apiTracker.isInPlanLimit(appId));
-                promises.push(global.appService.isKeyValid(appId, appKey));
+          //check if app is in the plan. 
+          var promises = [];
+          promises.push(global.apiTracker.isInPlanLimit(appId));
+          promises.push(global.appService.isKeyValid(appId, appKey));
      			global.q.all(promises).then(function(result) {
               var isAppKeyValid = result[1];
               var isInPlan = result[0];
@@ -185,7 +191,7 @@ global.app.use(['/file/:appId', '/data/:appId','/app/:appId/:tableName','/user/:
     global.winston.log('error',{"error":String(err),"stack": new Error().stack});
   }
 
- });
+});
 
 global.app.use(function(req,res,next) {
 
@@ -199,16 +205,15 @@ global.app.use(function(req,res,next) {
           console.log('Session Found.');
           res.header('sessionID',req.headers.sessionid);
           global.sessionHelper.getSession(req.headers.sessionid,function(err,session){
-              if(!err) {
-                      req.session = session;
-                      next();
-              }
-              else{
-                  console.log(err);
-                  req.session = {};
-                  req.session.id = req.header.sessionid;
-                  next();
-              }
+            if(!err) {
+              req.session = session;
+              next();
+            }else{
+              console.log(err);
+              req.session = {};
+              req.session.id = req.header.sessionid;
+              next();
+            }
           });
       } else {
           console.log('No Session Found. Creating a new session.');
@@ -227,8 +232,8 @@ function attachServices() {
     try {
         
         if(!global.mongoClient){
-            console.log("Error : Could Not Attach Services Mongo DB not loaded.");
-            return;
+          console.log("Error : Could Not Attach Services Mongo DB not loaded.");
+          return;
         }
     
         //loading utils
@@ -264,7 +269,7 @@ function attachAPI() {
 
     try{        
 
-        if (!global.mongoClient || !customService || !mongoService || !userService || !roleService || !appService || !fileService || !global.cacheService) {
+        if (!global.mongoClient || !global.customService || !global.mongoService || !global.userService || !global.roleService || !global.appService || !global.fileService || !global.cacheService || !global.pushService) {
             console.log("Failed to attach API's because services not loaded properly.");
             return;
         }
@@ -320,7 +325,7 @@ function ignoreUrl(requestUrl) {
   try{
 
   	var ignoreUrl = [ //for the routes to check whether the particular service is active/not
-  		"/api/userService", "/api/customService", "/api/roleService", "/api/status", "/file","/api/createIndex","/pages"
+  		"/api/userService", "/api/customService", "/api/roleService", "/api/status", "/file","/api/createIndex","/pages","/status"
   	];
 
   	for (var i = 0; i < ignoreUrl.length; i++) {
@@ -360,11 +365,33 @@ app.set('port', 4730); //SET THE DEFAULT PORT.
 //Server kickstart:
 http.listen(app.get('port'), function () {
     try {
+
+      var filePath='./config/cloudboost.json';
+      _checkFileExists(filePath).then(function(data){
+        if(data){     
+          global.config = require('./config/cloudboost');
+        }else{
+          global.config = null;
+        } 
+
         console.log("Server Init...");
         console.log("Data Connections Init...");
         addConnections();
         console.log("Services Init...");
         servicesKickstart();
+
+      },function(error){
+
+        global.config = null;
+
+        console.log("Server Init...");
+        console.log("Data Connections Init...");
+        addConnections();
+        console.log("Services Init...");
+        servicesKickstart();
+      });
+
+        
     } catch (e) {
         console.log("ERROR : Server init error.");
         console.log(e);
@@ -723,4 +750,26 @@ function _setSession(req, res) {
   }catch(err){
     global.winston.log('error',{"error":String(err),"stack": new Error().stack});
   }  
+}
+
+
+function _checkFileExists(filePath){
+
+  var deferred = q.defer();
+
+  try{
+
+    fs.readFile(filePath, function (err,data) {
+      if (err) {
+        console.log(err);      
+        return deferred.reject(err);
+      }
+      deferred.resolve(data);   
+    });
+
+  }catch(err){
+    global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+  }
+
+  return deferred.promise;
 }
