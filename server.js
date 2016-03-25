@@ -120,7 +120,14 @@ global.app.use(function(req, res, next){
 global.app.use(function(req,res,next){
    try{
       console.log("Middleware to convert text to JSON");
-      req.body = JSON.parse(req.text);
+      if(req.text){
+        req.body = JSON.parse(req.text);
+      }
+
+      if(req.body && typeof(req.body)==="string"){
+        req.body = JSON.parse(req.body);
+      }
+      
       console.log("Middleware to converted text to JSON successfully..");  
       next();
 
@@ -147,7 +154,11 @@ global.app.use(['/file/:appId', '/data/:appId','/app/:appId/:tableName','/user/:
      
       if(req.text){
         req.body=JSON.parse(req.text);
-      }      
+      }
+
+      if(req.body && typeof(req.body)==="string"){
+        req.body = JSON.parse(req.body);
+      }     
    	 
       var requestRecvd = req.originalUrl; //this is the relative url.
      	if (ignoreUrl(requestRecvd)) {
