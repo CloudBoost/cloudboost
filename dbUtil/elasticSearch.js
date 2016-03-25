@@ -58,8 +58,7 @@ module.exports = function () {
 
             try{
                 appId = appId.toLowerCase();
-                console.log('Creating an app in search backend.');
-                
+                console.log('Creating an app in search backend.');      
                 
 
                 if(global.elasticDisconnected || !global.esClient) {

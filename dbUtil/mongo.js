@@ -52,6 +52,8 @@ module.exports = function () {
 
         create: function (appId){
 
+            console.log("Create app from mongo");
+
             var deferred = q.defer();
 
             try{

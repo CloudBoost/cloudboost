@@ -68,13 +68,15 @@ module.exports = function() {
 			            }
 
 			            if(!pushSettingsFound){
-			            	return deferred.reject("Push Notification Settings not found.");
+			            	var noSettingPromise = global.q.defer();
+			            	noSettingPromise.reject("Push Notification Settings not found.");
+			            	return noSettingPromise.promise;
 			            } 
 
 			            if(pushSettingsFound && !appleCertificateFound){
 			            	var emptyAppleCert = global.q.defer();
 			            	emptyAppleCert.resolve(null);
-			            	return emptyAppleCert.promise
+			            	return emptyAppleCert.promise;
 			            }	            
 
 					}).then(function(appleCertFileObj){
@@ -112,9 +114,9 @@ module.exports = function() {
 			            		promises.push(_applePush(appleTokens,appleCertificate,pushData));
 			            	}
 
-			            	var andriod=pushNotificationSettings.andriod.credentials[0];
-			            	if(googleTokens && googleTokens.length>0 && andriod.apiKey){
-			            		promises.push(_googlePush(googleTokens,andriod.senderId,andriod.apiKey,pushData));
+			            	var android=pushNotificationSettings.android.credentials[0];
+			            	if(googleTokens && googleTokens.length>0 && android.apiKey){
+			            		promises.push(_googlePush(googleTokens,android.senderId,android.apiKey,pushData));
 			            	}
 
 			            	var windows=pushNotificationSettings.windows.credentials[0];
@@ -315,7 +317,11 @@ function _applePush(tokens,certifcate,data){
 		    console.log("Connected");
 		});
 	    apnConnection.on("error", function(error) {
-		   return deferred.reject(error);
+	    	var errorObj={
+	    		category:"apple push notifications",
+	    		error:error
+	    	};
+		   	return deferred.reject(errorObj);
 		});
 
 		apnConnection.pushNotification(note, tokens);
@@ -384,11 +390,15 @@ function _googlePush(senderId,apiKey,devicesTokens,data){
 	    });   
 	    
 	    //send notification
-	    sender.send(message, { registrationTokens: devices }, function (error, response) {
-	        if(!error){
-	            defer.resolve(response);
+	    sender.send(message, { registrationTokens: devicesTokens }, function (error, response) {
+	        if(error){
+	        	var errorObj={
+		    		category:"google push notifications",
+		    		error:error
+		    	};
+		    	defer.reject(errorObj);	            
 	        }else{
-	            defer.reject(error);
+	            defer.resolve(response);
 	        } 	
 	    });
     } catch(err){           
@@ -410,10 +420,14 @@ function _windowsPhonePush(securityId,clientSecret,pushUris,data){
    
    	try{
 	    mpns.sendToast(pushUris, data.title, data.message, function(err, res){
-	        if(!err){
-	            defer.resolve(res);
+	        if(err){
+	        	var errorObj={
+		    		category:"windows phone push notifications",
+		    		error:err
+		    	};
+		    	defer.reject(errorObj);	            
 	        }else{
-	            defer.reject(err);
+	            defer.resolve(res);
 	        }
 	    }); 
 
@@ -437,10 +451,14 @@ function _windowsDesktopPush(securityId,clientSecret,pushUris,data){
 
     try{
 		wns.sendToast(pushUris, data.message, {client_id:securityId,client_secret:clientSecret}, function(err, res){
-		    if(!err){
-		        defer.resolve(res);
+		    if(err){
+		    	var errorObj={
+		    		category:"windows desktop push notifications",
+		    		error:err
+		    	};
+		        defer.reject(errorObj);
 		    }else{
-		        defer.reject(err);
+		    	defer.resolve(res);		        
 		    }
 		}); 
 

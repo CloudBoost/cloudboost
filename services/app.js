@@ -135,15 +135,21 @@ module.exports = function() {
 
         createApp: function (appId, userId, appName){
 
+            console.log("Create App function...");
+
             var deferred = q.defer();
-            try {
+            try {                
 
                 var promises = [];
 
                 global.model.Project.findOne({appId: appId}, function (err, project) {
+                    console.log("Find AppID already exists or not...");
                     if (project) {
                         deferred.reject('AppID already exists');
                     } else {
+
+                            console.log("Setting params to save new app.");
+
                             var project = new global.model.Project();
                             project.appId = appId;
                             project.keys = {};
@@ -151,11 +157,12 @@ module.exports = function() {
                             project.keys.master = _generateKey();
 
                             project.save().then(function (project) {
+                                console.log("new app got saved...");
                                 //create a mongodb app.
                                 promises.push(global.mongoUtil.app.create(appId));
                                 promises.push(global.elasticSearchUtil.app.create(appId));
 
-                                global.q.all(promises).then(function (res) {
+                                global.q.all(promises).then(function (res) {                                    
                                     deferred.resolve(project._doc);
                                 }, function (err) {
                                     deferred.reject(err);
@@ -169,7 +176,7 @@ module.exports = function() {
                     }
                 });
             }catch(e){
-                 global.winston.log('error',{"error":String(e),"stack": new Error().stack});
+                global.winston.log('error',{"error":String(e),"stack": new Error().stack});
                 console.log("FATAL : Cannot create app.");
                 console.log(e);
                 deferred.reject("Cannot create an app right now.");
