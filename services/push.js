@@ -365,7 +365,7 @@ function _applePush(tokens,certifcate,data){
            Resolve->Success
            Reject->Fail to send
 */
-function _googlePush(senderId,apiKey,devicesTokens,data){
+function _googlePush(devicesTokens,senderId,apiKey,data){
             
     var defer = global.q.defer();
     

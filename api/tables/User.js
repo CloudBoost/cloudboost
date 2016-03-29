@@ -266,8 +266,7 @@ module.exports = function() {
             req.session = {};
             req.session.id = global.uuid.v1();
         }
-        res.header('sessionID',req.session.id);
-		
+        res.header('sessionID',req.session.id);		
         
         var obj = {
             id : req.session.id,

@@ -119,7 +119,7 @@ module.exports = function (){
     
     //Clear Cache
     global.app.delete('/cache/:appId/:name/clear', _clearCache);
-    global.app.put('/cache/:appId/:name/clear', _clearCache);
+    global.app.put('/cache/:appId/:name/clear/items', _clearCache);
 
     function _clearCache(req, res) {
         var appId = req.params.appId;
