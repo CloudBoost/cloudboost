@@ -111,9 +111,7 @@ module.exports = function() {
 			            	}
 
 			            	_checkAndGetTitle(appId,pushData,appSettingsObject).then(function(title){
-
-			            		console.log("Title of the pUSH...:"+title);
-
+			            				            		
 			            		//Set title to push data
 			            		pushData.title=title;
 
