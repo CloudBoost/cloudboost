@@ -4,6 +4,7 @@ var pjson = require('./package.json');
 var fs = require('fs');
 var busboyBodyParser = require('busboy-body-parser');
 var q = require("q");
+var _ = require('underscore');
 
 global.mongoDisconnected = false;
 global.elasticDisconnected = false;
@@ -120,15 +121,21 @@ global.app.use(function(req, res, next){
 global.app.use(function(req,res,next){
    try{
       console.log("Middleware to convert text to JSON");
-      if(req.text){
+      if(req.text && _isJSON(req.text)){
         req.body = JSON.parse(req.text);
       }
 
-      if(req.body && typeof(req.body)==="string"){
+      if(req.body && typeof(req.body)==="string" && _isJSON(req.body)){
         req.body = JSON.parse(req.body);
       }
       
       console.log("Middleware to converted text to JSON successfully..");  
+
+      //INVALIDATE CACHE FOR API
+      res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1.
+      res.setHeader("Pragma", "no-cache"); // HTTP 1.0.
+      res.setHeader("Expires", "0"); // Proxies.
+
       next();
 
    }catch(e){
@@ -150,15 +157,15 @@ global.app.use(['/file/:appId', '/data/:appId','/app/:appId/:tableName','/user/:
         return res.status(400).send("Services Not Loaded");
      }
 
-     console.log('Checking if API Key is valid...');
-     
-      if(req.text){
-        req.body=JSON.parse(req.text);
+     console.log('Checking if API Key is valid...');     
+
+      if(req.text && _isJSON(req.text)){
+        req.body = JSON.parse(req.text);
       }
 
-      if(req.body && typeof(req.body)==="string"){
+      if(req.body && typeof(req.body)==="string" && _isJSON(req.body)){
         req.body = JSON.parse(req.body);
-      }     
+      }    
    	 
       var requestRecvd = req.originalUrl; //this is the relative url.
      	if (ignoreUrl(requestRecvd)) {
@@ -636,7 +643,7 @@ function setUpMongoDB(){
               mongoConnectionString+=process.env["MONGO_SERVICE_HOST"]+":"+process.env["MONGO_SERVICE_PORT"]; 
               mongoConnectionString+=",";
 
-              /*var i=2;
+              var i=2;
               while(process.env["MONGO"+i+"_SERVICE_HOST"]){
                 global.config.mongo.push({
                     host :  process.env["MONGO"+i+"_SERVICE_HOST"],
@@ -645,7 +652,7 @@ function setUpMongoDB(){
                 mongoConnectionString+=process.env["MONGO"+i+"_SERVICE_HOST"]+":"+process.env["MONGO"+i+"_SERVICE_PORT"]; 
                 mongoConnectionString+=",";
                 ++i;
-              } */             
+              }              
               
               isReplicaSet = true;
               
@@ -680,7 +687,7 @@ function setUpMongoDB(){
 
      if(isReplicaSet){
          console.log("MongoDB is in ReplicaSet");
-         var str = "?replicaSet=cloudboost&slaveOk=true";
+         var str = "?replicaSet=cloudboost&slaveOk=true&maxPoolSize=200&ssl=false&connectTimeoutMS=30000&socketTimeoutMS=30000&w=1&wtimeoutMS=30000";
          global.keys.prodSchemaConnectionString+=str;
          global.keys.mongoConnectionString+=str;
      }
@@ -805,4 +812,22 @@ function _checkFileExists(filePath){
   }
 
   return deferred.promise;
+}
+
+
+function _isJSON(json){
+  //String
+  if(json && typeof(json)==="string"){
+    try{
+      JSON.parse(json);
+      return true;
+    }catch(e){
+      return false;
+    }
+
+  }else{
+    return _.isObject(json);
+  }
+    
+  return false;
 }
