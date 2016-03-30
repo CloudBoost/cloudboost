@@ -636,7 +636,7 @@ function setUpMongoDB(){
               mongoConnectionString+=process.env["MONGO_SERVICE_HOST"]+":"+process.env["MONGO_SERVICE_PORT"]; 
               mongoConnectionString+=",";
 
-              var i=2;
+              /*var i=2;
               while(process.env["MONGO"+i+"_SERVICE_HOST"]){
                 global.config.mongo.push({
                     host :  process.env["MONGO"+i+"_SERVICE_HOST"],
@@ -645,7 +645,7 @@ function setUpMongoDB(){
                 mongoConnectionString+=process.env["MONGO"+i+"_SERVICE_HOST"]+":"+process.env["MONGO"+i+"_SERVICE_PORT"]; 
                 mongoConnectionString+=",";
                 ++i;
-              }              
+              } */             
               
               isReplicaSet = true;
               
@@ -680,7 +680,7 @@ function setUpMongoDB(){
 
      if(isReplicaSet){
          console.log("MongoDB is in ReplicaSet");
-         var str = "?replicaSet=cloudboost&slaveOk=true&maxPoolSize=200";
+         var str = "?replicaSet=cloudboost&slaveOk=true";
          global.keys.prodSchemaConnectionString+=str;
          global.keys.mongoConnectionString+=str;
      }
