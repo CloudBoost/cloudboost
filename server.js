@@ -32,34 +32,20 @@ global.app = global.express();
 
 var http = null;
 var https = null;
-
 try{
-
-  _checkFileExists('./config/cert.crt').then(function(certData){
-    if(certData){ 
-
-      console.log("Config file found");
-
-      _checkFileExists('./config/key.key').then(function(KeyData){
-        if(KeyData){  
-          console.log("Key.key file found");   
-          //use https
-          console.log("Running on HTTPS protocol.");
-          var httpsOptions = {
-            key: fs.readFileSync('./config/key.key'),
-            cert: fs.readFileSync('./config/cert.crt')
-          };
-
-          https = require('https').Server(httpsOptions, global.app);
-        }    
-      });
-    }    
-  });
-
+ if(fs.statSync('./config/cert.crt').isFile() && fs.statSync('./config/key.key').isFile() ){
+   //use https
+   console.log("Running on HTTPS protocol.");
+   var httpsOptions = {
+     key: fs.readFileSync('./config/key.key'),
+     cert: fs.readFileSync('./config/cert.crt')
+   };    
+   https = require('https').Server(httpsOptions, global.app);
+ 
+ }
 }catch(e){
-  console.log("INFO : SSL Certificate not found or is invalid.");
-  console.log("Switching ONLY to HTTP...");
-  global.winston.log('error',{"error":String(e),"stack": new Error().stack});          
+ console.log("INFO : SSL Certificate not found or is invalid.");
+ console.log("Switching ONLY to HTTP...");
 }
 
 http = require('http').createServer(global.app);
