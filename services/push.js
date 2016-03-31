@@ -369,15 +369,16 @@ function _applePush(tokens,certifcate,data){
 		note.alert = "\uD83D\uDCE7 \u2709"+ data.title;
 		note.payload = {'messageFrom': data.message};
 
+		var respObj={};
+		respObj.category="Apple Push Notifications";
+
 		apnConnection.on("connected", function() {
 		    console.log("Connected");
 		});
 	    apnConnection.on("error", function(error) {
-	    	var errorObj={
-	    		category:"apple push notifications",
-	    		error:error
-	    	};
-		   	return deferred.reject(errorObj);
+
+	        respObj.response=error;
+		   	return deferred.reject(respObj);
 		});
 
 		apnConnection.pushNotification(note, tokens);
@@ -405,7 +406,8 @@ function _applePush(tokens,certifcate,data){
 			console.log("Socket Error");
 		});
 
-		deferred.resolve("Notification Sent");
+		respObj.response="Notification Sent";
+		deferred.resolve(respObj);
 
 	} catch(err){           
         global.winston.log('error',{"error":String(err),"stack": new Error().stack});
@@ -446,14 +448,23 @@ function _googlePush(devicesTokens,senderId,apiKey,data){
 	    
 	    //send notification
 	    sender.send(message, { registrationTokens: devicesTokens }, function (error, response) {
-	        if(error){
-	        	var errorObj={
-		    		category:"google push notifications",
-		    		error:error
-		    	};
-		    	defer.reject(errorObj);	            
-	        }else{
-	            defer.resolve(response);
+
+	    	var respObj={};
+	    	respObj.category="Google Push Notifications";
+
+	        if(error){	        	
+	        	respObj.response=error;
+		    	defer.reject(respObj);	            
+	        }else{	        	
+
+	        	if(response && response.success===0 && response.failure>0){	        		
+	        		respObj.response=response;	        		
+			    	defer.reject(respObj);	
+	        	}else{	        		
+	        		respObj.response=response;
+	        		defer.resolve(respObj);
+	        	}
+	            
 	        } 	
 	    });
     } catch(err){           
@@ -475,14 +486,15 @@ function _windowsPhonePush(securityId,clientSecret,pushUris,data){
    
    	try{
 	    mpns.sendToast(pushUris, data.title, data.message, function(err, res){
-	        if(err){
-	        	var errorObj={
-		    		category:"windows phone push notifications",
-		    		error:err
-		    	};
-		    	defer.reject(errorObj);	            
-	        }else{
-	            defer.resolve(res);
+	    	var respObj={};
+	    	respObj.category="WindowsPhone Push Notifications";
+
+	        if(err){	        	
+	        	respObj.response=err;	        	
+		    	defer.reject(respObj);	            
+	        }else{	        	
+	        	respObj.response=res;
+	            defer.resolve(respObj);
 	        }
 	    }); 
 
@@ -506,14 +518,15 @@ function _windowsDesktopPush(securityId,clientSecret,pushUris,data){
 
     try{
 		wns.sendToast(pushUris, data.message, {client_id:securityId,client_secret:clientSecret}, function(err, res){
-		    if(err){
-		    	var errorObj={
-		    		category:"windows desktop push notifications",
-		    		error:err
-		    	};
-		        defer.reject(errorObj);
-		    }else{
-		    	defer.resolve(res);		        
+			var respObj={};
+			respObj.category="WindowsDesktop Push Notifications";
+
+		    if(err){		    	
+	        	respObj.response=err;
+		        defer.reject(respObj);
+		    }else{		    	
+	        	respObj.response=res;
+		    	defer.resolve(respObj);		        
 		    }
 		}); 
 
