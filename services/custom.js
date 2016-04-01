@@ -138,18 +138,20 @@ module.exports = function() {
                         promises.push(_save(appId, collectionName, document[i], accessList, isMasterKey,reqType, opts));
                     }
                     global.q.allSettled(promises).then(function(res){
-                       var status = true;
+
+                        var status = true;
                         var success = [];
                         var error = [];
                         for(var i=0;i<res.length;i++){
                           if(res[i].status === 'fulfilled'){
-                                success.push(res[i].value);
-                              error.push(null);
+                            success.push(res[i].value);
+                            error.push(null);
                           }else{
                             status = false;
                             error.push(res[i].value);
                           }
-                       }
+                        }
+
                         if(status === true){
                             deferred.resolve(success);
                         }else{
@@ -821,6 +823,10 @@ function _getModifiedDocs(document,unModDoc){
                     if (document[key] !== null && document[key].constructor === Array && document[key].length>0) {
                         if (document[key][0]._type && document[key][0]._tableName) {
                             var subDoc = [];
+
+                            //get the unique objects
+                            document[key]=_getUniqueObjects(document[key]);
+
                             for (var i = 0; i < document[key].length; i++) {
                                 var temp = {};
                                 temp._type = document[key][i]._type;
@@ -1435,3 +1441,43 @@ function _checkIdList(document,reqType){
         return null;    
     }
 }
+
+/*Desc   : Filter and return unique objects
+  Params : objectsList
+  Returns: uniqueListObject
+*/
+function _getUniqueObjects(objectsList){
+
+
+    var uniqueListIds=[];
+    var uniqueListObject=[];
+
+    try{
+        if(objectsList && objectsList.length>0){
+            for(var i=0;i<objectsList.length;++i){
+                if(uniqueListIds.indexOf(objectsList[i]._id)<0){
+                    uniqueListIds.push(objectsList[i]._id);
+                    uniqueListObject.push(objectsList[i]);
+                }
+            }
+        }else{
+            uniqueListObject=objectsList;
+        }    
+
+        return uniqueListObject;
+
+    } catch(err){           
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
+        return uniqueListObject;    
+    }
+}
+
+
+
+
+
+
+
+
+
+
