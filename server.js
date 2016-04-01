@@ -5,6 +5,7 @@ var fs = require('fs');
 var busboyBodyParser = require('busboy-body-parser');
 var q = require("q");
 var _ = require('underscore');
+var sticky = require('socketio-sticky-session');
 
 global.mongoDisconnected = false;
 global.elasticDisconnected = false;
@@ -30,6 +31,9 @@ var cookies = require("cookies");
 var session = require('express-session');
 global.app = global.express();
 
+require('./database-connect/cors.js')(); //cors!
+var io = require('socket.io')();
+
 var http = null;
 var https = null;
 try{
@@ -39,8 +43,13 @@ try{
     var httpsOptions = {
      key: fs.readFileSync('./config/key.key'),
      cert: fs.readFileSync('./config/cert.crt')
-    };    
-    https = require('https').Server(httpsOptions, global.app);
+    };  
+
+    https = sticky(function() {
+      var server=require('https').Server(httpsOptions, global.app);
+      io.attach(server);
+      return server;
+    });
  
   }
 }catch(e){
@@ -48,16 +57,11 @@ try{
   console.log("Switching ONLY to HTTP...");
 }
 
-http = require('http').createServer(global.app);
-
-require('./database-connect/cors.js')(); //cors!
-var io = require('socket.io')();
-
-if(https){
-  io.attach(https);
-}else{
-  io.attach(http);
-}
+http = sticky(function() {
+  var server=require('http').createServer(global.app);
+  io.attach(server);
+  return server;
+});
 
 var multer = require('multer');
 var Redis = require('ioredis');

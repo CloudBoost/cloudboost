@@ -45,6 +45,7 @@
     "should": "^4.6.5",
     "socket.io": "^1.4.5",
     "socket.io-redis": "^0.1.4",
+    "socketio-sticky-session": "^0.4.2",
     "underscore": "^1.7.0",
     "url-parse": "^1.0.5",
     "uuid": "^2.0.1",
