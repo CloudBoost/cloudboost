@@ -433,8 +433,7 @@ function setUpAnalytics(){
           console.log(global.keys.analyticsUrl);
       }else{
           console.log("Analytics URL : ");
-          console.log(global.keys.analyticsUrl);
-          global.keys.analyticsUrl="http://localhost:5555"
+          console.log(global.keys.analyticsUrl);          
       }
     }catch(err){
       global.winston.log('error',{"error":String(err),"stack": new Error().stack});
