@@ -21,8 +21,8 @@ module.exports = function() {
 		/*Desc   : Send Push Notification
 		  Params : appId,collectionName,query, sort, limit, skip,accessList,isMasterKey,pushData
 		  Returns: Promise
-		           Resolve->No devices found or Result of sending notifications
-		           Reject->Error on find() or getAllSettings() or pushSettings not found or q.all(Promises)
+		           Resolve->No devices found or Result of ATLEAST ONE successful sent notifications
+		           Reject->Error on find() or getAllSettings() or pushSettings not found or failure of sending all push notifications failed
 		*/
 		sendPush: function(appId,collectionName,query, sort, limit, skip,accessList,isMasterKey,pushData){
 
@@ -32,131 +32,148 @@ module.exports = function() {
 
 			try{
 
+				var deviceObjects=null;
 				var appSettingsObject=null;
+				var pushTitle=null;
+
 				var pushNotificationSettings=null;
-				var appleCertificate=null;
-				
-				global.customService.find(appId, collectionName, query, null, sort, limit, skip,accessList,isMasterKey)
-				.then(function(deviceObjects){
+				var pushSettingsFound=false;
+
+				var appleCertificate=null;				
+				var appleCertificateFound=false;
+
+				var promisesList=[];
+
+				//Get Device Objects 
+				promisesList.push(global.customService.find(appId, collectionName, query, null, sort, limit, skip,accessList,isMasterKey));
+				//Get App Settings
+				promisesList.push(global.appService.getAllSettings(appId));
+				//Check and Get Title for push notifications
+				promisesList.push(_checkAndGetTitle(appId,pushData,appSettingsObject));				
+
+				//Promise List
+            	q.all(promisesList).then(function(resultList){
+
+            		deviceObjects=resultList[0];
+            		appSettingsObject=resultList[1];
+            		pushTitle=resultList[2];
+
+            		pushData.title=pushTitle;            		
+
+					if(appSettingsObject && appSettingsObject.length>0){
+		                var pushSettings=_.where(appSettingsObject, {category: "push"});
+		                if(pushSettings && pushSettings.length>0){
+
+		                    pushSettingsFound=true;
+		                    pushNotificationSettings=pushSettings[0].settings;
+
+		                    if(pushSettings[0].settings.apple.certificates && pushSettings[0].settings.apple.certificates.length>0){
+		                    	
+		                    	//Get file name from uri
+		                    	var fileName=pushSettings[0].settings.apple.certificates[0].split("/").reverse()[0];
+		                    	if(fileName){
+		                    		appleCertificateFound=true;
+		                    		return _self.getFile(appId,fileName);
+		                    	}
+		                    	
+		                    }                     
+		                }
+		            }
+
+		            if(!pushSettingsFound){
+		            	var noSettingPromise = global.q.defer();
+		            	noSettingPromise.reject("Push Notification Settings not found.");
+		            	return noSettingPromise.promise;
+		            } 
+
+		            if(pushSettingsFound && !appleCertificateFound){
+		            	var emptyAppleCert = global.q.defer();
+		            	emptyAppleCert.resolve(null);
+		            	return emptyAppleCert.promise;
+		            }
+
+            	}).then(function(appleCertFileObj){
+            		if(appleCertFileObj){
+						appleCertificate=_self.getFileStreamById(appId,appleCertFileObj._id);
+					}
 
 					if(!deviceObjects || deviceObjects.length==0){
 						return deferred.resolve("No Device objects found.");
-					}
+					}else{
 
-					global.appService.getAllSettings(appId).then(function(appSettings){
-						appSettingsObject=appSettings;
+						var appleTokens =[];
+		            	var googleTokens =[];
+		            	var windowsPhoneUris=[];
+		            	var windowsDesktopUris=[];
 
-						var pushSettingsFound=false;
-						var appleCertificateFound=false;
+		            	for(var i=0;i<deviceObjects.length;++i){
 
-						if(appSettings && appSettings.length>0){
-			                var pushSettings=_.where(appSettings, {category: "push"});
-			                if(pushSettings && pushSettings.length>0){
+		            		if(deviceObjects[i].deviceOS=="ios" && appleCertificate){	            			
+		            			appleTokens.push(deviceObjects[i].deviceToken);
+		            		}
+		            		if(deviceObjects[i].deviceOS=="android"){
+		            			googleTokens.push(deviceObjects[i].deviceToken);
+		            		}
+		            		if(deviceObjects[i].deviceOS=="windowsPhone"){
+		            			windowsPhoneUris.push(deviceObjects[i].deviceToken);
+		            		}
+		            		if(deviceObjects[i].deviceOS=="windowsApp"){
+		            			windowsDesktopUris.push(deviceObjects[i].deviceToken);
+		            		}
+		            	}	            	   		
+	            		
 
-			                    pushSettingsFound=true;
-			                    pushNotificationSettings=pushSettings[0].settings;
+	            		var promises=[];
 
-			                    if(pushSettings[0].settings.apple.certificates && pushSettings[0].settings.apple.certificates.length>0){
-			                    	
-			                    	//Get file name from uri
-			                    	var fileName=pushSettings[0].settings.apple.certificates[0].split("/").reverse()[0];
-			                    	if(fileName){
-			                    		appleCertificateFound=true;
-			                    		return _self.getFile(appId,fileName);
-			                    	}
-			                    	
-			                    }                     
-			                }
-			            }
+		            	if(appleTokens && appleTokens.length>0 && appleCertificate){
+		            		promises.push(_applePush(appleTokens,appleCertificate,pushData));
+		            	}
 
-			            if(!pushSettingsFound){
-			            	var noSettingPromise = global.q.defer();
-			            	noSettingPromise.reject("Push Notification Settings not found.");
-			            	return noSettingPromise.promise;
-			            } 
+		            	var android=pushNotificationSettings.android.credentials[0];
+		            	if(googleTokens && googleTokens.length>0 && android.apiKey){
+		            		promises.push(_googlePush(googleTokens,android.senderId,android.apiKey,pushData));
+		            	}
 
-			            if(pushSettingsFound && !appleCertificateFound){
-			            	var emptyAppleCert = global.q.defer();
-			            	emptyAppleCert.resolve(null);
-			            	return emptyAppleCert.promise;
-			            }	            
+		            	var windows=pushNotificationSettings.windows.credentials[0];
+		            	if(windowsPhoneUris && windowsPhoneUris.length>0 && windows.securityId){
+		            		promises.push(_windowsPhonePush(windows.securityId,windows.clientSecret,windowsPhoneUris,pushData));
+		            	}
+		            	
+		            	if(windowsDesktopUris && windowsDesktopUris.length>0 && windows.securityId){
+		            		promises.push(_windowsDesktopPush(windows.securityId,windows.clientSecret,windowsDesktopUris,pushData));
+		            	}
 
-					}).then(function(appleCertFileObj){
+		            	//Promise List
+		            	q.allSettled(promises).then(function(resultList){
 
-						if(appleCertFileObj){
-							appleCertificate=_self.getFileStreamById(appId,appleCertFileObj._id);
-						}
+		            		var resFulfilled=[];
+		            		var resRejected=[];
+		            		resultList.forEach(function (eachResult) {
+						        if (eachResult.state === "fulfilled") {
+						            resFulfilled.push(eachResult.value);
+						        } else {
+						            resRejected.push(eachResult.reason);
+						        }
+						    });
 
-						if(deviceObjects && deviceObjects.length>0){            	
+						    var responseObject={};
+		            		responseObject.resolvedList=resFulfilled;
+		            		responseObject.rejectedList=resRejected;
 
-			            	var appleTokens  =[];
-			            	var googleTokens  =[];
-			            	var windowsPhoneUris=[];
-			            	var windowsDesktopUris=[];
 
-			            	for(var i=0;i<deviceObjects.length;++i){
-
-			            		if(deviceObjects[i].deviceOS=="ios" && appleCertificate){	            			
-			            			appleTokens.push(deviceObjects[i].deviceToken);
-			            		}
-			            		if(deviceObjects[i].deviceOS=="android"){
-			            			googleTokens.push(deviceObjects[i].deviceToken);
-			            		}
-			            		if(deviceObjects[i].deviceOS=="windowsPhone"){
-			            			windowsPhoneUris.push(deviceObjects[i].deviceToken);
-			            		}
-			            		if(deviceObjects[i].deviceOS=="windowsApp"){
-			            			windowsDesktopUris.push(deviceObjects[i].deviceToken);
-			            		}
-			            	}
-
-			            	_checkAndGetTitle(appId,pushData,appSettingsObject).then(function(title){
-			            				            		
-			            		//Set title to push data
-			            		pushData.title=title;
-
-			            		var promises=[];
-
-				            	if(appleTokens && appleTokens.length>0 && appleCertificate){
-				            		promises.push(_applePush(appleTokens,appleCertificate,pushData));
-				            	}
-
-				            	var android=pushNotificationSettings.android.credentials[0];
-				            	if(googleTokens && googleTokens.length>0 && android.apiKey){
-				            		promises.push(_googlePush(googleTokens,android.senderId,android.apiKey,pushData));
-				            	}
-
-				            	var windows=pushNotificationSettings.windows.credentials[0];
-				            	if(windowsPhoneUris && windowsPhoneUris.length>0 && windows.securityId){
-				            		promises.push(_windowsPhonePush(windows.securityId,windows.clientSecret,windowsPhoneUris,pushData));
-				            	}
-				            	
-				            	if(windowsDesktopUris && windowsDesktopUris.length>0 && windows.securityId){
-				            		promises.push(_windowsDesktopPush(windows.securityId,windows.clientSecret,windowsDesktopUris,pushData));
-				            	}
-
-				            	//Promise List
-				            	q.all(promises).then(function(resultList){
-				            		deferred.resolve(resultList);
-				            	},function(error){
-									deferred.reject(error);
-								});
-
-			            	},function(error){
-			            		deferred.reject(error);
-			            	});	
-
-			            }else{
-			            	deferred.resolve("No Device objects found.");
-			            }
-
-					},function(error){
-						deferred.reject(error);
-					});
-
-				},function(error){
+		            		//Check atleast one is fulfilled	            		
+		            		if(resFulfilled && resFulfilled.length>0){
+		            			deferred.resolve(responseObject);
+		            		}else{
+		            			deferred.reject(responseObject);
+		            		}
+		            		
+		            	});
+					}	            	
+		            
+            	},function(error){
 					deferred.reject(error);
-				});
+				});				
 
 			} catch(err){           
                 global.winston.log('error',{"error":String(err),"stack": new Error().stack});
@@ -455,16 +472,9 @@ function _googlePush(devicesTokens,senderId,apiKey,data){
 	        if(error){	        	
 	        	respObj.response=error;
 		    	defer.reject(respObj);	            
-	        }else{	        	
-
-	        	if(response && response.success===0 && response.failure>0){	        		
-	        		respObj.response=response;	        		
-			    	defer.reject(respObj);	
-	        	}else{	        		
-	        		respObj.response=response;
-	        		defer.resolve(respObj);
-	        	}
-	            
+	        }else{
+	        	respObj.response=response;
+	        	defer.resolve(respObj);             
 	        } 	
 	    });
     } catch(err){           

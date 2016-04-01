@@ -33,19 +33,19 @@ global.app = global.express();
 var http = null;
 var https = null;
 try{
- if(fs.statSync('./config/cert.crt').isFile() && fs.statSync('./config/key.key').isFile() ){
-   //use https
-   console.log("Running on HTTPS protocol.");
-   var httpsOptions = {
+  if(fs.statSync('./config/cert.crt').isFile() && fs.statSync('./config/key.key').isFile() ){
+    //use https
+    console.log("Running on HTTPS protocol.");
+    var httpsOptions = {
      key: fs.readFileSync('./config/key.key'),
      cert: fs.readFileSync('./config/cert.crt')
-   };    
-   https = require('https').Server(httpsOptions, global.app);
+    };    
+    https = require('https').Server(httpsOptions, global.app);
  
- }
+  }
 }catch(e){
- console.log("INFO : SSL Certificate not found or is invalid.");
- console.log("Switching ONLY to HTTP...");
+  console.log("INFO : SSL Certificate not found or is invalid.");
+  console.log("Switching ONLY to HTTP...");
 }
 
 http = require('http').createServer(global.app);
@@ -54,9 +54,9 @@ require('./database-connect/cors.js')(); //cors!
 var io = require('socket.io')();
 
 if(https){
-    io.attach(https);
+  io.attach(https);
 }else{
-    io.attach(http);
+  io.attach(http);
 }
 
 var multer = require('multer');
@@ -434,6 +434,7 @@ function setUpAnalytics(){
       }else{
           console.log("Analytics URL : ");
           console.log(global.keys.analyticsUrl);
+          global.keys.analyticsUrl="http://localhost:5555"
       }
     }catch(err){
       global.winston.log('error',{"error":String(err),"stack": new Error().stack});
@@ -517,10 +518,7 @@ function setUpRedis(){
          global.redisClient = new Redis(hosts[0]);
          
          console.log("Setting up IO adapter");
-         io.adapter(ioRedisAdapter({
-              pubClient: new Redis(hosts[0]),
-              subClient: new Redis(hosts[0])
-         }));
+         io.adapter(ioRedisAdapter({ host: hosts[0].host, port: hosts[0].port }));
      }
       
      global.realTime = require('./database-connect/realTime')(io);
