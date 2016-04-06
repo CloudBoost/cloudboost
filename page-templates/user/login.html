@@ -137,18 +137,40 @@
     .cf { zoom: 1; }
 
 
-    .wrapper{
-    	width: 100%;
-    	height: 100vh;	
+    .wrapper{    		
     	background-color: #eef0f3;
+        width: 100vw;
+        height: 100vh;
+    }
+    .login-btn{
+        border-top-left-radius:3px; 
+        border-bottom-left-radius:3px; 
+        width:100px;
+        height:30px;
+        color:#5c666f;
+        background-color: white;
+        border: 1px solid #5c666f;
     } 
+    .sinup-btn{
+        border-top-right-radius:3px; 
+        border-bottom-right-radius:3px;
+        width:100px;
+        height:30px;
+        color:#5c666f; 
+        background-color: white; 
+        border: 1px solid #5c666f;      
+    }
+    .btn-active{
+        background-color: #5c666f;
+        color:white;
+    }
     .social-btns{
         width: 40px;
-        height: 40px;
-        border:1px solid blue;
+        height: 40px;        
         margin-left: 10px;
         margin-top: 15px;
         border-radius: 3px;
+        cursor: pointer;
     }
     .social-btns:first-child{
         margin-left:0px;
@@ -161,6 +183,84 @@
     .input-field:first-child{
         margin-top: 0px;
     }
+
+    .input-field-error{
+        border:1px solid red;
+        animation: zoominout 0.5s both ease 0.1s;        
+    }
+
+    .loader-icon{
+        width:25px;
+        height:25px;              
+        -webkit-filter: grayscale(100%) 
+          brightness(135%)
+          contrast(120%);
+        filter: grayscale(100%) 
+          brightness(135%)
+          contrast(120%);
+
+    }
+    .loader-circle{
+        width: 50px;
+        height: 50px;
+        border:2px solid #E0E0E0;
+        border-radius: 25px; 
+        border-top-color:gray;              
+    }
+
+    .advanced {        
+        animation-name: spin; 
+        animation-duration: 1s; /* 1 seconds */
+        animation-iteration-count: infinite; 
+        animation-timing-function: linear;
+    }
+
+    .final-btn{
+        background-color: blue;
+        padding: 15px;
+        cursor: pointer;
+    }
+    .final-btn:hover{
+        background-color: red;       
+    }
+    .facebook{
+        background-color: #4863ae;
+        color:white;
+        font-size: 18px;
+    }
+    .twitter{
+        background-color: #46c0fb;
+        color:white;
+        font-size: 18px;
+    }
+    .github{
+        background-color: #eeeeee;
+        color:black;
+        font-size: 18px;
+    }
+    .google{
+        background-color: #4285f4;
+        color:white;
+        font-size: 18px;
+    }
+
+    /*KEY FRAMES*/
+    @keyframes zoominout {     
+
+        0% {
+            transform:scale(1,1);
+        }
+        50% {
+            transform:scale(1.2,1.2);
+        }
+        100% {      
+           transform:scale(1,1);
+        }
+    }
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }    
           
     </style>
      
@@ -169,240 +269,234 @@
 
 <div class="wrapper">
 
-	<div class="flex-general-column-wrapper-center" style="height:100%;width:100%;">	
-		<div id="successMessage" class="alert alert-success">            
-        </div>
+    <div class="flex-general-column-wrapper-center" style="width: 100%;height: 100%;">
 
-        <div id="errorMessage" class="alert alert-danger">            
-        </div>
-        
-		<div class="container">
-		    <div class="row">
-		        <div class="row">
-		            <div class="col-md-4 col-md-offset-4">
+        <!--Login or Sing Up form-->
+        <div class="" style=" width:25%;">
+            <div class="" style="height:auto;border-radius:2px; border:1px solid #BAB8B8;">
+                <!--Header-->
+                <div style="width:100%;height:110px;background-color:#dddddd;padding:15px;position: relative;">                  
 
-                        <!--Login or Sing Up form-->
-		                <div class="" style="display: none;">
-		                    <div class="" style="height:auto;border-radius:2px; border:1px solid #BAB8B8;">
-                                <!--Header-->
-		                        <div style="width:100%;height:110px;background-color:#dddddd;padding:15px;position: relative;">
+                    <div style="width:100%;" class="flex-general-column-wrapper-center">
+                       <img src="cloudcache.png" style="width:50px;height:40px;">
+                    </div>
 
-                                    <div style="width: 30px;height: 30px;position: absolute;">
-                                        <div class="flex-general-column-wrapper-center" style="width:100%;height:100%; border-radius: 25px;background-color: white;">
-                                            <i class="icon ion-ios-arrow-left" style="color:black;font-size:20px;"></i>
-                                            
-                                        </div>
-                                    </div>
+                    <div style="width:100%;margin-top: -5px;" class="flex-general-column-wrapper-center">
+                       <h3>App Name</h3>
+                    </div>
 
-                                    <div style="width:100%;" class="flex-general-column-wrapper-center">
-                                       <img src="cloudcache.png" style="width:50px;height:40px;">
-                                    </div>
+                </div>
+                <!--Header-->
 
-                                    <div style="width:100%;margin-top: -5px;" class="flex-general-column-wrapper-center">
-                                       <h3>App Name</h3>
-                                    </div>
+                <!--Main Body Spinner-->
+                <div style="width: 100%;height: 360px;background-color: white;display: none;" class="flex-general-column-wrapper-center">
+                    <div style="width: 60px;height: 60px;position: relative;" class="flex-general-column-wrapper-center">
+                        <div style="" class="loader-circle advanced flex-general-column-wrapper-center">                        
+                        </div>
+                        <div style="width: 25px;height: 25px; position: absolute;top:28%;left:27%;" class="flex-general-column-wrapper-center">
+                            <img src="cloudcache.png" class="loader-icon">
+                        </div>
+                    </div>
+                </div>
+                <!--Main Body Spinner-->
 
-                                </div>
-                                <!--Header-->
+                <!--Main Body Content-->
+                <div>
+                    <!--Error Block-->
+                    <div style="background-color: #f04848;padding: 10px;" class="solo-horizontal-center">
+                        <span style="color:white;">Unknow Error</span>
+                    </div>
+                    <!--Error Block-->
 
-                                <!--Error Block-->
-                                <div style="background-color: #f04848;padding: 10px;" class="solo-horizontal-center">
-                                    <span style="color:white;">Unknow Error</span>
-                                </div>
-                                <!--Error Block-->
+                    <!--Body-->
+                    <div style="background-color: white;padding: 20px;">
 
-                                <!--Body-->
-                                <div style="background-color: white;padding: 20px;">
-
-                                    <!--Login and Sing Up buttons-->
-                                    <div class="flex-general-column-wrapper-center">
-                                        <div class="flex-general-row-wrapper">
-                                           <div class="width:100%;height:30px;">
-                                                <button class="default-inputfield" style="border-top-left-radius:3px; border-bottom-left-radius:3px; width:100px;height:30px; background-color: #5c666f; color:white">LOG IN</button>
-                                           </div>
-                                           <div class="width:100%;height:30px;">
-                                                <button class="default-inputfield" style="border-top-right-radius:3px; border-bottom-right-radius:3px; width:100px;height:30px; background-color: white; color:#5c666f;border:1px solid #5c666f;">SIGN UP</button>
-                                           </div>
-                                        </div>
-                                    </div>
-
-                                    <!--Social Connection Buttons-->
-                                    <div class="flex-general-column-wrapper-center" style="margin-top: 5px;width: 100%;">
-                                        <div class="solo-horizontal-center" style="width: 100%;">
-                                            <!--facebook-->
-                                            <div  class="social-btns">
-                                            </div>
-
-                                            <!--facebook-->
-                                            <div  class="social-btns">
-                                            </div>
-
-                                            <!--facebook-->
-                                            <div  class="social-btns">
-                                            </div>
-
-                                            <!--facebook-->
-                                            <div  class="social-btns">
-                                            </div>
-
-                                            <!--facebook-->
-                                            <div  class="social-btns">
-                                            </div>
-
-                                            <!--facebook-->
-                                            <div  class="social-btns">
-                                            </div>
-
-
-                                            <!--facebook-->
-                                            <div  class="social-btns">
-                                            </div>
-
-                                            <!--facebook-->
-                                            <div  class="social-btns">
-                                            </div>
-
-                                            <!--facebook-->
-                                            <div  class="social-btns">
-                                            </div>
-
-                                            <!--facebook-->
-                                            <div  class="social-btns">
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!---OR-->
-                                    <div style="width: 100%;margin-top: 20px;" class="solo-horizontal-center">
-                                        <p style="color:gray">Or</p>
-                                    </div>
-
-                                    <!--Input Fields-->
-                                    <div style="width: 100%;margin-top: 8px;">                                        
-                                        <div style="width: 100%;">
-                                            <div class="flex-general-row-wrapper input-field" style="">
-                                                <div class="flex-general-column-wrapper-center" style="width:13%; height: 35px;background-color:#f1f1f1;">
-                                                    <i class="icon ion-ios-email-outline" style="color:gray;font-size: 22px;"></i>
-                                                </div>
-                                                <div style="width:86.98%; height: 35px;">
-                                                    <input type="text" placeholder="Enter Email" class="default-inputfield" required style="width: 100%;height: 100%;padding-left: 12px;">
-                                                </div>
-                                            </div>
-
-                                            <div class="flex-general-row-wrapper input-field" style="">
-                                                <div class="flex-general-column-wrapper-center" style="width:13%; height: 35px;background-color:#f1f1f1;">
-                                                    <i class="icon ion-ios-locked-outline" style="color:gray;font-size: 22px;"></i>
-                                                </div>
-                                                <div style="width:86.98%; height: 35px;">
-                                                    <input type="password" placeholder="Enter Password" class="default-inputfield" required style="width: 100%;height: 100%;padding-left: 12px;">
-                                                </div>
-                                            </div>
-                                        </div>                                        
-                                    </div>
-
-                                    <!--Forgot Password-->
-                                    <div style="width: 100%;margin-top: 15px;" class="solo-horizontal-center">
-                                        <span style="color:gray;cursor: pointer;">Don't remember your password?</span>
-                                    </div>
-                                    
-                                </div>
-                                <!--Body-->
-
-                                <!--Button-->
-                                <div style="background-color: blue;padding: 15px;cursor: pointer;">
-                                   <div style="width: 100%;height: 30px;" class="flex-general-column-wrapper-center">
-                                        <span style="color:white;font-size: 34px;">
-                                            <i class="icon ion-log-in"></i>
-                                        </span>
-                                   </div>
-                                </div>
-                                <!--Button-->
-
-		                    </div>
-		                </div>
-                        <!--/Login or Sing Up form-->
-
-
-
-                        <!--Forgot Password-->
-                        <div class="">
-                            <div class="" style="height:auto;border-radius:2px; border:1px solid #BAB8B8;">
-                                <!--Header-->
-                                <div style="width:100%;height:110px;background-color:#dddddd;padding:15px;position: relative;">
-
-                                    <div style="width: 30px;height: 30px;position: absolute;">
-                                        <div class="flex-general-column-wrapper-center" style="width:100%;height:100%; border-radius: 25px;background-color: white;">
-                                            <i class="icon ion-ios-arrow-left" style="color:black;font-size:20px;"></i>
-                                            
-                                        </div>
-                                    </div>
-
-                                    <div style="width:100%;" class="flex-general-column-wrapper-center">
-                                       <img src="cloudcache.png" style="width:50px;height:40px;">
-                                    </div>
-
-                                    <div style="width:100%;margin-top: -5px;" class="flex-general-column-wrapper-center">
-                                       <h3>Password Reset</h3>
-                                    </div>
-
-                                </div>
-                                <!--Header-->
-
-                                <!--Error Block-->
-                                <div style="background-color: #f04848;padding: 10px;" class="solo-horizontal-center">
-                                    <span style="color:white;">Unknow Error</span>
-                                </div>
-                                <!--Error Block-->
-
-                                <!--Body-->
-                                <div style="background-color: white;padding: 10px;">
-                                    
-                                    <!--Info-->
-                                    <div style="width: 100%;margin-top: 20px;" class="solo-horizontal-center">
-                                        <p style="color:gray">
-                                        Please enter your email address.
-                                        </p>
-                                        <p style="color:gray">
-                                         We will send you an email to reset your password.
-                                        </p>
-                                    </div>
-
-                                    <!--Input Fields-->
-                                    <div style="width: 100%;margin-top: 8px;">                                        
-                                        <div style="width: 100%;">
-                                            <div class="flex-general-row-wrapper input-field" style="">
-                                                <div class="flex-general-column-wrapper-center" style="width:13%; height: 35px;background-color:#f1f1f1;">
-                                                    <i class="icon ion-ios-email-outline" style="color:gray;font-size: 22px;"></i>
-                                                </div>
-                                                <div style="width:86.98%; height: 35px;">
-                                                    <input type="text" placeholder="Enter Email" class="default-inputfield" required style="width: 100%;height: 100%;padding-left: 12px;">
-                                                </div>
-                                            </div>                                           
-                                        </div>                                        
-                                    </div>                                    
-                                    
-                                </div>
-                                <!--Body-->
-
-                                <!--Button-->
-                                <div style="background-color: blue;padding: 15px;cursor: pointer;">
-                                   <div style="width: 100%;height: 30px;" class="flex-general-column-wrapper-center">
-                                        <span style="color:white;font-size: 34px;">
-                                            <i class="icon ion-log-in"></i>
-                                        </span>
-                                   </div>
-                                </div>
-                                <!--Button-->
-
+                        <!--Login and Sing Up buttons-->
+                        <div class="flex-general-column-wrapper-center">
+                            <div class="flex-general-row-wrapper">
+                               <div class="width:100%;height:30px;">
+                                    <button class="default-inputfield login-btn" style="">LOG IN</button>
+                               </div>
+                               <div class="width:100%;height:30px;">
+                                    <button class="default-inputfield sinup-btn" style="">SIGN UP</button>
+                               </div>
                             </div>
                         </div>
-                        <!--/Forgot Password-->
 
-		            </div>
-		        </div>
-		    </div>
-		</div>
-	</div>
+                        <!--Social Connection Buttons-->
+                        <div class="flex-general-column-wrapper-center" style="margin-top: 5px;width: 100%;">
+                            <div class="solo-horizontal-center" style="width: 98%;">
+                                <!--facebook-->
+                                <div class="social-btns facebook flex-general-column-wrapper-center">
+                                    <i class="fa fa-facebook"></i>
+                                </div>
+
+                                <!--twitter-->
+                                <div  class="social-btns twitter flex-general-column-wrapper-center">
+                                    <i class="fa fa-twitter"></i>
+                                </div>
+
+                                <!--google-->
+                                <div  class="social-btns google flex-general-column-wrapper-center">
+                                    <i class="fa fa-google"></i>
+                                </div>
+
+                                <!--github-->
+                                <div  class="social-btns github flex-general-column-wrapper-center">
+                                    <i class="fa fa-github"></i>
+                                </div>
+                             
+                            </div>
+                        </div>
+
+                        <!---OR-->
+                        <div style="width: 100%;margin-top: 20px;" class="solo-horizontal-center">
+                            <p style="color:gray">Or</p>
+                        </div>
+
+                        <!--Input Fields-->
+                        <div style="width: 100%;margin-top: 8px;" class="solo-horizontal-center">                                        
+                            <div style="width: 95%;">
+                                <div class="flex-general-row-wrapper input-field" style="">
+                                    <div class="flex-general-column-wrapper-center" style="width:13%; height: 35px;background-color:#f1f1f1;">
+                                        <i class="icon ion-ios-email-outline" style="color:gray;font-size: 22px;"></i>
+                                    </div>
+                                    <div style="width:86.98%; height: 35px;">
+                                        <input type="text" placeholder="Enter Email" class="default-inputfield" required style="width: 100%;height: 100%;padding-left: 12px;">
+                                    </div>
+                                </div>
+
+                                <div class="flex-general-row-wrapper input-field" style="">
+                                    <div class="flex-general-column-wrapper-center" style="width:13%; height: 35px;background-color:#f1f1f1;">
+                                        <i class="icon ion-ios-locked-outline" style="color:gray;font-size: 22px;"></i>
+                                    </div>
+                                    <div style="width:86.98%; height: 35px;">
+                                        <input type="password" placeholder="Enter Password" class="default-inputfield" required style="width: 100%;height: 100%;padding-left: 12px;">
+                                    </div>
+                                </div>
+                            </div>                                        
+                        </div>
+
+                        <!--Forgot Password-->
+                        <div style="width: 100%;margin-top: 15px;" class="solo-horizontal-center">
+                            <span style="color:gray;cursor: pointer;">Don't remember your password?</span>
+                        </div>
+                        
+                    </div>
+                    <!--Body-->
+
+                    <!--Button-->
+                    <div class="final-btn" style="">
+                       <div style="width: 100%;height: 30px;" class="flex-general-column-wrapper-center">
+                            <span style="color:white;font-size: 34px;">
+                                <i class="icon ion-log-in"></i>
+                            </span>
+                       </div>
+                    </div>
+                    <!--Button-->
+
+                </div>
+                <!--/Main Body Content-->
+            </div>
+        </div>
+        <!--/Login or Sing Up form-->
+
+
+
+        <!--Forgot Password-->
+        <div class="" style="display:none; width: 25%;">
+            <div class="" style="height:auto;border-radius:2px; border:1px solid #BAB8B8;">
+                <!--Header-->
+                <div style="width:100%;height:110px;background-color:#dddddd;padding:15px;position: relative;">
+
+                    <div style="width: 30px;height: 30px;position: absolute;">
+                        <div class="flex-general-column-wrapper-center" style="width:100%;height:100%; border-radius: 25px;background-color: white;cursor: pointer;">
+                            <i class="icon ion-ios-arrow-left" style="color:black;font-size:20px;"></i>
+                            
+                        </div>
+                    </div>
+
+                    <div style="width:100%;" class="flex-general-column-wrapper-center">
+                       <img src="cloudcache.png" style="width:50px;height:40px;">
+                    </div>
+
+                    <div style="width:100%;margin-top: -5px;" class="flex-general-column-wrapper-center">
+                       <h3>Password Reset</h3>
+                    </div>
+
+                </div>
+                <!--Header-->
+
+                <!--Main Body Spinner-->
+                <div style="width: 100%;height: 360px;background-color: white;" class="flex-general-column-wrapper-center">
+                    <div style="width: 60px;height: 60px;position: relative;" class="flex-general-column-wrapper-center">
+                        <div style="" class="loader-circle advanced flex-general-column-wrapper-center">                        
+                        </div>
+                        <div style="width: 25px;height: 25px; position: absolute;top:28%;left:27%;" class="flex-general-column-wrapper-center">
+                            <img src="cloudcache.png" class="loader-icon">
+                        </div>
+                    </div>
+                </div>
+                <!--Main Body Spinner-->
+
+                <!--Main Body Content-->
+                <div>
+
+                    <!--Error Block-->
+                    <div style="background-color: #f04848;padding: 10px;" class="solo-horizontal-center">
+                        <span style="color:white;">Unknow Error</span>
+                    </div>
+                    <!--Error Block-->
+
+                    <!--Body-->
+                    <div style="background-color: white;padding: 10px;">
+                        
+                        <!--Info-->
+                        <div style="width: 100%;margin-top: 20px;" class="solo-horizontal-center">
+                            <p style="color:gray">
+                            Please enter your email address.
+                            </p>
+                            <p style="color:gray;margin-top: -7px;">
+                             We will send you an email to reset your password.
+                            </p>
+                        </div>
+
+                        <!--Input Fields-->
+                        <div style="width: 100%;margin-top: 8px;" class="solo-horizontal-center">                                        
+                            <div style="width: 95%;">
+                                <div class="flex-general-row-wrapper input-field" style="">
+                                    <div class="flex-general-column-wrapper-center" style="width:13%; height: 35px;background-color:#f1f1f1;">
+                                        <i class="icon ion-ios-email-outline" style="color:gray;font-size: 22px;"></i>
+                                    </div>
+                                    <div style="width:86.98%; height: 35px;">
+                                        <input type="text" placeholder="Enter Email" class="default-inputfield" required style="width: 100%;height: 100%;padding-left: 12px;">
+                                    </div>
+                                </div>                                           
+                            </div>                                        
+                        </div>                                    
+                        
+                    </div>
+                    <!--Body-->
+
+                    <!--Button-->
+                    <div class="final-btn" style="margin-top: 8px;">
+                       <div style="width: 100%;height: 30px;" class="flex-general-column-wrapper-center">
+                            <span style="color:white;font-size: 34px;">
+                                <i class="icon ion-log-in"></i>
+                            </span>
+                       </div>
+                    </div>
+                    <!--Button-->
+
+                </div>
+                <!--/Main Body Content-->
+
+            </div>
+            
+        </div>
+        <!--/Forgot Password-->
+
+    </div>     
 
 </div>
 
@@ -411,27 +505,14 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
 <script>
     
-(function($) {
-    $.fn.invisible = function() {
-        return this.each(function() {
-            $(this).css("visibility", "hidden");
-        });
-    };
-    $.fn.visible = function() {
-        return this.each(function() {
-            $(this).css("visibility", "visible");
-        });
-    };
-}(jQuery));
+
 
 $(document).ready(function(){
-   $("#successMessage").invisible();
-   $("#errorMessage").invisible();
+   
 });
 
 $("#SubmitBtn").click(function() { 
-   $("#successMessage").invisible();
-   $("#errorMessage").invisible();
+   
    if($("#newPassword").val().trim() !== $("#confirmPassword").val().trim()) {
         $("#errorMessage").text("Password and Confirm Password does not match.");
         $("#errorMessage").visible();
