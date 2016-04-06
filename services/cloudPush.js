@@ -73,7 +73,7 @@ module.exports = function() {
 		                    	var fileName=pushSettings[0].settings.apple.certificates[0].split("/").reverse()[0];
 		                    	if(fileName){
 		                    		appleCertificateFound=true;
-		                    		return _self.getFile(appId,fileName);
+		                    		return global.mongoService.document.getFile(appId,fileName);
 		                    	}
 		                    	
 		                    }                     
@@ -94,7 +94,7 @@ module.exports = function() {
 
             	}).then(function(appleCertFileObj){
             		if(appleCertFileObj){
-						appleCertificate=_self.getFileStreamById(appId,appleCertFileObj._id);
+						appleCertificate=global.mongoService.document.getFileStreamById(appId,appleCertFileObj._id);
 					}
 
 					if(!deviceObjects || deviceObjects.length==0){
@@ -181,142 +181,7 @@ module.exports = function() {
             }	
 
 			return deferred.promise
-		},
-
-		/*Desc   : Get file from gridfs
-		  Params : appId,filename
-		  Returns: Promise
-		           Resolve->file
-		           Reject->Error on findOne() or file not found(null)
-		*/
-		getFile : function(appId,filename){
-
-		    var deferred = global.q.defer();
-
-		    try{
-			    var gfs = Grid(global.mongoClient.db(appId), require('mongodb'));
-
-			    gfs.findOne({filename: filename},function (err, file) {
-			        if (err){           
-			            return deferred.reject(err);
-			        }    
-			        if(!file){
-			            return deferred.resolve(null);                    
-			        }  
-
-			        return deferred.resolve(file);  
-			    });
-
-			} catch(err){           
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
-                deferred.reject(err);
-            }
-
-		    return deferred.promise;
-		},
-		/*Desc   : Get fileStream from gridfs
-		  Params : appId,fileId
-		  Returns: fileStream 
-		*/
-		getFileStreamById: function(appId,fileId){
-			try{
-	            var gfs = Grid(global.mongoClient.db(appId), require('mongodb'));
-
-	            var readstream = gfs.createReadStream({
-	              _id: fileId
-	            });
-
-	            return readstream;
-
-        	} catch(err){           
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
-                return null;
-            }
-        },
-        /*Desc   : Delete file from gridfs
-		  Params : appId,filename
-		  Returns: Promise
-		           Resolve->true
-		           Reject->Error on exist() or remove() or file does not exists
-		*/
-        deleteFileFromGridFs: function(appId,filename){
-
-		    var deferred = global.q.defer(); 
-
-		    try{
-			    var gfs = Grid(global.mongoClient.db(appId), require('mongodb'));
-
-			    //File existence checking
-			    gfs.exist({filename: filename}, function (err, found) {
-			      if (err){
-			        //Error while checking file existence
-			        deferred.reject(err);
-			      }
-			      if(found){       
-			        gfs.remove({filename: filename},function (err) {
-			            if (err){
-			                deferred.reject(err);
-			                //unable to delete     
-			            }else{
-			                deferred.resolve(true);
-			                //deleted
-			            }                            
-			            
-			            return deferred.resolve("Success");  
-			        });
-			      }else{
-			        //file does not exists
-			        deferred.reject("file does not exists");
-			      }
-			    });
-
-			} catch(err){           
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
-                deferred.reject(err);
-            }
-		    
-		    return deferred.promise;
-		},
-		/*Desc   : Save filestream to gridfs
-		  Params : appId,fileStream,fileName,contentType
-		  Returns: Promise
-		           Resolve->fileObject
-		           Reject->Error on writing file
-		*/
-		saveFileStream:function (appId,fileStream,fileName,contentType){
-
-		    var deferred = global.q.defer();
-
-		    try{
-			    var gfs = Grid(global.mongoClient.db(appId), require('mongodb'));
-
-			    //streaming to gridfs    
-			    var writestream = gfs.createWriteStream({
-			        filename: fileName,
-			        mode: 'w',
-			        content_type:contentType
-			    });
-
-			    fileStream.pipe(writestream); 		    
-			    
-			    writestream.on('close', function (file) {               
-			        deferred.resolve(file);		        
-			        console.log("Successfully saved in gridfs");
-			    });
-
-			    writestream.on('error', function (error) {           
-			        deferred.reject(error);
-			        writestream.destroy();
-			        console.log("Failed to saved in gridfs");
-			    }); 
-
-			} catch(err){           
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
-                deferred.reject(err);
-            }
-
-		    return deferred.promise;
-		},
+		}
 	};
 
 };

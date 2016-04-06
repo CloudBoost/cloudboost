@@ -93,7 +93,7 @@ function _getFile(req, res) {
 
         if(typeof resizeWidth === 'undefined' && typeof resizeHeight === 'undefined' && typeof quality === 'undefined' && typeof opacity === 'undefined' && typeof scale === 'undefined' && typeof containWidth === 'undefined' && typeof containHeight === 'undefined' && typeof rDegs === 'undefined' && typeof bSigma === 'undefined' && typeof cropX === 'undefined' && typeof cropY === 'undefined' && typeof cropW && typeof cropH === 'undefined' ){
                    
-            var fileStream=global.fileService.getFileStreamById(appId,file._id);
+            var fileStream=global.mongoService.document.getFileStreamById(appId,file._id);
 
             res.set('Content-Type', file.contentType);
             res.set('Content-Disposition', 'attachment; filename="' + file.filename + '"');            

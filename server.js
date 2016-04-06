@@ -5,7 +5,7 @@ var fs = require('fs');
 var busboyBodyParser = require('busboy-body-parser');
 var q = require("q");
 var _ = require('underscore');
-var sticky = require('socketio-sticky-session');
+
 
 global.mongoDisconnected = false;
 global.elasticDisconnected = false;
@@ -31,9 +31,6 @@ var cookies = require("cookies");
 var session = require('express-session');
 global.app = global.express();
 
-require('./database-connect/cors.js')(); //cors!
-var io = require('socket.io')();
-
 var http = null;
 var https = null;
 try{
@@ -43,13 +40,8 @@ try{
     var httpsOptions = {
      key: fs.readFileSync('./config/key.key'),
      cert: fs.readFileSync('./config/cert.crt')
-    };  
-
-    https = sticky(function() {
-      var server=require('https').Server(httpsOptions, global.app);
-      io.attach(server);
-      return server;
-    });
+    };    
+    https = require('https').Server(httpsOptions, global.app);
  
   }
 }catch(e){
@@ -57,11 +49,16 @@ try{
   console.log("Switching ONLY to HTTP...");
 }
 
-http = sticky(function() {
-  var server=require('http').createServer(global.app);
-  io.attach(server);
-  return server;
-});
+http = require('http').createServer(global.app);
+
+require('./database-connect/cors.js')(); //cors!
+var io = require('socket.io')();
+
+if(https){
+  io.attach(https);
+}else{
+  io.attach(http);
+}
 
 var multer = require('multer');
 var Redis = require('ioredis');
@@ -252,16 +249,16 @@ function attachServices() {
         //loading services.
         global.elasticSearchService = require('./databases/elasticSearch.js')();
         global.mongoService = require('./databases/mongo.js')();
-        global.customService = require('./services/custom.js')();
-        global.userService = require('./services/user.js')();
-        global.roleService = require('./services/role.js')();
+        global.customService = require('./services/cloudObjects.js')();
+        global.userService = require('./services/cloudUser.js')();
+        global.roleService = require('./services/cloudRole.js')();
         global.appService = require('./services/app.js')();
-        global.queueService = require('./services/queue.js')();
-        global.fileService = require('./services/file.js')();
-        global.cacheService = require('./services/cache.js')();
+        global.queueService = require('./services/cloudQueue.js')();
+        global.fileService = require('./services/cloudFiles.js')();
+        global.cacheService = require('./services/cloudCache.js')();
         global.serverService = require('./services/server.js')();
         global.mailService = require('./services/mail.js')();
-        global.pushService = require('./services/push.js')();        
+        global.pushService = require('./services/cloudPush.js')();        
         
         console.log('+++++++++++ Services Status : OK. ++++++++++++++++++');
     }catch(e){
@@ -282,15 +279,16 @@ function attachAPI() {
             return;
         }
     
-        require('./api/tables/Custom.js')();
-        require('./api/tables/User.js')();
-        require('./api/tables/Role.js')();        
+        require('./api/tables/CloudObjects.js')();
+        require('./api/tables/CloudUser.js')();
+        require('./api/tables/CloudRole.js')();        
         require('./api/app/App.js')();
-        require('./api/file/File.js')();
-        require('./api/queue/Queue.js')();
-        require('./api/cache/Cache.js')();
+        require('./api/app/AppSettings.js')();
+        require('./api/file/CloudFiles.js')();
+        require('./api/queue/CloudQueue.js')();
+        require('./api/cache/CloudCache.js')();
         require('./api/server/Server.js')();
-        require('./api/pushNotifications/Push.js')();
+        require('./api/pushNotifications/CloudPush.js')();
 
         global.app.use(expressWinston.errorLogger({
           transports: [   

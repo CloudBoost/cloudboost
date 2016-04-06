@@ -36,7 +36,7 @@ module.exports = function() {
                         fileObj._version = fileObj._version+1;
                     }
 
-                    promises.push(_saveFileStream(appId,fileStream,fileObj._id,contentType));
+                    promises.push(global.mongoService.document.saveFileStream(appId,fileStream,fileObj._id,contentType));
                     promises.push(_saveFileObj(appId,fileObj));
                     global.q.all(promises).then(function(array){
                         deferred.resolve(array[1]);
@@ -75,7 +75,7 @@ module.exports = function() {
                 var promises = [];
 
                 _checkWriteACL(appId,collectionName,fileObj._id,accessList,isMasterKey).then(function(){
-                    promises.push(_deleteFileFromGridFs(appId,fileObj._id));
+                    promises.push(global.mongoService.document.deleteFileFromGridFs(appId,fileObj._id));
                     promises.push(_deleteFileObj(appId,fileObj));
 
                     global.q.all(promises).then(function(){
@@ -109,7 +109,7 @@ module.exports = function() {
                 var promises = [];
     			_readFileACL(appId,collectionName,filename.split('.')[0],accessList,isMasterKey).then(function(allowRead){
                     console.log("Read Access Allowed.");
-                    _getFile(appId,filename.split('.')[0]).then(function(res){
+                    global.mongoService.document.getFile(appId,filename.split('.')[0]).then(function(res){
                         deferred.resolve(res);
                     },function(err){
                        deferred.reject(err);
@@ -139,59 +139,9 @@ module.exports = function() {
             }
             return deferred.promise;
         },
-
-        /*Desc   : get fileStream from gridFs
-          Params : appId,gridFsFileId
-          Returns: fileStream
-        */
-        getFileStreamById: function(appId,fileId){
-            try{
-                var gfs = Grid(global.mongoClient.db(appId), require('mongodb'));
-
-                var readstream = gfs.createReadStream({
-                  _id: fileId
-                });
-
-                return readstream;
-
-            } catch(err){           
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
-                return null;
-            }
-        },
+      
 	};
 };
-
-/*Desc   : get File from gridFs
-  Params : appId,fileName(without extension)
-  Returns: Promise
-           Resolve->gridFsFileObject
-           Reject->Error on retrieving file or file not found(null)
-*/
-function _getFile(appId,filename){
-
-    var deferred = global.q.defer();
-
-    try{
-        var gfs = Grid(global.mongoClient.db(appId), require('mongodb'));
-
-        gfs.findOne({filename: filename},function (err, file) {
-            if (err){           
-                return deferred.reject(err);
-            }    
-            if(!file){
-                return deferred.reject(null);                    
-            }  
-
-            return deferred.resolve(file);  
-        });
-    } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
-        deferred.reject(err);
-    }
-
-    return deferred.promise;
-}
 
 /*Desc   : Save cloudBoostFileObject
   Params : appId,cloudBoostFileObject
@@ -246,91 +196,6 @@ function _deleteFileObj(appId,document){
     return deferred.promise;
 }
 
-/*Desc   : Save FileStream to GridFs
-  Params : appId,fileStream,fileName,fileContentType
-  Returns: Promise
-           Resolve->saved GridFsFileObject
-           Reject->Error on error writing file to gridfs
-*/
-function _saveFileStream(appId,fileStream,fileName,contentType){
-
-    var deferred = global.q.defer();
-
-    try{
-        var gfs = Grid(global.mongoClient.db(appId), require('mongodb'));
-
-        //streaming to gridfs    
-        var writestream = gfs.createWriteStream({
-            filename: fileName,
-            mode: 'w',
-            content_type:contentType
-        });
-
-        fileStream.pipe(writestream);     
-        
-        writestream.on('close', function (file) {               
-            deferred.resolve(file);        
-            console.log("Successfully saved in gridfs");
-        });
-
-        writestream.on('error', function (error) {           
-            deferred.reject(error);
-            writestream.destroy();
-            console.log("Failed to saved in gridfs");
-        });
-
-    } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
-        deferred.reject(err);
-    } 
-
-    return deferred.promise;
-}
-
-
-/*Desc   : delete file from GridFs
-  Params : appId,fileName(without extension)
-  Returns: Promise
-           Resolve->true(deleted)
-           Reject->Error on file existence or file doesn't exist or unable to delete
-*/
-function _deleteFileFromGridFs(appId,filename){
-    var deferred = global.q.defer(); 
-
-    try{
-        var gfs = Grid(global.mongoClient.db(appId), require('mongodb'));
-
-        //File existence checking
-        gfs.exist({filename: filename}, function (err, found) {
-          if (err){
-            //Error while checking file existence
-            deferred.reject(err);
-          }
-          if(found){       
-            gfs.remove({filename: filename},function (err) {
-                if (err){
-                    deferred.reject(err);
-                    //unable to delete     
-                }else{
-                    deferred.resolve(true);
-                    //deleted
-                }                            
-                
-                return deferred.resolve("Success");  
-            });
-          }else{
-            //file does not exists
-            deferred.reject("file does not exists");
-          }
-        });
-
-    } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
-        deferred.reject(err);
-    }
-    
-    return deferred.promise;
-}
 
 function _checkWriteACL(appId,collectionName,fileId,accessList,isMasterKey){
     var deferred = global.q.defer();

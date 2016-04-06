@@ -190,7 +190,7 @@ module.exports = function() {
 				//Get the role
 				global.customService.find(appId, Collections.Role, {_id: roleId}, null, null, 1,0, accessList,isMasterKey).then(function(role) {
 	                
-	                if (role.length && role.length>0) { 
+	                if (role && role.length>0) { 
 	                    role = role[0];
 	                }
 	                
@@ -212,15 +212,32 @@ module.exports = function() {
 							deferred.reject('User not found.');
 							return;
 						} else {
+							user._id=user._id.toString();
+
 							//check if user is already in role. 
 							if (!user.roles) {
 								user.roles = [];
 							}
-	                        user._id=user._id.toString();
-							if (user.roles.indexOf(roleId) === -1) { //does not belong to this role. 
+
+							var userRoleIds=[];
+
+							if(user.roles && user.roles.length>0){
+								for(var i=0;i<user.roles.length;++i){
+									userRoleIds.push(user.roles[i]._id);
+								}
+							}
+	                        
+							if (userRoleIds.indexOf(roleId) === -1) { //does not belong to this role. 
 								//add role to the user and save it in DB
 	                            role._id=role._id.toString();
 								user.roles.push(role);
+
+								user._isModified=true;
+								if(!user._modifiedColumns){
+									user._modifiedColumns=[];
+								}
+								user._modifiedColumns.push("roles");								
+
 								global.customService.save(appId, Collections.User, user, accessList).then(function(user) {
 									deferred.resolve(user);
 								}, function(error) {
@@ -257,6 +274,11 @@ module.exports = function() {
 					}
 					//get the user. 
 					global.customService.find(appId, Collections.User, { _id: userId }, null, null, 1, 0, accessList, isMasterKey).then(function(user) {
+						
+						if (user && user.length > 0) {
+	                        user = user[0];
+	                    }
+
 						if (!user) {
 							deferred.reject('User not found.');
 							return;
@@ -265,9 +287,24 @@ module.exports = function() {
 							if (!user.roles) {
 								user.roles = [];
 							}
-							if (user.roles.indexOf(roleId) > -1) { //the role is present with the user
-								user.roles.splice(user.roles.indexOf(roleId), 1); //remove role from the user. 
-								global.customService.save(appId, Collections.User, user).then(function(user) {
+							var userRoleIds=[];
+
+							if(user.roles && user.roles.length>0){
+								for(var i=0;i<user.roles.length;++i){
+									userRoleIds.push(user.roles[i]._id);
+								}
+							}
+
+							if (userRoleIds.indexOf(roleId) > -1) { //the role is present with the user
+								user.roles.splice(userRoleIds.indexOf(roleId), 1); //remove role from the user. 
+
+								user._isModified=true;
+								if(!user._modifiedColumns){
+									user._modifiedColumns=[];
+								}
+								user._modifiedColumns.push("roles");
+
+								global.customService.save(appId, Collections.User, user, accessList).then(function(user) {
 									deferred.resolve(user);
 								}, function(error) {
 									deferred.reject(error);
