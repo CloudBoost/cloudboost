@@ -276,7 +276,7 @@ function attachServices() {
 }
 
 
-//Attach API's
+//Attach all API's
 function attachAPI() {
 
     try{        
