@@ -101,14 +101,14 @@ app.use(bodyParser.json());
 app.use(busboyBodyParser());
 
 global.app.use(function(req, res, next){
-    if (req.is('text/*')) {
-        req.text = '';
-        req.setEncoding('utf8');
-        req.on('data', function(chunk){ req.text += chunk });
-        req.on('end', next);
-    } else {
-        next();
-    }
+  if (req.is('text/*')) {
+    req.text = '';
+    req.setEncoding('utf8');
+    req.on('data', function(chunk){ req.text += chunk });
+    req.on('end', next);
+  } else {
+    next();
+  }
 });
 
 //This middleware converts text to JSON.
