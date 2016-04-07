@@ -1,0 +1,243 @@
+    .flex-general-row-wrapper{
+       /* Flex row rules */
+        display: flex;
+        display:-webkit-flex;
+        display:-moz-flex;    
+        
+        flex-flow:row wrap;
+        -moz-flex-flow:row wrap;
+        -webkit-flex-flow:row wrap;
+
+        justify-content:flex-start;
+        -moz-justify-content: flex-start;
+        -webkit-justify-content: flex-start;
+
+        align-items:flex-start;  
+        -moz-align-items: flex-start;  
+        -webkit-align-items:flex-start;    
+    }
+
+    .flex-general-column-wrapper{
+       /* Flex column rules */
+        display: flex;
+        display:-webkit-flex;
+        display:-moz-flex;    
+        
+        flex-flow:column  wrap;
+        -moz-flex-flow:column  wrap;
+        -webkit-flex-flow:column wrap;
+
+        justify-content:flex-start;
+        -moz-justify-content: flex-start;
+        -webkit-justify-content: flex-start;
+
+        align-items:flex-start;  
+        -moz-align-items: flex-start;  
+        -webkit-align-items:flex-start;    
+    }
+
+    .flex-general-row-wrapper-center{
+       /* Flex row rules */
+        display: flex;
+        display:-webkit-flex;
+        display:-moz-flex;    
+        
+        flex-flow:row wrap;
+        -moz-flex-flow:row wrap;
+        -webkit-flex-flow:row wrap;
+
+        justify-content:center;
+        -moz-justify-content: center;
+        -webkit-justify-content: center;
+
+        align-items:center;  
+        -moz-align-items: center;  
+        -webkit-align-items:center;    
+    }
+
+    .flex-general-column-wrapper-center{
+       /* Flex row rules */
+        display: flex;
+        display:-webkit-flex;
+        display:-moz-flex;    
+        
+        flex-flow:column wrap;
+        -moz-flex-flow:column wrap;
+        -webkit-flex-flow:column wrap;
+
+        justify-content:center;
+        -moz-justify-content: center;
+        -webkit-justify-content: center;
+
+        align-items:center;  
+        -moz-align-items: center;  
+        -webkit-align-items:center;    
+    }
+
+    .flex-equal-ratio-items{
+      flex:1;
+      -moz-flex:1;
+      -webkit-flex:1;
+    }
+    .solo-vertical-center{
+       /* Flex row rules */
+        display: flex;
+        display:-webkit-flex;
+        display:-moz-flex;    
+        
+        flex-flow:row wrap;
+        -moz-flex-flow:row wrap;
+        -webkit-flex-flow:row wrap;
+
+        justify-content:flex-start;
+        -moz-justify-content: flex-start;
+        -webkit-justify-content: flex-start;
+
+        align-items:center;  
+        -moz-align-items: center;  
+        -webkit-align-items:center;    
+    }
+
+    .solo-horizontal-center{
+       /* Flex row rules */
+        display: flex;
+        display:-webkit-flex;
+        display:-moz-flex;    
+        
+        flex-flow:row wrap;
+        -moz-flex-flow:row wrap;
+        -webkit-flex-flow:row wrap;
+
+        justify-content:center;
+        -moz-justify-content:center;
+        -webkit-justify-content:center;
+
+        align-items:flex-start;  
+        -moz-align-items:flex-start;  
+        -webkit-align-items:flex-start;    
+    }
+    .default-inputfield{
+        border:none;
+    }
+    .default-inputfield:focus{
+        outline: none;
+    }
+
+    .cf:before, .cf:after { content: ""; display: table; }
+    .cf:after { clear: both; }
+    .cf { zoom: 1; }
+
+
+    .wrapper{    		
+    	background-color: #eef0f3;
+        width: 100vw;
+        height: 100vh;
+    }
+    .login-btn{
+        border-top-left-radius:3px; 
+        border-bottom-left-radius:3px; 
+        width:100px;
+        height:30px;
+        color:#5c666f;
+        background-color: white;
+        border: 1px solid #5c666f;
+    } 
+    .sinup-btn{
+        border-top-right-radius:3px; 
+        border-bottom-right-radius:3px;
+        width:100px;
+        height:30px;
+        color:#5c666f; 
+        background-color: white; 
+        border: 1px solid #5c666f;      
+    }
+    .btn-active{
+        background-color: #5c666f;
+        color:white;
+    }
+    .social-btns{
+        width: 40px;
+        height: 40px;        
+        margin-left: 10px;
+        margin-top: 15px;
+        border-radius: 3px;
+        cursor: pointer;
+    }
+    .social-btns:first-child{
+        margin-left:0px;
+    }
+    .input-field{
+        width: 100%;
+        border:1px solid #f1f1f1;
+        margin-top: 10px;
+    }
+    .input-field:first-child{
+        margin-top: 0px;
+    }
+
+    .input-field-error{
+        border:1px solid red;
+        animation: zoominout 0.5s both ease 0.1s;        
+    }
+    
+    .loader-circle{
+        width: 50px;
+        height: 50px;
+        border:2px solid #E0E0E0;
+        border-radius: 25px; 
+        border-top-color:gray;              
+    }
+
+    .advanced {        
+        animation-name: spin; 
+        animation-duration: 1s; /* 1 seconds */
+        animation-iteration-count: infinite; 
+        animation-timing-function: linear;
+    }
+
+    .final-btn{
+        background-color: blue;
+        padding: 15px;
+        cursor: pointer;
+    }
+    .final-btn:hover{
+        background-color: red;       
+    }
+    .facebook{
+        background-color: #4863ae;
+        color:white;
+        font-size: 18px;
+    }
+    .twitter{
+        background-color: #46c0fb;
+        color:white;
+        font-size: 18px;
+    }
+    .github{
+        background-color: #eeeeee;
+        color:black;
+        font-size: 18px;
+    }
+    .google{
+        background-color: #4285f4;
+        color:white;
+        font-size: 18px;
+    }
+
+    /*KEY FRAMES*/
+    @keyframes zoominout {     
+
+        0% {
+            transform:scale(1,1);
+        }
+        50% {
+            transform:scale(1.1,1.1);
+        }
+        100% {      
+           transform:scale(1,1);
+        }
+    }
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }    

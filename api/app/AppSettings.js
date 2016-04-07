@@ -2,6 +2,7 @@ var q = require("q");
 var fs = require('fs');
 var util = require("../../helpers/util.js");
 var Stream = require('stream');
+var _ = require('underscore');
 
 
 module.exports = function() {
@@ -148,10 +149,19 @@ module.exports = function() {
             thisUri=resultList[3];
 
             var fileName=util.getId();
+            if(category=="general"){
+                fileName=appId;
+            }    
             return global.mongoService.document.saveFileStream(appId,resultList[0].fileStream,fileName,resultList[0].contentType);            
         
         }).then(function(savedFile){
-            var fileUri=thisUri+'/settings/'+appId+'/file/'+savedFile.filename;
+            var fileUri=null;
+
+            fileUri=thisUri+'/settings/'+appId+'/file/'+savedFile.filename;
+            if(category=="general"){
+                fileUri=thisUri+'/appfile/'+appId+'/icon';
+            }    
+            
             return res.status(200).send(fileUri);
         },function(error){
             return res.status(500).send(error);

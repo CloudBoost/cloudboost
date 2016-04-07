@@ -11,7 +11,6 @@ var Grid = require('gridfs-stream');
 
 var gcm = require('node-gcm');
 var apn = require('apn');
-var mpns = require('mpns');
 var wns = require('wns');
 
 module.exports = function() {
@@ -103,8 +102,7 @@ module.exports = function() {
 
 						var appleTokens =[];
 		            	var googleTokens =[];
-		            	var windowsPhoneUris=[];
-		            	var windowsDesktopUris=[];
+		            	var windowsUris=[];		            	
 
 		            	for(var i=0;i<deviceObjects.length;++i){
 
@@ -114,12 +112,9 @@ module.exports = function() {
 		            		if(deviceObjects[i].deviceOS=="android"){
 		            			googleTokens.push(deviceObjects[i].deviceToken);
 		            		}
-		            		if(deviceObjects[i].deviceOS=="windowsPhone"){
-		            			windowsPhoneUris.push(deviceObjects[i].deviceToken);
-		            		}
-		            		if(deviceObjects[i].deviceOS=="windowsApp"){
-		            			windowsDesktopUris.push(deviceObjects[i].deviceToken);
-		            		}
+		            		if(deviceObjects[i].deviceOS=="windows"){
+		            			windowsUris.push(deviceObjects[i].deviceToken);
+		            		}		            		
 		            	}	            	   		
 	            		
 
@@ -135,13 +130,10 @@ module.exports = function() {
 		            	}
 
 		            	var windows=pushNotificationSettings.windows.credentials[0];
-		            	if(windowsPhoneUris && windowsPhoneUris.length>0 && windows.securityId){
-		            		promises.push(_windowsPhonePush(windows.securityId,windows.clientSecret,windowsPhoneUris,pushData));
-		            	}
+		            	if(windowsUris && windowsUris.length>0 && windows.securityId){
+		            		promises.push(_windowsPush(windows.securityId,windows.clientSecret,windowsUris,pushData));
+		            	}	            	
 		            	
-		            	if(windowsDesktopUris && windowsDesktopUris.length>0 && windows.securityId){
-		            		promises.push(_windowsDesktopPush(windows.securityId,windows.clientSecret,windowsDesktopUris,pushData));
-		            	}
 
 		            	//Promise List
 		            	q.allSettled(promises).then(function(resultList){
@@ -350,58 +342,75 @@ function _googlePush(devicesTokens,senderId,apiKey,data){
     return defer.promise;
 }
 
-/*Desc   : send WindowsPhone push notification
-  Params : securityId,clientSecret,pushUris,data
+/*Desc   : Loop over pushUris Array and send Windows push notifications
+  Params : securityId,clientSecret,pushUriArray,data
   Returns: Promise
-           Resolve->Success
-           Reject->Fail to send
+           Resolve->Successfully resolved array if atleast one if fullfilled
+           Reject->Rejected array if all failed to send
 */
-function _windowsPhonePush(securityId,clientSecret,pushUris,data){
-    var defer = global.q.defer();   
-   
-   	try{
-	    mpns.sendToast(pushUris, data.title, data.message, function(err, res){
-	    	var respObj={};
-	    	respObj.category="WindowsPhone Push Notifications";
+function _windowsPush(securityId,clientSecret,pushUris,data){
+	var defer = global.q.defer();	 
 
-	        if(err){	        	
-	        	respObj.response=err;	        	
-		    	defer.reject(respObj);	            
-	        }else{	        	
-	        	respObj.response=res;
-	            defer.resolve(respObj);
-	        }
-	    }); 
+    try{
+		 
+		var respObj={};
+		respObj.category="Windows Push Notifications";
+			 
+    	var promises=[];
 
-    } catch(err){           
+    	for(var i=0;i<pushUris.length;++i){
+    		promises.push(_sendWindowsPushNotification(securityId,clientSecret,pushUris[i],data));
+    	}
+    	
+        //Promise List
+    	q.allSettled(promises).then(function(resultList){
+
+    		var resFulfilled=[];
+    		var resRejected=[];
+    		resultList.forEach(function (eachResult) {
+		        if (eachResult.state === "fulfilled") {
+		            resFulfilled.push(eachResult.value);
+		        } else {
+		            resRejected.push(eachResult.reason);
+		        }
+		    });		    
+
+    		//Check atleast one is fulfilled	            		
+    		if(resFulfilled && resFulfilled.length>0){
+    			respObj.response=resFulfilled;
+    			defer.resolve(respObj);
+    		}else{
+    			respObj.response=resRejected;
+    			defer.reject(respObj);
+    		}
+    		
+    	}); 
+
+	} catch(err){           
         global.winston.log('error',{"error":String(err),"stack": new Error().stack});
         defer.reject(err);
-    }      
-   
+    } 
+    
     return defer.promise;
 }
 
-/*Desc   : send WindowsDesktop push notification
-  Params : securityId,clientSecret,pushUris,data
+/*Desc   : Send Windows push notification
+  Params : securityId,clientSecret,pushUri,data
   Returns: Promise
            Resolve->Success
            Reject->Fail to send
 */
-function _windowsDesktopPush(securityId,clientSecret,pushUris,data){
+function _sendWindowsPushNotification(securityId,clientSecret,pushUri,data){
 
     var defer = global.q.defer();	 
 
     try{
-		wns.sendToast(pushUris, data.message, {client_id:securityId,client_secret:clientSecret}, function(err, res){
-			var respObj={};
-			respObj.category="WindowsDesktop Push Notifications";
+		wns.send(pushUri, data.message, "wns/toast", {client_id:securityId,client_secret:clientSecret}, function(err, res){			
 
-		    if(err){		    	
-	        	respObj.response=err;
-		        defer.reject(respObj);
-		    }else{		    	
-	        	respObj.response=res;
-		    	defer.resolve(respObj);		        
+		    if(err){	        	
+		        defer.reject(err);
+		    }else{        	
+		    	defer.resolve(res);		        
 		    }
 		}); 
 

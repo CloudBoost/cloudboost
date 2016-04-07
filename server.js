@@ -2,9 +2,12 @@ global.express = require('express');
 global.request = require('request');
 var pjson = require('./package.json');
 var fs = require('fs');
+global.rootPath = require('app-root-path');
 var busboyBodyParser = require('busboy-body-parser');
 var q = require("q");
 var _ = require('underscore');
+var path = require('path');
+var ejs = require('ejs');
 
 
 global.mongoDisconnected = false;
@@ -30,6 +33,10 @@ var bodyParser = require('body-parser');
 var cookies = require("cookies");
 var session = require('express-session');
 global.app = global.express();
+
+//For pages in cloudboost
+global.app.set('view engine', 'ejs');
+global.app.use(global.express.static(path.join(__dirname, 'page-templates/assets')));
 
 var http = null;
 var https = null;
@@ -258,7 +265,7 @@ function attachServices() {
         global.cacheService = require('./services/cloudCache.js')();
         global.serverService = require('./services/server.js')();
         global.mailService = require('./services/mail.js')();
-        global.pushService = require('./services/cloudPush.js')();        
+        global.pushService = require('./services/cloudPush.js')();                 
         
         console.log('+++++++++++ Services Status : OK. ++++++++++++++++++');
     }catch(e){
@@ -284,11 +291,13 @@ function attachAPI() {
         require('./api/tables/CloudRole.js')();        
         require('./api/app/App.js')();
         require('./api/app/AppSettings.js')();
+        require('./api/app/AppFiles.js')();
         require('./api/file/CloudFiles.js')();
         require('./api/queue/CloudQueue.js')();
         require('./api/cache/CloudCache.js')();
         require('./api/server/Server.js')();
         require('./api/pushNotifications/CloudPush.js')();
+        require('./api/pages/Page.js')();
 
         global.app.use(expressWinston.errorLogger({
           transports: [   
