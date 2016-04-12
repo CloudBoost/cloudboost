@@ -203,6 +203,16 @@
     .final-btn:hover{
         background-color: red;       
     }
+
+    .resetpwd-final-btn{
+        background-color: blue;
+        padding: 15px;
+        cursor: pointer;
+    }
+    .resetpwd-final-btn:hover{
+        background-color: red;       
+    }
+    
     .facebook{
         background-color: #4863ae;
         color:white;

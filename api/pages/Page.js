@@ -1,6 +1,7 @@
 var _ = require('underscore');
 var customHelper = require('../../helpers/custom.js');
 var fs = require('fs');
+var q = require('q');
 
 module.exports = function() {
     
@@ -57,9 +58,17 @@ module.exports = function() {
         var appId = req.params.appId || null;      
         var sdk = req.body.sdk || "REST";     
         
-        global.appService.getAllSettings(appId).then(function(appSettingsObject){
-        
-            console.log(appSettingsObject);
+        var promises=[];
+        promises.push(global.appService.getApp(appId));
+        promises.push(global.appService.getAllSettings(appId));        
+
+        q.all(promises).then(function(list){            
+
+            var appKeys={};
+            appKeys.appId=appId;
+
+            appKeys.masterKey=list[0].keys.master;
+            var appSettingsObject=list[1];
 
             var general=_.first(_.where(appSettingsObject, {category: "general"}));
             var auth=_.first(_.where(appSettingsObject, {category: "auth"}));
@@ -74,6 +83,7 @@ module.exports = function() {
             }
 
             res.render(global.rootPath+'/page-templates/user/login',{
+                appKeys:appKeys,
                 generalSettings: generalSettings,
                 authSettings: authSettings,                       
             });
