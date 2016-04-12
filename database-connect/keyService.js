@@ -170,7 +170,7 @@ module.exports = {
         }
     },
 
-        getMyUrl : function () { 
+    getMyUrl : function () { 
 
                 var deferred = q.defer();
                 

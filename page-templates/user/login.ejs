@@ -7,6 +7,12 @@
     <link rel="stylesheet" href="http://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
     <link rel="stylesheet" href="/css/login.css">   
      
+    <!--IMPORTANT:Bind data from server to javascript variables-->
+    <script type="text/javascript">  
+        var _appKeys=<%- JSON.stringify(appKeys) %>;       
+        var _generalSettings=<%- JSON.stringify(generalSettings) %>; 
+        var _authSettings=<%- JSON.stringify(authSettings) %>;       
+    </script>        
 </head>
 <body>
 
@@ -80,7 +86,7 @@
                             <div class="solo-horizontal-center" style="width: 98%;">
                                 <!--facebook-->
                                 <% if(authSettings.facebook.enabled){ %>
-                                <div class="social-btns facebook flex-general-column-wrapper-center">
+                                <div id="facebook-login-btn" class="social-btns facebook flex-general-column-wrapper-center">
                                     <i class="fa fa-facebook"></i>
                                 </div>
                                 <%}%>
@@ -94,7 +100,7 @@
 
                                 <!--google-->
                                 <% if(authSettings.google.enabled){ %>
-                                <div  class="social-btns google flex-general-column-wrapper-center">
+                                <div  id="google-login-btn" class="social-btns google flex-general-column-wrapper-center">
                                     <i class="fa fa-google"></i>
                                 </div>
                                 <%}%>
@@ -117,12 +123,12 @@
                         <!--Login Input Fields-->
                         <div id="login-inputfields" style="width: 100%;margin-top: 8px;" class="solo-horizontal-center">                                        
                             <div style="width: 95%;">
-                                <div id="login-email-wrap" class="flex-general-row-wrapper input-field" style="">
+                                <div id="login-username-wrap" class="flex-general-row-wrapper input-field" style="">
                                     <div class="flex-general-column-wrapper-center" style="width:13%; height: 35px;background-color:#f1f1f1;">
-                                        <i class="icon ion-ios-email-outline" style="color:gray;font-size: 22px;"></i>
+                                        <i class="icon ion-ios-person" style="color:gray;font-size: 22px;"></i>
                                     </div>
                                     <div style="width:86.98%; height: 35px;">
-                                        <input id="login-email" type="text" placeholder="Email" class="default-inputfield" required style="width: 100%;height: 100%;padding-left: 12px;">
+                                        <input id="login-username" type="text" placeholder="Username" class="default-inputfield" required style="width: 100%;height: 100%;padding-left: 12px;">
                                     </div>
                                 </div>
 
@@ -141,14 +147,14 @@
                         <!--Signup Input Fields-->
                         <div id="signup-inputfields" style="width: 100%;margin-top: 8px;" class="solo-horizontal-center">                                        
                             <div style="width: 95%;">
-                                <div id="signup-email-wrap" class="flex-general-row-wrapper input-field" style="">
+                                <div id="signup-username-wrap" class="flex-general-row-wrapper input-field" style="">
                                     <div class="flex-general-column-wrapper-center" style="width:13%; height: 35px;background-color:#f1f1f1;">
-                                        <i class="icon ion-ios-email-outline" style="color:gray;font-size: 22px;"></i>
+                                        <i class="icon ion-ios-person" style="color:gray;font-size: 22px;"></i>
                                     </div>
                                     <div style="width:86.98%; height: 35px;">
-                                        <input id="signup-email" type="text" placeholder="Enter Email" class="default-inputfield" required style="width: 100%;height: 100%;padding-left: 12px;">
+                                        <input id="signup-username" type="text" placeholder="Enter Username" class="default-inputfield" required style="width: 100%;height: 100%;padding-left: 12px;">
                                     </div>
-                                </div>
+                                </div>                                
 
                                 <div id="signup-password-wrap"  class="flex-general-row-wrapper input-field" style="">
                                     <div class="flex-general-column-wrapper-center" style="width:13%; height: 35px;background-color:#f1f1f1;">
@@ -156,6 +162,15 @@
                                     </div>
                                     <div style="width:86.98%; height: 35px;">
                                         <input id="signup-password" type="password" placeholder="Create a Password" class="default-inputfield" required style="width: 100%;height: 100%;padding-left: 12px;">
+                                    </div>
+                                </div>
+
+                                <div id="signup-email-wrap" class="flex-general-row-wrapper input-field" style="">
+                                    <div class="flex-general-column-wrapper-center" style="width:13%; height: 35px;background-color:#f1f1f1;">
+                                        <i class="icon ion-ios-email-outline" style="color:gray;font-size: 22px;"></i>
+                                    </div>
+                                    <div style="width:86.98%; height: 35px;">
+                                        <input id="signup-email" type="text" placeholder="Enter Email" class="default-inputfield" required style="width: 100%;height: 100%;padding-left: 12px;">
                                     </div>
                                 </div>
                             </div>                                        
@@ -194,7 +209,7 @@
                 <!--Header-->
                 <div style="width:100%;height:117px;background-color:#dddddd;padding:15px;">
 
-                    <div style="width: 30px;height: 30px;position: absolute;">
+                    <div id="goback-btn" style="width: 30px;height: 30px;position: absolute;">
                         <div id="goback-to-authenticate-card" class="flex-general-column-wrapper-center" style="width:100%;height:100%; border-radius: 25px;background-color: white;cursor: pointer;">
                             <i class="icon ion-ios-arrow-left" style="color:black;font-size:20px;"></i>
                             
@@ -223,7 +238,9 @@
                 <!--Main Body Spinner-->
                 <div id="forgetpassword-spinner" style="width: 100%;height: 360px;background-color: white;" class="flex-general-column-wrapper-center">
                     <div style="width: 60px;height: 60px;" class="flex-general-column-wrapper-center">
-                        <div style="" class="loader-circle advanced flex-general-column-wrapper-center">                        
+                        <div id="req-spinner" style="" class="loader-circle advanced flex-general-column-wrapper-center">       
+                        </div>
+                        <div id="req-response" style="color:gray;" class="flex-general-column-wrapper-center">                   
                         </div>                       
                     </div>
                 </div>
@@ -254,12 +271,12 @@
                         <!--Input Fields-->
                         <div style="width: 100%;margin-top: 8px;" class="solo-horizontal-center">                                        
                             <div style="width: 95%;">
-                                <div class="flex-general-row-wrapper input-field" style="">
+                                <div id="forgot-email-wrap" class="flex-general-row-wrapper input-field" style="">
                                     <div class="flex-general-column-wrapper-center" style="width:13%; height: 35px;background-color:#f1f1f1;">
                                         <i class="icon ion-ios-email-outline" style="color:gray;font-size: 22px;"></i>
                                     </div>
                                     <div style="width:86.98%; height: 35px;">
-                                        <input type="text" placeholder="Enter Email" class="default-inputfield" required style="width: 100%;height: 100%;padding-left: 12px;">
+                                        <input id="forgot-email" type="text" placeholder="Enter Email" class="default-inputfield" required style="width: 100%;height: 100%;padding-left: 12px;">
                                     </div>
                                 </div>                                           
                             </div>                                        
@@ -269,7 +286,7 @@
                     <!--Body-->
 
                     <!--Button-->
-                    <div class="final-btn" style="margin-top: 8px;">
+                    <div class="resetpwd-final-btn" style="margin-top: 8px;">
                        <div style="width: 100%;height: 30px;" class="flex-general-column-wrapper-center">
                             <span style="color:white;font-size: 34px;">
                                 <i class="icon ion-log-in"></i>
@@ -299,25 +316,153 @@
 </body>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+<script src="https://cloudboost.io/js-sdk/cloudboost.js"></script>
 <script>
+      window.fbAsyncInit = function() {
+        FB.init({
+          appId      : _authSettings.facebook.appId,
+          xfbml      : false,
+          version    : 'v2.5',
+          cookie     : true,
+          status     : true
+        });
+      };
+
+      (function(d, s, id){
+         var js, fjs = d.getElementsByTagName(s)[0];
+         if (d.getElementById(id)) {return;}
+         js = d.createElement(s); js.id = id;
+         js.src = "//connect.facebook.net/en_US/sdk.js";
+         fjs.parentNode.insertBefore(js, fjs);
+       }(document, 'script', 'facebook-jssdk'));
+</script>
+<!--<script src="https://apis.google.com/js/api:client.js"></script>-->
+<script>
+
+    /*var googleClientId=_authSettings.google.appId+'.apps.googleusercontent.com';
+    googleClientId=googleClientId.replace(/ /g,'');
+
+    var googleUser = {};
+    var startGoogleApp = function() {
+        gapi.load('auth2', function(){
+          // Retrieve the singleton for the GoogleAuth library and set up the client.
+          auth2 = gapi.auth2.init({
+            client_id: googleClientId,
+            cookiepolicy: 'single_host_origin',
+            // Request scopes in addition to 'profile' and 'email'
+            scope: _getGoogleScopeString()
+          });
+          attachGoogleSignin(document.getElementById('google-login-btn'));
+        });
+    };
+
+    function attachGoogleSignin(element) {    
+        auth2.attachClickHandler(element, {},
+        function(googleUser) {
+            googleUser=googleUser;
+            googleUser.getBasicProfile().getName();
+
+            //var googleOptions = new gapi.auth2.SigninOptionsBuilder({'scope': _getGoogleScopeString() });
+            //googleUser = auth2.currentUser.get();
+
+           //_getGoogleUserInfo(googleOptions);         
+        }, function(error) {
+          console.log(JSON.stringify(error, undefined, 2));
+        });
+    }    
+
+    function _getGoogleUserInfo(googleOptions){ 
+        googleUser.grant(googleOptions).then(function(success){
+          console.log(JSON.stringify({message: "success", value: success}));
+        },function(fail){
+          alert(JSON.stringify({message: "fail", value: fail}));
+        });
+    }
+
+    startGoogleApp();
+
+    function _getGoogleScopeString(){
+        return 'email https://www.googleapis.com/auth/calendar';
+    }*/
+
+</script>
+<script type="text/javascript">
+      
+      var clientId = _authSettings.google.appId;
+     
+      var apiKey = _authSettings.google.appSecret;
+      
+      var scopes = 'https://www.googleapis.com/auth/plus.me';
+      
+      function handleClientLoad() {
+        gapi.client.setApiKey(apiKey);
+        window.setTimeout(checkAuth,1);
+      }
+
+      function checkAuth() {
+        gapi.auth.authorize({client_id: clientId, scope: scopes, immediate: true}, handleAuthResult);
+      }
+      function handleAuthResult(authResult) {
+        var authorizeButton = document.getElementById('google-login-btn');
+        if (authResult && !authResult.error) {          
+          makeApiCall();
+        } else {          
+          authorizeButton.onclick = handleAuthClick;
+        }
+      }
+      function handleAuthClick(event) {
+        gapi.auth.authorize({client_id: clientId, scope: scopes, immediate: false}, handleAuthResult);
+        return false;
+      }
+      // Load the API and make an API call.  Display the results on the screen.
+      function makeApiCall() {
+        gapi.client.load('plus', 'v1', function() {
+          var request = gapi.client.plus.people.get({
+            'userId': 'me',
+            'fields':'aboutMe,displayName,birthday,currentLocation'
+          });
+          request.execute(function(resp) {           
+            console.log(resp);            
+          });
+        });
+      }
+</script>
+<script src="https://apis.google.com/js/client.js?onload=handleClientLoad"></script>
+<script>    
+    function _emailValidation(email){
+        var filter = /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
+
+        if (!filter.test(email)) {            
+            return false;
+        }
+
+        return true;
+    }
+
     var isLoginFields=true;
-    $(document).ready(function(){
-       $("#forgetpassword-card").hide();
-       $("#forgetpassword-error").hide();
-       $("#forgetpassword-spinner").hide();
+    $(document).ready(function(){         
 
-       $("#authenticate-error").hide();
-       $("#authenticate-spinner").hide();
+        //Init CloudBoost
+        CB.CloudApp.init("http://localhost:4730",_appKeys.appId, _appKeys.masterKey);
 
-       $(".login-btn").addClass("btn-active");
-       $("#signup-inputfields").hide();
-       isLoginFields=true;
+        $("#forgetpassword-card").hide();
+        $("#forgetpassword-error").hide();
+        $("#forgetpassword-spinner").hide();
+
+        $("#authenticate-error").hide();
+        $("#authenticate-spinner").hide();
+
+        $(".login-btn").addClass("btn-active");
+        $("#signup-inputfields").hide();
+        isLoginFields=true;
 
     });
 
     $("#forget-password").click(function(){ 
         $("#authenticate-card").hide();
-        $("#forgetpassword-card").show();          
+        $("#forgetpassword-card").show();
+        $("#req-response").text(""); 
+        $("#req-spinner").show();         
     });
 
     $("#goback-to-authenticate-card").click(function(){ 
@@ -326,10 +471,11 @@
     });
 
     $(".sinup-btn").click(function(){ 
-        $("#login-email-wrap").removeClass("input-field-error");
+        $("#login-username-wrap").removeClass("input-field-error");
         $("#login-password-wrap").removeClass("input-field-error");
-        $("#signup-email-wrap").removeClass("input-field-error");
+        $("#signup-username-wrap").removeClass("input-field-error");       
         $("#signup-password-wrap").removeClass("input-field-error");
+        $("#signup-email-wrap").removeClass("input-field-error");
 
         $(".login-btn").removeClass("btn-active");
         $(".sinup-btn").addClass("btn-active"); 
@@ -337,17 +483,18 @@
         $("#signup-inputfields").show();
         $("#login-inputfields").hide();
 
-        $("#authenticate-info").text("Or please enter your email and password");
+        $("#authenticate-info").text("Or Enter your username, password and email");
         $("#forget-password-block").hide(); 
 
         isLoginFields=false;
     });
 
     $(".login-btn").click(function(){
-        $("#login-email-wrap").removeClass("input-field-error");
-        $("#login-password-wrap").removeClass("input-field-error");
-        $("#signup-email-wrap").removeClass("input-field-error");
+        $("#login-username-wrap").removeClass("input-field-error");
+        $("#login-password-wrap").removeClass("input-field-error");        
+        $("#signup-username-wrap").removeClass("input-field-error"); 
         $("#signup-password-wrap").removeClass("input-field-error");
+        $("#signup-email-wrap").removeClass("input-field-error");
 
         $(".sinup-btn").removeClass("btn-active");
         $(".login-btn").addClass("btn-active"); 
@@ -368,22 +515,17 @@
 
         //Login
         if(isLoginFields){
-            $("#login-email-wrap").removeClass("input-field-error");
+            $("#login-username-wrap").removeClass("input-field-error");
             $("#login-password-wrap").removeClass("input-field-error");
 
-            var loginEmail=$("#login-email").val();
+            var loginUsername=$("#login-username").val();
             var loginPassword=$("#login-password").val();
             var validationsPassed=true;
 
-            if(!loginEmail){
-                $("#login-email-wrap").addClass("input-field-error");
+            if(!loginUsername){
+                $("#login-username-wrap").addClass("input-field-error");
                 validationsPassed=false;                
-            }
-
-            if(loginEmail && !_emailValidation(loginEmail)){
-                $("#login-email-wrap").addClass("input-field-error");
-                validationsPassed=false;                
-            }
+            }            
 
             if(!loginPassword){
                 $("#login-password-wrap").addClass("input-field-error");
@@ -396,15 +538,25 @@
                 $("#authenticate-mainbody").hide();
                 $("#authenticate-spinner").show();
 
-                //If Error
-                setTimeout(function(){ 
-                    $("#authenticate-spinner").hide();
-                    $("#authenticate-mainbody").show();
+                var user = new CB.CloudUser();
+                user.set('username', loginUsername);
+                user.set('password', loginPassword);
+                user.logIn({
+                  success: function(user) {
+                    window.location.href=_authSettings.custom.callbackURL;
+                  },
+                  error: function(error) {
+                    try{
+                        error=JSON.parse(error);
+                    }catch(e){}
 
-                    $("#authenticate-error").show();
-                    $("#authenticate-error span").text("something went wrong..");
-                    
-                }, 4000);
+                    if(error && error.error){
+                        throwAuthError(error.error);
+                    }else{  
+                        throwAuthError("Check username and password.");                   
+                    }
+                  }
+                });
             }
         }
 
@@ -413,9 +565,20 @@
             $("#signup-email-wrap").removeClass("input-field-error");
             $("#signup-password-wrap").removeClass("input-field-error");
 
-            var signupEmail=$("#signup-email").val();
+            var signupUserName=$("#signup-username").val();
             var signupPassword=$("#signup-password").val();
+            var signupEmail=$("#signup-email").val();
             var validationsPassed=true;
+
+            if(!signupUserName){
+                $("#signup-username-wrap").addClass("input-field-error");
+                validationsPassed=false;                
+            }
+
+            if(!signupPassword){
+                $("#signup-password-wrap").addClass("input-field-error");
+                validationsPassed=false;                
+            }
 
             if(!signupEmail){
                 $("#signup-email-wrap").addClass("input-field-error");
@@ -425,44 +588,164 @@
             if(signupEmail && !_emailValidation(signupEmail)){
                 $("#signup-email-wrap").addClass("input-field-error"); 
                 validationsPassed=false;               
-            }
-
-            if(!signupPassword){
-                $("#signup-password-wrap").addClass("input-field-error");
-                validationsPassed=false;                
-            }
+            }           
 
             if(validationsPassed){
                 //Submit form
-
                 $("#authenticate-mainbody").hide();
                 $("#authenticate-spinner").show();
 
+                var user = new CB.CloudUser();
+                user.set('username',signupUserName);
+                user.set('password', signupPassword);
+                user.set('email', signupEmail);
+                user.signUp({
+                  success: function(user) {
+                    window.location.href=_authSettings.custom.callbackURL;
+                  },
+                  error: function(error) {                   
+                    try{
+                        error=JSON.parse(error);
+                    }catch(e){}
 
-                //If Error
-                setTimeout(function(){ 
-                    $("#authenticate-spinner").hide();
-                    $("#authenticate-mainbody").show();
+                    if(error && error.error){
+                        throwAuthError(error.error);
+                    }else{  
+                        throwAuthError("Something went wrong..");                   
+                    }
+                  }
+                });                
+            }
+        }
+    });
 
-                    $("#authenticate-error").show();
-                    $("#authenticate-error span").text("something went wrong..");
-                    
-                }, 4000);
+
+    $(".resetpwd-final-btn").click(function(){ 
+        
+        $("#forgetpassword-error span").text("");
+        $("#forgetpassword-error").hide();
+        $("#req-response").text("");
+        $("#req-spinner").show();
+        $("#goback-btn").show();
+        
+
+        $("#forgot-email-wrap").removeClass("input-field-error");        
+
+        var email=$("#forgot-email").val();        
+        var validationsPassed=true;
+
+        if(!email){
+            $("#forgot-email-wrap").addClass("input-field-error");
+            validationsPassed=false;                
+        } 
+
+        if(email && !_emailValidation(email)){
+            $("#forgot-email-wrap").addClass("input-field-error"); 
+            validationsPassed=false;               
+        }        
+
+        if(validationsPassed){
+            //Submit form
+
+            $("#forgetpassword-mainbody").hide();
+            $("#forgetpassword-spinner").show();
+             $("#goback-btn").hide();
+
+            CB.CloudUser.resetPassword(email,{
+              success: function(response) {
+                $("#req-spinner").hide();
+                $("#req-response").text("Success");
+                 $("#goback-btn").show();                
+              },
+              error: function(error) {
+                $("#goback-btn").show();
+                try{
+                    error=JSON.parse(error);
+                }catch(e){}
+
+                if(error && error.error){
+                    throwForgotError(error.error);
+                }else if(error && error.message){
+                    throwForgotError(error.message);
+                }else{  
+                    throwForgotError("Something went wrong..");                   
+                }
+              }
+            });
+        }
+    });
+
+    function throwAuthError(error){
+        $("#authenticate-spinner").hide();
+        $("#authenticate-mainbody").show();
+
+        $("#authenticate-error").show();
+        $("#authenticate-error span").text(error);
+    }
+
+    function throwForgotError(error){
+        $("#forgetpassword-spinner").hide();
+        $("#forgetpassword-mainbody").show();
+
+        $("#forgetpassword-error").show();
+        $("#forgetpassword-error span").text(error);
+    } 
+
+
+    /*****************SOCIAL AUTHENTICATIONS*******************/
+
+    $("#facebook-login-btn").click(function(){        
+
+        FB.login(function(response) {
+            if (response.authResponse) {
+                console.log('Welcome!  Fetching your information.... ');
+
+                FB.api('/me?fields='+_getFbFieldString(),
+                function(response){
+                   console.log('Good to see you, ' + response.name + '.');
+                });
+
+            } else {
+                console.log('User cancelled login or did not fully authorize.');
+            }
+
+        }, {scope: _getFbScopeString(),return_scopes: true});
+    });  
+
+    function _getFbScopeString(){
+        var json=_authSettings.facebook.permissions;
+
+        var scopeArray=[];
+        for (var key in json) {
+            if (json.hasOwnProperty(key) && json[key]) {
+              scopeArray.push(key.toString());
             }
         }
 
+        return scopeArray.toString();
+    }
 
-    });    
+    function _getFbFieldString(){
+        var json=_authSettings.facebook.attributes;
 
-    function _emailValidation(email){
-        var filter = /^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/;
-
-        if (!filter.test(email)) {            
-            return false;
+        var fieldArray=[];
+        for (var key in json) {
+            if (json.hasOwnProperty(key) && json[key]) {
+              fieldArray.push(key.toString());
+            }
         }
 
-        return true;
+        return fieldArray.toString();
     }
+
+    function onSignIn(googleUser) {
+      var profile = googleUser.getBasicProfile();
+      console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
+      console.log('Name: ' + profile.getName());
+      console.log('Image URL: ' + profile.getImageUrl());
+      console.log('Email: ' + profile.getEmail());
+    }
+
 
 </script>
 

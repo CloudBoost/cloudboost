@@ -76,9 +76,15 @@ function _registerServerAnalytics(secureKey){
     },function(err,response,body){
         if(err || response.statusCode === 500 || body === 'Error'){       
           deferred.reject(err);
-        }else {    
-          var respBody=JSON.parse(body);
-          deferred.resolve(respBody);
+        }else {  
+
+          try{
+            var respBody=JSON.parse(body);
+            deferred.resolve(respBody);
+          }catch(e){
+            deferred.reject(e);
+          }  
+          
         }
     });
 
