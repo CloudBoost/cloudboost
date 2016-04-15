@@ -298,6 +298,7 @@ function attachAPI() {
         require('./api/server/Server.js')();
         require('./api/pushNotifications/CloudPush.js')();
         require('./api/pages/Page.js')();
+        require('./api/auth/Auth.js')();
 
         global.app.use(expressWinston.errorLogger({
           transports: [   

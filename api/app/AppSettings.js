@@ -136,7 +136,7 @@ module.exports = function() {
                         }
                     } 
 
-                    //Deletev from gridFs
+                    //Delete from gridFs
                     if(fileName){
                         global.mongoService.document.deleteFileFromGridFs(appId,fileName); 
                     }                              
