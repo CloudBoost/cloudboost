@@ -1,11 +1,49 @@
 
-
 var _ = require('underscore');
 var customHelper = require('../../helpers/custom.js');
 var fs = require('fs');
 
 module.exports = function() {
     
+    /**
+     * Get User from Sessions
+     * 
+     */
+
+    global.app.post('/user/:appId/currentUser', function(req, res) { //for login
+        console.log("CURRENT USER API");           
+
+        var appId = req.params.appId;
+        var appKey = req.body.key || req.param('key');
+        var sdk = req.body.sdk || "REST";
+
+        var accessList=customHelper.getAccessList(req);
+
+        if(!accessList || !accessList.userId){
+            return res.status(200).send(null);
+        }
+
+        var collectionName = "User";                
+        var select = {};
+        var sort = {};
+        var skip = 0;               
+
+        var query = {};
+        query.$include = [];
+        query.$includeList = [];
+        query["_id"] = accessList.userId;
+
+        global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
+            return global.customService.findOne(appId, collectionName, query, select, sort, skip, accessList, isMasterKey);
+        }).then(function (result) {
+            res.json(result);
+        }, function (error) {
+            res.status(400).send(error);
+        });                
+        
+        global.apiTracker.log(appId,"User / CurrentUser", req.url,sdk);
+    });
+
     /**
      * User Login Api
      * 

@@ -1,5 +1,6 @@
 var q = require("q");
 var util = require("../../helpers/util.js");
+var customHelper = require('../../helpers/custom.js');
 var _ = require('underscore');
 var request = require('request');
 
@@ -74,7 +75,19 @@ module.exports = function() {
                             res.status(500).send(err);
                         }else{
                             console.log(user);
-                            return res.redirect(req.protocol + '://' + req.headers.host +'/page/'+appId+'/authentication'); 
+
+                            var provider="twitter";
+                            var providerUserId=user.id;
+                            global.authService.authUser(appId,customHelper.getAccessList(req),provider,providerUserId,accessToken)
+                            .then(function(result){                            
+                                //create sessions
+                                setSession(req, appId, result,res);                        
+                                return res.redirect(authSettings.custom.callbackURL);
+                            },function(error){
+                                res.status(400).json({
+                                    error: error
+                                });
+                            });                             
                         }
                     });
                 }    
@@ -134,8 +147,20 @@ module.exports = function() {
                     var client = github.client(access_token);
 
                     client.get('/user', {}, function (err, status, body, headers) {
-                      console.log(body); //json object
-                      return res.redirect(req.protocol + '://' + req.headers.host +'/page/'+appId+'/authentication');
+                        console.log(body); //json object
+
+                        var provider="github";
+                        var providerUserId=body.id;
+                        global.authService.authUser(appId,customHelper.getAccessList(req),provider,providerUserId,access_token)
+                        .then(function(result){                            
+                            //create sessions
+                            setSession(req, appId, result,res);                        
+                            return res.redirect(authSettings.custom.callbackURL);
+                        },function(error){
+                            res.status(400).json({
+                                error: error
+                            });
+                        });
                     });
                 }            
             });
@@ -189,7 +214,18 @@ module.exports = function() {
                     linkedin.people.me(function(err, $in) {
                         // Loads the profile of access token owner. 
                         console.log($in);
-                        return res.redirect(req.protocol + '://' + req.headers.host +'/page/'+appId+'/authentication'); 
+                        var provider="linkedin";
+                        var providerUserId=$in.id;
+                        global.authService.authUser(appId,customHelper.getAccessList(req),provider,providerUserId,results.access_token)
+                        .then(function(result){                            
+                            //create sessions
+                            setSession(req, appId, result,res);                        
+                            return res.redirect(authSettings.custom.callbackURL);
+                        },function(error){
+                            res.status(400).json({
+                                error: error
+                            });
+                        }); 
                     });
                      
                 }            
@@ -254,7 +290,20 @@ module.exports = function() {
                       return res.status(500).send(err);                  
                     }else{
                         console.log(profile);
-                        return res.redirect(req.protocol + '://' + req.headers.host +'/page/'+appId+'/authentication');
+                        var accessToken=tokens.access_token;
+
+                        var provider="google";
+                        var providerUserId=profile.id;
+                        global.authService.authUser(appId,customHelper.getAccessList(req),provider,providerUserId,accessToken)
+                        .then(function(result){                            
+                            //create sessions
+                            setSession(req, appId, result,res);                        
+                            return res.redirect(authSettings.custom.callbackURL);
+                        },function(error){
+                            res.status(400).json({
+                                error: error
+                            });
+                        });
                     }
                     
                 });
@@ -294,7 +343,7 @@ module.exports = function() {
 
         _getAppSettings(req, res).then(function(respObj){
 
-            var appId=respObj.appId;
+            var appId=respObj.appId;            
             var authSettings=respObj.authSettings;
 
             var FB = require('fb');
@@ -323,8 +372,22 @@ module.exports = function() {
                     
                     FB.setAccessToken(accessToken);
                     FB.api('me', { fields: _getFbFieldString(authSettings), access_token: accessToken }, function (fbRes) {
+
                         console.log(fbRes);
-                        return res.redirect(req.protocol + '://' + req.headers.host+'/page/'+appId+'/authentication');                    
+
+                        var provider="facebook";
+                        var providerUserId=fbRes.id;
+                        global.authService.authUser(appId,customHelper.getAccessList(req),provider,providerUserId,accessToken)
+                        .then(function(result){                            
+                            //create sessions
+                            var session=setSession(req, appId, result,res);                        
+                            return res.redirect(authSettings.custom.callbackURL+"?sessionId="+session.id);
+                        },function(error){
+                            res.status(400).json({
+                                error: error
+                            });
+                        });                        
+                                            
                     });
                 }
             });
@@ -332,7 +395,28 @@ module.exports = function() {
     });  
 }    
 
+/************************ Private Functions *************************/
 
+function setSession(req, appId, result,res) {
+    if(!req.session.id) {
+        req.session = {};
+        req.session.id = global.uuid.v1();
+    }
+    res.header('sessionID',req.session.id);     
+    
+    var obj = {
+        id : req.session.id,
+        userId : result._id,
+        loggedIn : true,
+        appId : appId,
+        roles : _.map(result.roles, function (role) { return role._id })        
+    };
+
+    req.session = obj;
+    
+    global.sessionHelper.saveSession(obj);
+    return req.session;
+}
 
 function _getAppSettings(req,res){
 
@@ -345,9 +429,10 @@ function _getAppSettings(req,res){
     }
 
     var promises=[];
-    promises.push(global.appService.getAllSettings(appId));
-    q.all(promises).then(function(list){
-        
+
+    promises.push(global.appService.getAllSettings(appId));    
+    q.all(promises).then(function(list){       
+
         if(!list[0] || list[0].length==0){
             return res.status(400).send("App Settings not found.");
         }
@@ -362,7 +447,7 @@ function _getAppSettings(req,res){
         }
 
         var response={
-            appId:appId,
+            appId:appId,            
             authSettings:authSettings
         };
         deferred.resolve(response);

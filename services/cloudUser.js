@@ -15,7 +15,7 @@ module.exports = function() {
 			try{
 				global.customService.findOne(appId, Collections.User, {
 					username: username
-				},null,null,null,accessList).then(function(user) {
+				},null,null,null,accessList,isMasterKey).then(function(user) {
 					if (!user) {
 						deferred.reject('Invalid Username');
 						return;

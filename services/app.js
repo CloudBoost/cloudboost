@@ -810,7 +810,7 @@ function _checkValidDataType(columns, deafultDataType) {
 
             //username for user table
             if (key === 'username') {
-                if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != true || columns[index].dataType != 'Text')
+                if (columns[index].relationType != null || columns[index].required != false || columns[index].unique != true || columns[index].dataType != 'Text')
                     return false;
             }
 
@@ -822,13 +822,19 @@ function _checkValidDataType(columns, deafultDataType) {
 
             //password for user table
             if (key === 'password') {
-                if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'EncryptedText')
+                if (columns[index].relationType != null || columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'EncryptedText')
                     return false;
             }
 
             //roles property for user table
             if (key === 'roles') {
                 if (columns[index].relationType != 'table' || columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'List' || columns[index].relatedTo !== 'Role')
+                    return false;
+            }
+
+            //socialAuth property for user table
+            if (key === 'socialAuth') {
+                if (columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'List' || columns[index].relatedTo !== 'Object')
                     return false;
             }
 

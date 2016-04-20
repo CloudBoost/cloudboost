@@ -265,7 +265,8 @@ function attachServices() {
         global.cacheService = require('./services/cloudCache.js')();
         global.serverService = require('./services/server.js')();
         global.mailService = require('./services/mail.js')();
-        global.pushService = require('./services/cloudPush.js')();                 
+        global.pushService = require('./services/cloudPush.js')();
+        global.authService = require('./services/auth.js')();                  
         
         console.log('+++++++++++ Services Status : OK. ++++++++++++++++++');
     }catch(e){
