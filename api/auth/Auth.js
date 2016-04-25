@@ -82,7 +82,7 @@ module.exports = function() {
                             .then(function(result){                            
                                 //create sessions
                                 setSession(req, appId, result,res);                        
-                                return res.redirect(authSettings.custom.callbackURL);
+                                return res.redirect(authSettings.custom.callbackURL+"?cbtoken="+session.id);
                             },function(error){
                                 res.status(400).json({
                                     error: error
@@ -155,7 +155,7 @@ module.exports = function() {
                         .then(function(result){                            
                             //create sessions
                             setSession(req, appId, result,res);                        
-                            return res.redirect(authSettings.custom.callbackURL);
+                            return res.redirect(authSettings.custom.callbackURL+"?cbtoken="+session.id);
                         },function(error){
                             res.status(400).json({
                                 error: error
@@ -220,7 +220,7 @@ module.exports = function() {
                         .then(function(result){                            
                             //create sessions
                             setSession(req, appId, result,res);                        
-                            return res.redirect(authSettings.custom.callbackURL);
+                            return res.redirect(authSettings.custom.callbackURL+"?cbtoken="+session.id);
                         },function(error){
                             res.status(400).json({
                                 error: error
@@ -298,7 +298,7 @@ module.exports = function() {
                         .then(function(result){                            
                             //create sessions
                             setSession(req, appId, result,res);                        
-                            return res.redirect(authSettings.custom.callbackURL);
+                            return res.redirect(authSettings.custom.callbackURL+"?cbtoken="+session.id);
                         },function(error){
                             res.status(400).json({
                                 error: error
@@ -381,7 +381,7 @@ module.exports = function() {
                         .then(function(result){                            
                             //create sessions
                             var session=setSession(req, appId, result,res);                        
-                            return res.redirect(authSettings.custom.callbackURL+"?sessionId="+session.id);
+                            return res.redirect(authSettings.custom.callbackURL+"?cbtoken="+session.id);
                         },function(error){
                             res.status(400).json({
                                 error: error

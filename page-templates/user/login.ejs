@@ -323,7 +323,7 @@
 </body>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
-<script src="https://cloudboost.io/js-sdk/cloudboost.js"></script>
+<script src="/js/cloudboost.js"></script>
 <script>    
     //This is the fucntion to get querysting, 
     function getParameterByName(name) {
@@ -368,13 +368,7 @@
     $(document).ready(function(){         
 
         //Init CloudBoost
-        CB.CloudApp.init("http://localhost:4730",_appKeys.appId, _appKeys.masterKey);
-
-        if(CB.CloudUser.current){
-            window.location.href=_authSettings.custom.callbackURL;
-        }else{
-            _getCurrentUserFromServer();
-        }
+        CB.CloudApp.init("http://localhost:4730",_appKeys.appId, _appKeys.masterKey);      
 
         $("#forgetpassword-card").hide();
         $("#forgetpassword-error").hide();
@@ -388,26 +382,7 @@
         isLoginFields=true;
 
     });
-
-    function _getCurrentUserFromServer(){
-        var sessionId=getParameterByName('sessionId');
-        var url="http://localhost:4730/user/"+_appKeys.appId+"/currentUser";        
-
-        $.ajax({
-            url: url,
-            type: 'POST',
-            beforeSend: function (xhr) {                
-                xhr.setRequestHeader('sessionID', sessionId);
-            },
-            data: {key:_appKeys.masterKey},
-            success: function (user) {
-                console.log(user);
-            },
-            error: function (error) { 
-                console.log(error);
-            }
-        });
-    }
+  
 
     $("#forget-password").click(function(){ 
         $("#authenticate-card").hide();

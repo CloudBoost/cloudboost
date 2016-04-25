@@ -10,11 +10,11 @@ module.exports = function() {
 
 	return {
 
-		/*Desc   : Send Push Notification
-		  Params : appId,collectionName,query, sort, limit, skip,accessList,isMasterKey,pushData
+		/*Desc   : Create and save Auth
+		  Params : appId, accessList, provider, providerUserId, providerAccessToken
 		  Returns: Promise
-		           Resolve->No devices found or Result of ATLEAST ONE successful sent notifications
-		           Reject->Error on find() or getAllSettings() or pushSettings not found or failure of sending all push notifications failed
+		           Resolve->user object
+		           Reject->Error on findOne()  or save()
 		*/
 		authUser: function(appId, accessList, provider, providerUserId, providerAccessToken){
 
@@ -78,7 +78,7 @@ module.exports = function() {
 
 			    	document._isModified=true;			    	
 			    	document._tableName=collectionName;
-			    	document._type="custom";
+			    	document._type="user";			    	
 			    	
 			    	return global.customService.save(appId, collectionName, document, accessList, isMasterKey);
 
