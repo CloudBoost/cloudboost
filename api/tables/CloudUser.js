@@ -1,7 +1,14 @@
-
+var q = require("q");
 var _ = require('underscore');
-var customHelper = require('../../helpers/custom.js');
 var fs = require('fs');
+var customHelper = require('../../helpers/custom.js');
+
+
+var twitterHelper = require('../../helpers/twitter.js');
+var githubHelper = require('../../helpers/github.js');
+var linkedinHelper = require('../../helpers/linkedin.js');
+var googleHelper = require('../../helpers/google.js');
+var facebookHelper = require('../../helpers/facebook.js');
 
 module.exports = function() {
     
@@ -69,6 +76,116 @@ module.exports = function() {
 		});
         
 		global.apiTracker.log(appId,"User / Login", req.url,sdk);
+    });
+
+
+     /**
+     * User Login with provider
+     * 
+     */
+
+    global.app.post('/user/:appId/loginwithprovider', function(req, res) { 
+
+        console.log("LOGIN WITH PROVIDER");
+
+        var appId = req.params.appId;
+        var appKey = req.body.key || req.param('key');
+
+        var provider= req.body.provider;
+        var accessToken= req.body.accessToken; 
+        var accessSecret= req.body.accessSecret || null;
+        var refreshToken= req.body.refreshToken || null;    
+        
+        var sdk = req.body.sdk || "REST";
+
+        if(!provider){
+            res.status(400).json({
+                "message": "provider is required."
+            });
+            return;
+        }
+
+        provider=provider.toLowerCase();
+
+        if(!accessToken){
+            res.status(400).json({
+                "message": "accessToken is required."
+            });
+            return;
+        }
+        if(provider==="google" && !refreshToken){
+            res.status(400).json({
+                "message": "refreshToken is required for given provider."
+            });
+            return;
+        }
+        if(provider==="twitter" && !accessSecret){
+            res.status(400).json({
+                "message": "accessSecret is required for given provider."
+            });
+            return;
+        }
+
+        var promises=[];        
+        promises.push(global.appService.getAllSettings(appId));
+        promises.push(global.appService.isMasterKey(appId,appKey));
+
+        q.all(promises).then(function(list){
+
+            var isMasterKey=list[1];
+            if(!isMasterKey){
+                return res.status(400).send("Unauthorized.");
+            }
+
+            if(!list[0] || list[0].length==0){
+                return res.status(400).send("App Settings not found.");
+            }
+
+            var auth=_.first(_.where(list[0], {category: "auth"}));           
+            if(auth){
+                var authSettings=auth.settings;
+            }
+
+            if(!authSettings){
+                return res.status(400).send("Authentication Settings not found.");
+            }
+
+            //Get user by accessToken
+            var authPromises=[];
+            if(provider==="facebook"){
+                authPromises.push(facebookHelper.getUserByAccessToken(req, appId, authSettings, accessToken));
+            }
+            if(provider==="google"){
+                authPromises.push(googleHelper.getUserByTokens(req, appId, authSettings, accessToken,refreshToken));
+            } 
+            if(provider==="github"){
+                authPromises.push(githubHelper.getUserByAccessToken(req, appId, authSettings, accessToken));
+            } 
+            if(provider==="linkedin"){
+                authPromises.push(linkedinHelper.getUserByAccessToken(req, appId, authSettings, accessToken));
+            } 
+            if(provider==="twitter"){
+                authPromises.push(twitterHelper.getUserByTokens(req, appId, authSettings, accessToken, accessSecret));
+            } 
+           
+            q.all(authPromises).then(function(user){
+
+                var providerUserId=user.id;
+                return global.authService.authUser(appId,customHelper.getAccessList(req),provider,providerUserId,accessToken,accessSecret,refreshToken);
+
+            }).then(function(result){
+                //create sessions
+                setSession(req, appId, result,res); 
+                res.json(result);
+            },function(error){
+                return res.status(400).send(error);
+            });
+
+        },function(error){
+            return res.status(400).send(error);
+        });    
+        
+        global.apiTracker.log(appId,"User / Login with provider", req.url,sdk);
     });
     
     /**

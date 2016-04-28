@@ -16,7 +16,7 @@ module.exports = function() {
 		           Resolve->user object
 		           Reject->Error on findOne()  or save()
 		*/
-		authUser: function(appId, accessList, provider, providerUserId, providerAccessToken){
+		authUser: function(appId, accessList, provider, providerUserId, providerAccessToken, providerAccessSecret, providerRefreshToken){
 
 			var _self=this;			
 			
@@ -47,7 +47,7 @@ module.exports = function() {
 
 			    		for(var i=0;i<document.socialAuth.length;++i){
 			    			if(document.socialAuth[i].provider===provider && document.socialAuth[i].id===providerUserId){			    				
-			    				document.socialAuth[i].accessToken=providerAccessToken;
+			    				document.socialAuth[i].accessToken=providerAccessToken;			    				
 			    			}
 			    		}
 
@@ -70,7 +70,9 @@ module.exports = function() {
 					    document.socialAuth=[{
 					    	provider:provider,
 		            		id:providerUserId,
-		            		accessToken:providerAccessToken
+		            		accessToken:providerAccessToken,
+		            		accessSecret:providerAccessSecret,
+		            		refreshToken:providerRefreshToken
 					    }];
 
 					    document._modifiedColumns=["createdAt","updatedAt","ACL","expires","socialAuth"];

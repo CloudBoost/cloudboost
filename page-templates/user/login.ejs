@@ -17,11 +17,14 @@
 <body>
 
 <div class="wrapper">
+    <div class="container">
+    <div class="row">
+    <div class="col-sm-12 col-md-12 col-lg-12">
 
-    <div class="flex-general-column-wrapper-center" style="width: 100%;height: 100%;position: relative;">
+    <div class="flex-general-column-wrapper-center" style="height: 99vh;position: relative;">
 
         <!--Login or Sing Up form-->
-        <div id="authenticate-card" class="" style=" width:25%;">
+        <div id="authenticate-card" class="" style=" width:340px;">
             <div class="" style="height:auto;border-radius:2px; border:1px solid #BAB8B8;">
                 <!--Header-->
                 <div style="width:100%;height:117px;background-color:#dddddd;padding:15px;">                 
@@ -67,10 +70,10 @@
                     <!--Error Block-->
 
                     <!--Body-->
-                    <div style="background-color: white;padding: 20px;">
-
+                    <div style="background-color: white;padding-top: 5px;">
                         <!--Login and Sing Up buttons-->
-                        <div class="flex-general-column-wrapper-center">
+                        <% if(authSettings && authSettings.custom.enabled){ %>
+                        <div class="flex-general-column-wrapper-center" style="margin-top: 20px;">
                             <div class="flex-general-row-wrapper">
                                <div class="width:100%;height:30px;">
                                     <button class="default-inputfield login-btn" style="">LOG IN</button>
@@ -78,120 +81,133 @@
                                <div class="width:100%;height:30px;">
                                     <button class="default-inputfield sinup-btn" style="">SIGN UP</button>
                                </div>
+                               
                             </div>
                         </div>
+                        <%}%>
+                        <div style="background-color: white;padding-bottom: 24px;padding-left: 20px;padding-right: 20px;">                           
 
-                        <!--Social Connection Buttons-->
-                        <div class="flex-general-column-wrapper-center" style="margin-top: 5px;width: 100%;">
-                            <div class="solo-horizontal-center" style="width: 98%;">
-                                <!--facebook-->
-                                <% if(authSettings && authSettings.facebook.enabled){ %>
-                                <div id="facebook-login-btn" class="social-btns facebook flex-general-column-wrapper-center">
-                                    <i class="fa fa-facebook"></i>
-                                </div>
-                                <%}%>
+                            <!--Social Connection Buttons-->
+                            <div class="flex-general-column-wrapper-center" style="margin-top: 5px;width: 100%;">
+                                <div class="solo-horizontal-center" style="width: 98%;">
+                                    <!--facebook-->
+                                    <% if(authSettings && authSettings.facebook.enabled){ %>
+                                    <div id="facebook-login-btn" class="social-btns facebook flex-general-column-wrapper-center">
+                                        <i class="fa fa-facebook"></i>
+                                    </div>
+                                    <%}%>
 
-                                <!--twitter-->
-                                <% if(authSettings && authSettings.twitter.enabled){ %>
-                                <div  id="twittr-login-btn" class="social-btns twitter flex-general-column-wrapper-center">
-                                    <i class="fa fa-twitter"></i>
-                                </div>
-                                <%}%>
+                                    <!--twitter-->
+                                    <% if(authSettings && authSettings.twitter.enabled){ %>
+                                    <div  id="twittr-login-btn" class="social-btns twitter flex-general-column-wrapper-center">
+                                        <i class="fa fa-twitter"></i>
+                                    </div>
+                                    <%}%>
 
-                                <!--google-->
-                                <% if(authSettings && authSettings.google.enabled){ %>
-                                <div  id="google-login-btn" class="social-btns google flex-general-column-wrapper-center">
-                                    <i class="fa fa-google"></i>
-                                </div>
-                                <%}%>
+                                    <!--google-->
+                                    <% if(authSettings && authSettings.google.enabled){ %>
+                                    <div  id="google-login-btn" class="social-btns google flex-general-column-wrapper-center">
+                                        <i class="fa fa-google"></i>
+                                    </div>
+                                    <%}%>
 
-                                <!--linkedin-->
-                                <% if(authSettings && authSettings.linkedIn.enabled){ %>
-                                <div  id="linkedin-login-btn" class="social-btns linkedin flex-general-column-wrapper-center">
-                                    <i class="fa fa-linkedin" aria-hidden="true"></i>
-                                </div>
-                                <%}%>
+                                    <!--linkedin-->
+                                    <% if(authSettings && authSettings.linkedIn.enabled){ %>
+                                    <div  id="linkedin-login-btn" class="social-btns linkedin flex-general-column-wrapper-center">
+                                        <i class="fa fa-linkedin" aria-hidden="true"></i>
+                                    </div>
+                                    <%}%>
 
-                                <!--github-->
-                                <% if(authSettings && authSettings.github.enabled){ %>
-                                <div  id="github-login-btn" ng-click="authenticate('github')" class="social-btns github flex-general-column-wrapper-center">
-                                    <i class="fa fa-github"></i>
+                                    <!--github-->
+                                    <% if(authSettings && authSettings.github.enabled){ %>
+                                    <div  id="github-login-btn" ng-click="authenticate('github')" class="social-btns github flex-general-column-wrapper-center">
+                                        <i class="fa fa-github"></i>
+                                    </div>
+                                    <%}%>
+                                 
                                 </div>
-                                <%}%>
-                             
                             </div>
-                        </div>
+                            
+                            <!---OR-->
+                            <div style="width: 100%;margin-top: 20px;" class="solo-horizontal-center">
+                                <% if((authSettings && authSettings.custom.enabled) && (authSettings.facebook.enabled || authSettings.twitter.enabled || authSettings.google.enabled || authSettings.linkedIn.enabled || authSettings.github.enabled)){ %>
+                                <p id="authenticate-info" style="color:gray">Or</p>
+                                <%}%>
+                            </div>                            
 
-                        <!---OR-->
-                        <div style="width: 100%;margin-top: 20px;" class="solo-horizontal-center">
-                            <p id="authenticate-info" style="color:gray">Or</p>
-                        </div>
 
-                        <!--Login Input Fields-->
-                        <div id="login-inputfields" style="width: 100%;margin-top: 8px;" class="solo-horizontal-center">                                        
-                            <div style="width: 95%;">
-                                <div id="login-username-wrap" class="flex-general-row-wrapper input-field" style="">
-                                    <div class="flex-general-column-wrapper-center" style="width:13%; height: 35px;background-color:#f1f1f1;">
-                                        <i class="icon ion-ios-person" style="color:gray;font-size: 22px;"></i>
+                            <% if(authSettings && authSettings.custom.enabled){ %>
+                            <!--Login Input Fields-->                        
+                            <div id="login-inputfields" style="width: 100%;margin-top: 8px;" class="solo-horizontal-center">                                        
+                                <div style="width: 95%;">
+                                    <div id="login-username-wrap" class="flex-general-row-wrapper input-field" style="">
+                                        <div class="flex-general-column-wrapper-center" style="width:13%; height: 35px;background-color:#f1f1f1;">
+                                            <i class="icon ion-ios-person" style="color:gray;font-size: 22px;"></i>
+                                        </div>
+                                        <div style="width:86.98%; height: 35px;">
+                                            <input id="login-username" type="text" placeholder="Username" class="default-inputfield" required style="width: 100%;height: 100%;padding-left: 12px;">
+                                        </div>
                                     </div>
-                                    <div style="width:86.98%; height: 35px;">
-                                        <input id="login-username" type="text" placeholder="Username" class="default-inputfield" required style="width: 100%;height: 100%;padding-left: 12px;">
-                                    </div>
-                                </div>
 
-                                <div id="login-password-wrap" class="flex-general-row-wrapper input-field" style="">
-                                    <div class="flex-general-column-wrapper-center" style="width:13%; height: 35px;background-color:#f1f1f1;">
-                                        <i class="icon ion-ios-locked-outline" style="color:gray;font-size: 22px;"></i>
+                                    <div id="login-password-wrap" class="flex-general-row-wrapper input-field" style="">
+                                        <div class="flex-general-column-wrapper-center" style="width:13%; height: 35px;background-color:#f1f1f1;">
+                                            <i class="icon ion-ios-locked-outline" style="color:gray;font-size: 22px;"></i>
+                                        </div>
+                                        <div style="width:86.98%; height: 35px;">
+                                            <input id="login-password" type="password" placeholder="Password" class="default-inputfield" required style="width: 100%;height: 100%;padding-left: 12px;">
+                                        </div>
                                     </div>
-                                    <div style="width:86.98%; height: 35px;">
-                                        <input id="login-password" type="password" placeholder="Password" class="default-inputfield" required style="width: 100%;height: 100%;padding-left: 12px;">
-                                    </div>
-                                </div>
-                            </div>                                        
-                        </div>
-                        <!--/Login Input Fields-->
+                                </div>                                        
+                            </div>
+                            <!--/Login Input Fields-->
+                           
 
-                        <!--Signup Input Fields-->
-                        <div id="signup-inputfields" style="width: 100%;margin-top: 8px;" class="solo-horizontal-center">                                        
-                            <div style="width: 95%;">
-                                <div id="signup-username-wrap" class="flex-general-row-wrapper input-field" style="">
-                                    <div class="flex-general-column-wrapper-center" style="width:13%; height: 35px;background-color:#f1f1f1;">
-                                        <i class="icon ion-ios-person" style="color:gray;font-size: 22px;"></i>
-                                    </div>
-                                    <div style="width:86.98%; height: 35px;">
-                                        <input id="signup-username" type="text" placeholder="Enter Username" class="default-inputfield" required style="width: 100%;height: 100%;padding-left: 12px;">
-                                    </div>
-                                </div>                                
+                            <!--Signup Input Fields-->
+                            
+                            <div id="signup-inputfields" style="width: 100%;margin-top: 8px;" class="solo-horizontal-center">                                        
+                                <div style="width: 95%;">
+                                    <div id="signup-username-wrap" class="flex-general-row-wrapper input-field" style="">
+                                        <div class="flex-general-column-wrapper-center" style="width:13%; height: 35px;background-color:#f1f1f1;">
+                                            <i class="icon ion-ios-person" style="color:gray;font-size: 22px;"></i>
+                                        </div>
+                                        <div style="width:86.98%; height: 35px;">
+                                            <input id="signup-username" type="text" placeholder="Enter Username" class="default-inputfield" required style="width: 100%;height: 100%;padding-left: 12px;">
+                                        </div>
+                                    </div>                                
 
-                                <div id="signup-password-wrap"  class="flex-general-row-wrapper input-field" style="">
-                                    <div class="flex-general-column-wrapper-center" style="width:13%; height: 35px;background-color:#f1f1f1;">
-                                        <i class="icon ion-ios-locked-outline" style="color:gray;font-size: 22px;"></i>
+                                    <div id="signup-password-wrap"  class="flex-general-row-wrapper input-field" style="">
+                                        <div class="flex-general-column-wrapper-center" style="width:13%; height: 35px;background-color:#f1f1f1;">
+                                            <i class="icon ion-ios-locked-outline" style="color:gray;font-size: 22px;"></i>
+                                        </div>
+                                        <div style="width:86.98%; height: 35px;">
+                                            <input id="signup-password" type="password" placeholder="Create a Password" class="default-inputfield" required style="width: 100%;height: 100%;padding-left: 12px;">
+                                        </div>
                                     </div>
-                                    <div style="width:86.98%; height: 35px;">
-                                        <input id="signup-password" type="password" placeholder="Create a Password" class="default-inputfield" required style="width: 100%;height: 100%;padding-left: 12px;">
-                                    </div>
-                                </div>
 
-                                <div id="signup-email-wrap" class="flex-general-row-wrapper input-field" style="">
-                                    <div class="flex-general-column-wrapper-center" style="width:13%; height: 35px;background-color:#f1f1f1;">
-                                        <i class="icon ion-ios-email-outline" style="color:gray;font-size: 22px;"></i>
+                                    <div id="signup-email-wrap" class="flex-general-row-wrapper input-field" style="">
+                                        <div class="flex-general-column-wrapper-center" style="width:13%; height: 35px;background-color:#f1f1f1;">
+                                            <i class="icon ion-ios-email-outline" style="color:gray;font-size: 22px;"></i>
+                                        </div>
+                                        <div style="width:86.98%; height: 35px;">
+                                            <input id="signup-email" type="text" placeholder="Enter Email" class="default-inputfield" required style="width: 100%;height: 100%;padding-left: 12px;">
+                                        </div>
                                     </div>
-                                    <div style="width:86.98%; height: 35px;">
-                                        <input id="signup-email" type="text" placeholder="Enter Email" class="default-inputfield" required style="width: 100%;height: 100%;padding-left: 12px;">
-                                    </div>
-                                </div>
-                            </div>                                        
-                        </div>
-                        <!--/Signup Input Fields-->
+                                </div>                                        
+                            </div>
 
-                        <!--Forgot Password-->
-                        <div id="forget-password-block" style="width: 100%;margin-top: 15px;" class="solo-horizontal-center">
-                            <span id="forget-password" style="color:gray;cursor: pointer;">Don't remember your password?</span>
-                        </div>
-                        
+                            <!--/Signup Input Fields-->
+
+                            <!--Forgot Password-->
+                            <div id="forget-password-block" style="width: 100%;margin-top: 15px;" class="solo-horizontal-center">
+                                <span id="forget-password" style="color:gray;cursor: pointer;">Don't remember your password?</span>
+                            </div>
+                            <%}%>
+
+                        </div>    
                     </div>
                     <!--Body-->
 
+                    <% if(authSettings && authSettings.custom.enabled){ %>
                     <!--Button-->
                     <div class="final-btn" style="">
                        <div style="width: 100%;height: 30px;" class="flex-general-column-wrapper-center">
@@ -201,6 +217,7 @@
                        </div>
                     </div>
                     <!--Button-->
+                    <%}%>
 
                 </div>
                 <!--/Main Body Content-->
@@ -211,7 +228,7 @@
 
 
         <!--Forgot Password-->
-        <div id="forgetpassword-card" class="" style="width: 25%;">
+        <div id="forgetpassword-card" class="" style="width:340px;">
             <div class="" style="height:auto;border-radius:2px; border:1px solid #BAB8B8;">
                 <!--Header-->
                 <div style="width:100%;height:117px;background-color:#dddddd;padding:15px;">
@@ -293,7 +310,7 @@
                     <!--Body-->
 
                     <!--Button-->
-                    <div class="resetpwd-final-btn" style="margin-top: 8px;">
+                    <div class="resetpwd-final-btn" style="margin-top: 2px;">
                        <div style="width: 100%;height: 30px;" class="flex-general-column-wrapper-center">
                             <span style="color:white;font-size: 34px;">
                                 <i class="icon ion-log-in"></i>
@@ -310,7 +327,7 @@
         </div>
         <!--/Forgot Password-->
 
-        <div class="flex-general-column-wrapper-center" style="position: absolute;width: 100%;height: 60px;bottom: 0;">
+        <div class="flex-general-column-wrapper-center" style="width: 100%;height: 60px;margin-top: 1.5%;">
             <div class="flex-general-row-wrapper">
                 <p>powered by</p>
                 <p>&nbsp;CloudBoost</p>
@@ -319,12 +336,24 @@
     </div>     
 
 </div>
+</div>
+</div>
 
 </body>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
 <script src="/js/cloudboost.js"></script>
-<script>    
+<script>  
+    var serverURL="https://api.cloudboost.io";  
+    var __isDevelopment = false;
+
+    if(window.location.host.indexOf('localhost') > -1){
+        __isDevelopment = true;
+        var serverURL="http://localhost:4730"; 
+    }
+
+
+
     //This is the fucntion to get querysting, 
     function getParameterByName(name) {
         name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
@@ -341,6 +370,36 @@
         }
 
         return true;
+    }
+
+    function LightenDarkenColor(col, amt) {
+      
+        var usePound = false;
+      
+        if (col[0] == "#") {
+            col = col.slice(1);
+            usePound = true;
+        }
+     
+        var num = parseInt(col,16);
+     
+        var r = (num >> 16) + amt;
+     
+        if (r > 255) r = 255;
+        else if  (r < 0) r = 0;
+     
+        var b = ((num >> 8) & 0x00FF) + amt;
+     
+        if (b > 255) b = 255;
+        else if  (b < 0) b = 0;
+     
+        var g = (num & 0x0000FF) + amt;
+     
+        if (g > 255) g = 255;
+        else if (g < 0) g = 0;
+     
+        return (usePound?"#":"") + (g | (b << 8) | (r << 16)).toString(16);
+      
     }
 
     //Remove #_=_' from URL
@@ -368,7 +427,7 @@
     $(document).ready(function(){         
 
         //Init CloudBoost
-        CB.CloudApp.init("http://localhost:4730",_appKeys.appId, _appKeys.masterKey);      
+        CB.CloudApp.init(serverURL,_appKeys.appId, _appKeys.masterKey);      
 
         $("#forgetpassword-card").hide();
         $("#forgetpassword-error").hide();
@@ -379,8 +438,28 @@
 
         $(".login-btn").addClass("btn-active");
         $("#signup-inputfields").hide();
-        isLoginFields=true;
+        isLoginFields=true; 
 
+        $(".final-btn").css({"background-color": _authSettings.general.primaryColor}); 
+        $(".resetpwd-final-btn").css({"background-color": _authSettings.general.primaryColor});
+
+        //If user logged already, redirect to callback url
+        if(CB.CloudUser.current){
+            //window.location.href=_authSettings.general.callbackURL+"?cbtoken="+CB._getSessionId();
+        }       
+
+    });
+
+    $(".final-btn").hover(function(){
+        $(this).css("background-color", LightenDarkenColor(_authSettings.general.primaryColor,-40));
+    }, function(){
+        $(this).css("background-color", _authSettings.general.primaryColor);
+    });
+
+    $(".resetpwd-final-btn").hover(function(){
+        $(this).css("background-color", LightenDarkenColor(_authSettings.general.primaryColor,-40));
+    }, function(){
+        $(this).css("background-color", _authSettings.general.primaryColor);
     });
   
 
@@ -469,7 +548,7 @@
                 user.set('password', loginPassword);
                 user.logIn({
                   success: function(user) {
-                    window.location.href=_authSettings.custom.callbackURL;
+                    window.location.href=_authSettings.general.callbackURL+"?cbtoken="+CB._getSessionId();
                   },
                   error: function(error) {
                     try{
@@ -527,7 +606,7 @@
                 user.set('email', signupEmail);
                 user.signUp({
                   success: function(user) {
-                    window.location.href=_authSettings.custom.callbackURL;
+                    window.location.href=_authSettings.general.callbackURL+"?cbtoken="+CB._getSessionId();
                   },
                   error: function(error) {                   
                     try{
@@ -581,7 +660,7 @@
               success: function(response) {
                 $("#req-spinner").hide();
                 $("#req-response").text("Success");
-                 $("#goback-btn").show();                
+                $("#goback-btn").show();                
               },
               error: function(error) {
                 $("#goback-btn").show();
@@ -621,33 +700,32 @@
 
 <script type="text/javascript">
     $("#facebook-login-btn").click(function(){
-        var url="http://localhost:4730/auth/"+_appKeys.appId+"/facebook";
+        var url=serverURL+"/auth/"+_appKeys.appId+"/facebook";
         requestLoginUrl(url);        
     });
 
     $("#twittr-login-btn").click(function(){
-        var url="http://localhost:4730/auth/"+_appKeys.appId+"/twitter";
+        var url=serverURL+"/auth/"+_appKeys.appId+"/twitter";
         requestLoginUrl(url);        
     });
 
     $("#github-login-btn").click(function(){
-        var url="http://localhost:4730/auth/"+_appKeys.appId+"/github";
+        var url=serverURL+"/auth/"+_appKeys.appId+"/github";
         requestLoginUrl(url);       
     });
 
     $("#google-login-btn").click(function(){
-        var url="http://localhost:4730/auth/"+_appKeys.appId+"/google";
+        var url=serverURL+"/auth/"+_appKeys.appId+"/google";
         requestLoginUrl(url);       
     });
 
     $("#linkedin-login-btn").click(function(){
-        var url="http://localhost:4730/auth/"+_appKeys.appId+"/linkedin";
+        var url=serverURL+"/auth/"+_appKeys.appId+"/linkedin";
         requestLoginUrl(url);       
     });    
 
     function requestLoginUrl(url){
-        $.get(url, function(data, status){
-            console.log(data);
+        $.get(url, function(data, status){            
             if(data && data.url){
                 var loginUrl=data.url;
                 window.open(loginUrl,"_self");

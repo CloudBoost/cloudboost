@@ -1,8 +1,15 @@
 var q = require("q");
 var util = require("../../helpers/util.js");
-var customHelper = require('../../helpers/custom.js');
 var _ = require('underscore');
 var request = require('request');
+var customHelper = require('../../helpers/custom.js');
+
+var twitterHelper = require('../../helpers/twitter.js');
+var githubHelper = require('../../helpers/github.js');
+var linkedinHelper = require('../../helpers/linkedin.js');
+var googleHelper = require('../../helpers/google.js');
+var facebookHelper = require('../../helpers/facebook.js');
+
 
 module.exports = function() {  
 
@@ -12,33 +19,20 @@ module.exports = function() {
         _getAppSettings(req, res).then(function(respObj){
 
             var appId=respObj.appId;
-            var authSettings=respObj.authSettings;
+            var authSettings=respObj.authSettings;            
 
-            var Twitter = require("node-twitter-api");
+            twitterHelper.getLoginUrl(req, appId, authSettings).then(function(data){
 
-            var consumerKey=authSettings.twitter.appId;
-            var consumerSecret=authSettings.twitter.appSecret;
+                if(!req.session){
+                    req.session = {};
+                }                    
+                req.session.twitterReqSecret=data.requestSecret;
+                return res.status(200).json({url:data.loginUrl});
 
-            var twitter = new Twitter({
-                consumerKey: consumerKey ,
-                consumerSecret: consumerSecret,
-                callback: req.protocol + '://' + req.headers.host + "/auth/"+appId+"/twitter/callback",
-                x_auth_access_type: "write"
-            });
+            },function(err){
+                res.status(500).send(err);
+            }); 
 
-            twitter.getRequestToken(function(err, requestToken, requestSecret) {
-                if (err){
-                    res.status(500).send(err);
-                }else {
-                    if(!req.session){
-                        req.session = {};
-                    }                    
-                    req.session.twitterReqSecret=requestSecret;   
-
-                    var url= "https://api.twitter.com/oauth/authenticate?oauth_token=" + requestToken;
-                    return res.status(200).json({url:url});                                      
-                }
-            });
         });                
     }); 
 
@@ -50,48 +44,43 @@ module.exports = function() {
         _getAppSettings(req, res).then(function(respObj){
 
             var appId=respObj.appId;
-            var authSettings=respObj.authSettings;
+            var authSettings=respObj.authSettings;           
 
-            var Twitter = require("node-twitter-api");
-            
-            var consumerKey=authSettings.twitter.appId;
-            var consumerSecret=authSettings.twitter.appSecret;
-            
-            var twitter = new Twitter({
-                consumerKey: consumerKey ,
-                consumerSecret: consumerSecret,
-                callback: req.protocol + '://' + req.headers.host + "/auth/"+appId+"/twitter/callback",
-                x_auth_access_type: "write"
-            });
+            var twitterTokens=null;            
 
-            twitter.getAccessToken(requestToken, req.session.twitterReqSecret, verifier, function(err, accessToken, accessSecret) {
-                if (err){
-                    delete req.session.twitterReqSecret;
-                    res.status(500).send(err);
-                }else{
-                    delete req.session.twitterReqSecret;
-                    twitter.verifyCredentials(accessToken, accessSecret, function(err, user) {
-                        if (err){
-                            res.status(500).send(err);
-                        }else{
-                            console.log(user);
+            //Make twitter requests
+            twitterHelper.getAccessToken(req, appId, authSettings ,requestToken,req.session.twitterReqSecret, verifier)
+            .then(function(data){
 
-                            var provider="twitter";
-                            var providerUserId=user.id;
-                            global.authService.authUser(appId,customHelper.getAccessList(req),provider,providerUserId,accessToken)
-                            .then(function(result){                            
-                                //create sessions
-                                setSession(req, appId, result,res);                        
-                                return res.redirect(authSettings.custom.callbackURL+"?cbtoken="+session.id);
-                            },function(error){
-                                res.status(400).json({
-                                    error: error
-                                });
-                            });                             
-                        }
-                    });
-                }    
-            });
+                twitterTokens=data;
+                delete req.session.twitterReqSecret;     
+
+                return twitterHelper.getUserByTokens(req, appId, authSettings, data.accessToken, data.accessSecret);
+
+            }).then(function(user){
+
+                console.log(user);
+
+                var provider="twitter";
+                var providerUserId=user.id;
+                var providerAccessToken=twitterTokens.accessToken;
+                var providerAccessSecret=twitterTokens.accessSecret;
+                var providerRefreshToken=null;
+
+
+                //save the user
+                return global.authService.authUser(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken, providerAccessSecret,providerRefreshToken);
+
+            }).then(function(result){
+
+                //create sessions
+                var session=setSession(req, appId, result,res);                        
+                return res.redirect(authSettings.general.callbackURL+"?cbtoken="+session.id);
+
+            },function(error){
+                delete req.session.twitterReqSecret;
+                res.status(500).send(err);
+            });         
 
         });        
     }); 
@@ -102,20 +91,13 @@ module.exports = function() {
         _getAppSettings(req, res).then(function(respObj){
 
             var appId=respObj.appId;
-            var authSettings=respObj.authSettings;
-             
-            var githhubClientId=authSettings.github.appId;
-            var githubClientSecret=authSettings.github.appSecret;  
-            var oauth = require("oauth").OAuth2;          
-            
-            var OAuth2 = new oauth(githhubClientId, githubClientSecret, "https://github.com/", "login/oauth/authorize", "login/oauth/access_token");
-           
-            var url= OAuth2.getAuthorizeUrl({
-                redirect_uri: req.protocol + '://' + req.headers.host +'/auth/'+appId+'/github/callback',
-                scope: _getGithubFieldString(authSettings).concat(_getGithubScopeString(authSettings))
+            var authSettings=respObj.authSettings;            
+
+            githubHelper.getLoginUrl(req, appId, authSettings).then(function(data){
+                return res.status(200).json({url:data.loginUrl});
+            },function(error){
+                res.status(500).send(error);
             });           
-           
-            return res.status(200).json({url:url});
 
         });         
     });    
@@ -127,43 +109,34 @@ module.exports = function() {
         _getAppSettings(req, res).then(function(respObj){
 
             var appId=respObj.appId;
-            var authSettings=respObj.authSettings;            
+            var authSettings=respObj.authSettings;  
 
-            var githhubClientId=authSettings.github.appId;
-            var githubClientSecret=authSettings.github.appSecret; 
+            var githubAccessToken=null;          
 
-            var github = require('octonode');
-            var oauth = require("oauth").OAuth2; 
-            var OAuth2 = new oauth(githhubClientId, githubClientSecret, "https://github.com/", "login/oauth/authorize", "login/oauth/access_token");    
-            
-            OAuth2.getOAuthAccessToken(code, {}, function (err, access_token, refresh_token) {
-                if (err) {
-                  console.log(err);
-                  res.status(500).send(err);
-                }else{                   
-                    // authenticate github API
-                    console.log("AccessToken: "+access_token+"\n");
-                    
-                    var client = github.client(access_token);
+            githubHelper.getOAuthAccessToken(req, appId, authSettings, code).then(function(accessToken){
+                githubAccessToken=accessToken;
+                return githubHelper.getUserByAccessToken(accessToken);
+            }).then(function(user){
 
-                    client.get('/user', {}, function (err, status, body, headers) {
-                        console.log(body); //json object
+                var provider="github";
+                var providerUserId=user.id;                
+                var providerAccessToken=githubAccessToken;
+                var providerAccessSecret=null;
+                var providerRefreshToken=null;
 
-                        var provider="github";
-                        var providerUserId=body.id;
-                        global.authService.authUser(appId,customHelper.getAccessList(req),provider,providerUserId,access_token)
-                        .then(function(result){                            
-                            //create sessions
-                            setSession(req, appId, result,res);                        
-                            return res.redirect(authSettings.custom.callbackURL+"?cbtoken="+session.id);
-                        },function(error){
-                            res.status(400).json({
-                                error: error
-                            });
-                        });
-                    });
-                }            
-            });
+                return global.authService.authUser(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken,providerAccessSecret,providerRefreshToken);
+
+            }).then(function(result){
+
+                //create sessions
+                var session=setSession(req, appId, result,res);                        
+                return res.redirect(authSettings.general.callbackURL+"?cbtoken="+session.id);
+
+            },function(error){
+                res.status(400).json({
+                    error: error
+                });
+            });            
             
         });
     }); 
@@ -175,17 +148,12 @@ module.exports = function() {
             var appId=respObj.appId;
             var authSettings=respObj.authSettings;
            
-            var clienId=authSettings.linkedIn.appId;
-            var clientSecret=authSettings.linkedIn.appSecret;
-
-            var Linkedin = require('node-linkedin')(clienId, clientSecret);
-          
-            Linkedin.setCallback(req.protocol + '://' + req.headers.host + '/auth/'+appId+'/linkedin/callback');
-            var scope = _getLinkedinScopeString(authSettings);
-            
-            var url = Linkedin.auth.authorize(scope);
-            return res.status(200).json({url:url});
-
+            linkedinHelper.getLoginUrl(req, appId, authSettings).then(function(data){
+                return res.status(200).json({url:data.loginUrl});
+            },function(error){
+                res.status(500).send(error);
+            });         
+           
         });        
     }); 
 
@@ -196,40 +164,34 @@ module.exports = function() {
             var appId=respObj.appId;
             var authSettings=respObj.authSettings;
 
-            var clienId=authSettings.linkedIn.appId;
-            var clientSecret=authSettings.linkedIn.appSecret;
-            
-            var Linkedin = require('node-linkedin')(clienId, clientSecret);
+            var linkedinAccessToken=null;
 
-            Linkedin.setCallback(req.protocol + '://' + req.headers.host + '/auth/'+appId+'/linkedin/callback');
+            linkedinHelper.getAccessToken(req, appId, authSettings, res, req.query.code, req.query.state)
+            .then(function(accessToken){
 
-            Linkedin.auth.getAccessToken(res, req.query.code, req.query.state, function(err, results) {
-                if ( err ){
-                    console.error(err);
-                    return res.status(500).send(err);
-                }else{
-                    
-                    var linkedin = Linkedin.init(results.access_token);
+                linkedinAccessToken=accessToken;
+                return linkedinHelper.getUserByAccessToken(accessToken);
 
-                    linkedin.people.me(function(err, $in) {
-                        // Loads the profile of access token owner. 
-                        console.log($in);
-                        var provider="linkedin";
-                        var providerUserId=$in.id;
-                        global.authService.authUser(appId,customHelper.getAccessList(req),provider,providerUserId,results.access_token)
-                        .then(function(result){                            
-                            //create sessions
-                            setSession(req, appId, result,res);                        
-                            return res.redirect(authSettings.custom.callbackURL+"?cbtoken="+session.id);
-                        },function(error){
-                            res.status(400).json({
-                                error: error
-                            });
-                        }); 
-                    });
-                     
-                }            
-            });
+            }).then(function(user){
+
+                var provider="linkedin";
+                var providerUserId=user.id;
+                var providerAccessToken=linkedinAccessToken;
+                var providerAccessSecret=null;
+                var providerRefreshToken=null;
+
+                global.authService.authUser(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken,providerAccessSecret,providerRefreshToken);
+                        
+            }).then(function(result){
+
+                //create sessions
+                var session=setSession(req, appId, result,res);                        
+                return res.redirect(authSettings.general.callbackURL+"?cbtoken="+session.id);
+
+            },function(error){
+                res.status(500).send(error);
+            });         
+           
         });
     }); 
 
@@ -241,21 +203,11 @@ module.exports = function() {
             var appId=respObj.appId;
             var authSettings=respObj.authSettings;
             
-            var google = require('googleapis');
-            var OAuth2Client = google.auth.OAuth2;
-
-            var clientId = authSettings.google.appId;
-            var clientSecret = authSettings.google.appSecret;
-            var redirect = req.protocol + '://' + req.headers.host +'/auth/'+appId+'/google/callback';  
-
-            oauth2Client = new OAuth2Client(clientId, clientSecret, redirect);             
-
-            var url = oauth2Client.generateAuthUrl({
-              access_type: 'offline',
-              scope:_getGoogleFieldString(authSettings).concat(_getGoogleScopeString(authSettings))
-            }); 
-
-            return res.status(200).json({url:url});
+            googleHelper.getLoginUrl(req, appId, authSettings).then(function(data){
+                return res.status(200).json({url:data.loginUrl});
+            },function(error){
+                res.status(500).send(error);
+            });             
 
         });         
     }); 
@@ -269,46 +221,30 @@ module.exports = function() {
             var appId=respObj.appId;
             var authSettings=respObj.authSettings;
 
-            var google = require('googleapis');
-            var plus = google.plus('v1');
-            var OAuth2Client = google.auth.OAuth2;
+            var googleTokens=null;
+            googleHelper.getToken(req, appId, authSettings, code).then(function(tokens){
+                googleTokens=tokens;
+                return googleHelper.getUserByTokens(req, appId, authSettings, tokens.access_token, tokens.refresh_token);
+            }).then(function(profile){
 
-            var clientId = authSettings.google.appId;
-            var clientSecret = authSettings.google.appSecret;
-            var redirect = req.protocol + '://' + req.headers.host +'/auth/'+appId+'/google/callback';  
+                var provider="google";
+                var providerUserId=profile.id;
+                var providerAccessToken=googleTokens.access_token;
+                var providerAccessSecret=null;
+                var providerRefreshToken=googleTokens.refresh_token;
 
-            oauth2Client = new OAuth2Client(clientId, clientSecret, redirect);
-            
-            oauth2Client.getToken(code, function(err, tokens) {              
-              if(err){
-                return res.status(500).send(err);
-              }else {            
-                oauth2Client.setCredentials(tokens);
-                plus.people.get({ userId: 'me', auth: oauth2Client }, function(err, profile) {
-                    if (err) {
-                      console.log('An error occured', err);
-                      return res.status(500).send(err);                  
-                    }else{
-                        console.log(profile);
-                        var accessToken=tokens.access_token;
+                return global.authService.authUser(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken,providerAccessSecret,providerRefreshToken);
 
-                        var provider="google";
-                        var providerUserId=profile.id;
-                        global.authService.authUser(appId,customHelper.getAccessList(req),provider,providerUserId,accessToken)
-                        .then(function(result){                            
-                            //create sessions
-                            setSession(req, appId, result,res);                        
-                            return res.redirect(authSettings.custom.callbackURL+"?cbtoken="+session.id);
-                        },function(error){
-                            res.status(400).json({
-                                error: error
-                            });
-                        });
-                    }
-                    
-                });
-              }
-            }); 
+            }).then(function(result){
+
+                //create sessions
+                var session=setSession(req, appId, result,res);                        
+                return res.redirect(authSettings.general.callbackURL+"?cbtoken="+session.id);
+
+            },function(error){
+                res.status(500).send(error);
+            });              
+              
         });      
     }); 
 
@@ -319,19 +255,11 @@ module.exports = function() {
             var appId=respObj.appId;
             var authSettings=respObj.authSettings;
             
-            var FB = require('fb');
-
-            var fbAppId=authSettings.facebook.appId;
-            var fbAppSecret=authSettings.facebook.appSecret;
-           
-            FB.options({
-                appId:          fbAppId,
-                appSecret:      fbAppSecret,
-                redirectUri:    req.protocol + '://' + req.headers.host+"/auth/"+appId+"/facebook/callback"
-            });
-
-            var url=FB.getLoginUrl({ scope: _getFbScopeString(authSettings) });                                       
-            return res.status(200).json({url:url});            
+            facebookHelper.getLoginUrl(req, appId, authSettings).then(function(data){
+                return res.status(200).json({url:data.loginUrl});
+            },function(error){
+                res.status(500).send(error);
+            });                     
 
         });
         
@@ -346,51 +274,30 @@ module.exports = function() {
             var appId=respObj.appId;            
             var authSettings=respObj.authSettings;
 
-            var FB = require('fb');
+            var fbAccessToken=null;
+            facebookHelper.getAccessToken(req, appId, authSettings, code).then(function(accessToken){
+                fbAccessToken=accessToken;
+                return facebookHelper.getUserByAccessToken(req, appId, authSettings, accessToken);
 
-            var fbAppId=authSettings.facebook.appId;
-            var fbAppSecret=authSettings.facebook.appSecret;
+            }).then(function(user){
 
-            FB.options({
-                appId:          fbAppId,
-                appSecret:      fbAppSecret,
-                redirectUri:    req.protocol + '://' + req.headers.host+"/auth/"+appId+"/facebook/callback"
-            });
+                var provider="facebook";
+                var providerUserId=user.id;
+                var providerAccessToken=fbAccessToken;
+                var providerAccessSecret=null;
+                var providerRefreshToken=null;
 
-            FB.api('oauth/access_token', {
-                client_id:      FB.options('appId'),
-                client_secret:  FB.options('appSecret'),
-                redirect_uri:   FB.options('redirectUri'),
-                code:           code
-            }, function (results) {
-                if(!results || results.error) {
-                    console.log(res.error);
-                    return res.status(500).send(results.error); 
-                }else{
-             
-                    var accessToken = results.access_token;                    
-                    
-                    FB.setAccessToken(accessToken);
-                    FB.api('me', { fields: _getFbFieldString(authSettings), access_token: accessToken }, function (fbRes) {
+                return global.authService.authUser(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken,providerAccessSecret,providerRefreshToken);
+                        
+            }).then(function(result){
 
-                        console.log(fbRes);
+                //create sessions
+                var session=setSession(req, appId, result,res);                        
+                return res.redirect(authSettings.general.callbackURL+"?cbtoken="+session.id);
 
-                        var provider="facebook";
-                        var providerUserId=fbRes.id;
-                        global.authService.authUser(appId,customHelper.getAccessList(req),provider,providerUserId,accessToken)
-                        .then(function(result){                            
-                            //create sessions
-                            var session=setSession(req, appId, result,res);                        
-                            return res.redirect(authSettings.custom.callbackURL+"?cbtoken="+session.id);
-                        },function(error){
-                            res.status(400).json({
-                                error: error
-                            });
-                        });                        
-                                            
-                    });
-                }
-            });
+            },function(error){
+                res.status(500).send(error);
+            });         
         });
     });  
 }    
@@ -459,104 +366,6 @@ function _getAppSettings(req,res){
     return deferred.promise    
 }
 
-function _getFbScopeString(authSettings){
-    var json=authSettings.facebook.permissions;
-
-    var scopeArray=[];
-    for (var key in json) {
-        if (json.hasOwnProperty(key) && json[key].enabled) {
-          scopeArray.push(json[key].scope);
-        }
-    }
-
-    return scopeArray.toString();
-}
-
-function _getFbFieldString(authSettings){
-    var json=authSettings.facebook.attributes;
-
-    var fieldArray=[];
-    for (var key in json) {
-        if (json.hasOwnProperty(key) && json[key]) {
-          fieldArray.push(key.toString());
-        }
-    }
-
-    return fieldArray;
-} 
 
 
-function _getGoogleFieldString(authSettings){
-    var json=authSettings.google.attributes;
 
-    var scopeString=''; 
-    var isFirst=false;
-    
-    for (var key in json) {
-        if (json.hasOwnProperty(key) && json[key].enabled) {  
-            var scope;
-            if(!isFirst){
-                scope=json[key].scope;
-                isFirst=true;
-            }else{
-                scope=" "+json[key].scope;
-            }
-            scopeString = scopeString.concat(scope);
-        }
-    }
-
-    return scopeString;
-} 
-
-function _getGoogleScopeString(authSettings){
-    var json=authSettings.google.permissions;       
-    
-    var scopeString=''; 
-    for (var key in json) {
-        if (json.hasOwnProperty(key) && json[key].enabled) {                
-            scopeString = scopeString.concat(" "+json[key].scope);
-        }
-    }
-
-    return scopeString;
-}
-
-
-function _getGithubFieldString(authSettings){
-    var json=authSettings.github.attributes;
-
-    var scopeArray=[];
-    for (var key in json) {
-        if (json.hasOwnProperty(key) && json[key].enabled) {
-          scopeArray.push(json[key].scope);
-        }
-    }
-
-    return scopeArray;
-}
-
-function _getGithubScopeString(authSettings){
-    var json=authSettings.github.permissions;
-
-    var scopeArray=[];
-    for (var key in json) {
-        if (json.hasOwnProperty(key) && json[key].enabled) {
-          scopeArray.push(json[key].scope);
-        }
-    }
-
-    return scopeArray;
-}
-
-function _getLinkedinScopeString(authSettings){
-    var json=authSettings.linkedIn.permissions;
-
-    var scopeArray=[];
-    for (var key in json) {
-        if (json.hasOwnProperty(key) && json[key]) {
-          scopeArray.push(key.toString());
-        }
-    }
-
-    return scopeArray;
-}

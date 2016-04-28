@@ -129,9 +129,7 @@
 
 
     .wrapper{    		
-    	background-color: #eef0f3;
-        width: 100vw;
-        height: 100vh;
+    	background-color: #eef0f3;        
     }
     .login-btn{
         border-top-left-radius:3px; 
