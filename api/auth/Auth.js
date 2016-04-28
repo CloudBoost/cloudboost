@@ -115,7 +115,7 @@ module.exports = function() {
 
             githubHelper.getOAuthAccessToken(req, appId, authSettings, code).then(function(accessToken){
                 githubAccessToken=accessToken;
-                return githubHelper.getUserByAccessToken(accessToken);
+                return githubHelper.getUserByAccessToken(req, appId, authSettings, accessToken);
             }).then(function(user){
 
                 var provider="github";
@@ -170,7 +170,7 @@ module.exports = function() {
             .then(function(accessToken){
 
                 linkedinAccessToken=accessToken;
-                return linkedinHelper.getUserByAccessToken(accessToken);
+                return linkedinHelper.getUserByAccessToken(req, appId, authSettings, accessToken);
 
             }).then(function(user){
 
@@ -190,7 +190,7 @@ module.exports = function() {
 
             },function(error){
                 res.status(500).send(error);
-            });         
+            });        
            
         });
     }); 
