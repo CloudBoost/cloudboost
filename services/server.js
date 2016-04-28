@@ -41,11 +41,9 @@ module.exports = function() {
         Q.all(promises).then(function(resultList){
             if(resultList && resultList[0] && resultList[1] && resultList[2]){
               deferred.resolve("All are running..");                
-            }else{
-              deferred.reject("Something went wrong..");
             }
         },function(error){  
-            deferred.reject(error);          
+            deferred.reject(error.error);          
         }); 
 
       } catch(err){           
@@ -105,17 +103,25 @@ function _mongoDbStatus(){
 
     try{
 
+        var responseJson={};
+        responseJson.serviceName="mongodb";
+        responseJson.success=null;
+        responseJson.error=null;
+
         global.mongoClient.command({ serverStatus: 1},function(err, status){
           if(err) { 
             console.log(err);
-            deferred.reject(err);                                    
+            responseJson.error="Unable to know CBEngine Mongodb status";
+            deferred.reject(responseJson);                                    
           }
 
           console.log("MongoDB Status:"+status.ok);
-          if(status && status.ok===1){         
-            deferred.resolve("Ok");                                              
+          if(status && status.ok===1){ 
+            responseJson.success="CBEngine Mongodb status is okay";          
+            deferred.resolve(responseJson);                                               
           }else{        
-            deferred.reject("Failed");
+            responseJson.error="CBEngine Mongodb status is failed";
+            deferred.reject(responseJson);
           }
         });
 
@@ -135,17 +141,25 @@ function _redisDbStatus(){
 
     try{
         
+        var responseJson={};
+        responseJson.serviceName="redisdb";
+        responseJson.success=null;
+        responseJson.error=null;
+
         //Simple ping/pong with callback
         global.redisClient.call('PING', function (error, result) {                
             if(error){
                 console.log(error);
-                deferred.reject("Failed"); 
+                responseJson.error="Unable to know CBEngine Redisdb status";
+                deferred.reject(responseJson);
             }
             console.log("RedisDB Status:"+result);
             if(result==="PONG"){
-                deferred.resolve("Ok"); 
+              responseJson.success="CBEngine Redisdb PING is successfull";
+              deferred.resolve(responseJson); 
             }else{
-                deferred.reject("Failed");
+              responseJson.error="CBEngine Redisdb PING is failed";
+              deferred.reject(responseJson)
             }
         });        
 
@@ -166,6 +180,11 @@ function _elasticSearchbStatus(){
 
     try{
         
+        var responseJson={};
+        responseJson.serviceName="elasticSearchdb";
+        responseJson.success=null;
+        responseJson.error=null;
+
         global.esClient.ping({
           // ping usually has a 3000ms timeout 
           requestTimeout: Infinity,         
@@ -174,10 +193,13 @@ function _elasticSearchbStatus(){
         }, function (error) {
           if (error) {
             console.trace('elasticsearch cluster is down!');
-            deferred.reject(error);
-          } else {
-            console.log("Elastic SearchDB Status: All is well!");
-            deferred.resolve('All is well');
+            responseJson.error="CBEngine elasticsearch cluster is down!";
+            deferred.reject(responseJson);
+          } else {           
+
+            console.log("CBEngine Elastic SearchDB Status: All is well!");
+            responseJson.success="CBEngine Elastic SearchDB Status: All is well!";
+            deferred.resolve(responseJson);
           }
         });   
 
