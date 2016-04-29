@@ -49,7 +49,7 @@ module.exports = {
                 x_auth_access_type: "write"
             });
 
-            twitter.getAccessToken(requestToken, req.session.twitterReqSecret, verifier, function(err, accessToken, accessSecret) {
+            twitter.getAccessToken(requestToken, twitterReqSecret, verifier, function(err, accessToken, accessSecret) {
                 if (err){                    
                     deferred.reject(err);
                 }else{

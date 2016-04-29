@@ -93,8 +93,7 @@ module.exports = function() {
 
         var provider= req.body.provider;
         var accessToken= req.body.accessToken; 
-        var accessSecret= req.body.accessSecret || null;
-        var refreshToken= req.body.refreshToken || null;    
+        var accessSecret= req.body.accessSecret || null;           
         
         var sdk = req.body.sdk || "REST";
 
@@ -112,13 +111,8 @@ module.exports = function() {
                 "message": "accessToken is required."
             });
             return;
-        }
-        if(provider==="google" && !refreshToken){
-            res.status(400).json({
-                "message": "refreshToken is required for given provider."
-            });
-            return;
-        }
+        }       
+
         if(provider==="twitter" && !accessSecret){
             res.status(400).json({
                 "message": "accessSecret is required for given provider."
@@ -156,7 +150,7 @@ module.exports = function() {
                 authPromises.push(facebookHelper.getUserByAccessToken(req, appId, authSettings, accessToken));
             }
             if(provider==="google"){
-                authPromises.push(googleHelper.getUserByTokens(req, appId, authSettings, accessToken,refreshToken));
+                authPromises.push(googleHelper.getUserByTokens(req, appId, authSettings, accessToken,null));
             } 
             if(provider==="github"){
                 authPromises.push(githubHelper.getUserByAccessToken(req, appId, authSettings, accessToken));
@@ -170,10 +164,16 @@ module.exports = function() {
            
             q.all(authPromises).then(function(user){
 
-                var providerUserId=user.id;
-                return global.authService.authUser(appId,customHelper.getAccessList(req),provider,providerUserId,accessToken,accessSecret,refreshToken);
-
-            }).then(function(result){
+                if(user && user.length>0 && user[0].id){
+                    var providerUserId=user[0].id;
+                    return global.authService.authUser(appId,customHelper.getAccessList(req),provider,providerUserId,accessToken,accessSecret);
+                }else{
+                    var deferred = global.q.defer();
+                    deferred.reject("Invalid accessToken");
+                    return deferred.promise
+                }
+                
+            }).then(function(result){                
                 //create sessions
                 setSession(req, appId, result,res); 
                 res.json(result);

@@ -60,7 +60,7 @@ module.exports = {
             var clientSecret=authSettings.linkedIn.appSecret;
 
             var Linkedin = require('node-linkedin')(clienId, clientSecret);          
-            Linkedin.setCallback(req.protocol + '://' + req.headers.host + '/auth/'+appId+'/linkedin/callback');
+            //Linkedin.setCallback(req.protocol + '://' + req.headers.host + '/auth/'+appId+'/linkedin/callback');
            
             var linkedin = Linkedin.init(accessToken);
 

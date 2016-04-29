@@ -16,7 +16,7 @@ module.exports = function() {
 		           Resolve->user object
 		           Reject->Error on findOne()  or save()
 		*/
-		authUser: function(appId, accessList, provider, providerUserId, providerAccessToken, providerAccessSecret, providerRefreshToken){
+		authUser: function(appId, accessList, provider, providerUserId, providerAccessToken, providerAccessSecret){
 
 			var _self=this;			
 			
@@ -71,8 +71,7 @@ module.exports = function() {
 					    	provider:provider,
 		            		id:providerUserId,
 		            		accessToken:providerAccessToken,
-		            		accessSecret:providerAccessSecret,
-		            		refreshToken:providerRefreshToken
+		            		accessSecret:providerAccessSecret		            		
 					    }];
 
 					    document._modifiedColumns=["createdAt","updatedAt","ACL","expires","socialAuth"];

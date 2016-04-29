@@ -64,7 +64,11 @@ module.exports = {
             var client = github.client(accessToken);
             
             client.get('/user', {}, function (err, status, body, headers) {
-                deferred.resolve(body);
+                if (err) {                  
+                  deferred.reject(err);
+                }else{ 
+                    deferred.resolve(body);
+                }                
             });            
 
         }catch(err){                    

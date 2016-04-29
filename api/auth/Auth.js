@@ -22,13 +22,7 @@ module.exports = function() {
             var authSettings=respObj.authSettings;            
 
             twitterHelper.getLoginUrl(req, appId, authSettings).then(function(data){
-
-                if(!req.session){
-                    req.session = {};
-                }                    
-                req.session.twitterReqSecret=data.requestSecret;
                 return res.status(200).json({url:data.loginUrl});
-
             },function(err){
                 res.status(500).send(err);
             }); 
@@ -46,10 +40,11 @@ module.exports = function() {
             var appId=respObj.appId;
             var authSettings=respObj.authSettings;           
 
-            var twitterTokens=null;            
+            var twitterTokens=null; 
+            var twitterReqSecret=null;           
 
             //Make twitter requests
-            twitterHelper.getAccessToken(req, appId, authSettings ,requestToken,req.session.twitterReqSecret, verifier)
+            twitterHelper.getAccessToken(req, appId, authSettings ,requestToken, twitterReqSecret, verifier)
             .then(function(data){
 
                 twitterTokens=data;
@@ -65,11 +60,9 @@ module.exports = function() {
                 var providerUserId=user.id;
                 var providerAccessToken=twitterTokens.accessToken;
                 var providerAccessSecret=twitterTokens.accessSecret;
-                var providerRefreshToken=null;
-
 
                 //save the user
-                return global.authService.authUser(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken, providerAccessSecret,providerRefreshToken);
+                return global.authService.authUser(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken, providerAccessSecret);
 
             }).then(function(result){
 
@@ -121,10 +114,9 @@ module.exports = function() {
                 var provider="github";
                 var providerUserId=user.id;                
                 var providerAccessToken=githubAccessToken;
-                var providerAccessSecret=null;
-                var providerRefreshToken=null;
+                var providerAccessSecret=null;                
 
-                return global.authService.authUser(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken,providerAccessSecret,providerRefreshToken);
+                return global.authService.authUser(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken,providerAccessSecret);
 
             }).then(function(result){
 
@@ -170,27 +162,30 @@ module.exports = function() {
             .then(function(accessToken){
 
                 linkedinAccessToken=accessToken;
-                return linkedinHelper.getUserByAccessToken(req, appId, authSettings, accessToken);
+                
+                linkedinHelper.getUserByAccessToken(req, appId, authSettings, accessToken).then(function(user){
 
-            }).then(function(user){
+                    var provider="linkedin";
+                    var providerUserId=user.id;
+                    var providerAccessToken=linkedinAccessToken;
+                    var providerAccessSecret=null;                    
 
-                var provider="linkedin";
-                var providerUserId=user.id;
-                var providerAccessToken=linkedinAccessToken;
-                var providerAccessSecret=null;
-                var providerRefreshToken=null;
+                    global.authService.authUser(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken,providerAccessSecret)
+                    .then(function(result){
+                        //create sessions
+                        var session=setSession(req, appId, result,res);                        
+                        return res.redirect(authSettings.general.callbackURL+"?cbtoken="+session.id);
+                    },function(error){
+                        res.status(500).send(error);
+                    });
 
-                global.authService.authUser(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken,providerAccessSecret,providerRefreshToken);
-                        
-            }).then(function(result){
-
-                //create sessions
-                var session=setSession(req, appId, result,res);                        
-                return res.redirect(authSettings.general.callbackURL+"?cbtoken="+session.id);
+                },function(error){
+                    res.status(500).send(error);
+                });
 
             },function(error){
                 res.status(500).send(error);
-            });        
+            });          
            
         });
     }); 
@@ -230,10 +225,9 @@ module.exports = function() {
                 var provider="google";
                 var providerUserId=profile.id;
                 var providerAccessToken=googleTokens.access_token;
-                var providerAccessSecret=null;
-                var providerRefreshToken=googleTokens.refresh_token;
+                var providerAccessSecret=null;                
 
-                return global.authService.authUser(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken,providerAccessSecret,providerRefreshToken);
+                return global.authService.authUser(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken,providerAccessSecret);
 
             }).then(function(result){
 
@@ -284,10 +278,9 @@ module.exports = function() {
                 var provider="facebook";
                 var providerUserId=user.id;
                 var providerAccessToken=fbAccessToken;
-                var providerAccessSecret=null;
-                var providerRefreshToken=null;
+                var providerAccessSecret=null;                
 
-                return global.authService.authUser(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken,providerAccessSecret,providerRefreshToken);
+                return global.authService.authUser(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken,providerAccessSecret);
                         
             }).then(function(result){
 
