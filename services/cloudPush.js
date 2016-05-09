@@ -33,7 +33,7 @@ module.exports = function() {
 
 				var deviceObjects=null;
 				var appSettingsObject=null;
-				var pushTitle=null;
+				
 
 				var pushNotificationSettings=null;
 				var pushSettingsFound=false;
@@ -46,18 +46,18 @@ module.exports = function() {
 				//Get Device Objects 
 				promisesList.push(global.customService.find(appId, collectionName, query, null, sort, limit, skip,accessList,isMasterKey));
 				//Get App Settings
-				promisesList.push(global.appService.getAllSettings(appId));
-				//Check and Get Title for push notifications
-				promisesList.push(_checkAndGetTitle(appId,pushData,appSettingsObject));				
+				promisesList.push(global.appService.getAllSettings(appId));				
+								
 
 				//Promise List
-            	q.all(promisesList).then(function(resultList){
+            	q.all(promisesList).then(function(respList){
 
-            		deviceObjects=resultList[0];
-            		appSettingsObject=resultList[1];
-            		pushTitle=resultList[2];
+            		deviceObjects=respList[0];
+            		appSettingsObject=respList[1];
 
-            		pushData.title=pushTitle;            		
+            		//Check and Get Title for push notifications
+            		pushData.title=_checkAndGetTitle(appId,pushData,appSettingsObject);            		
+           		
 
 					if(appSettingsObject && appSettingsObject.length>0){
 		                var pushSettings=_.where(appSettingsObject, {category: "push"});
@@ -204,21 +204,21 @@ function _checkAndGetTitle(appId,data,appSettingsObject){
 	        }
 
 	        if(appName){
-	        	deferred.resolve(appName);
+	        	return appName;
 	        }else{
-	        	deferred.resolve("CloudBoost");
+	        	return "CloudBoost";
 	        }
 
 		}else{
-			deferred.resolve(data.title);
+			return data.title;
 		}
 
 	} catch(err){           
         global.winston.log('error',{"error":String(err),"stack": new Error().stack});
-        deferred.reject(err);
+        return "CloudBoost";
     }
 
-	return deferred.promise;
+	return "CloudBoost";
 }
 
 /*Desc   : send Apple push notification
