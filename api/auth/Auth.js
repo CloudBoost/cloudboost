@@ -62,7 +62,7 @@ module.exports = function() {
                 var providerAccessSecret=twitterTokens.accessSecret;
 
                 //save the user
-                return global.authService.authUser(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken, providerAccessSecret);
+                return global.authService.upsertUserWithProvider(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken, providerAccessSecret);
 
             }).then(function(result){
 
@@ -116,7 +116,7 @@ module.exports = function() {
                 var providerAccessToken=githubAccessToken;
                 var providerAccessSecret=null;                
 
-                return global.authService.authUser(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken,providerAccessSecret);
+                return global.authService.upsertUserWithProvider(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken,providerAccessSecret);
 
             }).then(function(result){
 
@@ -170,7 +170,7 @@ module.exports = function() {
                     var providerAccessToken=linkedinAccessToken;
                     var providerAccessSecret=null;                    
 
-                    global.authService.authUser(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken,providerAccessSecret)
+                    global.authService.upsertUserWithProvider(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken,providerAccessSecret)
                     .then(function(result){
                         //create sessions
                         var session=setSession(req, appId, result,res);                        
@@ -227,7 +227,7 @@ module.exports = function() {
                 var providerAccessToken=googleTokens.access_token;
                 var providerAccessSecret=null;                
 
-                return global.authService.authUser(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken,providerAccessSecret);
+                return global.authService.upsertUserWithProvider(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken,providerAccessSecret);
 
             }).then(function(result){
 
@@ -280,7 +280,7 @@ module.exports = function() {
                 var providerAccessToken=fbAccessToken;
                 var providerAccessSecret=null;                
 
-                return global.authService.authUser(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken,providerAccessSecret);
+                return global.authService.upsertUserWithProvider(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken,providerAccessSecret);
                         
             }).then(function(result){
 

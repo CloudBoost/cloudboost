@@ -10,13 +10,13 @@ module.exports = function() {
 
 	return {
 
-		/*Desc   : Create and save Auth
-		  Params : appId, accessList, provider, providerUserId, providerAccessToken
+		/*Desc   : Upsert user with provider
+		  Params : appId, accessList, provider, providerUserId, providerAccessToken, providerAccessSecret
 		  Returns: Promise
 		           Resolve->user object
 		           Reject->Error on findOne()  or save()
 		*/
-		authUser: function(appId, accessList, provider, providerUserId, providerAccessToken, providerAccessSecret){
+		upsertUserWithProvider: function(appId, accessList, provider, providerUserId, providerAccessToken, providerAccessSecret){
 
 			var _self=this;			
 			

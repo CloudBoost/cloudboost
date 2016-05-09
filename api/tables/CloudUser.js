@@ -166,7 +166,7 @@ module.exports = function() {
 
                 if(user && user.length>0 && user[0].id){
                     var providerUserId=user[0].id;
-                    return global.authService.authUser(appId,customHelper.getAccessList(req),provider,providerUserId,accessToken,accessSecret);
+                    return global.authService.upsertUserWithProvider(appId,customHelper.getAccessList(req),provider,providerUserId,accessToken,accessSecret);
                 }else{
                     var deferred = global.q.defer();
                     deferred.reject("Invalid accessToken");
