@@ -53,10 +53,12 @@ module.exports = function() {
 				//Promise List
             	q.all(promisesList).then(function(resultList){
 
+            		//Retrieve all results
             		deviceObjects=resultList[0];
             		appSettingsObject=resultList[1];
             		pushTitle=resultList[2];
 
+            		//Set and check
             		pushData.title=pushTitle;            		
 
 					if(appSettingsObject && appSettingsObject.length>0){

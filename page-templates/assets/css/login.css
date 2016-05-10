@@ -129,9 +129,7 @@
 
 
     .wrapper{    		
-    	background-color: #eef0f3;
-        width: 100vw;
-        height: 100vh;
+    	background-color: #eef0f3;        
     }
     .login-btn{
         border-top-left-radius:3px; 
@@ -230,6 +228,12 @@
     }
     .google{
         background-color: #4285f4;
+        color:white;
+        font-size: 18px;
+    }
+
+    .linkedin{
+        background-color: #0177B5;
         color:white;
         font-size: 18px;
     }

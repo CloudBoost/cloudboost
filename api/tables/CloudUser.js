@@ -1,11 +1,56 @@
-
-
+var q = require("q");
 var _ = require('underscore');
-var customHelper = require('../../helpers/custom.js');
 var fs = require('fs');
+var customHelper = require('../../helpers/custom.js');
+
+
+var twitterHelper = require('../../helpers/twitter.js');
+var githubHelper = require('../../helpers/github.js');
+var linkedinHelper = require('../../helpers/linkedin.js');
+var googleHelper = require('../../helpers/google.js');
+var facebookHelper = require('../../helpers/facebook.js');
 
 module.exports = function() {
     
+    /**
+     * Get User from Sessions
+     * 
+     */
+
+    global.app.post('/user/:appId/currentUser', function(req, res) { //for login
+        console.log("CURRENT USER API");           
+
+        var appId = req.params.appId;
+        var appKey = req.body.key || req.param('key');
+        var sdk = req.body.sdk || "REST";
+
+        var accessList=customHelper.getAccessList(req);
+
+        if(!accessList || !accessList.userId){
+            return res.status(200).send(null);
+        }
+
+        var collectionName = "User";                
+        var select = {};
+        var sort = {};
+        var skip = 0;               
+
+        var query = {};
+        query.$include = [];
+        query.$includeList = [];
+        query["_id"] = accessList.userId;
+
+        global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
+            return global.customService.findOne(appId, collectionName, query, select, sort, skip, accessList, isMasterKey);
+        }).then(function (result) {
+            res.json(result);
+        }, function (error) {
+            res.status(400).send(error);
+        });                
+        
+        global.apiTracker.log(appId,"User / CurrentUser", req.url,sdk);
+    });
+
     /**
      * User Login Api
      * 
@@ -31,6 +76,116 @@ module.exports = function() {
 		});
         
 		global.apiTracker.log(appId,"User / Login", req.url,sdk);
+    });
+
+
+     /**
+     * User Login with provider
+     * 
+     */
+
+    global.app.post('/user/:appId/loginwithprovider', function(req, res) { 
+
+        console.log("LOGIN WITH PROVIDER");
+
+        var appId = req.params.appId;
+        var appKey = req.body.key || req.param('key');
+
+        var provider= req.body.provider;
+        var accessToken= req.body.accessToken; 
+        var accessSecret= req.body.accessSecret || null;           
+        
+        var sdk = req.body.sdk || "REST";
+
+        if(!provider){
+            res.status(400).json({
+                "message": "provider is required."
+            });
+            return;
+        }
+
+        provider=provider.toLowerCase();
+
+        if(!accessToken){
+            res.status(400).json({
+                "message": "accessToken is required."
+            });
+            return;
+        }       
+
+        if(provider==="twitter" && !accessSecret){
+            res.status(400).json({
+                "message": "accessSecret is required for given provider."
+            });
+            return;
+        }
+
+        var promises=[];        
+        promises.push(global.appService.getAllSettings(appId));
+        promises.push(global.appService.isMasterKey(appId,appKey));
+
+        q.all(promises).then(function(list){
+
+            var isMasterKey=list[1];
+            if(!isMasterKey){
+                return res.status(400).send("Unauthorized.");
+            }
+
+            if(!list[0] || list[0].length==0){
+                return res.status(400).send("App Settings not found.");
+            }
+
+            var auth=_.first(_.where(list[0], {category: "auth"}));           
+            if(auth){
+                var authSettings=auth.settings;
+            }
+
+            if(!authSettings){
+                return res.status(400).send("Authentication Settings not found.");
+            }
+
+            //Get user by accessToken
+            var authPromises=[];
+            if(provider==="facebook"){
+                authPromises.push(facebookHelper.getUserByAccessToken(req, appId, authSettings, accessToken));
+            }
+            if(provider==="google"){
+                authPromises.push(googleHelper.getUserByTokens(req, appId, authSettings, accessToken,null));
+            } 
+            if(provider==="github"){
+                authPromises.push(githubHelper.getUserByAccessToken(req, appId, authSettings, accessToken));
+            } 
+            if(provider==="linkedin"){
+                authPromises.push(linkedinHelper.getUserByAccessToken(req, appId, authSettings, accessToken));
+            } 
+            if(provider==="twitter"){
+                authPromises.push(twitterHelper.getUserByTokens(req, appId, authSettings, accessToken, accessSecret));
+            } 
+           
+            q.all(authPromises).then(function(user){
+
+                if(user && user.length>0 && user[0].id){
+                    var providerUserId=user[0].id;
+                    return global.authService.upsertUserWithProvider(appId,customHelper.getAccessList(req),provider,providerUserId,accessToken,accessSecret);
+                }else{
+                    var deferred = global.q.defer();
+                    deferred.reject("Invalid accessToken");
+                    return deferred.promise
+                }
+                
+            }).then(function(result){                
+                //create sessions
+                setSession(req, appId, result,res); 
+                res.json(result);
+            },function(error){
+                return res.status(400).send(error);
+            });
+
+        },function(error){
+            return res.status(400).send(error);
+        });    
+        
+        global.apiTracker.log(appId,"User / Login with provider", req.url,sdk);
     });
     
     /**

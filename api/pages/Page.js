@@ -64,6 +64,8 @@ module.exports = function() {
 
         q.all(promises).then(function(list){            
 
+            console.log(list);
+            
             var appKeys={};
             appKeys.appId=appId;
 
@@ -89,7 +91,7 @@ module.exports = function() {
             });
 
         },function(error){
-
+            res.status(400).send(error);
         });   
         
         
