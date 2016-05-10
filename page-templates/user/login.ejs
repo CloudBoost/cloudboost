@@ -136,7 +136,7 @@
                             </div>                            
 
 
-                            <% if(authSettings && authSettings.custom.enabled){ %>
+                            <% if(!authSettings || (authSettings && authSettings.custom.enabled)){ %>
                             <!--Login Input Fields-->                        
                             <div id="login-inputfields" style="width: 100%;margin-top: 8px;" class="solo-horizontal-center">                                        
                                 <div style="width: 95%;">
@@ -207,7 +207,7 @@
                     </div>
                     <!--Body-->
 
-                    <% if(authSettings && authSettings.custom.enabled){ %>
+                    <% if(!authSettings || (authSettings && authSettings.custom.enabled)){ %>
                     <!--Button-->
                     <div class="final-btn" style="">
                        <div style="width: 100%;height: 30px;" class="flex-general-column-wrapper-center">
@@ -518,8 +518,12 @@
         $("#authenticate-error span").text("");
         $("#authenticate-error").hide();
 
+        if(!_authSettings){
+            throwAuthError("Please add your app callback URL in your CloudBoost App Settings.");
+        }
+
         //Login
-        if(isLoginFields){
+        if(isLoginFields && _authSettings){
             $("#login-username-wrap").removeClass("input-field-error");
             $("#login-password-wrap").removeClass("input-field-error");
 
@@ -566,7 +570,7 @@
         }
 
         //Sign Up
-        if(!isLoginFields){
+        if(!isLoginFields && _authSettings){
             $("#signup-email-wrap").removeClass("input-field-error");
             $("#signup-password-wrap").removeClass("input-field-error");
 
