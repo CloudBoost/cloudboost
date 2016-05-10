@@ -445,7 +445,7 @@
 
         //If user logged already, redirect to callback url
         if(CB.CloudUser.current){
-            //window.location.href=_authSettings.general.callbackURL+"?cbtoken="+CB._getSessionId();
+            window.location.href=_authSettings.general.callbackURL+"?cbtoken="+CB._getSessionId();
         }       
 
     });
