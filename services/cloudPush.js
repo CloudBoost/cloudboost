@@ -12,6 +12,7 @@ var Grid = require('gridfs-stream');
 var gcm = require('node-gcm');
 var apn = require('apn');
 var wns = require('wns');
+var webPush = require('web-push');
 
 module.exports = function() {
 
@@ -33,7 +34,7 @@ module.exports = function() {
 
 				var deviceObjects=null;
 				var appSettingsObject=null;
-				var pushTitle=null;
+				
 
 				var pushNotificationSettings=null;
 				var pushSettingsFound=false;
@@ -46,20 +47,19 @@ module.exports = function() {
 				//Get Device Objects 
 				promisesList.push(global.customService.find(appId, collectionName, query, null, sort, limit, skip,accessList,isMasterKey));
 				//Get App Settings
-				promisesList.push(global.appService.getAllSettings(appId));
-				//Check and Get Title for push notifications
-				promisesList.push(_checkAndGetTitle(appId,pushData,appSettingsObject));				
+				promisesList.push(global.appService.getAllSettings(appId));				
+								
 
 				//Promise List
-            	q.all(promisesList).then(function(resultList){
+            	q.all(promisesList).then(function(respList){
 
-            		//Retrieve all results
-            		deviceObjects=resultList[0];
-            		appSettingsObject=resultList[1];
-            		pushTitle=resultList[2];
+            		deviceObjects=respList[0];
+            		appSettingsObject=respList[1];
 
-            		//Set and check
-            		pushData.title=pushTitle;            		
+            		//Check and Get Title for push notifications
+            		pushData.title=_checkAndGetTitle(appId,pushData,appSettingsObject);            		
+           		
+
 
 					if(appSettingsObject && appSettingsObject.length>0){
 		                var pushSettings=_.where(appSettingsObject, {category: "push"});
@@ -79,15 +79,9 @@ module.exports = function() {
 		                    	
 		                    }                     
 		                }
-		            }
+		            }		           
 
-		            if(!pushSettingsFound){
-		            	var noSettingPromise = global.q.defer();
-		            	noSettingPromise.reject("Push Notification Settings not found.");
-		            	return noSettingPromise.promise;
-		            } 
-
-		            if(pushSettingsFound && !appleCertificateFound){
+		            if(!appleCertificateFound){
 		            	var emptyAppleCert = global.q.defer();
 		            	emptyAppleCert.resolve(null);
 		            	return emptyAppleCert.promise;
@@ -104,7 +98,9 @@ module.exports = function() {
 
 						var appleTokens =[];
 		            	var googleTokens =[];
-		            	var windowsUris=[];		            	
+		            	var windowsUris=[];	
+		            	var browserUris=[];	
+		            	var browserKeys=[];            	
 
 		            	for(var i=0;i<deviceObjects.length;++i){
 
@@ -116,53 +112,87 @@ module.exports = function() {
 		            		}
 		            		if(deviceObjects[i].deviceOS=="windows"){
 		            			windowsUris.push(deviceObjects[i].deviceToken);
+		            		}
+		            		if(deviceObjects[i].deviceOS=="browser"){
+		            			browserUris.push(deviceObjects[i].deviceToken);
+		            			browserKeys.push(deviceObjects[i].metadata.browserKey);
 		            		}		            		
 		            	}	            	   		
 	            		
 
 	            		var promises=[];
 
+	            		//Apple
 		            	if(appleTokens && appleTokens.length>0 && appleCertificate){
 		            		promises.push(_applePush(appleTokens,appleCertificate,pushData));
 		            	}
 
-		            	var android=pushNotificationSettings.android.credentials[0];
-		            	if(googleTokens && googleTokens.length>0 && android.apiKey){
-		            		promises.push(_googlePush(googleTokens,android.senderId,android.apiKey,pushData));
+		            	//Android
+		            	if(pushNotificationSettings){
+		            		var android=pushNotificationSettings.android.credentials[0];
+			            	if(googleTokens && googleTokens.length>0 && android.apiKey){
+			            		promises.push(_googlePush(googleTokens,android.senderId,android.apiKey,pushData));
+			            	}
 		            	}
 
-		            	var windows=pushNotificationSettings.windows.credentials[0];
-		            	if(windowsUris && windowsUris.length>0 && windows.securityId){
-		            		promises.push(_windowsPush(windows.securityId,windows.clientSecret,windowsUris,pushData));
-		            	}	            	
+		            	//Windows
+		            	if(pushNotificationSettings){
+		            		var windows=pushNotificationSettings.windows.credentials[0];
+			            	if(windowsUris && windowsUris.length>0 && windows.securityId){
+			            		promises.push(_windowsPush(windows.securityId,windows.clientSecret,windowsUris,pushData));
+			            	}
+		            	}           		            	
 		            	
+		            	//Browser
+		            	if(browserUris && browserUris.length>0){
+		            		//Notification Icon
+		            		pushData.icon="http://localhost:4730/images/cloudboostsm.png";
+		            		if(appSettingsObject && appSettingsObject.length>0){
+				                var generalSettings=_.where(appSettingsObject, {category: "general"});
+				                if(generalSettings && generalSettings.length>0 && generalSettings[0].settings.appIcon){
+				                	pushData.icon=generalSettings[0].settings.appIcon;				                                    
+				                }
+				            }
+
+		            		promises.push(_browserPush(browserUris,browserKeys,pushData));
+		            	}
+
 
 		            	//Promise List
-		            	q.allSettled(promises).then(function(resultList){
+		            	if(promises && promises.length>0){
 
-		            		var resFulfilled=[];
-		            		var resRejected=[];
-		            		resultList.forEach(function (eachResult) {
-						        if (eachResult.state === "fulfilled") {
-						            resFulfilled.push(eachResult.value);
-						        } else {
-						            resRejected.push(eachResult.reason);
-						        }
-						    });
+		            		q.allSettled(promises).then(function(resultList){
 
-						    var responseObject={};
-		            		responseObject.resolvedList=resFulfilled;
-		            		responseObject.rejectedList=resRejected;
+			            		var resFulfilled=[];
+			            		var resRejected=[];
+			            		resultList.forEach(function (eachResult) {
+							        if (eachResult.state === "fulfilled") {
+							            resFulfilled.push(eachResult.value);
+							        } else {
+							            resRejected.push(eachResult.reason);
+							        }
+							    });
+
+							    var responseObject={};
+			            		responseObject.resolvedList=resFulfilled;
+			            		responseObject.rejectedList=resRejected;
 
 
-		            		//Check atleast one is fulfilled	            		
-		            		if(resFulfilled && resFulfilled.length>0){
-		            			deferred.resolve(responseObject);
-		            		}else{
-		            			deferred.reject(responseObject);
-		            		}
-		            		
-		            	});
+			            		//Check atleast one is fulfilled	            		
+			            		if(resFulfilled && resFulfilled.length>0){
+			            			deferred.resolve(responseObject);
+			            		}else{
+			            			deferred.reject(responseObject);
+			            		}
+			            		
+			            	});
+		            	}else{
+		            		var responseObject={};
+		            		responseObject.resolvedList=null;
+		            		responseObject.rejectedList="Add push notifications settings and try again";
+		            		deferred.reject(responseObject);
+		            	}
+		            	
 					}	            	
 		            
             	},function(error){
@@ -206,21 +236,21 @@ function _checkAndGetTitle(appId,data,appSettingsObject){
 	        }
 
 	        if(appName){
-	        	deferred.resolve(appName);
+	        	return appName;
 	        }else{
-	        	deferred.resolve("CloudBoost");
+	        	return "CloudBoost";
 	        }
 
 		}else{
-			deferred.resolve(data.title);
+			return data.title;
 		}
 
 	} catch(err){           
         global.winston.log('error',{"error":String(err),"stack": new Error().stack});
-        deferred.reject(err);
+        return "CloudBoost";
     }
 
-	return deferred.promise;
+	return "CloudBoost";
 }
 
 /*Desc   : send Apple push notification
@@ -415,6 +445,39 @@ function _sendWindowsPushNotification(securityId,clientSecret,pushUri,data){
 		    	defer.resolve(res);		        
 		    }
 		}); 
+
+	} catch(err){           
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+        defer.reject(err);
+    } 
+    
+    return defer.promise;
+}
+
+
+/*Desc   : Loop over _browserPush Array and send Browser push notifications
+  Params : browserUris,data
+  Returns: Promise
+           Resolve->Successfully resolved 
+           Reject->
+*/
+function _browserPush(browserUris,browserKeys,data){
+
+    var defer = global.q.defer();	 
+
+    try{
+
+    	var respObj={};
+		respObj.category="Browser Push Notifications";
+			 
+    	var promises=[];
+
+    	for(var i=0;i<browserUris.length;++i){
+    		webPush.sendNotification(browserUris[i], 200, browserKeys[i], JSON.stringify(data)); 
+    	}	
+
+    	respObj.response="Success";
+    	defer.resolve(respObj);	
 
 	} catch(err){           
         global.winston.log('error',{"error":String(err),"stack": new Error().stack});

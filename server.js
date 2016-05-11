@@ -301,6 +301,7 @@ function attachAPI() {
         require('./api/pages/Page.js')();
         require('./api/auth/Auth.js')();
 
+
         global.app.use(expressWinston.errorLogger({
           transports: [   
             new winston.transports.Console({
