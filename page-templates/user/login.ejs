@@ -12,7 +12,8 @@
         var _appKeys=<%- JSON.stringify(appKeys) %>;       
         var _generalSettings=<%- JSON.stringify(generalSettings) %>; 
         var _authSettings=<%- JSON.stringify(authSettings) %>;       
-    </script>        
+    </script>  
+
 </head>
 <body>
 
@@ -342,23 +343,8 @@
 </body>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
-<script type="text/javascript">
-  var fileref;
-  function loadjsfile(filepath){    
-    fileref=document.createElement('script');
-    fileref.setAttribute("type","text/javascript");
-    fileref.setAttribute("src", filepath);          
-  }
+<script src="https://cloudboost.io/js-sdk/cloudboost.js"></script>
 
-  if(window.location.host.indexOf('localhost') > -1){
-    loadjsfile("/js/cloudboost.js");
-  }else{
-    loadjsfile("https://cloudboost.io/js-sdk/cloudboost.js");
-  }
-
-  document.getElementsByTagName("head")[0].appendChild(fileref);
-  
-</script>
 <script>  
     var serverURL="https://api.cloudboost.io";  
     var __isDevelopment = false;
