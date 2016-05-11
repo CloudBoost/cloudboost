@@ -50,6 +50,7 @@
     "underscore": "^1.7.0",
     "url-parse": "^1.0.5",
     "uuid": "^2.0.1",
+    "web-push": "^2.1.1",
     "winston": "^1.1.2",
     "winston-loggly": "^1.1.0",
     "wns": "^0.5.3"

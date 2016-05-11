@@ -297,7 +297,7 @@ function attachAPI() {
         require('./api/cache/CloudCache.js')();
         require('./api/server/Server.js')();
         require('./api/pushNotifications/CloudPush.js')();
-        require('./api/pages/Page.js')();
+        require('./api/pages/Page.js')();        
 
         global.app.use(expressWinston.errorLogger({
           transports: [   
