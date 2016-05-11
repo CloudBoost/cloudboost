@@ -227,15 +227,13 @@ module.exports = function() {
                 var collection =  global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));
                 var include = [];
                 /*query for expires*/
-                if(query.$includeList){
-                    delete query.$includeList;
-                }
-                if(!query.$or)
-                {
+                
+                if(!query.$or){
+
                     query.$or=[{"expires":null}, {"expires":{$gte:new Date()}}];
-                }
-                else
-                {
+
+                }else{
+
                     old_query=query.$or;
                     if(old_query[0].$include) {
                         if (old_query[0].$include.length > 0) {
@@ -256,7 +254,6 @@ module.exports = function() {
                     query.$and=[{"$or":old_query},{"$or":[{"expires":null},{"expires":{$gte:new Date().getTime()}}]}];
                     delete query.$or;
                 }
-
 
                 if (!select || Object.keys(select).length === 0) {
                     select = {}
@@ -307,9 +304,11 @@ module.exports = function() {
                     console.log(query.$include);
                     if(query.$include.length>0){
                         include = include.concat(query.$include);
-                    }
-                    delete query.$include;
+                    }                    
                 }
+
+                //delete $include and $includeList recursively
+                query=_sanitizeQuery(query);
 
                 var findQuery = collection.find(query, select);
 
@@ -469,10 +468,9 @@ module.exports = function() {
                 }
 
                 var collection =  global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));
-                if(query.$include){
-                    delete query.$include;
-                    delete query.$includeList;
-                }
+               
+                //delete $include and $includeList recursively
+                query=_sanitizeQuery(query);
 
                 var findQuery = collection.find(query);
                 if (skip) {
@@ -515,10 +513,11 @@ module.exports = function() {
                 if (query.$include) {
                     if (query.$include.length > 0) {
                         include = include.concat(query.$include);
-                    }
-                    delete query.$include;
-                    delete query.$includeList;
+                    }                    
                 }
+
+                //delete $include and $includeList recursively
+                query=_sanitizeQuery(query);
 
                 var keys = {};
                 
@@ -934,6 +933,31 @@ module.exports = function() {
 
 
     /* Private functions */
+
+    function _sanitizeQuery(query){
+
+        if(query && query.$includeList){
+            delete query.$includeList;
+        }
+
+        if(query && query.$include){
+            delete query.$include;
+        }
+
+        if(query && query.$or && query.$or.length>0){
+            for(var i=0; i<query.$or.length; ++i){
+               query.$or[i] = _sanitizeQuery(query.$or[i]);
+            }
+        }
+
+        if(query && query.$and && query.$and.length>0){
+            for(var i=0; i<query.$and.length; ++i){
+               query.$and[i] = _sanitizeQuery(query.$and[i]);
+            }
+        }
+
+        return query;
+    }
 
     function _save(appId,collectionName,document){
         var deferredMain = q.defer();
