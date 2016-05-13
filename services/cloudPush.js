@@ -18,6 +18,104 @@ module.exports = function() {
 
 	return {
 
+		/*Desc   : Upsert Device Object
+		  Params : appId, collectionName, document, accessList, isMasterKey
+		  Returns: Promise
+		           Resolve->device object
+		           Reject->Error on findOne()  or save()
+		*/
+		upsertDevice: function(appId, collectionName, document, accessList, isMasterKey){
+
+			var _self=this;			
+			
+			var deferred = global.q.defer();
+
+			try{					
+			   			    
+			    var select = {};
+			    var sort = {};
+			    var skip = 0;			    
+
+			    var query = {};
+			    query.$include = [];
+				query.$includeList = [];
+				query["deviceOS"] = document.deviceOS;
+				query["deviceToken"] = document.deviceToken;
+
+			    global.customService.findOne(appId, collectionName, query, select, sort, skip, accessList, isMasterKey).then(function(respDoc){
+			    	
+			    	if(respDoc){
+			    		console.log("Device found with given deviceToken");
+
+			    		respDoc.deviceOS=document.deviceOS;
+			    		respDoc.deviceOS=document.deviceToken;
+
+			    		respDoc._modifiedColumns=["deviceOS"];
+			    		respDoc._modifiedColumns=["deviceToken"];
+			    	}else{
+						var respDoc=document;
+			    	}	    				    	
+			    	
+			    	return global.customService.save(appId, collectionName, respDoc, accessList, isMasterKey);
+
+			    }).then(function(result){		    	
+			    	deferred.resolve(result);
+			    },function(error){
+			    	deferred.reject(error);
+			    });			    						
+
+			} catch(err){           
+	            global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+	            deferred.reject(err);
+	        }	
+
+			return deferred.promise
+		},
+
+		/*Desc   : Delete Device Object
+		  Params : appId, collectionName, document, accessList, isMasterKey
+		  Returns: Promise
+		           Resolve->device object
+		           Reject->Error on find()  or delete()
+		*/
+		deleteDevice: function(appId, collectionName, document, accessList, isMasterKey){
+
+			var _self=this;			
+			
+			var deferred = global.q.defer();
+
+			try{					
+			   			    
+			    var select = {};
+			    var sort = {};
+			    var skip = 0;
+			    var limit=999999;			    
+
+			    var query = {};
+			    query.$include = [];
+				query.$includeList = [];
+				query["deviceOS"] = document.deviceOS;
+				query["deviceToken"] = document.deviceToken;
+
+			    global.customService.find(appId, collectionName, query, select, sort, limit, skip, accessList, isMasterKey,null).then(function(list){			    			    	
+			    	
+			    	return global.customService.delete(appId, collectionName, list, accessList, isMasterKey);
+
+			    }).then(function(result){		    	
+			    	deferred.resolve(result);
+			    },function(error){
+			    	deferred.reject(error);
+			    });			    						
+
+			} catch(err){           
+	            global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+	            deferred.reject(err);
+	        }	
+
+			return deferred.promise
+		},
+		
+
 		/*Desc   : Send Push Notification
 		  Params : appId,collectionName,query, sort, limit, skip,accessList,isMasterKey,pushData
 		  Returns: Promise
@@ -206,7 +304,7 @@ module.exports = function() {
 
 			return deferred.promise
 		}
-	};
+	}
 
 };
 

@@ -43,6 +43,61 @@ module.exports = function() {
         
     });
 
+    global.app.put('/push/:appId', function (req, res, next) { 
+        if(req.body && req.body.method=="DELETE"){
+            /******************DELETE API*********************/
+            _deleteApi(req, res);
+            /******************DELETE API*********************/
+        }else{
+            /******************SAVE API*********************/
+            console.log("SAVE API");
+            var appId = req.params.appId;
+            var document = req.body.document;
+            var collectionName = "Device";
+            var userId = req.session.userId || null;
+            var appKey = req.body.key || req.params.key;
+            var sdk = req.body.sdk || "REST";
+            
+            global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
+                return global.pushService.upsertDevice(appId, collectionName, document, customHelper.getAccessList(req), isMasterKey);
+            }).then(function (result) {
+                console.log('+++ Save Success +++');
+                console.log(result);
+                res.status(200).send(result);
+            }, function (error) {
+                console.log('++++++ Save Error +++++++');
+                console.log(error);
+                res.status(400).send(error);
+            });
+
+            global.apiTracker.log(appId,"Object / Save", req.url,sdk);
+            /******************SAVE API*********************/
+        }
+    });
+
+    global.app.delete('/push/:appId', _deleteApi);
+
+    function _deleteApi(req, res, next) { //delete a document matching the <objectId>
+        console.log("DELETE API");
+        var appId = req.params.appId;
+        var collectionName = "Device";
+        var userId = req.session.userId || null;
+        var document = req.body.document;
+        var appKey = req.body.key || req.param('key');
+        var sdk = req.body.sdk || "REST";
+
+        global.appService.isMasterKey(appId,appKey).then(function(isMasterKey){
+            return global.pushService.deleteDevice(appId, collectionName, document, customHelper.getAccessList(req),isMasterKey);
+        }).then(function(result) {
+            res.json(result);
+        }, function(error) {
+            res.status(400).send(error);
+        });
+       
+        global.apiTracker.log(appId,"Object / Delete", req.url,sdk);
+       
+    }
+
 
 };
 
