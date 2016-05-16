@@ -570,6 +570,7 @@ function _browserPush(browserUris,browserKeys,data){
 			 
     	var promises=[];
 
+    	webPush.setGCMAPIKey("AIzaSyCMVnZ8FL6ZMYdS1MoePoj7jN-icqbvQyI");
     	for(var i=0;i<browserUris.length;++i){
     		webPush.sendNotification(browserUris[i], 200, browserKeys[i], JSON.stringify(data)); 
     	}	
