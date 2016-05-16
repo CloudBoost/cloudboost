@@ -198,7 +198,8 @@ module.exports = function() {
 		            	var googleTokens =[];
 		            	var windowsUris=[];	
 		            	var browserUris=[];	
-		            	var browserKeys=[];            	
+		            	var browserKeys=[];
+		            	var browserAuthKeys=[];            	
 
 		            	for(var i=0;i<deviceObjects.length;++i){
 
@@ -214,6 +215,7 @@ module.exports = function() {
 		            		if(deviceObjects[i].deviceOS=="browser"){
 		            			browserUris.push(deviceObjects[i].deviceToken);
 		            			browserKeys.push(deviceObjects[i].metadata.browserKey);
+		            			browserAuthKeys.push(deviceObjects[i].metadata.authKey);
 		            		}		            		
 		            	}	            	   		
 	            		
@@ -244,7 +246,7 @@ module.exports = function() {
 		            	//Browser
 		            	if(browserUris && browserUris.length>0){
 		            		//Notification Icon
-		            		pushData.icon="http://localhost:4730/images/cloudboostsm.png";
+		            		pushData.icon="https://api.cloudboost.io"+"/images/cloudboostsm.png";
 		            		if(appSettingsObject && appSettingsObject.length>0){
 				                var generalSettings=_.where(appSettingsObject, {category: "general"});
 				                if(generalSettings && generalSettings.length>0 && generalSettings[0].settings.appIcon){
@@ -252,7 +254,7 @@ module.exports = function() {
 				                }
 				            }
 
-		            		promises.push(_browserPush(browserUris,browserKeys,pushData));
+		            		promises.push(_browserPush(browserUris,browserKeys,browserAuthKeys,pushData));
 		            	}
 
 
@@ -554,12 +556,12 @@ function _sendWindowsPushNotification(securityId,clientSecret,pushUri,data){
 
 
 /*Desc   : Loop over _browserPush Array and send Browser push notifications
-  Params : browserUris,data
+  Params : browserUris, browserKeys, browserAuthKeys, data
   Returns: Promise
-           Resolve->Successfully resolved 
-           Reject->
+           Resolve->List of successfully resolved 
+           Reject->List of rejected messages
 */
-function _browserPush(browserUris,browserKeys,data){
+function _browserPush(browserUris, browserKeys, browserAuthKeys, data){
 
     var defer = global.q.defer();	 
 
@@ -569,14 +571,40 @@ function _browserPush(browserUris,browserKeys,data){
 		respObj.category="Browser Push Notifications";
 			 
     	var promises=[];
+    	    	
+    	for(var i=0;i<browserUris.length;++i){  
+    		webPush.setGCMAPIKey("AIzaSyCMVnZ8FL6ZMYdS1MoePoj7jN-icqbvQyI");   		    					
+    		promises.push(webPush.sendNotification(browserUris[i], {
+		        TTL: 200,
+		        payload: JSON.stringify(data),
+		        userPublicKey: browserKeys[i],
+		        userAuth: browserAuthKeys[i]		        
+		    })); 
+    	}    	
 
-    	webPush.setGCMAPIKey("AIzaSyCMVnZ8FL6ZMYdS1MoePoj7jN-icqbvQyI");
-    	for(var i=0;i<browserUris.length;++i){
-    		webPush.sendNotification(browserUris[i], 200, browserKeys[i], JSON.stringify(data)); 
-    	}	
+    	//Promise List
+    	q.allSettled(promises).then(function(resultList){
 
-    	respObj.response="Success";
-    	defer.resolve(respObj);	
+    		var resFulfilled=[];
+    		var resRejected=[];
+    		resultList.forEach(function (eachResult) {
+		        if (eachResult.state === "fulfilled") {
+		            resFulfilled.push(eachResult.value);
+		        } else {
+		            resRejected.push(eachResult.reason);
+		        }
+		    });		    
+
+    		//Check atleast one is fulfilled	            		
+    		if(resFulfilled && resFulfilled.length>0){
+    			respObj.response=resFulfilled;
+    			defer.resolve(respObj);
+    		}else{
+    			respObj.response=resRejected;
+    			defer.reject(respObj);
+    		}
+    		
+    	});    		
 
 	} catch(err){           
         global.winston.log('error',{"error":String(err),"stack": new Error().stack});
