@@ -269,7 +269,7 @@ module.exports = function() {
 		            	}           		            	
 		            	
 		            	//if Browsers
-		            	if(chromeBrowser.length>0 || firefoxBrowser.length>0){
+		            	if(chromeBrowser.length>0 || firefoxBrowser.length>0 || edgeBrowser.length>0 || operaBrowser.length>0 || safariBrowser.length>0 || ieBrowser.length>0){
 		            		//Notification Icon
 		            		pushData.icon="https://api.cloudboost.io"+"/images/cloudboostsm.png";
 		            		if(appSettingsObject && appSettingsObject.length>0){
