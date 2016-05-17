@@ -197,12 +197,17 @@ module.exports = function() {
 						var appleTokens =[];
 		            	var googleTokens =[];
 		            	var windowsUris=[];	
-		            	var browserUris=[];	
-		            	var browserKeys=[];
-		            	var browserAuthKeys=[];            	
+
+		            	var chromeBrowser=[];
+		            	var firefoxBrowser=[]; 
+		            	var edgeBrowser=[]; 
+		            	var operaBrowser=[]; 
+		            	var safariBrowser=[]; 
+		            	var ieBrowser=[];           	            	
 
 		            	for(var i=0;i<deviceObjects.length;++i){
 
+		            		//Mobiles
 		            		if(deviceObjects[i].deviceOS=="ios" && appleCertificate){	            			
 		            			appleTokens.push(deviceObjects[i].deviceToken);
 		            		}
@@ -212,11 +217,31 @@ module.exports = function() {
 		            		if(deviceObjects[i].deviceOS=="windows"){
 		            			windowsUris.push(deviceObjects[i].deviceToken);
 		            		}
-		            		if(deviceObjects[i].deviceOS=="browser"){
-		            			browserUris.push(deviceObjects[i].deviceToken);
-		            			browserKeys.push(deviceObjects[i].metadata.browserKey);
-		            			browserAuthKeys.push(deviceObjects[i].metadata.authKey);
-		            		}		            		
+
+		            		//Browsers
+		            		if(deviceObjects[i].deviceOS=="chrome"){
+		            			chromeBrowser.push(deviceObjects[i]);		            			
+		            		}
+
+		            		if(deviceObjects[i].deviceOS=="firefox"){
+		            			firefoxBrowser.push(deviceObjects[i]);		            			
+		            		}
+
+		            		if(deviceObjects[i].deviceOS=="edge"){
+		            			edgeBrowser.push(deviceObjects[i]);		            			
+		            		}
+
+		            		if(deviceObjects[i].deviceOS=="opera"){
+		            			operaBrowser.push(deviceObjects[i]);		            			
+		            		}
+
+		            		if(deviceObjects[i].deviceOS=="safari"){
+		            			safariBrowser.push(deviceObjects[i]);		            			
+		            		}
+
+		            		if(deviceObjects[i].deviceOS=="ie"){
+		            			ieBrowser.push(deviceObjects[i]);		            			
+		            		}		            				            		
 		            	}	            	   		
 	            		
 
@@ -243,8 +268,8 @@ module.exports = function() {
 			            	}
 		            	}           		            	
 		            	
-		            	//Browser
-		            	if(browserUris && browserUris.length>0){
+		            	//if Browsers
+		            	if(chromeBrowser.length>0 || firefoxBrowser.length>0){
 		            		//Notification Icon
 		            		pushData.icon="https://api.cloudboost.io"+"/images/cloudboostsm.png";
 		            		if(appSettingsObject && appSettingsObject.length>0){
@@ -253,8 +278,44 @@ module.exports = function() {
 				                	pushData.icon=generalSettings[0].settings.appIcon;				                                    
 				                }
 				            }
+		            	}
 
-		            		promises.push(_browserPush(browserUris,browserKeys,browserAuthKeys,pushData));
+		            	var isChromeBrowser=false;
+
+		            	//Chrome Browser
+		            	if((chromeBrowser && chromeBrowser.length>0) && pushNotificationSettings){
+
+		            		var android=pushNotificationSettings.android.credentials[0];
+		            		isChromeBrowser=true;
+
+		            		if(android.apiKey){
+		            			promises.push(_browserPush(chromeBrowser,pushData,isChromeBrowser,android.apiKey));
+		            		}		            		
+		            	}
+
+		            	//Firefox Browser
+		            	if(firefoxBrowser && firefoxBrowser.length>0){
+		            		promises.push(_browserPush(firefoxBrowser,pushData,isChromeBrowser,null));		            	            		
+		            	}
+
+		            	//Edge Browser
+		            	if(edgeBrowser && edgeBrowser.length>0){
+		            		promises.push(_browserPush(edgeBrowser,pushData,isChromeBrowser,null));		            	            		
+		            	}
+
+		            	//Opera Browser
+		            	if(operaBrowser && operaBrowser.length>0){
+		            		promises.push(_browserPush(operaBrowser,pushData,isChromeBrowser,null));		            	            		
+		            	}
+
+		            	//Safari Browser
+		            	if(safariBrowser && safariBrowser.length>0){
+		            		promises.push(_browserPush(safariBrowser,pushData,isChromeBrowser,null));		            	            		
+		            	}
+
+		            	//IE Browser
+		            	if(ieBrowser && ieBrowser.length>0){
+		            		promises.push(_browserPush(ieBrowser,pushData,isChromeBrowser,null));		            	            		
 		            	}
 
 
@@ -286,10 +347,11 @@ module.exports = function() {
 			            		}
 			            		
 			            	});
+
 		            	}else{
 		            		var responseObject={};
 		            		responseObject.resolvedList=null;
-		            		responseObject.rejectedList="Add push notifications settings and try again";
+		            		responseObject.rejectedList="Something went wrong. If you trying push notifications for mobile or chrome browser, add push notifications settings.";
 		            		deferred.reject(responseObject);
 		            	}
 		            	
@@ -555,13 +617,14 @@ function _sendWindowsPushNotification(securityId,clientSecret,pushUri,data){
 }
 
 
-/*Desc   : Loop over _browserPush Array and send Browser push notifications
-  Params : browserUris, browserKeys, browserAuthKeys, data
+/*Desc   : Loop over browserArrayObj Array and send Browser push notifications
+  Params : browserArrayObj, pushData, isChromeBrowser, GCMAPIKey
   Returns: Promise
            Resolve->List of successfully resolved 
            Reject->List of rejected messages
 */
-function _browserPush(browserUris, browserKeys, browserAuthKeys, data){
+
+function _browserPush(browserArrayObj, pushData, isChromeBrowser, GCMAPIKey){
 
     var defer = global.q.defer();	 
 
@@ -569,16 +632,21 @@ function _browserPush(browserUris, browserKeys, browserAuthKeys, data){
 
     	var respObj={};
 		respObj.category="Browser Push Notifications";
+
+		//Set GCMApi Key for chrome notifications
+		if(isChromeBrowser && GCMAPIKey){
+			webPush.setGCMAPIKey(GCMAPIKey); 
+		}
 			 
-    	var promises=[];
-    	    	
-    	for(var i=0;i<browserUris.length;++i){  
-    		webPush.setGCMAPIKey("AIzaSyCMVnZ8FL6ZMYdS1MoePoj7jN-icqbvQyI");   		    					
-    		promises.push(webPush.sendNotification(browserUris[i], {
+    	var promises=[];    	    	
+
+    	for(var i=0;i<browserArrayObj.length;++i){  
+    		  		    					
+    		promises.push(webPush.sendNotification(browserArrayObj[i].deviceToken, {
 		        TTL: 200,
-		        payload: JSON.stringify(data),
-		        userPublicKey: browserKeys[i],
-		        userAuth: browserAuthKeys[i]		        
+		        payload: JSON.stringify(pushData),
+		        userPublicKey: browserArrayObj[i].metadata.browserKey,
+		        userAuth: browserArrayObj[i].metadata.authKey		        
 		    })); 
     	}    	
 
