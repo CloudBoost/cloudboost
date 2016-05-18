@@ -80,6 +80,76 @@ module.exports = function(){
 
             var emailSettings=null;
             var emailSettingsFound=false;
+
+            var authSettings=null;
+            var signupTemplateFound=false;
+
+            var html=null;
+
+            global.appService.getAllSettings(appId).then(function(settings){                         
+
+                //Check Template in Email Settings
+                if(settings && settings.length>0){
+                    emailSettings=_.where(settings, {category: "email"});
+                    if(emailSettings && emailSettings.length>0 && emailSettings[0].settings.mandrillApiKey){                  
+                        emailSettingsFound=true;                                                           
+                    }
+
+                    authSettings=_.where(settings, {category: "auth"});
+                    if(authSettings && authSettings.length>0){                  
+                        if(authSettings[0].settings && authSettings[0].settings.signupEmail.template && authSettings[0].settings.signupEmail.template!=""){ 
+                            signupTemplateFound=true;
+                        }                                   
+                    } 
+                }
+
+                if(!emailSettingsFound || !signupTemplateFound){
+                    //Get Default CloudBoost Mail Template
+                    return _getDefaultTemplate("signup-mail");
+                }else{                
+                    var templatePromise= q.defer();
+                    templatePromise.resolve(authSettings[0].settings.signupEmail.template);
+                    return templatePromise.promise;
+                }
+                    
+            }).then(function(template){
+                return _mergeVariablesInTemplate(template,appId,user,passwordResetKey);
+            }).then(function(mergedHtml){
+                html=mergedHtml;
+                return _getCredentials(emailSettings,from);
+            }).then(function(credentialsJson){
+                //Send Email
+                return self.send(appId, to, subject, text, html, credentialsJson.fromEmail,credentialsJson.fromName,credentialsJson.mandrillApiKey);
+            }).then(function(resp){
+                return deferred.resolve(resp);
+            },function(error){
+                return deferred.reject(error);
+            }); 
+
+        } catch(err){           
+            global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+            deferred.reject(err);
+        }
+
+        return deferred.promise;
+         
+    }; 
+
+    /*Desc   : Send Reset Password Email
+      Params : appId,to,subject,text,from,userObj,passwordResetKey,urlToReset
+      Returns: Promise
+               Resolve->Success Message
+               Reject->Error on getAllSettings() or _getDefaultTemplate() or _mergeVariableInTemplate() or _getCredentials() or self.send()
+    */
+    obj.sendSignUpMail = function(appId,to,subject,text,from,user,passwordResetKey){
+
+        var deferred = q.defer();
+
+        try{
+            var self = this;
+
+            var emailSettings=null;
+            var emailSettingsFound=false;
             var html=null;
 
             global.appService.getAllSettings(appId).then(function(settings){                         
@@ -96,7 +166,7 @@ module.exports = function(){
 
                 if(!emailSettingsFound){
                     //Get Default CloudBoost Mail Template
-                    return _getDefaultTemplate();
+                    return _getDefaultTemplate("reset-password");
                 }else{                
                     var templatePromise= q.defer();
                     templatePromise.resolve(emailSettings[0].settings.template);
@@ -124,7 +194,7 @@ module.exports = function(){
 
         return deferred.promise;
          
-    };    
+    };   
     
     return obj;
 };
@@ -190,10 +260,10 @@ function _mergeVariablesInTemplate(template,appId,user,passwordResetKey){
            Resolve->email Template
            Reject->Error on reading file 
 */
-function _getDefaultTemplate(){
+function _getDefaultTemplate(templateName){
     var deferred = q.defer();
     try{
-        fs.readFile('./mail-templates/reset-password.html', 'utf8', function(error, data) {                        
+        fs.readFile('./mail-templates/'+templateName+'.html', 'utf8', function(error, data) {                        
             if(error){
                 deferred.reject(error);
             }else if(data){

@@ -99,7 +99,7 @@ module.exports = function() {
 	                                        .update(user.password)
 	                                        .digest('hex');
 	                                      
-	               	global.mailService.sendResetPassword(appId, email, "Reset your password",null, null,user,passwordResetKey).then(function(resp){
+	               	global.mailService.sendResetPasswordMail(appId, email, user, passwordResetKey).then(function(resp){
 	                   deferred.resolve(resp);
 	                }, function(error){
 	                    deferred.reject(error);
@@ -168,7 +168,17 @@ module.exports = function() {
 					}
 
 	                global.customService.save(appId, Collections.User, document,accessList,isMasterKey).then(function(user) {
-						deferred.resolve(user); //returns no. of items matched
+						deferred.resolve(user);
+						
+	            
+		                //Send an email to reset user password here. 
+		                var passwordResetKey = crypto.createHmac('sha256', global.keys.secureKey)
+		                			            .update(user.password)
+		                                        .digest('hex');		                                      
+
+		               	global.mailService.sendSignUpMail(appId, user, passwordResetKey);
+
+
 					}, function(error) {
 						deferred.reject(error);
 					});
