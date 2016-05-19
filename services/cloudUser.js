@@ -168,20 +168,67 @@ module.exports = function() {
 					}
 
 	                global.customService.save(appId, Collections.User, document,accessList,isMasterKey).then(function(user) {
-						deferred.resolve(user);
-						
-	            
-		                //Send an email to reset user password here. 
-		                var passwordResetKey = crypto.createHmac('sha256', global.keys.secureKey)
-		                			            .update(user.password)
-		                                        .digest('hex');		                                      
+						            
+		                //Send an email to activate. 
+	                    var cipher = crypto.createCipher('aes192', global.keys.secureKey);
+						var activateKey = cipher.update(user._id, 'utf8', 'hex');
+						activateKey += cipher.final('hex');
+	                                      
 
-		               	global.mailService.sendSignUpMail(appId, user, passwordResetKey);
+		               	global.mailService.sendSignupMail(appId, user, activateKey).then(function(resp){
+		                   deferred.resolve(resp);
+		                }, function(error){
+		                    deferred.reject(error);
+		                });
 
 
 					}, function(error) {
 						deferred.reject(error);
 					});
+				}, function(error) {
+					deferred.reject(error);
+				});
+
+			} catch(err){           
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+                deferred.reject(err);
+            }
+			return deferred.promise;
+		},
+
+		verifyActivateCode: function(appId, activateCode, accessList) {
+			var deferred = q.defer();
+
+			try{				
+
+				var decipher = crypto.createDecipher('aes192', global.keys.secureKey);				
+				var userId = decipher.update(activateCode, 'hex', 'utf8');
+				userId += decipher.final('utf8');
+
+				var isMasterKey=true;
+				var collectionName="User";
+				var query={_id: userId};
+				var select=null;
+				var sort=null;
+				var skip=null;							
+
+
+				global.customService.findOne(appId, collectionName, query, select, sort, skip, accessList, isMasterKey)
+				.then(function(user) {
+					if (user) {
+						user.verified=true;
+						user._modifiedColumns=["verified"];
+						user._isModified=true;			    	
+			    	
+		                global.customService.save(appId, collectionName, user, accessList, isMasterKey).then(function(user) {
+							deferred.resolve(user);
+						}, function(error) {
+							deferred.reject(error);
+						});
+	           		}else{
+	           			deferred.resolve("Not a valid activation code");
+	           		}
+
 				}, function(error) {
 					deferred.reject(error);
 				});

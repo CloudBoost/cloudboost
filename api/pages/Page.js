@@ -97,4 +97,51 @@ module.exports = function() {
         
         global.apiTracker.log(appId,"User / Reset User Password", req.url,sdk);
     });
+
+
+    /*Desc   : Verify User Account And render Activation page
+      Params : appId
+      Returns: Activation html page
+    */
+    global.app.get('/page/:appId/verify', function(req, res) { 
+
+        console.log("Render Aactivation Page..");
+
+        var appId = req.params.appId || null;      
+        var sdk = req.body.sdk || "REST"; 
+        var activateCode = req.query.activateKey; 
+
+        if(!activateCode){
+           res.status(400).send("ActivateCode not found"); 
+        }       
+        
+
+        var promises=[];
+        promises.push(global.userService.verifyActivateCode(appId, activateCode, customHelper.getAccessList(req)));
+        promises.push(global.appService.getAllSettings(appId));        
+
+        q.all(promises).then(function(list){            
+           
+            var appSettingsObject=list[1];
+
+            var general=_.first(_.where(appSettingsObject, {category: "general"}));
+           
+            var generalSettings=null;
+            if(general){
+                generalSettings=general.settings;
+            }            
+
+            res.render(global.rootPath+'/page-templates/user/signup-activate',{               
+                generalSettings: generalSettings,
+                verified:true                                   
+            });
+
+        },function(error){
+            res.render(global.rootPath+'/page-templates/user/signup-activate',{               
+                verified:false                                   
+            });
+        });
+        
+        global.apiTracker.log(appId,"User / Reset User Password", req.url,sdk);
+    });
 };

@@ -67,6 +67,7 @@ module.exports = function() {
 					    document.updatedAt= new Date();
 					    document.expires= null;
 
+					    document.verified=true;
 					    document.socialAuth=[{
 					    	provider:provider,
 		            		id:providerUserId,
@@ -74,7 +75,7 @@ module.exports = function() {
 		            		accessSecret:providerAccessSecret		            		
 					    }];
 
-					    document._modifiedColumns=["createdAt","updatedAt","ACL","expires","socialAuth"];
+					    document._modifiedColumns=["createdAt","updatedAt","ACL","expires","verified","socialAuth"];
 			    	}
 
 			    	document._isModified=true;			    	
