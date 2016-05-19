@@ -3,6 +3,7 @@ var q = require('q');
 var Collections = require('../database-connect/collections.js');
 var jsdom = require("jsdom");
 var fs = require("fs");
+var _ = require('underscore');
 
 
 module.exports = function() {
@@ -21,12 +22,43 @@ module.exports = function() {
 						return;
 	                }
 
-					var encryptedPassword = crypto.pbkdf2Sync(password, global.keys.secureKey, 10000, 64).toString('base64');
+	                var isAuthenticatedUser=false;
+	                var encryptedPassword = crypto.pbkdf2Sync(password, global.keys.secureKey, 10000, 64).toString('base64');
 					if (encryptedPassword === user.password) { //authenticate user.
-						deferred.resolve(user);
-					} else {
-						deferred.reject('Invalid Password');
-					}
+						isAuthenticatedUser=true;
+					} 
+
+	                global.appService.getAllSettings(appId).then(function(appSettings){
+
+	                	var auth=_.first(_.where(appSettings, {category: "auth"}));
+	                	var signupEmailSettingsFound=false;
+	                	var allowNotVerifiedLogins=false;
+
+	                	if(auth && auth.settings && auth.settings.signupEmail){
+	                		signupEmailSettingsFound=true;
+	                		if(auth.settings.signupEmail.allowNotVerifiedLogins){
+	                			allowNotVerifiedLogins=true;
+	                		}
+	                	}
+
+	                	if(isAuthenticatedUser){
+	                		if(signupEmailSettingsFound && allowNotVerifiedLogins){
+		                		if(user.verified){
+		                			deferred.resolve(user);
+		                		}else{
+		                			deferred.reject("User is not verified");
+		                		}
+		                	}else{
+		                		deferred.resolve(user);
+		                	}
+	                	}else{
+	                		deferred.reject("User is not authenticated");
+	                	}
+	                		                	
+
+	                },function(error){
+	                	deferred.reject(error);
+	                });					
 					
 				}, function(error) {
 					deferred.reject(error);

@@ -63,6 +63,7 @@ module.exports = function() {
 		var appKey = req.body.key || req.param('key');
         var userId = req.session.userId || null;
 		var sdk = req.body.sdk || "REST";
+        
 		global.appService.isMasterKey(appId,appKey).then(function(isMasterKey){
 			return global.userService.login(appId, document.username, document.password, customHelper.getAccessList(req),isMasterKey);
 		}).then(function(result) {
