@@ -208,7 +208,7 @@ module.exports = function() {
 	                                      
 
 		               	global.mailService.sendSignupMail(appId, user, activateKey).then(function(resp){
-		                   deferred.resolve(resp);
+		                   deferred.resolve(user);
 		                }, function(error){
 		                    deferred.reject(error);
 		                });
