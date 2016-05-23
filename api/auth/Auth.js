@@ -13,8 +13,7 @@ var facebookHelper = require('../../helpers/facebook.js');
 
 module.exports = function() {  
 
-    app.get("/auth/:appId/twitter", function(req, res) {   
-   
+    app.get("/auth/:appId/twitter", function(req, res) {     
     
         _getAppSettings(req, res).then(function(respObj){
 
