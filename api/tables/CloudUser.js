@@ -203,9 +203,14 @@ module.exports = function() {
 		global.appService.isMasterKey(appId,appKey).then(function(isMasterKey){
 			return global.userService.signup(appId, document,customHelper.getAccessList(req),isMasterKey);
 		}).then(function(result) {
-			//Setting the session
-			setSession(req, appId, result,res);
-			res.json(result);
+            if(result){
+                //Setting the session
+                setSession(req, appId, result,res);
+                res.json(result);
+            }else{
+                res.send(null);
+            }			
+			
  		}, function(error) {
 			res.status(400).json({
 				error: error

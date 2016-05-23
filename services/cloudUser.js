@@ -32,17 +32,17 @@ module.exports = function() {
 
 	                	var auth=_.first(_.where(appSettings, {category: "auth"}));
 	                	var signupEmailSettingsFound=false;
-	                	var allowNotVerifiedLogins=false;
+	                	var allowOnlyVerifiedLogins=false;
 
 	                	if(auth && auth.settings && auth.settings.signupEmail){
 	                		signupEmailSettingsFound=true;
-	                		if(auth.settings.signupEmail.allowNotVerifiedLogins){
-	                			allowNotVerifiedLogins=true;
+	                		if(auth.settings.signupEmail.allowOnlyVerifiedLogins){
+	                			allowOnlyVerifiedLogins=true;
 	                		}
 	                	}
 
 	                	if(isAuthenticatedUser){
-	                		if(signupEmailSettingsFound && allowNotVerifiedLogins){
+	                		if(signupEmailSettingsFound && allowOnlyVerifiedLogins){
 		                		if(user.verified){
 		                			deferred.resolve(user);
 		                		}else{
@@ -206,9 +206,33 @@ module.exports = function() {
 						var activateKey = cipher.update(user._id, 'utf8', 'hex');
 						activateKey += cipher.final('hex');
 	                                      
+						var promises=[];
+						promises.push(global.appService.getAllSettings(appId));
+						promises.push(global.mailService.sendSignupMail(appId, user, activateKey));
 
-		               	global.mailService.sendSignupMail(appId, user, activateKey).then(function(resp){
-		                   deferred.resolve(user);
+						q.all(promises).then(function(list){
+
+		                   	var auth=_.first(_.where(list[0], {category: "auth"}));
+		                	var signupEmailSettingsFound=false;
+		                	var allowOnlyVerifiedLogins=false;
+
+		                	if(auth && auth.settings && auth.settings.signupEmail){
+		                		signupEmailSettingsFound=true;		                		
+		                		if(auth.settings.signupEmail.allowOnlyVerifiedLogins){		                			
+		                			allowOnlyVerifiedLogins=true;
+		                		}
+		                	}
+		                	
+	                		if(signupEmailSettingsFound && allowOnlyVerifiedLogins){
+		                		if(user.verified){
+		                			deferred.resolve(user);
+		                		}else{
+		                			deferred.resolve(null);
+		                		}
+		                	}else{
+		                		deferred.resolve(user);
+		                	}		                	
+
 		                }, function(error){
 		                    deferred.reject(error);
 		                });
