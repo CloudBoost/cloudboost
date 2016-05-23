@@ -467,6 +467,14 @@ module.exports = function() {
                     return deferred.promise;
                 }
 
+                if(skip){
+                    skip=parseInt(skip);
+                }
+
+                if(limit){
+                    limit=parseInt(limit);
+                }
+
                 var collection =  global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));
                
                 //delete $include and $includeList recursively

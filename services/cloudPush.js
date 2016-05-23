@@ -341,7 +341,7 @@ module.exports = function() {
 
 			            		//Check atleast one is fulfilled	            		
 			            		if(resFulfilled && resFulfilled.length>0){
-			            			deferred.resolve();
+			            			deferred.resolve(responseObject);
 			            		}else{
 			            			deferred.reject(responseObject);
 			            		}
