@@ -1,3 +1,6 @@
+
+global.env = process.env.NODE_ENV || 'development';
+
 global.express = require('express');
 global.request = require('request');
 var pjson = require('./package.json');
@@ -9,7 +12,6 @@ var _ = require('underscore');
 var path = require('path');
 var ejs = require('ejs');
 
-
 global.mongoDisconnected = false;
 global.elasticDisconnected = false;
 global.winston = require('winston');
@@ -18,9 +20,15 @@ require('winston-loggly');
 
 global.keys = require('./database-connect/keys.js')();
 
+if(global.env==="development"){  
+  //Loggly Development Keys
+  global.keys.logToken="f0ebeed1-6c71-47b8-9014-e9ca69a2b114";
+  global.keys.logglySubDomain="cloudboostdev";
+}
+
 global.winston.add(global.winston.transports.Loggly, {
     inputToken: global.keys.logToken,
-    subdomain: "cloudboost",
+    subdomain: global.keys.logglySubDomain,
     tags: ["cloudboost-server"],
     json:true
 });
@@ -309,7 +317,7 @@ function attachAPI() {
               colorize: true
             }),        
             new global.winston.transports.Loggly({
-              subdomain: 'cloudboost',
+              subdomain: global.keys.logglySubDomain,
               inputToken: global.keys.logToken,
               json: true,
               tags: ["cloudboost-server"]
