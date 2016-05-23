@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <link rel="stylesheet" href="/css/login.css">       
+
+</head>
+<body>
+
+<div class="wrapper">
+    <div class="container">
+    <div class="row">
+    <div class="col-sm-12 col-md-12 col-lg-12">
+
+    <div class="flex-general-column-wrapper-center" style="height: 99vh;position: relative;">
+
+        <!--Forgot Password-->
+        <div id="forgetpassword-card" class="" style="width:340px;">
+            <div class="" style="height:auto;border-radius:2px; border:1px solid #BAB8B8;">
+                <!--Header-->
+                <div style="width:100%;height:117px;background-color:#dddddd;padding:15px;">                   
+
+                    <div style="width:100%;" class="flex-general-column-wrapper-center">
+                        <% if (generalSettings && generalSettings.appIcon) { %>
+                            <div style="width:50px;height:50px;border-radius: 10px;overflow: hidden;">
+                                <img src="<%= generalSettings.appIcon %>" style="width:50px;height:50px;">
+                            </div>
+                        <%}else{%>
+                            <div style="width:50px;height:50px;border-radius: 10px;overflow: hidden;">
+                                <img src="/images/CbLogoIcon.png" style="width:50px;height:50px;">
+                            </div>
+                        <%}%>    
+                    </div>
+
+                    <div style="width:100%;margin-top: -5px;" class="flex-general-column-wrapper-center">
+                       <h3>Activating Account</h3>
+                    </div>
+
+                </div>
+                <!--Header-->
+
+                <!--Main Body Spinner-->
+                <div id="activatecode-spinner" style="width: 100%;height: 360px;background-color: white;" class="flex-general-column-wrapper-center">
+
+                    <!--<div id="the-spinner" style="width: 60px;height: 60px;" class="flex-general-column-wrapper-center">
+                        <div id="req-spinner" style="" class="loader-circle advanced flex-general-column-wrapper-center">       
+                        </div>
+                        <div id="req-response" style="color:gray;" class="flex-general-column-wrapper-center">                   
+                        </div>                       
+                    </div>-->
+
+                    <% if (verified) { %>
+                    <div id="the-ticker" style="width: 60px;height: 60px;margin-top: -13px;" class="flex-general-column-wrapper-center">
+                        <div> 
+
+                            <div style="height: 40px;width: 40px;border-radius: 30px;border:1px solid gray;background-color: green" class="flex-general-column-wrapper-center">
+                            <i class="icon ion-checkmark" style="color:white; font-size: 25px;"></i>
+                            </div>
+
+                            <div style="margin-left: -6px;">   
+                                <span style="color:black;font-size: 15px;">Verified</span>          
+                            </div>    
+                        </div> 
+                                                                     
+                    </div>
+                    <%}%>
+
+                    <% if (!verified) { %>
+                    <div id="the-error" style="width: 300px;height: 60px;margin-top: -13px;" class="flex-general-column-wrapper-center">
+                        <div> 
+                            <span style="color:red;font-size: 14px;">Oops!..Activation code is not valid</span>      
+                        </div>                                              
+                    </div>
+                     <%}%>
+
+                </div>
+                <!--Main Body Spinner-->           
+
+            </div>
+            
+        </div>
+        <!--/Forgot Password-->
+
+        <div class="flex-general-column-wrapper-center" style="width: 100%;height: 60px;margin-top: 1.5%;">
+            <div class="flex-general-row-wrapper">
+                <p style="color:#aeb3ba;">powered by</p>
+                <p style="color:#aeb3ba;">&nbsp;CloudBoost</p>
+            </div>
+        </div>
+    </div>     
+
+</div>
+</div>
+</div>
+
+</body>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+<script src="https://cloudboost.io/js-sdk/cloudboost.js"></script>
+
+<script>  
+    var serverURL="https://api.cloudboost.io";  
+    var __isDevelopment = false;
+
+    if(window.location.host.indexOf('localhost') > -1){
+        __isDevelopment = true;
+        var serverURL="http://localhost:4730"; 
+    }
+
+
+
+    //This is the fucntion to get querysting, 
+    function getParameterByName(name) {
+        name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+        var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+            results = regex.exec(location.search);
+        return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+    }    
+
+    //Remove #_=_' from URL
+    if (window.location.hash == '#_=_'){
+
+        // Check if the browser supports history.replaceState.
+        if (history.replaceState) {
+
+            // Keep the exact URL up to the hash.
+            var cleanHref = window.location.href.split('#')[0];
+
+            // Replace the URL in the address bar without messing with the back button.
+            history.replaceState(null, null, cleanHref);
+
+        } else {
+
+            // Well, you're on an old browser, we can get rid of the _=_ but not the #.
+            window.location.hash = '';
+
+        }
+
+    }
+
+   
+    $(document).ready(function(){         
+        var username=getParameterByName("user");
+        var activateKey=getParameterByName("activateKey");
+    });
+
+  </script>
+
+</html>

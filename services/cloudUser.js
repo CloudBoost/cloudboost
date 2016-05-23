@@ -3,6 +3,7 @@ var q = require('q');
 var Collections = require('../database-connect/collections.js');
 var jsdom = require("jsdom");
 var fs = require("fs");
+var _ = require('underscore');
 
 
 module.exports = function() {
@@ -21,12 +22,43 @@ module.exports = function() {
 						return;
 	                }
 
-					var encryptedPassword = crypto.pbkdf2Sync(password, global.keys.secureKey, 10000, 64).toString('base64');
+	                var isAuthenticatedUser=false;
+	                var encryptedPassword = crypto.pbkdf2Sync(password, global.keys.secureKey, 10000, 64).toString('base64');
 					if (encryptedPassword === user.password) { //authenticate user.
-						deferred.resolve(user);
-					} else {
-						deferred.reject('Invalid Password');
-					}
+						isAuthenticatedUser=true;
+					} 
+
+	                global.appService.getAllSettings(appId).then(function(appSettings){
+
+	                	var auth=_.first(_.where(appSettings, {category: "auth"}));
+	                	var signupEmailSettingsFound=false;
+	                	var allowOnlyVerifiedLogins=false;
+
+	                	if(auth && auth.settings && auth.settings.signupEmail){
+	                		signupEmailSettingsFound=true;
+	                		if(auth.settings.signupEmail.allowOnlyVerifiedLogins){
+	                			allowOnlyVerifiedLogins=true;
+	                		}
+	                	}
+
+	                	if(isAuthenticatedUser){
+	                		if(signupEmailSettingsFound && allowOnlyVerifiedLogins){
+		                		if(user.verified){
+		                			deferred.resolve(user);
+		                		}else{
+		                			deferred.reject("User is not verified");
+		                		}
+		                	}else{
+		                		deferred.resolve(user);
+		                	}
+	                	}else{
+	                		deferred.reject("User is not authenticated");
+	                	}
+	                		                	
+
+	                },function(error){
+	                	deferred.reject(error);
+	                });					
 					
 				}, function(error) {
 					deferred.reject(error);
@@ -99,7 +131,7 @@ module.exports = function() {
 	                                        .update(user.password)
 	                                        .digest('hex');
 	                                      
-	               	global.mailService.sendResetPassword(appId, email, "Reset your password",null, null,user,passwordResetKey).then(function(resp){
+	               	global.mailService.sendResetPasswordMail(appId, email, user, passwordResetKey).then(function(resp){
 	                   deferred.resolve(resp);
 	                }, function(error){
 	                    deferred.reject(error);
@@ -168,10 +200,91 @@ module.exports = function() {
 					}
 
 	                global.customService.save(appId, Collections.User, document,accessList,isMasterKey).then(function(user) {
-						deferred.resolve(user); //returns no. of items matched
+						            
+		                //Send an email to activate. 
+	                    var cipher = crypto.createCipher('aes192', global.keys.secureKey);
+						var activateKey = cipher.update(user._id, 'utf8', 'hex');
+						activateKey += cipher.final('hex');
+	                                      
+						var promises=[];
+						promises.push(global.appService.getAllSettings(appId));
+						promises.push(global.mailService.sendSignupMail(appId, user, activateKey));
+
+						q.all(promises).then(function(list){
+
+		                   	var auth=_.first(_.where(list[0], {category: "auth"}));
+		                	var signupEmailSettingsFound=false;
+		                	var allowOnlyVerifiedLogins=false;
+
+		                	if(auth && auth.settings && auth.settings.signupEmail){
+		                		signupEmailSettingsFound=true;		                		
+		                		if(auth.settings.signupEmail.allowOnlyVerifiedLogins){		                			
+		                			allowOnlyVerifiedLogins=true;
+		                		}
+		                	}
+		                	
+	                		if(signupEmailSettingsFound && allowOnlyVerifiedLogins){
+		                		if(user.verified){
+		                			deferred.resolve(user);
+		                		}else{
+		                			deferred.resolve(null);
+		                		}
+		                	}else{
+		                		deferred.resolve(user);
+		                	}		                	
+
+		                }, function(error){
+		                    deferred.reject(error);
+		                });
+
+
 					}, function(error) {
 						deferred.reject(error);
 					});
+				}, function(error) {
+					deferred.reject(error);
+				});
+
+			} catch(err){           
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+                deferred.reject(err);
+            }
+			return deferred.promise;
+		},
+
+		verifyActivateCode: function(appId, activateCode, accessList) {
+			var deferred = q.defer();
+
+			try{				
+
+				var decipher = crypto.createDecipher('aes192', global.keys.secureKey);				
+				var userId = decipher.update(activateCode, 'hex', 'utf8');
+				userId += decipher.final('utf8');
+
+				var isMasterKey=true;
+				var collectionName="User";
+				var query={_id: userId};
+				var select=null;
+				var sort=null;
+				var skip=null;							
+
+
+				global.customService.findOne(appId, collectionName, query, select, sort, skip, accessList, isMasterKey)
+				.then(function(user) {
+					if (user) {
+						user.verified=true;
+						user._modifiedColumns=["verified"];
+						user._isModified=true;			    	
+			    	
+		                global.customService.save(appId, collectionName, user, accessList, isMasterKey).then(function(user) {
+							deferred.resolve(user);
+						}, function(error) {
+							deferred.reject(error);
+						});
+	           		}else{
+	           			deferred.resolve("Not a valid activation code");
+	           		}
+
 				}, function(error) {
 					deferred.reject(error);
 				});

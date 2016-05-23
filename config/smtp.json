@@ -1,5 +1,7 @@
 {
-  "mandrill_api_key" : "qiDZR_J-NKKKfg6ieTPSYw",
-  "from":"hello@cloudboost.io",
-  "from_name" : "CloudBoost.io"
+  "provider"  : "mailgun",		
+  "apiKey"    : "key-f66ed97c75c75cf864990730517d0445",
+  "domain"    : "cloudboost.io",
+  "fromEmail" : "hello@cloudboost.io",
+  "fromName"  : "CloudBoost.io"  
 }

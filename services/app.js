@@ -838,6 +838,12 @@ function _checkValidDataType(columns, deafultDataType) {
                     return false;
             }
 
+            //verified for user table
+            if (key === 'verified') {
+                if (columns[index].relationType != null || columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'Boolean')
+                    return false;
+            }
+
             //name for role table
             if (key === 'name') {
                 if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != true || columns[index].dataType != 'Text')

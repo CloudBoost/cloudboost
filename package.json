@@ -46,6 +46,8 @@
     "node-linkedin": "^0.5.3",
     "node-twitter-api": "^1.7.1",
     "node-uuid": "^1.4.7",
+    "nodemailer": "^2.4.1",
+    "nodemailer-mailgun-transport": "^1.0.2",
     "oauth": "^0.9.14",
     "octonode": "^0.7.5",
     "path": "^0.12.7",

@@ -63,6 +63,7 @@ module.exports = function() {
 		var appKey = req.body.key || req.param('key');
         var userId = req.session.userId || null;
 		var sdk = req.body.sdk || "REST";
+        
 		global.appService.isMasterKey(appId,appKey).then(function(isMasterKey){
 			return global.userService.login(appId, document.username, document.password, customHelper.getAccessList(req),isMasterKey);
 		}).then(function(result) {
@@ -202,9 +203,14 @@ module.exports = function() {
 		global.appService.isMasterKey(appId,appKey).then(function(isMasterKey){
 			return global.userService.signup(appId, document,customHelper.getAccessList(req),isMasterKey);
 		}).then(function(result) {
-			//Setting the session
-			setSession(req, appId, result,res);
-			res.json(result);
+            if(result){
+                //Setting the session
+                setSession(req, appId, result,res);
+                res.json(result);
+            }else{
+                res.send(null);
+            }			
+			
  		}, function(error) {
 			res.status(400).json({
 				error: error
@@ -320,6 +326,7 @@ module.exports = function() {
 		
         global.apiTracker.log(appId,"User / ResetPassword", req.url,sdk);
     });
+
     
     /**
      * Add To Role Api 
