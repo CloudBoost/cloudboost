@@ -426,6 +426,14 @@ var _isSchemaValid = function(appId,collectionName,document,accessList,isMasterK
                     }
                 }
 
+                //Is Editable only by master key is true?
+                if (columns[i].editableByMasterKey && modifiedDocuments.indexOf(columns[i].name)>-1) {
+                    if (!isMasterKey) {
+                        mainPromise.reject(columns[i].name + ' is only editable by Master Key.');
+                        return mainPromise.promise;
+                    }
+                }
+
                 //This code encrypts the password in the documents. It shouldn't be here in validateSchema - Let's have it here for temp.
                 if(columns[i].dataType === 'EncryptedText'){
                     if (document[columns[i].name] &&  typeof document[columns[i].name] === 'string'
