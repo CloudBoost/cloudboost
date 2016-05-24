@@ -201,7 +201,7 @@ module.exports = function() {
 
 	                global.customService.save(appId, Collections.User, document,accessList,isMasterKey).then(function(user) {
 						            
-		                //Send an email to activate. 
+		                //Send an email to activate account. 
 	                    var cipher = crypto.createCipher('aes192', global.keys.secureKey);
 						var activateKey = cipher.update(user._id, 'utf8', 'hex');
 						activateKey += cipher.final('hex');
