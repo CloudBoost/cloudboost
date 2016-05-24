@@ -22,7 +22,7 @@ module.exports = function() {
 		  Params : appId, collectionName, document, accessList, isMasterKey
 		  Returns: Promise
 		           Resolve->device object
-		           Reject->Error on findOne()  or save()
+		           Reject->Error on findOne() or save()
 		*/
 		upsertDevice: function(appId, collectionName, document, accessList, isMasterKey){
 
