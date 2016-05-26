@@ -446,7 +446,7 @@
         $(".resetpwd-final-btn").css({"background-color": _authSettings.general.primaryColor});
 
         //If user logged already, redirect to callback url
-        if(CB.CloudUser.current){
+        if(CB.CloudUser.current && _authSettings.general.callbackURL){
             window.location.href=_authSettings.general.callbackURL+"?cbtoken="+CB._getSessionId();
         }       
 
@@ -518,14 +518,12 @@
     $(".final-btn").click(function(){ 
         
         $("#authenticate-error span").text("");
-        $("#authenticate-error").hide();
+        $("#authenticate-error").hide();       
 
-        if(!_authSettings){
-            throwAuthError("Please add your app callback URL in your CloudBoost App Settings.");
-        }
+        checkCallBackUrl();//Check Callbacke Url is set
 
         //Login
-        if(isLoginFields && _authSettings){
+        if(isLoginFields && _authSettings && _authSettings.general.callbackURL){
             $("#login-username-wrap").removeClass("input-field-error");
             $("#login-password-wrap").removeClass("input-field-error");
 
@@ -572,7 +570,7 @@
         }
 
         //Sign Up
-        if(!isLoginFields && _authSettings){
+        if(!isLoginFields && _authSettings && _authSettings.general.callbackURL){
             $("#signup-email-wrap").removeClass("input-field-error");
             $("#signup-password-wrap").removeClass("input-field-error");
 
@@ -706,28 +704,39 @@
 
 <script type="text/javascript">
     $("#facebook-login-btn").click(function(){
-        var url=serverURL+"/auth/"+_appKeys.appId+"/facebook";
-        requestLoginUrl(url);        
+        if(checkCallBackUrl()){
+            var url=serverURL+"/auth/"+_appKeys.appId+"/facebook";
+            requestLoginUrl(url);
+        }
+                
     });
 
     $("#twittr-login-btn").click(function(){
-        var url=serverURL+"/auth/"+_appKeys.appId+"/twitter";
-        requestLoginUrl(url);        
+        if(checkCallBackUrl()){
+            var url=serverURL+"/auth/"+_appKeys.appId+"/twitter";
+            requestLoginUrl(url);    
+        }    
     });
 
     $("#github-login-btn").click(function(){
-        var url=serverURL+"/auth/"+_appKeys.appId+"/github";
-        requestLoginUrl(url);       
+        if(checkCallBackUrl()){
+            var url=serverURL+"/auth/"+_appKeys.appId+"/github";
+            requestLoginUrl(url); 
+        }     
     });
 
     $("#google-login-btn").click(function(){
-        var url=serverURL+"/auth/"+_appKeys.appId+"/google";
-        requestLoginUrl(url);       
+        if(checkCallBackUrl()){
+            var url=serverURL+"/auth/"+_appKeys.appId+"/google";
+            requestLoginUrl(url);  
+        }     
     });
 
     $("#linkedin-login-btn").click(function(){
-        var url=serverURL+"/auth/"+_appKeys.appId+"/linkedin";
-        requestLoginUrl(url);       
+        if(checkCallBackUrl()){
+            var url=serverURL+"/auth/"+_appKeys.appId+"/linkedin";
+            requestLoginUrl(url);  
+        }     
     });    
 
     function requestLoginUrl(url){
@@ -737,6 +746,14 @@
                 window.open(loginUrl,"_self");
             }           
        });
+    }
+
+    function checkCallBackUrl() {
+        if(!_authSettings || !_authSettings.general.callbackURL){
+            throwAuthError("Please add your app callback URL in your CloudBoost App Settings.");
+            return false;
+        }
+        return true;
     }
 </script>
 
