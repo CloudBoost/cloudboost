@@ -288,7 +288,7 @@ module.exports = function() {
 		            		var android=pushNotificationSettings.android.credentials[0];
 		            		isChromeBrowser=true;
 
-		            		if(android.apiKey){
+		            		if(android && android.apiKey){
 		            			promises.push(_browserPush(chromeBrowser,pushData,isChromeBrowser,android.apiKey));
 		            		}		            		
 		            	}
