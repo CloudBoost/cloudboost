@@ -172,7 +172,7 @@ module.exports = function() {
 		                    	var fileName=pushSettings[0].settings.apple.certificates[0].split("/").reverse()[0];
 		                    	if(fileName){
 		                    		appleCertificateFound=true;
-		                    		return global.mongoService.document.getFile(appId,fileName);
+		                    		return _getAppleCertificateBuffer(appId,fileName);
 		                    	}
 		                    	
 		                    }                     
@@ -185,10 +185,7 @@ module.exports = function() {
 		            	return emptyAppleCert.promise;
 		            }
 
-            	}).then(function(appleCertFileObj){
-            		if(appleCertFileObj){
-						appleCertificate=global.mongoService.document.getFileStreamById(appId,appleCertFileObj._id);
-					}
+            	}).then(function(appleCertificate){            		
 
 					if(!deviceObjects || deviceObjects.length==0){
 						return deferred.resolve("No Device objects found.");
@@ -318,7 +315,6 @@ module.exports = function() {
 		            		promises.push(_browserPush(ieBrowser,pushData,isChromeBrowser,null));		            	            		
 		            	}
 
-
 		            	//Promise List
 		            	if(promises && promises.length>0){
 
@@ -333,26 +329,18 @@ module.exports = function() {
 							            resRejected.push(eachResult.reason);
 							        }
 							    });
-
-							    var responseObject={};
-			            		responseObject.resolvedList=resFulfilled;
-			            		responseObject.rejectedList=resRejected;
-
-
+							    
 			            		//Check atleast one is fulfilled	            		
 			            		if(resFulfilled && resFulfilled.length>0){
-			            			deferred.resolve(responseObject);
+			            			deferred.resolve();
 			            		}else{
-			            			deferred.reject(responseObject);
+			            			deferred.reject("Failed to send push notifications because invalid credentials or expired device tokesn.");
 			            		}
 			            		
 			            	});
 
-		            	}else{
-		            		var responseObject={};
-		            		responseObject.resolvedList=null;
-		            		responseObject.rejectedList="Something went wrong. If you trying push notifications for mobile or chrome browser, add push notifications settings.";
-		            		deferred.reject(responseObject);
+		            	}else{		            		
+		            		deferred.reject("Push notifications credentials not found. Please go to your app settings and add push credentials.");
 		            	}
 		            	
 					}	            	
@@ -366,11 +354,13 @@ module.exports = function() {
                 deferred.reject(err);
             }	
 
-			return deferred.promise
+			return deferred.promise;
 		}
 	}
 
 };
+
+
 
 /*Desc   : Check and get Title for push notifications
   Params : appId,data,appSettingsObject
@@ -415,6 +405,42 @@ function _checkAndGetTitle(appId,data,appSettingsObject){
 	return "CloudBoost";
 }
 
+
+/*Desc   : Get apple certificate buffer
+  Params : appId,fileName
+  Returns: Promise
+           Resolve->Buffer
+           Reject->Failure message
+*/
+function _getAppleCertificateBuffer(appId,fileName){
+
+	var deferred = global.q.defer();
+
+	try{
+		global.mongoService.document.getFile(appId,fileName).then(function(appleCertFileObj){
+			return global.mongoService.document.getFileStreamById(appId,appleCertFileObj._id);
+		}).then(function(fileStream){
+
+			  var str = []
+			  fileStream.on('data', function(chunk) {
+			    str.push(chunk);
+			  });
+			  fileStream.on('end', function() {
+			    deferred.resolve(Buffer.concat(str));
+			  });
+
+		},function(error){
+			deferred.reject(error);
+		});
+
+	}catch(error){
+		global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+        deferred.reject(error);
+	}
+
+	return deferred.promise;
+}
+
 /*Desc   : send Apple push notification
   Params : tokens,certifcate,data
   Returns: Promise
@@ -425,7 +451,61 @@ function _applePush(tokens,certifcate,data){
     var deferred = global.q.defer();
 
     try{
-	    var options = {cert: certifcate};
+	   
+    	var respObj={};
+		respObj.category="Apple Push Notifications";
+			 
+    	var promises=[];
+
+    	for(var i=0;i<tokens.length;++i){
+    		promises.push(_sendApplePushNotification(tokens[i],certifcate,data));
+    	}
+    	
+        //Promise List
+    	q.allSettled(promises).then(function(resultList){
+
+    		var resFulfilled=[];
+    		var resRejected=[];
+    		resultList.forEach(function (eachResult) {
+		        if (eachResult.state === "fulfilled") {
+		            resFulfilled.push(eachResult.value);
+		        } else {
+		            resRejected.push(eachResult.reason);
+		        }
+		    });		    
+
+    		//Check atleast one is fulfilled	            		
+    		if(resFulfilled && resFulfilled.length>0){
+    			respObj.response=resFulfilled;
+    			defer.resolve(respObj);
+    		}else{
+    			respObj.response=resRejected;
+    			defer.reject(respObj);
+    		}
+    		
+    	});
+
+	} catch(err){           
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+        deferred.reject(err);
+    }
+
+	return deferred.promise;    
+}
+
+/*Desc   : Send Windows push notification
+  Params : securityId,clientSecret,pushUri,data
+  Returns: Promise
+           Resolve->Success
+           Reject->Fail to send
+*/
+function _sendApplePushNotification(token,certifcate,data){
+
+    var deferred = global.q.defer();	 
+
+    try{
+
+		var options = {pfx:certifcate};
 	    
 	    var apnConnection = new apn.Connection(options);
 
@@ -449,7 +529,7 @@ function _applePush(tokens,certifcate,data){
 		   	return deferred.reject(respObj);
 		});
 
-		apnConnection.pushNotification(note, tokens);
+		apnConnection.pushNotification(note, token);
 
 		apnConnection.on("transmitted", function(notification, device) {
 		    console.log("Notification transmitted to:" + device.token.toString("hex"));
@@ -480,9 +560,9 @@ function _applePush(tokens,certifcate,data){
 	} catch(err){           
         global.winston.log('error',{"error":String(err),"stack": new Error().stack});
         deferred.reject(err);
-    }
-
-	return deferred.promise;    
+    } 
+    
+    return deferred.promise;
 }
 
 /*Desc   : send Google push notification

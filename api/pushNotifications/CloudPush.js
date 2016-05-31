@@ -31,9 +31,9 @@ module.exports = function() {
             global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {                
                 return global.pushService.sendPush(appId,collectionName, query, sort, limit,skip,customHelper.getAccessList(req),isMasterKey,pushData);
             }).then(function (results) {
-                res.status(200).json({response:results});
+                res.status(200).send(null);
             }, function (error) {
-                res.status(400).json({error:error});
+                res.status(400).send(error);
             });
         }else{
             res.status(400).send("Select param in CloudQuery is not allowed.");
