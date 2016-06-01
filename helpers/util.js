@@ -35,5 +35,36 @@ module.exports = {
         }catch(err){                    
             global.winston.log('error',{"error":String(err),"stack": new Error().stack});                                                            
         }
+    },
+
+    isJsonString : function(str){
+        try{
+            
+            try {
+               JSON.parse(str);
+            } catch (e) {
+               return false;
+            }
+            return true;
+
+        }catch(err){                    
+            global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
+            return false;                                                          
+        }
+    },
+    isJsonObject : function(obj){
+        try{
+            
+            try {
+               JSON.stringify(obj);
+            } catch (e) {
+               return false;
+            }
+            return true;
+
+        }catch(err){                    
+            global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
+            return false;                                                          
+        }
     }
 };

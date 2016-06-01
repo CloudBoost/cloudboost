@@ -33,6 +33,11 @@ module.exports = function() {
             }).then(function (results) {
                 res.status(200).send(null);
             }, function (error) {
+
+                if(util.isJsonObject(error)){
+                   error=JSON.stringify(error);
+                }               
+
                 res.status(400).send(error);
             });
         }else{
