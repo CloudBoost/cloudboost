@@ -790,7 +790,8 @@ function _setSession(req, res) {
     };
 
     req.session = obj;
-    global.sessionHelper.saveSession(obj);
+    var expireDays=30;//Default
+    global.sessionHelper.saveSession(obj,expireDays);
 
   }catch(err){
     global.winston.log('error',{"error":String(err),"stack": new Error().stack});

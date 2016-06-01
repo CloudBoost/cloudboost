@@ -41,12 +41,14 @@
         };
      * @callback : Its a simple callback. 
      */ 
-    saveSession : function (session, callback) {
+    saveSession : function (session, expireDays, callback) {
         try{
             global.redisClient.set(session.id, JSON.stringify(session), function (err, reply) {
-                global.redisClient.expire(session.id, 30 * 24 * 60 * 60);
-                if (callback)
+                //ttl time 30 * 24 * 60 * 60 for 30 days
+                global.redisClient.expire(session.id,  expireDays * 24 * 60 * 60);
+                if (callback){
                     callback(err, reply);
+                }
             });
 
         }catch(err){                    

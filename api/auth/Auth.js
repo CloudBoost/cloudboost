@@ -34,10 +34,20 @@ module.exports = function() {
         var requestToken = req.query.oauth_token;
         var verifier = req.query.oauth_verifier;
 
+        var sessionLength=30;//Default
+
         _getAppSettings(req, res).then(function(respObj){
 
             var appId=respObj.appId;
             var authSettings=respObj.authSettings;           
+
+            //Check Session Length from app Settings                      
+            if(authSettings.sessions && authSettings.sessions.sessionLength){
+                var temp=Number(authSettings.sessions.sessionLength);
+                if(!isNaN(temp)){
+                    sessionLength=temp;
+                }
+            }
 
             var twitterTokens=null; 
             var twitterReqSecret=null;           
@@ -66,7 +76,7 @@ module.exports = function() {
             }).then(function(result){
 
                 //create sessions
-                var session=setSession(req, appId, result,res);                        
+                var session=setSession(req, appId, sessionLength, result,res);                        
                 return res.redirect(authSettings.general.callbackURL+"?cbtoken="+session.id);
 
             },function(error){
@@ -98,10 +108,19 @@ module.exports = function() {
 
         var code = req.query.code;  
 
+        var sessionLength=30;//Default
         _getAppSettings(req, res).then(function(respObj){
 
             var appId=respObj.appId;
             var authSettings=respObj.authSettings;  
+
+            //Check Session Length from app Settings                      
+            if(authSettings.sessions && authSettings.sessions.sessionLength){
+                var temp=Number(authSettings.sessions.sessionLength);
+                if(!isNaN(temp)){
+                    sessionLength=temp;
+                }
+            }
 
             var githubAccessToken=null;          
 
@@ -120,7 +139,7 @@ module.exports = function() {
             }).then(function(result){
 
                 //create sessions
-                var session=setSession(req, appId, result,res);                        
+                var session=setSession(req, appId, sessionLength,result,res);                        
                 return res.redirect(authSettings.general.callbackURL+"?cbtoken="+session.id);
 
             },function(error){
@@ -150,13 +169,22 @@ module.exports = function() {
 
     app.get('/auth/:appId/linkedin/callback', function(req, res) {
 
+        var sessionLength=30;//Default
         _getAppSettings(req, res).then(function(respObj){
 
             var appId=respObj.appId;
             var authSettings=respObj.authSettings;
 
-            var linkedinAccessToken=null;
+            //Check Session Length from app Settings                      
+            if(authSettings.sessions && authSettings.sessions.sessionLength){
+                var temp=Number(authSettings.sessions.sessionLength);
+                if(!isNaN(temp)){
+                    sessionLength=temp;
+                }
+            }
 
+            var linkedinAccessToken=null;
+           
             linkedinHelper.getAccessToken(req, appId, authSettings, res, req.query.code, req.query.state)
             .then(function(accessToken){
 
@@ -172,7 +200,7 @@ module.exports = function() {
                     global.authService.upsertUserWithProvider(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken,providerAccessSecret)
                     .then(function(result){
                         //create sessions
-                        var session=setSession(req, appId, result,res);                        
+                        var session=setSession(req, appId, sessionLength, result,res);                        
                         return res.redirect(authSettings.general.callbackURL+"?cbtoken="+session.id);
                     },function(error){
                         res.status(500).send(error);
@@ -210,10 +238,19 @@ module.exports = function() {
            
         var code = req.query.code;                
 
+        var sessionLength=30;//Default
         _getAppSettings(req, res).then(function(respObj){
 
             var appId=respObj.appId;
             var authSettings=respObj.authSettings;
+
+            //Check Session Length from app Settings                      
+            if(authSettings.sessions && authSettings.sessions.sessionLength){
+                var temp=Number(authSettings.sessions.sessionLength);
+                if(!isNaN(temp)){
+                    sessionLength=temp;
+                }
+            }
 
             var googleTokens=null;
             googleHelper.getToken(req, appId, authSettings, code).then(function(tokens){
@@ -231,7 +268,7 @@ module.exports = function() {
             }).then(function(result){
 
                 //create sessions
-                var session=setSession(req, appId, result,res);                        
+                var session=setSession(req, appId, sessionLength, result,res);                        
                 return res.redirect(authSettings.general.callbackURL+"?cbtoken="+session.id);
 
             },function(error){
@@ -262,10 +299,19 @@ module.exports = function() {
         
         var code = req.query.code;
 
+        var sessionLength=30;//Default
         _getAppSettings(req, res).then(function(respObj){
 
             var appId=respObj.appId;            
             var authSettings=respObj.authSettings;
+
+             //Check Session Length from app Settings                      
+            if(authSettings.sessions && authSettings.sessions.sessionLength){
+                var temp=Number(authSettings.sessions.sessionLength);
+                if(!isNaN(temp)){
+                    sessionLength=temp;
+                }
+            }
 
             var fbAccessToken=null;
             facebookHelper.getAccessToken(req, appId, authSettings, code).then(function(accessToken){
@@ -284,7 +330,7 @@ module.exports = function() {
             }).then(function(result){
 
                 //create sessions
-                var session=setSession(req, appId, result,res);                        
+                var session=setSession(req, appId, sessionLength,result,res);                        
                 return res.redirect(authSettings.general.callbackURL+"?cbtoken="+session.id);
 
             },function(error){
@@ -296,7 +342,7 @@ module.exports = function() {
 
 /************************ Private Functions *************************/
 
-function setSession(req, appId, result,res) {
+function setSession(req, appId, sessionLength, result,res) {
     if(!req.session.id) {
         req.session = {};
         req.session.id = global.uuid.v1();
@@ -313,7 +359,7 @@ function setSession(req, appId, result,res) {
 
     req.session = obj;
     
-    global.sessionHelper.saveSession(obj);
+    global.sessionHelper.saveSession(obj,sessionLength);
     return req.session;
 }
 

@@ -64,17 +64,38 @@ module.exports = function() {
         var userId = req.session.userId || null;
 		var sdk = req.body.sdk || "REST";
         
-		global.appService.isMasterKey(appId,appKey).then(function(isMasterKey){
-			return global.userService.login(appId, document.username, document.password, customHelper.getAccessList(req),isMasterKey);
-		}).then(function(result) {
-			//create sessions
-			setSession(req, appId, result,res);
-			res.json(result);
- 		}, function(error) {
-			res.status(400).json({
-				error: error
-			});
-		});
+        var isMasterKey=false;
+        var sessionLength=30;//Default       
+
+        var promises=[];        
+        promises.push(global.appService.getAllSettings(appId));
+        promises.push(global.appService.isMasterKey(appId,appKey));
+
+        q.all(promises).then(function(list){
+            isMasterKey=list[1];            
+
+            //Check Session Length from app Settings
+            if(list[0] && list[0].length>0){
+                var auth=_.first(_.where(list[0], {category: "auth"}));           
+                if(auth && auth.settings && auth.settings.sessions && auth.settings.sessions.sessionLength){
+                    var temp=Number(auth.settings.sessions.sessionLength);
+                    if(!isNaN(temp)){
+                        sessionLength=temp;
+                    }
+                }                
+            }
+
+            //Make request
+            return global.userService.login(appId, document.username, document.password, customHelper.getAccessList(req),isMasterKey);
+        }).then(function(result) {
+            //create sessions
+            setSession(req, appId, sessionLength, result,res);
+            res.json(result);
+        }, function(error) {
+            res.status(400).json({
+                error: error
+            });
+        });	
         
 		global.apiTracker.log(appId,"User / Login", req.url,sdk);
     });
@@ -97,6 +118,7 @@ module.exports = function() {
         var accessSecret= req.body.accessSecret || null;           
         
         var sdk = req.body.sdk || "REST";
+        var sessionLength=30;//Default
 
         if(!provider){
             res.status(400).json({
@@ -127,10 +149,7 @@ module.exports = function() {
 
         q.all(promises).then(function(list){
 
-            var isMasterKey=list[1];
-            if(!isMasterKey){
-                return res.status(400).send("Unauthorized.");
-            }
+            var isMasterKey=list[1];          
 
             if(!list[0] || list[0].length==0){
                 return res.status(400).send("App Settings not found.");
@@ -144,6 +163,15 @@ module.exports = function() {
             if(!authSettings){
                 return res.status(400).send("Authentication Settings not found.");
             }
+
+            //Check Session Length from app Settings                      
+            if(authSettings.sessions && authSettings.sessions.sessionLength){
+                var temp=Number(authSettings.sessions.sessionLength);
+                if(!isNaN(temp)){
+                    sessionLength=temp;
+                }
+            }        
+            
 
             //Get user by accessToken
             var authPromises=[];
@@ -176,7 +204,7 @@ module.exports = function() {
                 
             }).then(function(result){                
                 //create sessions
-                setSession(req, appId, result,res); 
+                setSession(req, appId, sessionLength,result,res); 
                 res.json(result);
             },function(error){
                 return res.status(400).send(error);
@@ -200,22 +228,43 @@ module.exports = function() {
 		var appKey = req.body.key || req.param('key');
         var userId = req.session.userId || null;
 		var sdk = req.body.sdk || "REST";
-		global.appService.isMasterKey(appId,appKey).then(function(isMasterKey){
-			return global.userService.signup(appId, document,customHelper.getAccessList(req),isMasterKey);
-		}).then(function(result) {
+
+        var isMasterKey=false;
+        var sessionLength=30;//Default       
+
+        var promises=[];        
+        promises.push(global.appService.getAllSettings(appId));
+        promises.push(global.appService.isMasterKey(appId,appKey));
+
+        q.all(promises).then(function(list){
+            isMasterKey=list[1];           
+
+            //Check Session Length from app Settings
+            if(list[0] && list[0].length>0){
+                var auth=_.first(_.where(list[0], {category: "auth"}));           
+                if(auth && auth.settings && auth.settings.sessions && auth.settings.sessions.sessionLength){
+                    var temp=Number(auth.settings.sessions.sessionLength);
+                    if(!isNaN(temp)){
+                        sessionLength=temp;
+                    }
+                }                
+            }
+
+            //Make request
+            return global.userService.signup(appId, document,customHelper.getAccessList(req),isMasterKey);
+        }).then(function(result) {
             if(result){
-                //Setting the session
-                setSession(req, appId, result,res);
+                //create sessions
+                setSession(req, appId, sessionLength, result,res);
                 res.json(result);
             }else{
                 res.send(null);
-            }			
-			
- 		}, function(error) {
-			res.status(400).json({
-				error: error
-			});
-		});
+            }
+        }, function(error) {
+            res.status(400).json({
+                error: error
+            });
+        });	
 		
         global.apiTracker.log(appId,"User / Signup", req.url,sdk);
     });
@@ -379,7 +428,7 @@ module.exports = function() {
 
 	/* Private Methods */ 
 
-	function setSession(req, appId, result,res) {
+	function setSession(req, appId, sessionLength, result,res) {
         if(!req.session.id) {
             req.session = {};
             req.session.id = global.uuid.v1();
@@ -397,6 +446,6 @@ module.exports = function() {
         
         req.session = obj;
         
-        global.sessionHelper.saveSession(obj);
+        global.sessionHelper.saveSession(obj,sessionLength);
 	}
 };
