@@ -477,10 +477,10 @@ function _applePush(tokens,certifcate,data){
     		//Check atleast one is fulfilled	            		
     		if(resFulfilled && resFulfilled.length>0){
     			respObj.response=resFulfilled;
-    			defer.resolve(respObj);
+    			deferred.resolve(respObj);
     		}else{
     			respObj.response=resRejected;
-    			defer.reject(respObj);
+    			deferred.reject(respObj);
     		}
     		
     	});
