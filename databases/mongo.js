@@ -49,8 +49,7 @@ module.exports = function() {
                     {
                             if (columnName === include[k].split('.')[0]) {
                                 i = i + 1;
-                        }
-                        else {
+                            }else {
                                 break;
                             }
                     }

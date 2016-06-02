@@ -134,7 +134,7 @@ module.exports = function () {
                 }
 
                 if (column.dataType === 'GeoPoint') {
-                        obj.collection.createIndex(appId, collectionName, column.name).then(function () {
+                        obj.collection.createIndex(appId, collectionName, column.name, column.dataType).then(function () {
                         deferred.resolve("Index Created");
                     }, function (err) {
                         global.winston.log('error',err);
@@ -164,7 +164,7 @@ module.exports = function () {
                 var promises = [];
                 for (var i = 0; i < schema.length; i++) {
                     if (schema[i].dataType === 'GeoPoint') {
-                        promises.push(obj.collection.createIndex(appId, collectionName,schema[i].name))
+                        promises.push(obj.collection.createIndex(appId, collectionName,schema[i].name, schema[i].dataType))
                     }
                 }
                 if (promises.length > 0) {
@@ -185,7 +185,7 @@ module.exports = function () {
             return deferred.promise;
         },
         
-        createIndex: function (appId, collectionName, columnName) {
+        createIndex: function (appId, collectionName, columnName, columnType) {
             var deferred = global.q.defer();
 
             try{
@@ -194,8 +194,15 @@ module.exports = function () {
                     return deferred.promise;
                 }
 
-                var obj = {};
-                obj[columnName] = "2dsphere";
+                var obj = {};                
+
+                if(columnType==='GeoPoint'){
+                    obj[columnName] = "2dsphere";
+                }
+                if(columnType==='Text'){
+                    obj[columnName] = "text";
+                }
+
                 var collection =  global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));
                 collection.createIndex(obj, function (err, res) {
                     if (err) {
@@ -217,6 +224,117 @@ module.exports = function () {
             return deferred.promise;
         },
 
+        deleteAndCreateTextIndexes: function (appId, collectionName, oldColumns, schema) {
+            var deferred = global.q.defer();
+
+            try{
+                var _self = obj;
+
+                if(global.mongoDisconnected ) {
+                    deferred.reject("Database Not Connected");
+                    return deferred.promise;
+                } 
+
+                //Prepare new text indexes
+                var indexObj={};
+                for (var i = 0; i < schema.length; ++i) {
+                    if(schema[i].dataType==="Text"){
+                        indexObj[schema[i].name]="text";
+                    }                    
+                }
+
+                //Prepare indexString for delete
+                var indexString="";
+                var query = {};                
+                if(oldColumns && oldColumns.length>0){
+                    for (var i = 0; i < oldColumns.length; ++i) {
+                        if(oldColumns[i].dataType==="Text"){
+                            if(indexString===""){
+                                indexString=oldColumns[i].name+"_text";
+                            }else{
+                                indexString=indexString+"_"+oldColumns[i].name+"_text";
+                            }
+                        } 
+                        query[oldColumns[i].name] = 1;                   
+                    }
+                }
+                
+                var collection =  global.mongoClient.db(appId).collection(_self.collection.getId(appId, collectionName));
+
+                collection.dropIndex(indexString,function(err,result){
+                    if(err && err.message && err.message!= 'ns not found') {
+                        
+                        global.winston.log('error', err);
+                        console.log("unable to drop index");
+                        console.log(err);
+                       
+                    }else{
+
+                        //Freshly create indexes for text fields 
+                        if(Object.keys(indexObj).length>0){
+                            var collection =  global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));
+                            collection.createIndex(indexObj, function (err, res) {
+                                if (err) {
+                                    global.winston.log('error',err);
+                                    console.log("Could not create index");
+                                    deferred.reject(err);
+                                }else {
+                                    console.log(res);
+                                    deferred.resolve(res);
+                                }
+
+                            });
+                        }else{
+                            deferred.resolve(null);
+                        } 
+                    }
+
+                });
+
+                collection.update({},{$unset: query},{multi : true}, function(err, result){
+                    if(err){
+                        console.log('Column Drop Error');
+                        deferred.reject(err);
+                    }else{
+                        console.log('Column Dropped');
+                        deferred.resolve();
+                    }
+                });               
+
+            }catch(err){                    
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
+                deferred.reject(err);                                     
+            }
+            return deferred.promise;
+        },
+
+        getIndexes: function (appId, collectionName) {
+            var deferred = global.q.defer();
+
+            try{
+                if(global.mongoDisconnected ) {
+                    deferred.reject("Database Not Connected");
+                    return deferred.promise;
+                }               
+               
+                var collection =  global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));
+                collection.indexInformation(function (err, res) {
+                    if (err) {
+                        console.log("oops");
+                        deferred.reject(err);
+                    }
+                    else {
+                        console.log(res);
+                        deferred.resolve(res);
+                    }
+                });
+
+            }catch(err){                    
+                global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
+                deferred.reject(err);                                     
+            }
+            return deferred.promise;
+        },
 		renameColumn : function(appId, collectionName, oldColumnName, newColumnName){
 
             var deferred = q.defer();
@@ -255,7 +373,7 @@ module.exports = function () {
 			return deferred.promise;
 		},
 
-		dropColumn : function(appId, collectionName, columnName){
+		dropColumn : function(appId, collectionName, columnName, columnType){
 
             var deferred = q.defer();
 
@@ -276,8 +394,15 @@ module.exports = function () {
     			var query = {};
 
     			query[columnName] = 1;
+                
+                if(columnType==='GeoPoint'){
+                    var indexName = columnName+"_2dsphere";
+                }
 
-                var indexName = columnName+"_2dsphere";
+                if(columnType==='Text'){
+                    var indexName = columnName+"_text";
+                }
+
                 collection.dropIndex(indexName,function(err,result){
                     if(err)
                     {
@@ -292,6 +417,7 @@ module.exports = function () {
                     }else{
                         console.log("index dropped");
                         console.log(result);
+                        deferred.resolve();
                     }
 
                 });

@@ -351,14 +351,14 @@ module.exports = function() {
             return deferred.promise;
         },
 
-		deleteColumn: function(appId, collectionName, columnName) {
+		deleteColumn: function(appId, collectionName, columnName, columnType) {
 			
 			var deferred = q.defer();
 
             try{
                 var promises = [];
 
-                promises.push(global.mongoUtil.collection.dropColumn(appId, collectionName, columnName));
+                promises.push(global.mongoUtil.collection.dropColumn(appId, collectionName, columnName,columnType));
                 promises.push(global.elasticSearchUtil.column.drop(appId, collectionName, columnName));
                 
                 q.allSettled(promises).then(function (res) {
@@ -556,13 +556,17 @@ module.exports = function() {
                             //clear the cache.
                             global.redisClient.del(global.keys.cacheSchemaPrefix + '-' + appId + ':' + tableName);
 
-                            if (isNewTable) {
-                                var mongoPromise = global.mongoUtil.collection.create(appId, tableName, schema);
-                                var elasticSearchPromise = global.elasticSearchUtil.collection.add(appId, tableName, schema);
+                            var cloneOldColumns=[].concat(oldColumns || []);
 
-                                q.allSettled([mongoPromise, elasticSearchPromise]).then(function (res) {
-                                    if (res[0].state === 'fulfilled' && res[1].state === 'fulfilled') {
-                                        deferred.resolve(table._doc);
+                            if (isNewTable) {
+                                var mongoPromise = global.mongoUtil.collection.create(appId, tableName, schema);                                
+                                var elasticSearchPromise = global.elasticSearchUtil.collection.add(appId, tableName, schema);  
+                                //Index all text fields
+                                var mongoIndexTextPromise = global.mongoUtil.collection.deleteAndCreateTextIndexes(appId, tableName, cloneOldColumns, schema);                              
+                                
+                                q.allSettled([mongoPromise,elasticSearchPromise,mongoIndexTextPromise]).then(function (res) {
+                                    if (res[0].state === 'fulfilled' && res[1].state === 'fulfilled') {                                        
+                                        deferred.resolve(table._doc);                                        
                                     } else {
                                         //TODO : Rollback.
                                         deferred.resolve(table._doc);
@@ -575,12 +579,14 @@ module.exports = function() {
                             } else {
                                 //check if any column is deleted, if yes.. then delete it from everywhere.
                                 if (oldColumns) {
+
+
                                     var promises = [];
 
                                     var columnsToDelete = _getColumnsToDelete(oldColumns, schema);
 
                                     for (var i = 0; i < columnsToDelete.length; i++) {
-                                        promises.push(self.deleteColumn(appId, tableName, columnsToDelete[i].name));
+                                        promises.push(self.deleteColumn(appId, tableName, columnsToDelete[i].name, columnsToDelete[i].dataType));
                                     }
 
                                     var columnsToAdd = _getColumnsToAdd(oldColumns, schema);
@@ -589,7 +595,10 @@ module.exports = function() {
                                         promises.push(self.createColumn(appId, tableName, columnsToAdd[i]));
                                     }
 
-                                    q.all(promises).then(function (res) {
+                                    //Index all text fields
+                                    promises.push(global.mongoUtil.collection.deleteAndCreateTextIndexes(appId, tableName, cloneOldColumns, schema));                              
+                                
+                                    q.all(promises).then(function (res) {                                         
                                         deferred.resolve(table._doc);
                                     }, function (error) {
                                         //TODO : Rollback.
