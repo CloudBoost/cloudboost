@@ -509,7 +509,8 @@ module.exports = function() {
                                         || schema[i].isDeletable != table._doc.columns[index].isDeletable
                                         || schema[i].isEditable != table._doc.columns[index].isEditable
                                         || schema[i].isRenamable != table._doc.columns[index].isRenamable
-                                        || schema[i].editableByMasterKey != table._doc.columns[index].editableByMasterKey) {
+                                        || schema[i].editableByMasterKey != table._doc.columns[index].editableByMasterKey
+                                        || schema[i].isSearchable != table._doc.columns[index].isSearchable) {
                                         deferred.reject("Cannot Change Column's Property. Only Required and Unique Field can be changed.");
                                         return deferred.promise;
                                     }

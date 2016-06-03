@@ -238,7 +238,7 @@ module.exports = function () {
                 //Prepare new text indexes
                 var indexObj={};
                 for (var i = 0; i < schema.length; ++i) {
-                    if(schema[i].dataType==="Text"){
+                    if(schema[i].dataType==="Text" && schema[i].isSearchable){
                         indexObj[schema[i].name]="text";
                     }                    
                 }
