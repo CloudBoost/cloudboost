@@ -259,7 +259,7 @@ module.exports = function () {
                 
                 var collection =  global.mongoClient.db(appId).collection(_self.collection.getId(appId, collectionName));
 
-                //Drop and Create freshly
+                //Freshly Drop and Create 
                 collection.dropIndex(indexString,function(err,result){
                     if(err && err.message && err.message!= 'ns not found') {
                         
