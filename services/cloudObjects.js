@@ -694,6 +694,12 @@ function _checkDataTypeUtil(data, datatype, columnName,  tableName){
             isValid = false;
         }
 
+        if(data && datatype === 'GeoPoint' && data._type === 'point'){
+            if((Number(data.latitude)<= -90 || Number(data.latitude)>=90)  || (Number(data.longitude)<= -180 && Number(data.longitude)>=180)) {
+                isValid = false;
+            }
+        }
+
         if(data && datatype === 'File' && (data._type &&  data._type !== 'file')){
             isValid = false;
         }
