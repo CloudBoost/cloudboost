@@ -565,7 +565,7 @@ module.exports = function() {
                                 var mongoIndexTextPromise = global.mongoUtil.collection.deleteAndCreateTextIndexes(appId, tableName, cloneOldColumns, schema);                              
                                 
                                 q.allSettled([mongoPromise,elasticSearchPromise,mongoIndexTextPromise]).then(function (res) {
-                                    if (res[0].state === 'fulfilled' && res[1].state === 'fulfilled') {                                        
+                                    if (res[0].state === 'fulfilled' && res[1].state === 'fulfilled' && res[2].state === 'fulfilled') {                                        
                                         deferred.resolve(table._doc);                                        
                                     } else {
                                         //TODO : Rollback.

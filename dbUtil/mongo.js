@@ -244,8 +244,7 @@ module.exports = function () {
                 }
 
                 //Prepare indexString for delete
-                var indexString="";
-                var query = {};                
+                var indexString="";                              
                 if(oldColumns && oldColumns.length>0){
                     for (var i = 0; i < oldColumns.length; ++i) {
                         if(oldColumns[i].dataType==="Text"){
@@ -254,8 +253,7 @@ module.exports = function () {
                             }else{
                                 indexString=indexString+"_"+oldColumns[i].name+"_text";
                             }
-                        } 
-                        query[oldColumns[i].name] = 1;                   
+                        }                                            
                     }
                 }
                 
@@ -267,6 +265,7 @@ module.exports = function () {
                         global.winston.log('error', err);
                         console.log("unable to drop index");
                         console.log(err);
+                        deferred.reject(err);
                        
                     }else{
 
@@ -289,17 +288,7 @@ module.exports = function () {
                         } 
                     }
 
-                });
-
-                collection.update({},{$unset: query},{multi : true}, function(err, result){
-                    if(err){
-                        console.log('Column Drop Error');
-                        deferred.reject(err);
-                    }else{
-                        console.log('Column Dropped');
-                        deferred.resolve();
-                    }
-                });               
+                });                              
 
             }catch(err){                    
                 global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
@@ -321,7 +310,7 @@ module.exports = function () {
                 collection.indexInformation(function (err, res) {
                     if (err) {
                         console.log("oops");
-                        deferred.reject(err);
+                        deferred.resolve(null);
                     }
                     else {
                         console.log(res);
