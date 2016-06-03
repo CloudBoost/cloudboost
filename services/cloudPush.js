@@ -17,8 +17,7 @@ var webPush = require('web-push');
 module.exports = function() {
 
 	return {
-			
-		/*Desc   : Upsert Device Object
+	   /*Desc   : Upsert Device Object
 		  Params : appId, collectionName, document, accessList, isMasterKey
 		  Returns: Promise
 		           Resolve->device object
