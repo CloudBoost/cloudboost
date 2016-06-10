@@ -68,7 +68,7 @@ module.exports = function () {
                 var db = new Db(appId, replSet, { w: 1 });
 
                 if (db) {
-                    console.log("Success : App created in Storage backend.");
+                    console.log("Success : App created in Storage backend.");                    
                     deferred.resolve(db);
                 } else {
                     console.log("Error : Creating an app in the Storage Backend ");
@@ -247,7 +247,7 @@ module.exports = function () {
                 var indexString="";                              
                 if(oldColumns && oldColumns.length>0){
                     for (var i = 0; i < oldColumns.length; ++i) {
-                        if(oldColumns[i].dataType==="Text"){
+                        if(oldColumns[i].dataType==="Text" && oldColumns[i].isSearchable){
                             if(indexString===""){
                                 indexString=oldColumns[i].name+"_text";
                             }else{
@@ -527,17 +527,21 @@ module.exports = function () {
     				if(res){
     					deferred.resolve(JSON.parse(res).columns);
     				}else{
-    					global.model.Table.findOne({appId : appId, name : collectionName},function(err, res){
-    						if (err) {
+                        var collection =  global.mongoClient.db(appId).collection("_Schema");
+                        var findQuery = collection.find({name : collectionName});
+                        findQuery.toArray(function(err, tables) {
+                            var res=tables[0];
+                            if (err) {
                                 global.winston.log('error',err);
-    							deferred.reject(err);
-    						}else if(!res){
-                              	deferred.reject('No Table found.');
-    						} else {
-    							global.redisClient.setex(global.keys.cacheSchemaPrefix+'-'+appId+':'+collectionName, global.keys.schemaExpirationTimeFromCache, JSON.stringify(res._doc));
-    							deferred.resolve(res.columns);
-    						}
-    					});
+                                deferred.reject(err);
+                            }else if(!res){
+                                deferred.reject('No Table found.');
+                            } else {
+                                global.redisClient.setex(global.keys.cacheSchemaPrefix+'-'+appId+':'+collectionName, global.keys.schemaExpirationTimeFromCache, JSON.stringify(res._doc));
+                                deferred.resolve(res.columns);
+                            }
+
+                        });
     				}					
     			});	
 
@@ -553,17 +557,18 @@ module.exports = function () {
 
 			var deferred = q.defer();
 
-            try{
-    			global.model.Table.find({appId : appId},function(err, res){
-
-    				if (err) {
+            try{    		
+                var collection =  global.mongoClient.db(appId).collection("_Schema");
+                var findQuery = collection.find({});
+                findQuery.toArray(function(err, res) {
+                    if (err) {
                         global.winston.log('error',err);
-    					deferred.reject(err);
-    				} else {
-    					deferred.resolve(res);
-    				}
+                        deferred.reject(err);
+                    } else {
+                        deferred.resolve(res);
+                    }
 
-    			});
+                });
 
             }catch(err){                    
                 global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
@@ -578,3 +583,4 @@ module.exports = function () {
 
 	return obj;	
 };
+
