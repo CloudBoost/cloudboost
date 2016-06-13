@@ -102,49 +102,60 @@ module.exports = function(){
 
             global.appService.getAllSettings(appId).then(function(settings){
 
-                var promises=[];
-                promises.push(_getEmailSettings(settings));
-                promises.push(_getEmailTemplate(settings,"sign-up"));
-                promises.push(global.keyService.getMyUrl());
+                //Check email on sign up enabled
+                var emailOnSignupEnabled=false;
+                var auth=_.first(_.where(settings, {category: "auth"}));
+                if(auth && auth.settings && auth.settings.signupEmail && auth.settings.signupEmail.enabled){
+                    emailOnSignupEnabled=true;
+                }
+                
+                if(emailOnSignupEnabled){
+                    var promises=[];
+                    promises.push(_getEmailSettings(settings));
+                    promises.push(_getEmailTemplate(settings,"sign-up"));
+                    promises.push(global.keyService.getMyUrl());
 
-                q.all(promises).then(function(list){
+                    q.all(promises).then(function(list){
 
-                    //Resolved data
-                    emailSettings=list[0];
-                    emailTemplate=list[1];
-                    serverUrl=list[2];
+                        //Resolved data
+                        emailSettings=list[0];
+                        emailTemplate=list[1];
+                        serverUrl=list[2];
 
-                    var username= user.name || user.firstName || user.username || " ";
+                        var username= user.name || user.firstName || user.username || " ";
 
-                    var variableArray=[{
-                        "domClass": "username",
-                        "content": username,
-                        "contentType": "text"
-                    },{
-                        "domClass": "link",
-                        "content": encodeURI(serverUrl+"/page/"+appId+"/verify?activateKey="+activateKey),
-                        "contentType": "anchortag"
-                    }];
+                        var variableArray=[{
+                            "domClass": "username",
+                            "content": username,
+                            "contentType": "text"
+                        },{
+                            "domClass": "link",
+                            "content": encodeURI(serverUrl+"/page/"+appId+"/verify?activateKey="+activateKey),
+                            "contentType": "anchortag"
+                        }];
 
-                    return _mergeVariablesInTemplate(emailTemplate, variableArray);
+                        return _mergeVariablesInTemplate(emailTemplate, variableArray);
 
-                }).then(function(mergedTemplate){
+                    }).then(function(mergedTemplate){
 
-                    emailSettings.emailTo=user.email;
-                    emailSettings.subject="Activate Account";
-                    emailSettings.template=mergedTemplate;
+                        emailSettings.emailTo=user.email;
+                        emailSettings.subject="Activate Account";
+                        emailSettings.template=mergedTemplate;
 
-                    if(emailSettings.provider=="mandrill"){
-                        return _mandrill(emailSettings);
-                    }else if(emailSettings.provider=="mailgun"){
-                        return _mailGun(emailSettings);
-                    }
+                        if(emailSettings.provider=="mandrill"){
+                            return _mandrill(emailSettings);
+                        }else if(emailSettings.provider=="mailgun"){
+                            return _mailGun(emailSettings);
+                        }
 
-                }).then(function(response){
-                    deferred.resolve(response);
-                },function(error){
-                    deferred.reject(error);
-                });              
+                    }).then(function(response){
+                        deferred.resolve(response);
+                    },function(error){
+                        deferred.reject(error);
+                    });
+                }else{
+                    deferred.resolve("Email on signup not enabled.");
+                }                              
 
             },function(error){
                 deferred.reject(error);
