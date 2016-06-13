@@ -684,8 +684,7 @@ function setUpMongoDB(){
      }
     
      mongoConnectionString = mongoConnectionString.substring(0, mongoConnectionString.length - 1);
-     mongoConnectionString += "/"; //de limitter. 
-     global.keys.prodSchemaConnectionString = mongoConnectionString+global.keys.globalDb;
+     mongoConnectionString += "/"; //de limitter.      
      global.keys.mongoConnectionString = mongoConnectionString;
 
      console.log("MongoDb connection string:"+global.keys.mongoConnectionString);
@@ -693,14 +692,9 @@ function setUpMongoDB(){
      if(isReplicaSet){
          console.log("MongoDB is in ReplicaSet");
          var str = "?replicaSet=cloudboost&slaveOk=true&maxPoolSize=200&ssl=false&connectTimeoutMS=30000&socketTimeoutMS=30000&w=1&wtimeoutMS=30000";
-         global.keys.prodSchemaConnectionString+=str;
          global.keys.mongoConnectionString+=str;
-     }
-     
-     var mongoose = require('./database-connect/schemaDb')();
-
-     global.model.Project = require('./model/Project')(mongoose);
-     global.model.Table = require('./model/Table')(mongoose);
+     }   
+    
 
   }catch(err){
     global.winston.log('error',{"error":String(err),"stack": new Error().stack});
