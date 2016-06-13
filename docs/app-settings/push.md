@@ -79,6 +79,30 @@ if(xhttp.readyState == 4 && xhttp.status == 200) {
 xhttp.open("PUT",<your-server-url>/settings/<your-appId>/push, true);        
 xhttp.send(data);
 ``` 
+##Upload Apple certificate to CloudBoost
+Make PUT REST request to your CloudBoost with Apple .p12 certificate file to get file URL which can be used to save apple push settings.
+</br>
+Request: &lt;your-server-url&gt;/settings/&lt;your-appId&gt/file/push;
+
+Example:
+```
+var data = new FormData();        
+data.append('file', appleFileObject);        
+data.append('key', "your-app-masterKey");        
+
+var xhttp = new XMLHttpRequest();
+xhttp.onload  = function() {
+  if(xhttp.readyState == 4 && xhttp.status == 200) {
+    if(xhttp.responseText){            
+      //File url
+    }            
+  }else if(xhttp.status != 200){
+    //Error
+  }
+};
+xhttp.open("PUT", <your-server-url>/settings/<your-appId>/file/push, true);        
+xhttp.send(data);
+```
 
 ##Retrieve App Settings
 Make a POST REST request to ClouBoost API to retrive your app settings
@@ -88,7 +112,7 @@ Request:&lt;your-server-url&gt;/settings/&lt;your-appId&gt;
 Example:
 ```
 var data = new FormData();
-data.append('key', "your-masterKey");
+data.append('key', "your-app-masterKey");
 
 var xhttp = new XMLHttpRequest();
 xhttp.onload  = function() {
