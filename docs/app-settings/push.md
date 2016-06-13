@@ -82,7 +82,7 @@ xhttp.send(data);
 ##Upload Apple certificate to CloudBoost
 Make PUT REST request to your CloudBoost with Apple .p12 certificate file to get file URL which can be used to save apple push settings.
 </br>
-Request: &lt;your-server-url&gt;/settings/&lt;your-appId&gt/file/push;
+Request: &lt;your-server-url&gt;/settings/&lt;your-appId&gt;/file/push;
 
 Example:
 ```
