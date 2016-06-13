@@ -31,7 +31,7 @@ var settings={
 
 var data = new FormData();        
 data.append('key', "your-app-masterKey");
-data.append('settings', JSON.stringify(generalSettings));
+data.append('settings', JSON.stringify(settings));
 
 var xhttp = new XMLHttpRequest();
 xhttp.onload  = function() {
@@ -49,6 +49,7 @@ xhttp.send(data);
 
 ##Retrieve App Settings
 Make a POST REST request to ClouBoost API to retrive your app settings
+</br>
 Request:&lt;your-server-url&gt;/settings/&lt;your-appId&gt;
 
 Example:
