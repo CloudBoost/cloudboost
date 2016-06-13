@@ -18,7 +18,8 @@ Example:
 
 ## Make REST request
 To save general settings make a PUT REST request to CloudBoost API on with JSON as request body.
-Request: "<your-server-url>/settings/<your-appId>/general";
+</br>
+Request: "&lt;your-server-url&gt;/settings/&lt;your-appId&gt;/general";
 
 Example:
 ```
@@ -48,7 +49,7 @@ xhttp.send(data);
 
 ##Retrieve App Settings
 Make a POST REST request to ClouBoost API to retrive your app settings
-Request:<your-server-url>/settings/<your-appId>
+Request:&lt;your-server-url&gt;/settings/&lt;your-appId&gt;
 
 Example:
 ```
