@@ -3,9 +3,13 @@ var job= new CronJob('00 00 22 * * *', function(){
     
     try{
         var curr = new Date();
-        var count = 0;
-        global.model.Table.find(function (err, res) {
-            
+        var count = 0;    
+
+        var collectionName = "_Schema";        
+        var collection = global.mongoClient.db(appId).collection(collectionName);
+        query = {};
+        
+        collection.find(query).toArray().then(function (res) {
             console.log(res);
             resp = res.length;
             console.log(resp);
@@ -21,6 +25,7 @@ var job= new CronJob('00 00 22 * * *', function(){
                     }
                 }
             }
+        },function(err) {
         });
 
     } catch(err){           

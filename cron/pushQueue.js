@@ -7,12 +7,17 @@ var job = new CronJob('* * * * * *', function () {
    
    try{
         //get all the apps.
-        global.model.Project.find(null, function (err, list) {
+        var collectionName = "projects";        
+        var collection = global.mongoClient.db(global.keys.globalDb).collection(collectionName);
+        query = {};
+        
+        collection.find(query).toArray().then(function (list) {
             if (list.length > 0) {
                 for (var i = 0; i < list.length; i++) { 
                     _getPushQueues(list[i].appId);
                 }
-            }      
+            }
+        },function(err) {
         });
 
     } catch(err){           

@@ -31,7 +31,7 @@ module.exports = function() {
             global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {                
                 return global.pushService.sendPush(appId,collectionName, query, sort, limit,skip,customHelper.getAccessList(req),isMasterKey,pushData);
             }).then(function (results) {
-                res.status(200).send(null);
+                res.status(200).send(results);
             }, function (error) {
 
                 if(util.isJsonObject(error)){

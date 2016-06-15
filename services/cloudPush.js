@@ -252,7 +252,7 @@ module.exports = function() {
 		            	//Android
 		            	if(pushNotificationSettings){
 		            		var android=pushNotificationSettings.android.credentials[0];
-			            	if(googleTokens && googleTokens.length>0 && android.apiKey){
+			            	if(googleTokens && googleTokens.length>0 && android && android.apiKey){
 			            		promises.push(_googlePush(googleTokens,android.senderId,android.apiKey,pushData));
 			            	}
 		            	}
@@ -260,7 +260,7 @@ module.exports = function() {
 		            	//Windows
 		            	if(pushNotificationSettings){
 		            		var windows=pushNotificationSettings.windows.credentials[0];
-			            	if(windowsUris && windowsUris.length>0 && windows.securityId){
+			            	if(windowsUris && windowsUris.length>0 && windows && windows.securityId){
 			            		promises.push(_windowsPush(windows.securityId,windows.clientSecret,windowsUris,pushData));
 			            	}
 		            	}           		            	
@@ -334,7 +334,7 @@ module.exports = function() {
 			            		if(resFulfilled && resFulfilled.length>0){
 			            			deferred.resolve();
 			            		}else{
-			            			deferred.reject("Failed to send push notifications because invalid credentials or expired device tokesn.");
+			            			deferred.reject("Failed to send push notifications because invalid credentials or expired device tokens.");
 			            		}
 			            		
 			            	});
