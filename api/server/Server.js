@@ -40,7 +40,7 @@ module.exports = function() {
 
     global.app.get('/status', function(req,res,next) {
 
-        console.log("MongoDB,RedisDB & Elastic Search Statuses...");        
+        console.log("MongoDB,RedisDB");        
 
         global.serverService.getDBStatuses().then(function(response){           
             return res.status(200).json({status:200, message : "Service Status : OK"});            

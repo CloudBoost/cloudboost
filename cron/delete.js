@@ -8,8 +8,8 @@ job.start();
 
 function getMessages(){
     try{
-        //if(global.orientDisconnected || global.mongoDisconnected || global.elasticDisconnected)
-        if(global.mongoDisconnected || global.elasticDisconnected)
+        
+        if(global.mongoDisconnected)
             return "";
         global.queue.getMessages(global.keys.deleteQueue, function (error, message) {
             if (!error) {
@@ -77,12 +77,7 @@ function _appDelete(appId,db){
         var promises = [];
         if (db.length > 0) {
             if(db.indexOf('mongo') >= 0)
-                promises.push(global.mongoUtil.app.drop(appId));
-            if (db.indexOf('elasticSearch') >= 0)
-                promises.push(global.elasticSearchUtil.app.drop(appId));
-            /*  if (db.indexOf('orient') >= 0)
-             promises.push(global.orientUtil.collection.dropCollection(appId, tableName));
-             */
+                promises.push(global.mongoUtil.app.drop(appId));          
         }
         if (promises.length > 0) {
             global.q.all(promises).then(function () {
@@ -107,12 +102,7 @@ function _tableDelete(appId, tableName, db){
         var promises = [];
         if (db.length > 0) {
             if(db.indexOf('mongo') >= 0)
-                promises.push(global.mongoUtil.collection.dropCollection(appId, tableName));
-            if (db.indexOf('elasticSearch') >= 0)
-                promises.push(global.elasticSearchUtil.collection.drop(appId, tableName));
-          /*  if (db.indexOf('orient') >= 0)
-                promises.push(global.orientUtil.collection.dropCollection(appId, tableName));
-        */
+                promises.push(global.mongoUtil.collection.dropCollection(appId, tableName));       
         }
         if (promises.length > 0) {
             global.q.all(promises).then(function () {
@@ -136,12 +126,7 @@ function _columnDelete(appId, tableName, columnName, db){
         var promises = [];
         if (db.length > 0) {
             if (db.indexOf('mongo') >= 0)
-                promises.push(global.mongoUtil.collection.dropColumn(appId, tableName,columnName));
-            if (db.indexOf('elasticSearch') >= 0)
-                promises.push(global.elasticSearchUtil.column.drop(appId, tableName,columnName));
-        /*    if (db.indexOf('orient') >= 0)
-                promises.push(global.orientUtil.collection.dropColumn(appId, tableName,columnName));
-        */
+                promises.push(global.mongoUtil.collection.dropColumn(appId, tableName,columnName));       
         }
         if (promises.length > 0) {
             global.q.all(promises).then(function () {

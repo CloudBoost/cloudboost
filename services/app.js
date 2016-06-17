@@ -136,7 +136,7 @@ module.exports = function() {
             }
 
             return deferred.promise;
-        },
+        },       
 
         createApp: function (appId, userId, appName){
 
@@ -181,8 +181,6 @@ module.exports = function() {
                                 console.log("new app got saved...");
                                 //create a mongodb app.
                                 promises.push(global.mongoUtil.app.create(appId));
-                                promises.push(global.elasticSearchUtil.app.create(appId));
-
                                 global.q.all(promises).then(function (res) {                                    
                                     deferred.resolve(document);
                                 }, function (err) {
@@ -233,11 +231,10 @@ module.exports = function() {
                             global.redisClient.del(global.keys.cacheAppPrefix+':'+appId); //delete the app from redis.
 
                             //delete all the databases.
-                            promises.push(global.mongoUtil.app.drop(appId)); //delete all mongo app data.
-                            promises.push(global.elasticSearchUtil.app.drop(appId)); //delete all elastic app data.
+                            promises.push(global.mongoUtil.app.drop(appId)); //delete all mongo app data.                            
 
                             q.allSettled(promises).then(function(res){
-                                if(res[0].state === 'fulfilled' && res[1].state === 'fulfilled'){
+                                if(res[0].state === 'fulfilled'){
                                     deferred.resolve();
                                 }else {
                                    //TODO : Something wrong happened. Roll back.
@@ -362,10 +359,8 @@ module.exports = function() {
                             var promises = [];
 
                             promises.push(global.mongoUtil.collection.dropCollection(appId, tableName)); //delete all mongo app data.
-                            promises.push(global.elasticSearchUtil.collection.drop(appId, tableName)); //delete all elastic app data.
-
                             q.allSettled(promises).then(function (res){
-                                if(res[0].state === 'fulfilled' && res[1].state === 'fulfilled')
+                                if(res[0].state === 'fulfilled')
                                     deferred.resolve(doc);
                                 else {
                                     //TODO : Something went wrong. Roll back code required.
@@ -395,11 +390,9 @@ module.exports = function() {
             try{
                 var promises = [];
 
-                promises.push(global.mongoUtil.collection.dropColumn(appId, collectionName, columnName,columnType));
-                promises.push(global.elasticSearchUtil.column.drop(appId, collectionName, columnName));
-                
+                promises.push(global.mongoUtil.collection.dropColumn(appId, collectionName, columnName,columnType));                
                 q.allSettled(promises).then(function (res) {
-                    if (res[0].state === 'fulfilled' && res[1].state === 'fulfilled')
+                    if (res[0].state === 'fulfilled')
                         deferred.resolve("Success");
                     else {
                         //TODO : Soemthing went wrong. Rollback immediately.
@@ -596,13 +589,12 @@ module.exports = function() {
                             var cloneOldColumns=[].concat(oldColumns || []);
 
                             if (isNewTable) {
-                                var mongoPromise = global.mongoUtil.collection.create(appId, tableName, schema);                                
-                                var elasticSearchPromise = global.elasticSearchUtil.collection.add(appId, tableName, schema);  
+                                var mongoPromise = global.mongoUtil.collection.create(appId, tableName, schema);                               
                                 //Index all text fields
                                 var mongoIndexTextPromise = global.mongoUtil.collection.deleteAndCreateTextIndexes(appId, tableName, cloneOldColumns, schema);                              
                                 
-                                q.allSettled([mongoPromise,elasticSearchPromise,mongoIndexTextPromise]).then(function (res) {
-                                    if (res[0].state === 'fulfilled' && res[1].state === 'fulfilled' && res[2].state === 'fulfilled') {                                        
+                                q.allSettled([mongoPromise,mongoIndexTextPromise]).then(function (res) {
+                                    if (res[0].state === 'fulfilled' && res[1].state === 'fulfilled') {                                        
                                         deferred.resolve(table);                                        
                                     } else {
                                         //TODO : Rollback.
@@ -666,11 +658,9 @@ module.exports = function() {
             var deferred = global.q.defer();
 
             try{
-                var mongoPromise = global.mongoUtil.collection.addColumn(appId, collectionName, column);
-                var elasticSearchPromise = global.elasticSearchUtil.column.add(appId, collectionName, column);
-                
-                q.allSettled([mongoPromise , elasticSearchPromise]).then(function (res) {
-                    if(res[0].state === 'fulfilled' && res[1].state === 'fulfilled') {
+                var mongoPromise = global.mongoUtil.collection.addColumn(appId, collectionName, column);               
+                q.allSettled([mongoPromise]).then(function (res) {
+                    if(res[0].state === 'fulfilled') {
                         deferred.resolve("Success");
                     } else {
                         //TODO : Rollback.
@@ -686,21 +676,36 @@ module.exports = function() {
         	return deferred.promise;
         },
 
-        changeAppMasterKey: function (appId) {
+        changeAppClientKey: function(appId) {
 
             var deferred = q.defer();
 
-            try{
-                var self = this;
+            try{                
 
-                var newKey = _generateKey();
+                var query={
+                  appId:appId                
+                };
 
-                Project.findOneAndUpdate({appId:appId},{$set: {"keys.master":newKey }},{'new': true}, function (err, project) {
-                    if (err) deferred.reject(err);
-                    if(newProject){
-                        deferred.resolve(project);
+                var newClientkey = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), global.keys.secureKey, 100, 16).toString("base64");
+
+                var setJSON={
+                    "keys.js":newClientkey 
+                };
+
+                var collection =  global.mongoClient.db(global.keys.globalDb).collection("projects");
+                collection.findOneAndUpdate(query,{$set:setJSON},{returnOriginal: false},function(err,newDoc){                
+                    if (err) {
+                        global.winston.log('error',err);
+                        deferred.reject(err);
+                    }
+                    if(newDoc){
+                        console.log("Successfull on Change client key in app...");
+                        //delete project/app from redis so further request will make a new entry with new keys
+                        deleteAppFromRedis(appId);
+                        deferred.resolve(newDoc.value);
                     }else{
-                        deferred.resolve("Invalid App ID.");
+                        console.log("App not found for Change client key in app...");
+                        deferred.resolve(null);
                     }
                 });
 
@@ -710,24 +715,38 @@ module.exports = function() {
             }
 
             return deferred.promise;
-
         },
 
-        changeAppClientKey: function (currentUserId,appId) {
+        changeAppMasterKey: function(appId) {
 
             var deferred = q.defer();
 
-            try{
-                var self = this;
+            try{                
 
-                var newKey = _generateKey();
+                var query={
+                  appId:appId                
+                };
 
-                Project.findOneAndUpdate({appId:appId},{$set: {"keys.js":newKey }},{'new': true}, function (err, project) {
-                    if (err) deferred.reject(err);
-                    if(newProject){
-                        deferred.resolve(project);
+                var newMasterkey = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), global.keys.secureKey, 100, 16).toString("base64");
+
+                var setJSON={
+                    "keys.master":newMasterkey 
+                };
+
+                var collection =  global.mongoClient.db(global.keys.globalDb).collection("projects");
+                collection.findOneAndUpdate(query,{$set:setJSON},{returnOriginal: false},function(err,newDoc){                
+                    if (err) {
+                        global.winston.log('error',err);
+                        deferred.reject(err);
+                    }
+                    if(newDoc){
+                        console.log("Successfull on Change client key in app...");
+                        //delete project/app from redis so further request will make a new entry with new keys
+                        deleteAppFromRedis(appId);
+                        deferred.resolve(newDoc.value);
                     }else{
-                        deferred.resolve("Invalid App ID.");
+                        console.log("App not found for Change client key in app...");
+                        deferred.resolve(null);
                     }
                 });
 
@@ -737,8 +756,8 @@ module.exports = function() {
             }
 
             return deferred.promise;
-
-        },
+        }
+      
 	};
 
 };
@@ -1033,4 +1052,25 @@ function _getDefaultColumnWithDataType(type) {
         global.winston.log('error',{"error":String(e),"stack": new Error().stack});
         return null;
     }
+}
+
+function deleteAppFromRedis(appId){
+  var deferred = q.defer();
+
+  try{
+      //check redis cache first.       
+    global.redisClient.del(global.keys.cacheAppPrefix+':'+appId, function (err, caches) {
+      if (err){
+        deferred.reject(err);
+      }else{
+        deferred.resolve("Success");
+      }          
+    });      
+
+  } catch(err){           
+      global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+      deferred.reject(err);
+  } 
+
+  return deferred.promise;
 }

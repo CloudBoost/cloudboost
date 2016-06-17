@@ -2,13 +2,7 @@
   "mongo" : [{
     "host" : "",
     "port" : ""
-  }],
-  
-  "elasticsearch" : [{
-    "host" : "",
-    "port" : ""
-  }],
-  
+  }],  
   "redis" : [{
                 "host" : "",
                 "port" : "",

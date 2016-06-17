@@ -13,7 +13,6 @@ var path = require('path');
 var ejs = require('ejs');
 
 global.mongoDisconnected = false;
-global.elasticDisconnected = false;
 global.winston = require('winston');
 expressWinston = require('express-winston');
 require('winston-loggly');
@@ -96,7 +95,6 @@ global.serverService = null;
 global.mailService = null;
 
 global.mongoUtil = null;
-global.elasticSearchUtil = null;
 
 global.cacheService = null;
 global.cacheItems = [];
@@ -257,12 +255,10 @@ function attachServices() {
         }
     
         //loading utils
-        global.mongoUtil = require('./dbUtil/mongo')();
-        global.elasticSearchUtil = require('./dbUtil/elasticSearch')();
+        global.mongoUtil = require('./dbUtil/mongo')();        
         global.apiTracker = require('./database-connect/apiTracker')();
     
-        //loading services.
-        global.elasticSearchService = require('./databases/elasticSearch.js')();
+        //loading services.        
         global.mongoService = require('./databases/mongo.js')();
         global.customService = require('./services/cloudObjects.js')();
         global.userService = require('./services/cloudUser.js')();
@@ -299,6 +295,7 @@ function attachAPI() {
         require('./api/tables/CloudUser.js')();
         require('./api/tables/CloudRole.js')();        
         require('./api/app/App.js')();
+        require('./api/app/Admin.js')();
         require('./api/app/AppSettings.js')();
         require('./api/app/AppFiles.js')();
         require('./api/file/CloudFiles.js')();
@@ -438,9 +435,7 @@ function addConnections(){
    //MONGO DB
    setUpMongoDB();
    //setUp Redis
-   setUpRedis();
-   //ELASTIC SEARCH
-   setUpElasticSearch();
+   setUpRedis();   
    //ANALYTICS.
    setUpAnalytics();
 }
@@ -549,59 +544,6 @@ function setUpRedis(){
   } 
 }
 
-function setUpElasticSearch(){
-
-  try{
-      console.log("Setting up ElasticSearch...");
-     var hosts = [];
-
-     if(!global.config && !process.env["ELASTICSEARCH_1_PORT_9200_TCP_ADDR"] && !process.env["ELASTICSEARCH_SERVICE_HOST"]){
-        console.error("FATAL : ElasticSearch Cluster Not found. Use docker-compose from https://github.com/cloudboost/docker or Kubernetes from https://github.com/cloudboost/kubernetes");
-     }
-
-     if(global.config && global.config.elasticsearch && global.config.elasticsearch.length>0){
-         //take from config file
-         
-          console.log("Setting up ElasticSearch from config file...");
-         for(var i=0;i<global.config.elasticsearch.length;i++){
-             hosts.push(
-                  global.config.elasticsearch[i].host +":"+global.config.elasticsearch[i].port
-             );
-         }
-         
-         global.keys.elasticSearch = hosts;
-         
-     }else{
-         
-         console.log("Setting up ElasticSearch from this is running on Kubernetes...");
-         if(process.env["ELASTICSEARCH_SERVICE_HOST"]){
-             //this is running on Kubernetes
-             console.log("ELASTICSEARCH is running on Kubernetes.");
-             
-             if(!global.keys.elasticSearch || global.keys.elasticSearch.length===0){
-                 global.keys.elasticSearch = [];
-             }
-             
-             global.keys.elasticSearch.push(process.env["ELASTICSEARCH_SERVICE_HOST"]+":"+process.env["ELASTICSEARCH_SERVICE_PORT"]); 
-         }else{
-              //ELASTIC SEARCH. 
-              console.log("Setting up ElasticSearch process env..");
-              var i=1;
-              
-              global.keys.elasticSearch = [];
-
-              while(process.env["ELASTICSEARCH_"+i+"_PORT_9200_TCP_ADDR"] && process.env["ELASTICSEARCH_"+i+"_PORT_9200_TCP_PORT"]){
-                  global.keys.elasticSearch.push(process.env["ELASTICSEARCH_"+i+"_PORT_9200_TCP_ADDR"]+":"+process.env["ELASTICSEARCH_"+i+"_PORT_9200_TCP_PORT"]); 
-                  i++;
-              }
-         }
-        
-     } 
-
-  }catch(err){
-    global.winston.log('error',{"error":String(err),"stack": new Error().stack});
-  } 
-}
 
 function setUpMongoDB(){
    //MongoDB connections. 
@@ -705,8 +647,7 @@ function setUpMongoDB(){
 function servicesKickstart() {
   try{
     console.log("Kickstart database services..");
-
-    global.esClient = require('./database-connect/elasticSearchConnect.js')();
+    
     var db = require('./database-connect/mongoConnect.js')().connect();
 	  db.then(function(db){
         try{
@@ -746,8 +687,7 @@ function servicesKickstart() {
 
 function attachDbDisconnectApi(){
   try{
-    console.log("attachDbDisconnectApi..");
-    require('./api/db/elasticSearch.js')();
+    console.log("attachDbDisconnectApi..");   
     require('./api/db/mongo.js')();
   }catch(err){
     global.winston.log('error',{"error":String(err),"stack": new Error().stack});

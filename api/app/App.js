@@ -1,16 +1,5 @@
 module.exports = function() {
 
-	global.app.get('/app/:appId/status', function(req, res) { //get the app object containing keys
-        console.log(' GET APP HANDLER');
-		var appId = req.params.appId;
-        var sdk = req.body.sdk || "REST";
-		console.log(appId+' : is online.');
-		res.send(200, {status : 'online', appId : appId});
-        
-        global.apiTracker.log(appId,"App / Status", req.url,sdk);
-        
-	});
-
     //create a new app.
     global.app.post('/app/:appId', function (req, res) {
 
@@ -141,8 +130,8 @@ module.exports = function() {
                 if(isMasterKey){
                     //delete all code here.
 
-                    if(global.mongoDisconnected || global.elasticDisconnected){
-                        return res.status(500).send('Storage / Search / Cache Backend are temporarily down.');
+                    if(global.mongoDisconnected){
+                        return res.status(500).send('Storage / Cache Backend are temporarily down.');
                     }
 
                     global.appService.upsertTable(appId,tableName,body.data.columns).then(function(table){

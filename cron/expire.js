@@ -1,32 +1,47 @@
+var q = require('q');
+
 var CronJob = require('cron').CronJob;
 var job= new CronJob('00 00 22 * * *', function(){
     
-    try{
-        var curr = new Date();
-        var count = 0;    
+    try{             
 
-        var collectionName = "_Schema";        
-        var collection = global.mongoClient.db(appId).collection(collectionName);
-        query = {};
-        
-        collection.find(query).toArray().then(function (res) {
-            console.log(res);
-            resp = res.length;
-            console.log(resp);
-            for (var i = 0; i < resp; i++) {
-                var appId = res[i].appId;
-                var collectionName = res[i].name;
-                if (global.database && global.esClient) {
-                    if(collectionName !== "File") {
-                        elasticSearch(appId, collectionName, curr);
-                        mongodb(appId, collectionName, curr);
-                    }else{
-                        removeFiles(appId, curr);
-                    }
+        _getDatabases().then(function(databaseNameList){
+
+            if(databaseNameList && databaseNameList.length>0){
+                for(var j=0;j<databaseNameList.length;++j){
+
+                    var appId = databaseNameList[j];
+
+                    var curr = new Date();
+                    var count = 0;
+
+                    var collectionName = "_Schema";        
+                    var collection = global.mongoClient.db(appId).collection(collectionName);
+                    query = {};
+                    
+                    collection.find(query).toArray().then(function (res) {
+                        console.log(res);
+                        resp = res.length;
+                        console.log(resp);
+                        for (var i = 0; i < resp; i++) {                            
+                            var collectionName = res[i].name;
+                            if(global.database && global.esClient) {
+                                if(collectionName !== "File") {                                   
+                                    mongodb(appId, collectionName, curr);
+                                }else{
+                                    removeFiles(appId, curr);
+                                }
+                            }
+                        }
+                    },function(error) {
+                        console.log(error);
+                    });
                 }
-            }
-        },function(err) {
-        });
+            }            
+
+        },function(error){
+            console.log(error);
+        });        
 
     } catch(err){           
         global.winston.log('error',{"error":String(err),"stack": new Error().stack});               
@@ -74,57 +89,32 @@ function mongodb(appId,collectionName,curr){
 }
 
 
-function elasticSearch(appId,collectionName,curr) {
+function _getDatabases(){
+    var deferred = q.defer();
+
     try{
-        var query = {};
-        query.query = {};
-        query.from = 0;
-        query.size = 999;
-        query.query.filtered = {};
-        query.query.filtered.filter = {
-                    "bool": {
-                        "must":
-                        [
-                            { "range": { "expires": { "lt": curr } } },
-                            {
-                                "exists" : {
-                                    "field" : "expires"
-                                }
-                            }
-                        ]
-                    }
-        };
-        global.esClient.search({
-            index: appId.toLowerCase(),
-            type: collectionName.toLowerCase(),
-            body: query
-        }, function (error, response) {
-            if (error) {
-                console.log('++++++ Search Index Error +++++++++');
-            } else {
-                console.log('++++++ Search Index Success +++++++++');
-                var hits = response.hits.hits.length;
-                for (var i = 0; i < hits; i++) {
-                    if (response.hits.hits[i] !== undefined) {
-                        global.esClient.delete({
-                            index: appId.toLowerCase(),
-                            type: collectionName.toLowerCase(),
-                            id: response.hits.hits[i]._id,
-                            ignore: [404]
-                        }, function (error, r) {
-                            if (error) {
-                                console.log("error");
-                            } else {
-                                console.log("success");
-                            }
-                        });
+        global.mongoClient.command({listDatabases: 1},function(err, databaseStatList){
+            if(err) {            
+                deferred.reject(err);            
+            }else if(databaseStatList){  
+                //Exclude Databases                 
+                var excludeDBList=["_Analytics","_GLOBAL","local"];                
+                var databaseNameList=[];
+                for(var i=0;i<databaseStatList.databases.length;++i){
+                    if(excludeDBList.indexOf(databaseStatList.databases[i].name)<0){
+                        databaseNameList.push(databaseStatList.databases[i].name);
                     }
                 }
+
+                deferred.resolve(databaseNameList);                                                                                         
             }
         });
 
     } catch(err){           
         global.winston.log('error',{"error":String(err),"stack": new Error().stack});               
     }
+
+    return deferred.promise;
 }
+
 job.start();

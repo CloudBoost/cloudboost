@@ -199,23 +199,25 @@ module.exports = function () {
                 if(columnType==='GeoPoint'){
                     obj[columnName] = "2dsphere";
                 }
-                if(columnType==='Text'){
-                    obj[columnName] = "text";
+                
+                if(Object.keys(obj).length>0){
+                    var collection =  global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));
+                    collection.createIndex(obj, function (err, res) {
+                        if (err) {
+                            global.winston.log('error',err);
+                            console.log("Could not create index");
+                            deferred.reject(err);
+                        }
+                        else {
+                            console.log(res);
+                            deferred.resolve(res);
+                        }
+
+                    });
+                }else{
+                    deferred.resolve(null);
                 }
-
-                var collection =  global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));
-                collection.createIndex(obj, function (err, res) {
-                    if (err) {
-                        global.winston.log('error',err);
-                        console.log("Could not create index");
-                        deferred.reject(err);
-                    }
-                    else {
-                        console.log(res);
-                        deferred.resolve(res);
-                    }
-
-                });
+                
 
             }catch(err){                    
                 global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
@@ -255,41 +257,30 @@ module.exports = function () {
                             }
                         }                                            
                     }
-                }
-                
-                var collection =  global.mongoClient.db(appId).collection(_self.collection.getId(appId, collectionName));
+                }                  
 
                 //Drop and Create freshly 
-                collection.dropIndex(indexString,function(err,result){
-                    if(err && err.message && err.message!= 'ns not found') {
-                        
-                        global.winston.log('error', err);
-                        console.log("unable to drop index");
-                        console.log(err);
-                        deferred.reject(err);
-                       
+                _dropIndex(appId,collectionName,indexString).then(function(resp){
+                    //Freshly create indexes for text fields 
+                    if(Object.keys(indexObj).length>0){
+                        var collection =  global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));
+                        collection.createIndex(indexObj, function (err, res) {
+                            if (err) {
+                                global.winston.log('error',err);
+                                console.log("Could not create index");
+                                deferred.reject(err);
+                            }else {
+                                console.log(res);
+                                deferred.resolve(res);
+                            }
+
+                        });
                     }else{
-
-                        //Freshly create indexes for text fields 
-                        if(Object.keys(indexObj).length>0){
-                            var collection =  global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));
-                            collection.createIndex(indexObj, function (err, res) {
-                                if (err) {
-                                    global.winston.log('error',err);
-                                    console.log("Could not create index");
-                                    deferred.reject(err);
-                                }else {
-                                    console.log(res);
-                                    deferred.resolve(res);
-                                }
-
-                            });
-                        }else{
-                            deferred.resolve(null);
-                        } 
+                        deferred.resolve(null);
                     }
-
-                });                              
+                },function(error){
+                    deferred.reject(error);
+                });                                             
 
             }catch(err){                    
                 global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
@@ -372,55 +363,54 @@ module.exports = function () {
     			console.log('Collection Name : '+ collectionName);
     			console.log('Column Name : '+columnName);			
 
+                var _self = obj;
+
                 if(global.mongoDisconnected) {
                     deferred.reject("Database Not Connected");
                     return deferred.promise;
-                }
-
-                var _self = obj;
-
-    			var collection =  global.mongoClient.db(appId).collection(_self.collection.getId(appId, collectionName));
+                }                
 
     			var query = {};
 
     			query[columnName] = 1;
                 
+                var indexName=null;
                 if(columnType==='GeoPoint'){
-                    var indexName = columnName+"_2dsphere";
-                }
+                    indexName = columnName+"_2dsphere";
+                }               
 
-                if(columnType==='Text'){
-                    var indexName = columnName+"_text";
-                }
+                var promises=[];
+                promises.push(_dropIndex(appId,collectionName,indexName));
+                promises.push(_unsetColumn(appId,collectionName,query));         
+               
+                //Promise List
+                if(promises && promises.length>0){
 
-                collection.dropIndex(indexName,function(err,result){
-                    if(err)
-                    {
-                        if(err.message === 'ns not found'){
-                            console.log('Column Drop Success');
+                    q.allSettled(promises).then(function(resultList){
+
+                        var resFulfilled=[];
+                        var resRejected=[];
+                        resultList.forEach(function (eachResult) {
+                            if (eachResult.state === "fulfilled") {
+                                resFulfilled.push(eachResult.value);
+                            } else {
+                                resRejected.push(eachResult.reason);
+                            }
+                        });
+                        
+                        //Check atleast one is fulfilled                        
+                        if(resFulfilled && resFulfilled.length>0){
                             deferred.resolve();
-                        } else {
-                            global.winston.log('error', err);
-                            console.log("unable to drop index");
-                            console.log(err);
+                        }else{
+                            deferred.reject("Unable to drop column and index");
                         }
-                    }else{
-                        console.log("index dropped");
-                        console.log(result);
-                        deferred.resolve();
-                    }
+                        
+                    });
 
-                });
-
-    			collection.update({},{$unset: query},{multi : true}, function(err, result){
-    				if(err){
-    					console.log('Column Drop Error');
-    					deferred.reject(err);
-    				}else{
-    					console.log('Column Dropped');
-    					deferred.resolve();
-    				}
-    			});
+                }else{                          
+                    deferred.reslove();
+                }
+                
 
             }catch(err){                    
                 global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
@@ -583,4 +573,65 @@ module.exports = function () {
 
 	return obj;	
 };
+
+//Private Functions
+function _dropIndex(appId, collectionName, indexString){
+
+    var deferred = q.defer();
+
+    try{   
+
+
+        if(indexString && indexString!=""){
+            var collection =  global.mongoClient.db(appId).collection(collectionName);
+            collection.dropIndex(indexString,function(err,result){
+                if(err && err.message && err.message!= 'ns not found') {                
+                    global.winston.log('error', err);
+                    console.log("unable to drop index");
+                    console.log(err);
+                    deferred.reject(err);               
+                }else{
+                    deferred.resolve(result);
+                }
+            });
+        }else{
+            deferred.resolve("Nothing to drop");
+        }
+       
+
+    }catch(err){                    
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
+        deferred.reject(err);                                     
+    }
+    return deferred.promise;
+}
+
+function _unsetColumn(appId, collectionName, query){
+
+    var deferred = q.defer();
+
+    try{  
+
+        if(query && Object.keys(query).length>0){
+            var collection =  global.mongoClient.db(appId).collection(collectionName);
+            collection.update({},{$unset: query},{multi : true}, function(err, result){
+                if(err){
+                    console.log('Column Drop Error');
+                    deferred.reject(err);
+                }else{
+                    console.log('Column Dropped');
+                    deferred.resolve();
+                }
+            });
+        }else{
+            deferred.resolve("Nothing to unset");
+        }
+       
+
+    }catch(err){                    
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
+        deferred.reject(err);                                     
+    }
+    return deferred.promise;
+}
 

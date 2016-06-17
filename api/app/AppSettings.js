@@ -26,8 +26,8 @@ module.exports = function() {
         global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
             if(isMasterKey){
                 
-                if(global.mongoDisconnected || global.elasticDisconnected){
-                    return res.status(500).send('Storage / Search / Cache Backend are temporarily down.');
+                if(global.mongoDisconnected){
+                    return res.status(500).send('Storage / Cache Backend are temporarily down.');
                 }
                 
                 global.appService.updateSettings(appId,category,settings).then(function(settings){
@@ -60,8 +60,8 @@ module.exports = function() {
         global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
             if(isMasterKey){
 
-                if(global.mongoDisconnected || global.elasticDisconnected){
-                    return res.status(500).send('Storage / Search / Cache Backend are temporarily down.');
+                if(global.mongoDisconnected){
+                    return res.status(500).send('Storage / Cache Backend are temporarily down.');
                 }
 
                 global.appService.getAllSettings(appId).then(function(settings){
@@ -108,8 +108,8 @@ module.exports = function() {
         q.all(promises).then(function(resultList){
 
             //Check database connectivity
-            if(global.mongoDisconnected || global.elasticDisconnected){
-                return res.status(500).send('Storage / Search / Cache Backend are temporarily down.');
+            if(global.mongoDisconnected){
+                return res.status(500).send('Storage / Cache Backend are temporarily down.');
             }
             //Check if masterKey is false
             if(!resultList[1]){

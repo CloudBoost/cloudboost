@@ -47,10 +47,7 @@ module.exports = function() {
 
     global.app.get('/data/:appId/:tableName/findOne', _findOne);
     global.app.post('/data/:appId/:tableName/findOne', _findOne);
-
-    global.app.get('/data/:appId/:tableName/search', _search);
-    global.app.post('/data/:appId/:tableName/search', _search);
-
+   
 	global.app.delete('/data/:appId/:tableName', _deleteApi);
 
     function _deleteApi(req, res, next) { //delete a document matching the <objectId>
@@ -168,27 +165,4 @@ function _findOne(req, res, next) { //get a single document matching the search 
     });
     
     global.apiTracker.log(appId,"Object / FindOne", req.url,sdk);
-}
-
-function _search(req, res, next) { //save a new document into <tableName> of app
-    console.log("SEARCH API");
-    var appId = req.params.appId;
-    var query = req.body.query;
-    var sort = req.body.sort;
-    var limit = req.body.limit;
-    var skip = req.body.skip;
-    var collectionName = req.body.collectionName;
-    var userId = req.session.userId || null;
-    var appKey = req.body.key || req.param('key');
-    var sdk = req.body.sdk || "REST";
-    
-    global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
-        return global.customService.search(appId, collectionName, query, sort, limit, skip, customHelper.getAccessList(req), isMasterKey);
-    }).then(function (result) {
-        res.json(result);
-    }, function (error) {
-        res.status(400).send(error);
-    });
-    
-    global.apiTracker.log(appId,"Object / Search", req.url,sdk);
 }

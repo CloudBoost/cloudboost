@@ -5,7 +5,6 @@ var crypto = require('crypto');
 var customHelper = require('../helpers/custom.js');
 
 var databaseDriver = global.mongoService.document;
-var elasticSearchDriver = global.elasticSearchService;
 module.exports = function() {
 
 	return {
@@ -81,23 +80,7 @@ module.exports = function() {
             }
 			return deferred.promise;
 		},
-		search: function(appId, collectionName, query, sort, limit,skip, accessList,isMasterKey) {
-			///elastic search code. 
-			var deferred = q.defer();
-
-            try{
-    			global.elasticSearchService.search(appId, collectionName, query, sort, limit, skip,accessList,isMasterKey).then(function(docs) {
-    				deferred.resolve(docs);
-    			}, function(error) {
-    				deferred.reject(error);
-    			});
-
-            } catch(err){           
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
-                deferred.reject(err);
-            }
-			return deferred.promise;
-		},
+		
 		findOne: function(appId, collectionName, query, select, sort, skip, accessList,isMasterKey) {
 		    var deferred = q.defer();
 
@@ -277,12 +260,10 @@ function _save(appId, collectionName, document, accessList, isMasterKey, reqType
                     console.log("Schema checked");
                     
                     var mongoDocs = JSON.parse(JSON.stringify(listOfDocs)); //making copies of an array to avoid modification by "call by reference" 
-                    var elasticSearchDocs = JSON.parse(JSON.stringify(listOfDocs)); 
-                    
-                    promises.push(databaseDriver.save(appId,mongoDocs));
-                    promises.push(elasticSearchDriver.save(appId,elasticSearchDocs));
+                                       
+                    promises.push(databaseDriver.save(appId,mongoDocs));                    
                     global.q.allSettled(promises).then(function (array) {
-                        if(array[0].state === 'fulfilled' && array[1].state === 'fulfilled') {
+                        if(array[0].state === 'fulfilled') {
                             _sendNotification(appId,array[0],reqType);
                             unModDoc = _merge(parentId, array[0].value, unModDoc);
                             console.log('SAVED Doc');
@@ -323,12 +304,11 @@ function _delete(appId, collectionName, document, accessList,isMasterKey){
     try{
         var promises = [];
         if (document._id) {
-            customHelper.verifyWriteACLAndUpdateVersion(appId, collectionName, document, accessList, isMasterKey).then(function(doc){
-                promises.push(elasticSearchDriver.delete(appId, collectionName, document._id, accessList, isMasterKey));
+            customHelper.verifyWriteACLAndUpdateVersion(appId, collectionName, document, accessList, isMasterKey).then(function(doc){             
                 promises.push(databaseDriver.delete(appId, collectionName, document, accessList, isMasterKey));
                 if (promises.length > 0) {
                     global.q.allSettled(promises).then(function (res) {
-                        if (res[0].state === 'fulfilled' && res[1].state === 'fulfilled') {
+                        if (res[0].state === 'fulfilled') {
                             global.realTime.sendObjectNotification(appId, document, 'deleted');
                             deferred.resolve(document);
                         }else {
@@ -982,13 +962,8 @@ function _deleteRollback(appId, document, res){
             docToSave.schema = schema;
             document = [];
             document.push(docToSave);
+          
             if (res[0].state === 'fulfilled') {
-                promises.push(global.elasticSearchService.save(appId, document));
-            }
-            if (res[1].state === 'fulfilled') {
-                promises.push(global.orientDbService.document.save(appId, document));
-            }
-            if (res[2].state === 'fulfilled') {
                 promises.push(global.mongoService.document.save(appId, document));
             }
             if (promises.length > 0) {
@@ -1235,16 +1210,7 @@ function _rollBack(appId,status,docsArray,oldDocs){
             }
             arr.push('Mongo');
         }
-        if(status[1].state === 'fulfilled'){
-            if(oldDocs)
-                promises.push(global.elasticSearchService.save(appId,oldDocs));
-            else {
-                for(var i=0;i<docsArray.length;i++) {
-                    promises.push(global.elasticSearchService.delete(appId,docsArray[i]._tableName,docsArray[i]));
-                }
-            }
-            arr.push('elasticSearch');
-        }
+       
         global.q.allSettled(promises).then(function(res){
             var status = true;
             for(var i=0;i<res.length;i++){
@@ -1274,10 +1240,8 @@ function _revertBack(appId, statusArray, docsArray, oldDocs){
     var promises = [];
     var deferred = global.q.defer();
 
-    try{
-        promises.push(_orientRevert(appId,statusArray[0],docsArray,oldDocs));
-        promises.push(_mongoRevert(appId,statusArray[1],docsArray,oldDocs));
-        promises.push(_elasticsearchRevert(appId,statusArray[2],docsArray,oldDocs));
+    try{       
+        promises.push(_mongoRevert(appId,statusArray[1],docsArray,oldDocs));       
         global.q.all(promises).then(function(res){
             deferred.resolve(res);
         },function(err){
@@ -1291,41 +1255,6 @@ function _revertBack(appId, statusArray, docsArray, oldDocs){
     return deferred.promise;
 }
 
-/*
- Remove this Function it is no Longer Reqd
- */
-
-
-function _orientRevert(appId, status, docsArray, oldDocs){
-    var promises = [];
-    var deferred = global.q.defer();
-    try{
-        if(status.state === 'fulfilled'){
-            deferred.resolve();
-        }else{
-            var docs = status.value;
-            var save = [];
-            for(var i=0;i<docs.length;i++){
-                if(docs[i].state !== 'fulfilled'){
-                    for(var j=0;j<oldDocs.length;j++){
-                        if(docs[i].value._id === oldDocs[i]._id){
-                            save.push(oldDocs[i]);
-                        }
-                    }
-                }
-            }
-            global.orientDbService.document.save(appId,docs).then(function(){
-                deferred.resove();
-            },function(){
-               deferred.reject();
-            });
-        }
-    } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-        deferred.reject(err);     
-    }
-    return deferred.promise;
-}
 
 /*
  Remove this Function it is no Longer Reqd
@@ -1365,41 +1294,6 @@ function _mongoRevert(appId, status, docsArray, oldDocs){
     return deferred.promise;
 }
 
-/*
- Remove this Function it is no Longer Reqd
- */
-
-
-function _elasticSearchRevert(appId, status, docsArray, oldDocs){
-    var promises = [];
-    var deferred = global.q.defer();
-    try{
-        if(status.state === 'fulfilled'){
-            deferred.resolve();
-        }else{
-            var docs = status.value;
-            var save = [];
-            for(var i=0;i<docs.length;i++){
-                if(docs[i].state !== 'fulfilled'){
-                    for(var j=0;j<oldDocs.length;j++){
-                        if(docs[i].value._id === oldDocs[i]._id){
-                            save.push(oldDocs[i]);
-                        }
-                    }
-                }
-            }
-            global.elasticSearchService.save(appId,docs).then(function(){
-                deferred.resolve();
-            },function(){
-                deferred.reject();
-            });
-        }
-    } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-        deferred.reject(err);     
-    }
-    return deferred.promise;
-}
 
 function _seperateDocs(listOfDocs){
     try{

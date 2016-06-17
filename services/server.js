@@ -35,11 +35,10 @@ module.exports = function() {
         var promises=[];      
 
         promises.push(_mongoDbStatus());
-        promises.push(_redisDbStatus());
-        promises.push(_elasticSearchbStatus());
+        promises.push(_redisDbStatus());        
 
         Q.all(promises).then(function(resultList){
-            if(resultList && resultList[0] && resultList[1] && resultList[2]){
+            if(resultList && resultList[0] && resultList[1]){
               deferred.resolve("All are running..");                
             }
         },function(error){  
@@ -162,46 +161,6 @@ function _redisDbStatus(){
               deferred.reject(responseJson)
             }
         });        
-
-    }catch(err){
-      global.winston.log('error',{"error":String(err),"stack": new Error().stack});
-      deferred.reject(err);
-    }
-
-    return deferred.promise;
-}
-
-
-function _elasticSearchbStatus(){
-
-    console.log("Elastic SearchDB Status Function...");
-
-    var deferred = Q.defer();
-
-    try{
-        
-        var responseJson={};
-        responseJson.serviceName="elasticSearchdb";
-        responseJson.success=null;
-        responseJson.error=null;
-
-        global.esClient.ping({
-          // ping usually has a 3000ms timeout 
-          requestTimeout: Infinity,         
-          // undocumented params are appended to the query string 
-          hello: "elasticsearch!"
-        }, function (error) {
-          if (error) {
-            console.trace('elasticsearch cluster is down!');
-            responseJson.error="CBEngine elasticsearch cluster is down!";
-            deferred.reject(responseJson);
-          } else {           
-
-            console.log("CBEngine Elastic SearchDB Status: All is well!");
-            responseJson.success="CBEngine Elastic SearchDB Status: All is well!";
-            deferred.resolve(responseJson);
-          }
-        });   
 
     }catch(err){
       global.winston.log('error',{"error":String(err),"stack": new Error().stack});
