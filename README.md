@@ -12,7 +12,7 @@ CloudBoost is the Complete NoSQL Database Service for your app. **Think of Cloud
 
 #CloudBoost Indexing Backends
 
-CloudBoost runs on MongoDB, ElasticSearch and Redis. You're responsible for managing the uptime, backups of your data in each of these databases. If you're running production apps. We recommend you to use the hosted service instead. Please check out CloudBoost.io 
+CloudBoost runs on MongoDB and Redis. You're responsible for managing the uptime, backups of your data in each of these databases. If you're running production apps. We recommend you to use the hosted service instead. Please check out CloudBoost.io 
 
 #Running the server with Docker (Recommended) 
 
@@ -27,13 +27,7 @@ If you're runnning the server without Docker. You need to create a new file `clo
  "mongo" : [{
    "host" : "localhost",
    "port" : "27017"
- }],
- 
- "elasticsearch" : [{
-   "host" : "localhost",
-   "port" : "9200"
- }],
- 
+ }], 
  "redis" : [{
        "host" : "127.0.0.1",
        "port" : 6379       
@@ -69,6 +63,9 @@ Once your app is ready, You can then get the latest SDK from  https://tutorials.
 `CB.CloudApp.init('Your Server URL', 'Your App ID', 'Your App Key');`
 
 You can then follow rest of the documentation from https://tutorials.cloudboost.io. You can also check out API Reference on https://docs.cloudboost.io
+
+#App Settings
+To read more about app settings, check [Click here](https://github.com/CloudBoost/cloudboost/tree/master/docs/app-settings) 
 
 #Contributing
 
