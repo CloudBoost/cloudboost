@@ -237,6 +237,20 @@
         color:white;
         font-size: 18px;
     }
+    .loginButton{
+        color: #5f5f5f;
+        padding: 20px;
+        background-color: #dadada;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        border-radius: 3px;
+    }
+    .loginButton:hover{
+        cursor: pointer;
+        color: #5f5f5f;
+        background-color: #b9b9b9;
+        text-decoration: none;
+    }
 
     /*KEY FRAMES*/
     @keyframes zoominout {     

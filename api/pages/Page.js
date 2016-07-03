@@ -7,16 +7,49 @@ module.exports = function() {
     
 
     global.app.get('/page/:appId/reset-password', function(req, res, next) {
-        fs.readFile('./page-templates/user/password-reset.html', function(error, content) {
-            if (error) {
-                res.writeHead(500);
-                res.end();
+       
+           
+        var appId = req.params.appId || null;      
+        var sdk = req.body.sdk || "REST";     
+        
+        var promises=[];
+        promises.push(global.appService.getApp(appId));
+        promises.push(global.appService.getAllSettings(appId));        
+
+        q.all(promises).then(function(list){            
+
+            console.log(list);
+            
+            var appKeys={};
+            appKeys.appId=appId;
+
+            appKeys.masterKey=list[0].keys.master;
+            var appSettingsObject=list[1];
+
+            var general=_.first(_.where(appSettingsObject, {category: "general"}));
+            var auth=_.first(_.where(appSettingsObject, {category: "auth"}));
+
+            var generalSettings=null;
+            if(general){
+                generalSettings=general.settings;
             }
-            else {
-                res.writeHead(200, { 'Content-Type': 'text/html' });
-                res.end(content, 'utf-8');
+            var authSettings=null;
+            if(auth){
+                authSettings=auth.settings;
             }
-        });
+
+            res.render(global.rootPath+'/page-templates/user/password-reset',{
+                appKeys:appKeys,
+                generalSettings: generalSettings,
+                authSettings: authSettings,                       
+            });
+
+        },function(error){
+            res.status(400).send(error);
+        });   
+            
+        global.apiTracker.log(appId,"User / Reset User Password", req.url,sdk);
+       
     });
 
     /*

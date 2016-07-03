@@ -73,7 +73,7 @@
                     <!--Body-->
                     <div style="background-color: white;padding-top: 5px;">
                         <!--Login and Sing Up buttons-->
-                        <% if(authSettings && authSettings.custom.enabled){ %>
+                        <% if(!authSettings || (authSettings && authSettings.custom.enabled)){ %>
                         <div class="flex-general-column-wrapper-center" style="margin-top: 20px;">
                             <div class="flex-general-row-wrapper">
                                <div class="width:100%;height:30px;">
@@ -331,7 +331,7 @@
         <div class="flex-general-column-wrapper-center" style="width: 100%;height: 60px;margin-top: 1.5%;">
             <div class="flex-general-row-wrapper">
                 <p style="color:#aeb3ba;">powered by</p>
-                <p style="color:#aeb3ba;">&nbsp;CloudBoost</p>
+               <p style="color:#aeb3ba;">&nbsp;<a style="color:#aeb3ba;" href="https://www.cloudboost.io">CloudBoost</a></p>
             </div>
         </div>
     </div>     
