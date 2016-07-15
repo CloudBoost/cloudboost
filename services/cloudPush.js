@@ -509,13 +509,42 @@ function _sendApplePushNotification(token,certifcate,data){
 	    
 	    var apnConnection = new apn.Connection(options);
 
-	    //sending data to devices using device token.
-		var note = new apn.Notification();
-		note.expiry = Math.floor(Date.now() / 1000) + 3600; // Expires 1 hour from now.
-		note.badge = data.badge || 1;
-		note.sound = data.sound || "ping.aiff";
-		note.alert = "\uD83D\uDCE7 \u2709"+ data.title;
-		note.payload = {'messageFrom': data.message};
+	    var note = new apn.Notification();
+
+        note.expiry = Math.floor(Date.now() / 1000) + 3600; // Expires 1 hour from now.
+
+        note.alert = data.title;
+
+        if (data.badge != null) {
+               note.badge = data.badge;
+        }
+        if (data.sound != null) {
+            note.sound = data.sound;
+        }
+        if (data.contentAvailable != null) {
+            // True if silent notification is requested
+            note.contentAvailable = data.contentAvailable;
+        }
+        if (data.category != null) {
+            // The message category for actionable notifications
+            note.category = data.category;
+        }
+        if (data.actionLocKey != null) {
+            // A string for the action localized key
+            note.actionLocKey = data.actionLocKey;
+        }
+        if (data.localizedKey != null) {
+            // A string for the localized key
+            note.localizedKey = data.localizedKey;
+        }
+        if (data.localizedArguments != null) {
+            // An array of strings for localized arguments 
+            note.localizedArguments = data.localizedArguments;
+        }
+        if (data.custom != null) {
+            // Provide an optional custom dictionary into request.body.data
+            note.payload = data.custom;
+        }
 
 		var respObj={};
 		respObj.category="Apple Push Notifications";
