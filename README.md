@@ -20,7 +20,7 @@ The easiest way to run the server is by using Docker. Check https://github.com/c
 
 #Running the server without Docker
 
-If you're runnning the server without Docker. You need to create a new file `cloudboost.js` under `config` folder and save that file with MongoDB, Redis and ElasticSearch configuration. Here's a sample file : 
+If you're runnning the server without Docker. You need to create a new file `cloudboost.json` under `config` folder and save that file with MongoDB, Redis and ElasticSearch configuration. Here's a sample file : 
 
 ```
 {
