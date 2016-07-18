@@ -9,9 +9,9 @@ node_js:
 - '6'
 
 before_install:
-- touch config/cert.crt
-- touch config/key.key
-- touch config/smtp.json 
+- touch config\cert.crt
+- touch config\key.key
+- touch config\smtp.json 
 - openssl aes-256-cbc -K $encrypted_f0b486ccf91b_key -iv $encrypted_f0b486ccf91b_iv
   -in key.key.enc -out config/key.key -d
 - openssl aes-256-cbc -K $encrypted_f0b486ccf91b_key -iv $encrypted_f0b486ccf91b_iv
