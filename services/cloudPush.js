@@ -605,6 +605,8 @@ function _googlePush(devicesTokens,senderId,apiKey,data){
     var defer = global.q.defer();
     
     try{
+
+    	
 	    var sender = gcm.Sender(apiKey);    
 	    
 	    var message = new gcm.Message({	       
@@ -621,7 +623,15 @@ function _googlePush(devicesTokens,senderId,apiKey,data){
 	            icon: data.icon || 'ic_launcher',
 	            body: data.message
 	        }
-	    });   
+	    });  
+
+	    //Add custom data to the message.
+
+	    var customData = data.custom;
+
+        if (customData != null) {
+            message.addData(customData);
+        } 
 	    
 	    //send notification
 	    sender.send(message, { registrationTokens: devicesTokens }, function (error, response) {

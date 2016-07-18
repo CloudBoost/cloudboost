@@ -67,6 +67,10 @@ In the `config` folder. Creare a new file called `smtp.json`. You need to create
 }
 ```
 
+###Step 6 : Enable HTTPS. (Optional) 
+
+If you want to enable HTTPS, place your certificate file `cert.crt` and key `key.key` in the config folder. 
+
 ###Step 7 : Run the server. 
 
 Make sure both Redis and MongoDB are running and then run the CloudBoost server  
@@ -75,15 +79,6 @@ Make sure both Redis and MongoDB are running and then run the CloudBoost server
 
 Once the server is running. You'll see the ClusterKey and SecureKey on the console whcih means you've successfully CloudBoost. If you don't see any of these keys, please raise a GitHub issue and let us know. 
 
-```
-{
-  "provider"  : "mailgun",		
-  "apiKey"    : "XXXXXXXXXXXXXXXXXXXXXXX",
-  "domain"    : "cloudboost.io",
-  "fromEmail" : "hello@cloudboost.io",
-  "fromName"  : "CloudBoost.io"  
-}
-```
 
 #Once the server is running, You can 
 
