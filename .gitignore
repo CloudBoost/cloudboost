@@ -1,9 +1,6 @@
 .vscode/
 *.dat
-config/cloudboost.json
-config/smtp.json
-config/cert.crt
-config/key.key
+config/
 *.suo
 *.user
 *.userosscache

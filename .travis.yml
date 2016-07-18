@@ -6,11 +6,9 @@ node_js:
 - '6'
 before_install:
 - openssl aes-256-cbc -K $encrypted_f0b486ccf91b_key -iv $encrypted_f0b486ccf91b_iv
-  -in cert.crt.enc -out cert.crt -d
-- openssl aes-256-cbc -K $encrypted_f0b486ccf91b_key -iv $encrypted_f0b486ccf91b_iv
-  -in key.key.enc -out key.key -d
-- openssl aes-256-cbc -K $encrypted_f0b486ccf91b_key -iv $encrypted_f0b486ccf91b_iv
-  -in smtp.json.enc -out smtp.json -d
+  -in encrypt.tar.enc -out encrypt.tar -d
+- tar xvf encrypt.tar
+- mv  -v ~/encrypt/* ~/config/
 install:
 - docker build -t cloudboost/cloudboost:latest -t cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER
   .
