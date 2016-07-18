@@ -55,7 +55,7 @@ Create a `config` folder in project root if it does not exist.  You need to crea
 
 ###Step 6 : Edit smtp.json. 
 
-You need to create an account at MailGun (https://www.mailgun.com/) and get an API Key. This will help CloudBoost to send emails on your behalf. Here's a quick example : 
+In the `config` folder. Creare a new file called `smtp.json`. You need to create an account at MailGun (https://www.mailgun.com/) and get an API Key. This will help CloudBoost to send emails on your behalf. Here's a quick example : 
 
 ```
 {
@@ -69,7 +69,7 @@ You need to create an account at MailGun (https://www.mailgun.com/) and get an A
 
 ###Step 7 : Run the server. 
 
-Make sure both Reids and MongoDB are running and then run the CloudBoost server  
+Make sure both Redis and MongoDB are running and then run the CloudBoost server  
 
 `node server.js`
 
