@@ -11,10 +11,7 @@
     <script type="text/javascript">  
         var _appKeys=<%- JSON.stringify(appKeys) %>;       
         var _generalSettings=<%- JSON.stringify(generalSettings) %>; 
-        var _authSettings=<%- JSON.stringify(authSettings) %>; 
-        if(_authSettings.resetPasswordEmail.redirectURL.enabled==true){
-            window.location.assign(_authSettings.resetPasswordEmail.redirectURL.URL)
-        }      
+        var _authSettings=<%- JSON.stringify(authSettings) %>;           
     </script>  
 
 </head>
