@@ -11,7 +11,8 @@ before_install:
 install:
 - docker build -t cloudboost/cloudboost:latest -t cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER              #Build CloudBoost
   .
-- docker run -d --name cloudboost -p 4730:4730 -it cloudboost/cloudboost:latest                               #Run CloudBoost
+- docker run -d --name cloudboost -p 4730:4730 -it cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER             #Run CloudBoost
 - git clone https://github.com/cloudboost/javascriptsdk                                                       #Clone JavaScript SDK
-- cd JavaScriptSDK
+- ls
+- docker exec mongo mongo "use _GLOBAL \n db._Settings.find()" 
 
