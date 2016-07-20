@@ -5,10 +5,13 @@ language: node_js
 node_js:
 - '6'
 before_install:
-- docker run -d --name redis -p 6379:6379 -p 16379:16379 -p 26379:26379 -it redis:3.0                         
-- docker run -d --name mongo -p 27017:27017 -it mongo:3.2                                                     
+- docker run -d --name redis -p 6379:6379 -p 16379:16379 -p 26379:26379 -it redis:3.0
+- docker run -d --name mongo -p 27017:27017 -it mongo:3.2
 - git clone https://github.com/cloudboost/javascriptsdk
 - npm install grunt-cli -g
+- mkdir config
+- openssl aes-256-cbc -K $encrypted_f0b486ccf91b_key -iv $encrypted_f0b486ccf91b_iv
+  -in smtp.json.enc -out config/smtp.json -d
 install:
 - docker exec $(docker ps -aqf "name=mongo") mongo _GLOBAL --eval "db.getCollection('_Settings').insertOne({secureKey:'1227d1c4-1385-4d5f-ae73-23e99f74b006',clusterKey:'1227d1c4-1385-4d5f-ae73-23e99f74b006',myURL:'http://localhost:4730'});"
 - cd javascriptsdk
@@ -21,3 +24,4 @@ install:
 - sleep 30s
 - cd javascriptsdk
 - npm test
+
