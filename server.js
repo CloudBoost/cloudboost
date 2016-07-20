@@ -517,6 +517,17 @@ function setUpRedis(){
                       hosts.push(obj);       
                       i++;
               }
+
+              //If everything else failsm then try local redis. 
+              if(i===1){
+                  var obj = {
+                      host : "127.0.0.1",
+                      port : "6379",
+                      enableReadyCheck : false
+                  };
+                  
+                  hosts.push(obj);
+              }
          }
      }
      
@@ -621,6 +632,14 @@ function setUpMongoDB(){
                   mongoConnectionString+=process.env["MONGO_"+i+"_PORT_27017_TCP_ADDR"]+":"+process.env["MONGO_"+i+"_PORT_27017_TCP_PORT"]; 
                   mongoConnectionString+=",";
                   i++;
+              }
+
+              //if everything fails, then init Mongo Connections with localhost. 
+              if(i===1){
+                global.config.mongo.push({
+                      host :  'localhost',
+                      port : '27017'
+                });
               }
          }
      }
