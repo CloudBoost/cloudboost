@@ -152,12 +152,25 @@ function _getFileStream(req){
         
         //Setting response
         resObj.fileStream=readableStream;
-        resObj.contentType="text/plain";
+        resObj.contentType=req.body.fileObj.contentType;
         resObj.fileObj=req.body.fileObj;        
 
         deferred.resolve(resObj);       
 
-    }else{              
+    } else if (req.files.file) {              
+
+        readableStream.push(req.files.file.data);
+        readableStream.push(null);
+
+        //Setting response
+        resObj.fileStream=readableStream;
+        resObj.contentType=req.files.file.mimetype;
+        if (req.body.fileObj) {
+            resObj.fileObj=JSON.parse(req.body.fileObj);
+        }
+         
+        deferred.resolve(resObj);      
+    } else {              
 
         readableStream.push(req.files.fileToUpload.data);
         readableStream.push(null);
@@ -168,7 +181,7 @@ function _getFileStream(req){
         resObj.fileObj=JSON.parse(req.body.fileObj);
          
         deferred.resolve(resObj);      
-    }    
+    }
 
    return deferred.promise;
 }
