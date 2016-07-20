@@ -8,9 +8,7 @@ before_install:
 - docker run -d --name redis -p 6379:6379 -p 16379:16379 -p 26379:26379 -it redis:3.0                         
 - docker run -d --name mongo -p 27017:27017 -it mongo:3.2                                                     
 - git clone https://github.com/cloudboost/javascriptsdk  
-- docker exec -it $(docker ps -aqf "name=mongo") mongo
-- use _GLOBAL
-#- db._Settings.insert({secureKey : '1227d1c4-1385-4d5f-ae73-23e99f74b006', clusterKey : '1227d1c4-1385-4d5f-ae73-23e99f74b006', myURL : 'http://localhost:4730'});
+- docker exec $(docker ps -aqf "name=mongo") mongo _GLOBAL --eval "db._Settings.insert({secureKey : '1227d1c4-1385-4d5f-ae73-23e99f74b006', clusterKey : '1227d1c4-1385-4d5f-ae73-23e99f74b006', myURL : 'http://localhost:4730'});"
 install:
 - docker build -t cloudboost/cloudboost:latest -t cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER              
   .
