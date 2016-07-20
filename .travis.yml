@@ -7,12 +7,13 @@ node_js:
 before_install:
 - docker run -d --name redis -p 6379:6379 -p 16379:16379 -p 26379:26379 -it redis:3.0                         #Run Redis container. 
 - docker run -d --name mogno -p 27017:27017 -it mongo:3.2                                                     #Run MongoDB Container 
-
-install:
 - docker build -t cloudboost/cloudboost:latest -t cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER              #Build CloudBoost
   .
 - docker run -d --name cloudboost -p 4730:4730 -it cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER             #Run CloudBoost
 - git clone https://github.com/cloudboost/javascriptsdk                                                       #Clone JavaScript SDK.
 - ls
 - docker exec mongo mongo "use _GLOBAL \n db._Settings.find()" 
+
+install:
+
 
