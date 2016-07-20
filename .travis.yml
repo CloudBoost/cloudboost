@@ -14,4 +14,3 @@ install:
   .
 - docker run -d --name cloudboost -p 4730:4730 -it cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER
 - cd javascriptsdk
-
