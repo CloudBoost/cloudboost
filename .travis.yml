@@ -9,9 +9,7 @@ before_install:
 - docker run -d --name mongo -p 27017:27017 -it mongo:3.2                                                     
 - docker build -t cloudboost/cloudboost:latest -t cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER              
   .
-- docker run -d --name cloudboost -p 4730:4730 -it cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER             
-- docker exec $(docker ps -aqf "name=mongo") "mongo;" 
-
+- docker run -d --name cloudboost -p 4730:4730 -it cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER
 install:
 - git clone https://github.com/cloudboost/javascriptsdk                                                       
 - cd javascriptsdk
