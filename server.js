@@ -525,7 +525,7 @@ function setUpRedis(){
                       port : "6379",
                       enableReadyCheck : false
                   };
-                  
+
                   hosts.push(obj);
               }
          }
@@ -616,10 +616,11 @@ function setUpMongoDB(){
               
          }else{
 
-            console.log("Setting up MongoDB from  process.env....");
+              
               var i=1;
               
               while(process.env["MONGO_"+i+"_PORT_27017_TCP_ADDR"] && process.env["MONGO_"+i+"_PORT_27017_TCP_PORT"]){
+                  console.log("Setting up MongoDB from  process.env....");
                   if(i>1){
                     isReplicaSet = true;
                   }
@@ -636,6 +637,7 @@ function setUpMongoDB(){
 
               //if everything fails, then init Mongo Connections with localhost. 
               if(i===1){
+                console.log("MongoDB Connection Settings not found. Default MongoDB Connection localhost:27017");
                 global.config.mongo.push({
                       host :  'localhost',
                       port : '27017'
