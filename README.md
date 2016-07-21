@@ -85,21 +85,51 @@ Once the server is running. You'll see the ClusterKey and SecureKey on the conso
 Once started, you'll see the CloudBoost Secure Key on the console. This is important, Please save it for future use.
 Secure Key helps you create / delete apps. 
 
+###Create an app
+
 To create an app, You need to  : 
 
 ```
-        POST <YOUR_SERVER_URL>/app/<APP ID>
-        BODY {
+        REQUEST TYPE : POST
+        URL : <YOUR_SERVER_URL>/app/<APP ID>
+        REQUEST BODY :
+        {
             secureKey : YOUR_SECURE_KEY
         }
 ```
 
+for example : 
+
+```
+        REQUEST TYPE : POST
+        URL : http://localhost:4730/app/app1
+        REQUEST BODY :
+        {
+            secureKey : xxxxxxxxxxxxxxxxxxxxxxxx
+        }
+```
+
+###Delete an app
+
 To delete an app, You need to  : 
 
 ```
-        DELETE <YOUR_SERVER_URL>/app/<APP ID>
-        BODY {
+        REQUEST TYPE : DELETE
+        URL : <YOUR_SERVER_URL>/app/<APP ID>
+        REQUEST BODY :
+        {
             secureKey : YOUR_SECURE_KEY
+        }
+```
+
+for example : 
+
+```
+        REQUEST TYPE : DELETE
+        URL : http://localhost:4730/app/app1
+        REQUEST BODY :
+        {
+            secureKey : xxxxxxxxxxxxxxxxxxxxxxxx
         }
 ```
 
