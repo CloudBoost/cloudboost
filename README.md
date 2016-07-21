@@ -85,6 +85,8 @@ Once the server is running. You'll see the ClusterKey and SecureKey on the conso
 Once started, you'll see the CloudBoost Secure Key on the console. This is important, Please save it for future use.
 Secure Key helps you create / delete apps. 
 
+###Create an app
+
 To create an app, You need to  : 
 
 ```
@@ -106,6 +108,8 @@ for example :
             secureKey : xxxxxxxxxxxxxxxxxxxxxxxx
         }
 ```
+
+###Delete an app
 
 To delete an app, You need to  : 
 
