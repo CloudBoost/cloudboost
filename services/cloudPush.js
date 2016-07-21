@@ -137,8 +137,15 @@ module.exports = function() {
 				var pushNotificationSettings=null;
 				var pushSettingsFound=false;
 
-				var appleCertificate=null;				
+				// Apple
+				// PushData.profileIndex: optional index of certificate to use for this push
+				// PushData.profileIdentifier: identifier of the certificate to use for this push (default)
+				var appleCertificateIndex=0;				
 				var appleCertificateFound=false;
+				var profileIdentifier = pushData.profileIdentifier;
+				if (pushData.profileIndex && pushData.profileIndex > 0) {
+					appleCertificateIndex = pushData.profileIndex;
+				}
 
 				var promisesList=[];
 
@@ -166,8 +173,30 @@ module.exports = function() {
 		                    pushSettingsFound=true;
 		                    pushNotificationSettings=pushSettings[0].settings;
 
-		                    if(pushSettings[0].settings.apple.certificates && pushSettings[0].settings.apple.certificates.length>0){
-		                    	
+		                    if(pushSettings[0].settings.apple.certificates && pushSettings[0].settings.apple.certificates.length>appleCertificateIndex){
+
+								var certificateObject =pushSettings[0].settings.apple.certificates[appleCertificateIndex];
+		                    	var path = certificateObject.path ? certificateObject.path : certificateObject;
+								var identifier = certificateObject.identifier ? certificateObject.identifier : "default";
+								var fileName = path.split("/").reverse()[0];
+
+								if (profileIdentifier != null) {
+									
+									for (var index = 0; index < pushSettings[0].settings.apple.certificates.length; index++) {
+										
+										var certificateObject =pushSettings[0].settings.apple.certificates[index];
+
+										var _identifier = certificateObject.identifier ? certificateObject.identifier : "default";
+		                    			var _path = certificateObject.path ? certificateObject.path : certificateObject;
+										var _filename = _path.split("/").reverse()[0]; 
+
+										if (profileIdentifier === _identifier) {
+											fileName = _filename
+											break
+										}
+									}
+								}
+
 		                    	//Get file name from uri
 		                    	var fileName=pushSettings[0].settings.apple.certificates[0].split("/").reverse()[0];
 		                    	if(fileName){
@@ -401,8 +430,6 @@ function _checkAndGetTitle(appId,data,appSettingsObject){
         global.winston.log('error',{"error":String(err),"stack": new Error().stack});
         return "CloudBoost";
     }
-
-	return "CloudBoost";
 }
 
 
