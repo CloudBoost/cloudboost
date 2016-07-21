@@ -642,6 +642,9 @@ function setUpMongoDB(){
                       host :  'localhost',
                       port : '27017'
                 });
+
+                mongoConnectionString+="localhost:27017";
+                mongoConnectionString+=",";
               }
          }
      }
