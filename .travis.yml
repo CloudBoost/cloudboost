@@ -5,7 +5,8 @@ language: node_js
 node_js:
 - '6'
 before_install:
-- docker run -d --name redis -p 6379:6379 -it redis:3.0
+- sudo apt-get install redis-server
+- sudo service redis-server stop
 - docker run -d --name mongo -p 27017:27017 -it mongo:3.2
 - git clone https://github.com/cloudboost/javascriptsdk
 - npm install grunt-cli -g
