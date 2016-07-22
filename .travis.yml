@@ -24,4 +24,3 @@ install:
 - sleep 30s
 - cd javascriptsdk
 - npm test
-
