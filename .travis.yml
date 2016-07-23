@@ -8,8 +8,6 @@ node_js:
 - '6'
 before_install:
 - sleep 30s
-- docker logs $(docker ps -aqf "name=redis")
-- docker logs $(docker ps -aqf "name=mongo")
 - git clone https://github.com/cloudboost/javascriptsdk
 - npm install grunt-cli -g
 - mkdir config
