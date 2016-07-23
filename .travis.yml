@@ -6,6 +6,8 @@ services:
 language: node_js
 node_js:
 - '6'
+before_script:
+- mongo _GLOBAL --eval "db.getCollection('_Settings').insertOne({secureKey:'1227d1c4-1385-4d5f-ae73-23e99f74b006',clusterKey:'1227d1c4-1385-4d5f-ae73-23e99f74b006',myURL:'http://localhost:4730'});"
 before_install:
 - sleep 30s
 - git clone https://github.com/cloudboost/javascriptsdk
@@ -14,7 +16,6 @@ before_install:
 - openssl aes-256-cbc -K $encrypted_f0b486ccf91b_key -iv $encrypted_f0b486ccf91b_iv
   -in smtp.json.enc -out config/smtp.json -d
 install:
-- mongo _GLOBAL --eval "db.getCollection('_Settings').insertOne({secureKey:'1227d1c4-1385-4d5f-ae73-23e99f74b006',clusterKey:'1227d1c4-1385-4d5f-ae73-23e99f74b006',myURL:'http://localhost:4730'});"
 - cd javascriptsdk
 - npm install
 - grunt
