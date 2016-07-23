@@ -7,6 +7,9 @@ node_js:
 before_install:
 - docker run -d --name redis -p 6379:6379 -it redis:3.0
 - docker run -d --name mongo -p 27017:27017 -it mongo:3.2
+- sleep 30s
+- docker logs $(docker ps -aqf "name=redis")
+- docker logs $(docker ps -aqf "name=mongo")
 - git clone https://github.com/cloudboost/javascriptsdk
 - npm install grunt-cli -g
 - mkdir config
