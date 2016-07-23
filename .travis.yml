@@ -23,7 +23,7 @@ install:
 - cd ..
 - docker build -t cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER .
 - docker build -t cloudboost/cloudboost:latest .
-- docker run --name cloudboost -p 4730:4730 -it cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER
+- docker run --name cloudboost -p 4730:4730 -it cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER --link="redis" --link="mongo"
 - sleep 30s
 - cd javascriptsdk
 - npm test
