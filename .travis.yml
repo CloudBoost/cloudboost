@@ -1,12 +1,12 @@
 sudo: required
 services:
 - docker
+- mongodb
+- redis
 language: node_js
 node_js:
 - '6'
 before_install:
-- docker run -d --name redis -p 6379:6379 -it redis:3.0
-- docker run -d --name mongo -p 27017:27017 -it mongo:3.2
 - sleep 30s
 - docker logs $(docker ps -aqf "name=redis")
 - docker logs $(docker ps -aqf "name=mongo")
@@ -16,14 +16,14 @@ before_install:
 - openssl aes-256-cbc -K $encrypted_f0b486ccf91b_key -iv $encrypted_f0b486ccf91b_iv
   -in smtp.json.enc -out config/smtp.json -d
 install:
-- docker exec $(docker ps -aqf "name=mongo") mongo _GLOBAL --eval "db.getCollection('_Settings').insertOne({secureKey:'1227d1c4-1385-4d5f-ae73-23e99f74b006',clusterKey:'1227d1c4-1385-4d5f-ae73-23e99f74b006',myURL:'http://localhost:4730'});"
+- mongo _GLOBAL --eval "db.getCollection('_Settings').insertOne({secureKey:'1227d1c4-1385-4d5f-ae73-23e99f74b006',clusterKey:'1227d1c4-1385-4d5f-ae73-23e99f74b006',myURL:'http://localhost:4730'});"
 - cd javascriptsdk
 - npm install
 - grunt
 - cd ..
 - docker build -t cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER .
 - docker build -t cloudboost/cloudboost:latest .
-- docker run --name cloudboost -p 4730:4730 -it cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER --link="redis" --link="mongo"
+- docker run --name cloudboost -p 4730:4730 -it cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER
 - sleep 30s
 - cd javascriptsdk
 - npm test
