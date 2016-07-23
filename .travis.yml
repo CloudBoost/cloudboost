@@ -2,7 +2,7 @@ sudo: required
 services:
 - docker
 - mongodb
-- redis
+- redis-server
 language: node_js
 node_js:
 - '6'
