@@ -3,6 +3,7 @@ services:
 - docker
 - mongodb
 - redis-server
+- mongodb-clients
 language: node_js
 node_js:
 - '6'
