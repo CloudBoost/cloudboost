@@ -1,13 +1,12 @@
 sudo: required
 services:
 - docker
-- mongodb
-- redis-server
-- mongodb-clients
 language: node_js
 node_js:
 - '6'
 before_install:
+- docker run --name mongo -d mongo:3.2 -p 27017:27017
+- docker run --name some-redis -d redis:3.0 -p 6379:6379
 - sleep 30s
 - mongo _GLOBAL --eval "db.getCollection('_Settings').insertOne({secureKey:'1227d1c4-1385-4d5f-ae73-23e99f74b006',clusterKey:'1227d1c4-1385-4d5f-ae73-23e99f74b006',myURL:'http://localhost:4730'});"
 - git clone https://github.com/cloudboost/javascriptsdk
@@ -22,7 +21,7 @@ install:
 - cd ..
 - docker build -t cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER .
 - docker build -t cloudboost/cloudboost:latest .
-- docker run --name cloudboost -p 4730:4730 -it cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER
+- docker run --name cloudboost -p 4730:4730 -it --link redis:redis --link mongo:mongo cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER 
 - sleep 30s
 - cd javascriptsdk
 - npm test
