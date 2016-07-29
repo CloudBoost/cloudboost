@@ -5,8 +5,8 @@ language: node_js
 node_js:
 - '6'
 before_install:
-- docker run --name mongo mongo:3.2 -p 27017:27017
-- docker run --name some-redis -d redis:3.0 -p 6379:6379
+- docker run --name mongo -p 27017:27017 mongo:3.2 
+- docker run --name redis -p 6379:6379 -d redis:3.0 
 - sleep 30s
 - docker exec $(docker ps -aqf "name=mongo") mongo _GLOBAL --eval "db.getCollection('_Settings').insertOne({secureKey:'1227d1c4-1385-4d5f-ae73-23e99f74b006',clusterKey:'1227d1c4-1385-4d5f-ae73-23e99f74b006',myURL:'http://localhost:4730'});"
 - cd javascriptsdk
