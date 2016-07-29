@@ -8,7 +8,7 @@ node_js:
 - '6'
 before_install:
 - sleep 30s
-- - mongo _GLOBAL --eval "db.getCollection('_Settings').insertOne({secureKey:'1227d1c4-1385-4d5f-ae73-23e99f74b006',clusterKey:'1227d1c4-1385-4d5f-ae73-23e99f74b006',myURL:'http://localhost:4730'});"
+- mongo _GLOBAL --eval "db.getCollection('_Settings').insertOne({secureKey:'1227d1c4-1385-4d5f-ae73-23e99f74b006',clusterKey:'1227d1c4-1385-4d5f-ae73-23e99f74b006',myURL:'http://localhost:4730'});"
 - git clone https://github.com/cloudboost/javascriptsdk
 - npm install grunt-cli -g
 - mkdir config
