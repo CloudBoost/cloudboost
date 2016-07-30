@@ -458,14 +458,11 @@ function setUpAnalytics(){
 }
 
 function setUpRedis(){
-
-  console.log("PROCESS ENV");
-  console.log(process.env);
-
+ 
   try{
     console.log("Setting up Redis...");
      //Set up Redis.
-     if(!global.config && !process.env["REDIS_1_PORT_6379_TCP_ADDR"] && !process.env["REDIS_SENTINEL_SERVICE_HOST"]){
+     if(!global.config && !process.env["REDIS_1_PORT_6379_TCP_ADDR"] && !process.env["REDIS_SENTINEL_SERVICE_HOST"] && !process.env["REDIS_PORT_6379_TCP_ADDR"] ){
         console.error("FATAL : Redis Cluster Not found. Use docker-compose from https://github.com/cloudboost/docker or Kubernetes from https://github.com/cloudboost/kubernetes");
      }
 
@@ -508,29 +505,42 @@ function setUpRedis(){
               //take from env variables.
               console.log("Setting up Redis take from env variables");
               var i=1;
-              while(process.env["REDIS_"+i+"_PORT_6379_TCP_ADDR"] && process.env["REDIS_"+i+"_PORT_6379_TCP_PORT"]){
-                      if(i>1){
-                          isCluster = true;
-                      }
+
+              if(process.env["REDIS_PORT_6379_TCP_ADDR"] && process.env["REDIS_PORT_6379_TCP_PORT"]){
                       var obj = {
-                          host : process.env["REDIS_"+i+"_PORT_6379_TCP_ADDR"],
-                          port : process.env["REDIS_"+i+"_PORT_6379_TCP_PORT"],
+                          host : process.env["REDIS_PORT_6379_TCP_ADDR"],
+                          port : process.env["REDIS_PORT_6379_TCP_PORT"],
                           enableReadyCheck : false
                       };
-                      hosts.push(obj);       
-                      i++;
-              }
 
-              //If everything else failsm then try local redis. 
-              if(i===1){
-                  var obj = {
-                      host : "127.0.0.1",
-                      port : "6379",
-                      enableReadyCheck : false
-                  };
+                      hosts.push(obj);
 
-                  hosts.push(obj);
-              }
+                    }else{
+                      while(process.env["REDIS_"+i+"_PORT_6379_TCP_ADDR"] && process.env["REDIS_"+i+"_PORT_6379_TCP_PORT"]){
+                          if(i>1){
+                              isCluster = true;
+                          }
+                          var obj = {
+                              host : process.env["REDIS_"+i+"_PORT_6379_TCP_ADDR"],
+                              port : process.env["REDIS_"+i+"_PORT_6379_TCP_PORT"],
+                              enableReadyCheck : false
+                          };
+                          hosts.push(obj);       
+                          i++;
+                      }
+
+                      //If everything else failsm then try local redis. 
+                      if(i===1){
+                          var obj = {
+                              host : "127.0.0.1",
+                              port : "6379",
+                              enableReadyCheck : false
+                          };
+
+                          hosts.push(obj);
+                      }
+
+                    }
          }
      }
      
