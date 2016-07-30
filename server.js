@@ -459,6 +459,9 @@ function setUpAnalytics(){
 
 function setUpRedis(){
 
+  console.log("PROCESS ENV");
+  console.log(process.env);
+
   try{
     console.log("Setting up Redis...");
      //Set up Redis.
