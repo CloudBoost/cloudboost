@@ -458,7 +458,7 @@ function setUpAnalytics(){
 }
 
 function setUpRedis(){
- 
+
   try{
     console.log("Setting up Redis...");
      //Set up Redis.
@@ -573,8 +573,9 @@ function setUpMongoDB(){
    //MongoDB connections. 
 
    try{
-    console.log("Setting up MongoDB..");
-     if(!global.config && !process.env["MONGO_1_PORT_27017_TCP_ADDR"] && !process.env["MONGO_SERVICE_HOST"]){
+     console.log("Setting up MongoDB..");
+
+     if((!global.config && !process.env["MONGO_1_PORT_27017_TCP_ADDR"] && !process.env["MONGO_SERVICE_HOST"]) || (!global.config && !process.env["MONGO_PORT_27017_TCP_ADDR"] && !process.env["MONGO_SERVICE_HOST"]) )){
         console.error("FATAL : MongoDB Cluster Not found. Use docker-compose from https://github.com/cloudboost/docker or Kubernetes from https://github.com/cloudboost/kubernetes");
      }
 
@@ -615,6 +616,9 @@ function setUpMongoDB(){
               mongoConnectionString+=",";
 
               var i=2;
+
+                
+
               while(process.env["MONGO"+i+"_SERVICE_HOST"]){
                 global.config.mongo.push({
                     host :  process.env["MONGO"+i+"_SERVICE_HOST"],
@@ -631,34 +635,46 @@ function setUpMongoDB(){
 
               
               var i=1;
+
+               if(process.env["MONGO_PORT_27017_TCP_ADDR"] && process.env["MONGO_PORT_27017_TCP_PORT"]){
+                          global.config.mongo.push({
+                              host :  process.env["MONGO_PORT_27017_TCP_ADDR"],
+                              port : process.env["MONGO_PORT_27017_TCP_PORT"]
+                          });
+
+                          mongoConnectionString+=process.env["MONGO_PORT_27017_TCP_ADDR"]+":"+process.env["MONGO_PORT_27017_TCP_PORT"]; 
+                          mongoConnectionString+=",";
+
+                    }else{
               
-              while(process.env["MONGO_"+i+"_PORT_27017_TCP_ADDR"] && process.env["MONGO_"+i+"_PORT_27017_TCP_PORT"]){
-                  console.log("Setting up MongoDB from  process.env....");
-                  if(i>1){
-                    isReplicaSet = true;
-                  }
+                      while(process.env["MONGO_"+i+"_PORT_27017_TCP_ADDR"] && process.env["MONGO_"+i+"_PORT_27017_TCP_PORT"]){
+                          console.log("Setting up MongoDB from  process.env....");
+                          if(i>1){
+                            isReplicaSet = true;
+                          }
 
-                  global.config.mongo.push({
-                      host :  process.env["MONGO_"+i+"_PORT_27017_TCP_ADDR"],
-                      port : process.env["MONGO_"+i+"_PORT_27017_TCP_PORT"]
-                  });
+                          global.config.mongo.push({
+                              host :  process.env["MONGO_"+i+"_PORT_27017_TCP_ADDR"],
+                              port : process.env["MONGO_"+i+"_PORT_27017_TCP_PORT"]
+                          });
 
-                  mongoConnectionString+=process.env["MONGO_"+i+"_PORT_27017_TCP_ADDR"]+":"+process.env["MONGO_"+i+"_PORT_27017_TCP_PORT"]; 
-                  mongoConnectionString+=",";
-                  i++;
-              }
+                          mongoConnectionString+=process.env["MONGO_"+i+"_PORT_27017_TCP_ADDR"]+":"+process.env["MONGO_"+i+"_PORT_27017_TCP_PORT"]; 
+                          mongoConnectionString+=",";
+                          i++;
+                      }
 
-              //if everything fails, then init Mongo Connections with localhost. 
-              if(i===1){
-                console.log("MongoDB Connection Settings not found. Default MongoDB Connection localhost:27017");
-                global.config.mongo.push({
-                      host :  'localhost',
-                      port : '27017'
-                });
+                      //if everything fails, then init Mongo Connections with localhost. 
+                      if(i===1){
+                        console.log("MongoDB Connection Settings not found. Default MongoDB Connection localhost:27017");
+                        global.config.mongo.push({
+                              host :  'localhost',
+                              port : '27017'
+                        });
 
-                mongoConnectionString+="localhost:27017";
-                mongoConnectionString+=",";
-              }
+                        mongoConnectionString+="localhost:27017";
+                        mongoConnectionString+=",";
+                      }
+            }
          }
      }
     
