@@ -1,10 +1,17 @@
 sudo: required
 services:
 - docker
+env:
+  - CLOUDSDK_CORE_DISABLE_PROMPTS=1
 language: node_js
 node_js:
 - '6'
 before_install:
+- gcloud version
+- gcloud components update kubectl || true
+- curl https://sdk.cloud.google.com | bash
+- bash -l ./gcloud.sh version
+- bash -l ./gcloud.sh components update kubectl
 - docker run --name mongo -p 27017:27017 -d mongo:3.2 
 - docker run --name redis -p 6379:6379 -d redis:3.0 
 - sleep 30s
