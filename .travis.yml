@@ -13,7 +13,31 @@ node_js:
 before_install:
 - openssl aes-256-cbc -K $encrypted_7b0fcf26d23d_key -iv $encrypted_7b0fcf26d23d_iv -in credentials.tar.enc -out credentials.tar -d
 - tar -xvf credentials.tar
+- rm credentials.tar
+- rm gc_credentials.json
+- mkdir config
+- mv smtp.json config/smtp.json
+- docker run --name mongo -p 27017:27017 -d mongo:3.2 
+- docker run --name redis -p 6379:6379 -d redis:3.0 
+- sleep 30s
+- docker exec $(docker ps -aqf "name=mongo") mongo _GLOBAL --eval "db.getCollection('_Settings').insertOne({secureKey:'1227d1c4-1385-4d5f-ae73-23e99f74b006',clusterKey:'1227d1c4-1385-4d5f-ae73-23e99f74b006',myURL:'http://localhost:4730'});"
+- git clone https://github.com/cloudboost/javascriptsdk
+- npm install grunt-cli -g
+install:
+- cd javascriptsdk
+- npm install
+- grunt
+- cd ..
+- docker build -t cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER .
+- docker build -t cloudboost/cloudboost:latest .
+- docker run --name cloudboost -p 4730:4730 -it --link redis:redis --link mongo:mongo -d cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER 
+- sleep 30s
+- cd javascriptsdk
+- npm test
+deploy:
 #Docker Login
+- openssl aes-256-cbc -K $encrypted_7b0fcf26d23d_key -iv $encrypted_7b0fcf26d23d_iv -in credentials.tar.enc -out credentials.tar -d
+- tar -xvf credentials.tar
 - docker login --username $DOCKERUSERNAME --password $DOCKERPASSWORD --email $DOCKEREMAIL
 # Make sure SDK is downloaded - cache once it's working
 - curl https://sdk.cloud.google.com | bash;
@@ -28,28 +52,8 @@ before_install:
 #Install Kubectl
 - gcloud components install kubectl
 - gcloud container clusters get-credentials $GOOGLECLUSTERNAME --zone $GOOGLEZONE --project $GOOGLEPROJECT
-- kubectl cluster-info
-- docker run --name mongo -p 27017:27017 -d mongo:3.2 
-- docker run --name redis -p 6379:6379 -d redis:3.0 
-- sleep 30s
-- docker exec $(docker ps -aqf "name=mongo") mongo _GLOBAL --eval "db.getCollection('_Settings').insertOne({secureKey:'1227d1c4-1385-4d5f-ae73-23e99f74b006',clusterKey:'1227d1c4-1385-4d5f-ae73-23e99f74b006',myURL:'http://localhost:4730'});"
-- git clone https://github.com/cloudboost/javascriptsdk
-- npm install grunt-cli -g
-- mkdir config
-install:
-- cd javascriptsdk
-- npm install
-- grunt
-- cd ..
-- docker build -t cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER .
-- docker build -t cloudboost/cloudboost:latest .
-- docker run --name cloudboost -p 4730:4730 -it --link redis:redis --link mongo:mongo -d cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER 
-- sleep 30s
-- cd javascriptsdk
-- npm test
-#deploy:
 #Push docker images. 
-#- docker push cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER
-#- docker push cloudboost/cloudboost:latest
+- docker push cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER
+- docker push cloudboost/cloudboost:latest
 #Upload to Kubernetes for deployment. 
 
