@@ -14,18 +14,14 @@ before_install:
 - openssl aes-256-cbc -K $encrypted_7b0fcf26d23d_key -iv $encrypted_7b0fcf26d23d_iv -in credentials.tar.enc -out credentials.tar -d
 - tar -xvf credentials.tar
 # Make sure SDK is downloaded - cache once it's working
-# NOTE: Note sure how to update the SDK if it's cached
 - curl https://sdk.cloud.google.com | bash;
 # List the SDK contents to ensure it's downloaded
 - ls -l ${HOME}/google-cloud-sdk/bin
 # Ensure the correct gcloud is being used
 - which gcloud
 # Print the gcloud version and make sure it's something
-# Reasonably up to date compared with: 
-# https://cloud.google.com/sdk/downloads#versioned
 - gcloud --version
 - gcloud auth activate-service-account --key-file gc_cred.json
-- gcloud init --quiet
 - gcloud components install kubectl
 - docker run --name mongo -p 27017:27017 -d mongo:3.2 
 - docker run --name redis -p 6379:6379 -d redis:3.0 
