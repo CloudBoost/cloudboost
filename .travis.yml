@@ -7,8 +7,9 @@ language: node_js
 node_js:
 - '6'
 before_install:
-- curl https://sdk.cloud.google.com | bash
-- exec -l $SHELL
+- if [ ! -d ${HOME}/google-cloud-sdk ]; then
+     curl https://sdk.cloud.google.com | bash;
+  fi
 - gcloud init
 - gcloud components install kubectl
 - docker run --name mongo -p 27017:27017 -d mongo:3.2 
