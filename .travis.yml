@@ -2,7 +2,7 @@ sudo: required
 services:
 - docker
 env:
-  - CLOUDSDK_CORE_DISABLE_PROMPTS=1
+- CLOUDSDK_CORE_DISABLE_PROMPTS=1
 language: node_js
 node_js:
 - '6'
