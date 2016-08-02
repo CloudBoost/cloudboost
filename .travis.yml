@@ -47,9 +47,9 @@ install:
 - sleep 30s
 - cd javascriptsdk
 - npm test
-deploy:
+#deploy:
 #Push docker images. 
-- docker push cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER
-- docker push cloudboost/cloudboost:latest
+#- docker push cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER
+#- docker push cloudboost/cloudboost:latest
 #Upload to Kubernetes for deployment. 
 
