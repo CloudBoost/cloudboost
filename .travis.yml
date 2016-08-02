@@ -1,15 +1,20 @@
 sudo: required
+
 services:
 - docker
+
 env:
   global:
     # Ensure the downloaded SDK is first on the PATH
     - PATH=${HOME}/google-cloud-sdk/bin:$PATH
     # Ensure the install happens without prompts
     - CLOUDSDK_CORE_DISABLE_PROMPTS=1
+    
 language: node_js
+
 node_js:
 - '6'
+
 before_install:
 - openssl aes-256-cbc -K $encrypted_7b0fcf26d23d_key -iv $encrypted_7b0fcf26d23d_iv -in credentials.tar.enc -out credentials.tar -d
 - tar -xvf credentials.tar
@@ -36,6 +41,7 @@ before_install:
 - git clone https://github.com/cloudboost/javascriptsdk
 - npm install grunt-cli -g
 - mkdir config
+
 install:
 - cd javascriptsdk
 - npm install
@@ -47,6 +53,7 @@ install:
 - sleep 30s
 - cd javascriptsdk
 - npm test
+
 deploy:
 #Push docker images. 
 - docker push cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER
