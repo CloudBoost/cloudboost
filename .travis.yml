@@ -24,7 +24,7 @@ before_install:
 # Reasonably up to date compared with: 
 # https://cloud.google.com/sdk/downloads#versioned
 - gcloud --version
-- gcloud auth activate-service-account $GOOGLEACCOUNT --key-file gc_cred.json
+- gcloud auth activate-service-account --key-file gc_cred.json
 - gcloud init $GOOGLEPROJECTNAME --quiet
 - gcloud components install kubectl
 - docker run --name mongo -p 27017:27017 -d mongo:3.2 
