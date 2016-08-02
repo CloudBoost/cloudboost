@@ -10,7 +10,7 @@ before_install:
 - if [ ! -d ${HOME}/google-cloud-sdk ]; then
      curl https://sdk.cloud.google.com | bash;
   fi
-- gcloud init --console-only
+- gcloud init $GOOGLEPROJECTNAME --console-only
 - gcloud components install kubectl
 - docker run --name mongo -p 27017:27017 -d mongo:3.2 
 - docker run --name redis -p 6379:6379 -d redis:3.0 
