@@ -2,16 +2,28 @@ sudo: required
 services:
 - docker
 env:
-- CLOUDSDK_CORE_DISABLE_PROMPTS=1
+  global:
+    # Ensure the downloaded SDK is first on the PATH
+    - PATH=${HOME}/google-cloud-sdk/bin:$PATH
+    # Ensure the install happens without prompts
+    - CLOUDSDK_CORE_DISABLE_PROMPTS=1
 language: node_js
 node_js:
 - '6'
 before_install:
 - openssl aes-256-cbc -K $encrypted_7b0fcf26d23d_key -iv $encrypted_7b0fcf26d23d_iv -in credentials.tar.enc -out credentials.tar -d
 - tar -xvf credentials.tar
-- if [ ! -d ${HOME}/google-cloud-sdk ]; then
-     curl https://sdk.cloud.google.com | bash;
-  fi
+# Make sure SDK is downloaded - cache once it's working
+# NOTE: Note sure how to update the SDK if it's cached
+- curl https://sdk.cloud.google.com | bash;
+# List the SDK contents to ensure it's downloaded
+- ls -l ${HOME}/google-cloud-sdk/bin
+# Ensure the correct gcloud is being used
+- which gcloud
+# Print the gcloud version and make sure it's something
+# Reasonably up to date compared with: 
+# https://cloud.google.com/sdk/downloads#versioned
+- gcloud --version
 - gcloud auth activate-service-account $GOOGLEACCOUNT --key-file gc_cred.json
 - gcloud init $GOOGLEPROJECTNAME --quiet
 - gcloud components install kubectl
