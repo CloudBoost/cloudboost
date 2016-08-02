@@ -1,4 +1,7 @@
 encrypt.tar
+credentials.tar
+smtp.json
+gc_cred.json
 .vscode/
 *.dat
 config/
