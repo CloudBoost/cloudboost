@@ -12,7 +12,7 @@ before_install:
 - if [ ! -d ${HOME}/google-cloud-sdk ]; then
      curl https://sdk.cloud.google.com | bash;
   fi
-- gcloud auth activate-service-account --key-file gc_cred.json
+- gcloud auth activate-service-account $GOOGLEACCOUNT --key-file gc_cred.json
 - gcloud init $GOOGLEPROJECTNAME --quiet
 - gcloud components install kubectl
 - docker run --name mongo -p 27017:27017 -d mongo:3.2 
@@ -33,3 +33,4 @@ install:
 - sleep 30s
 - cd javascriptsdk
 - npm test
+deploy:
