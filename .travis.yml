@@ -34,6 +34,7 @@ install:
 - sleep 30s
 - cd javascriptsdk
 - npm test
+- cd ..
 after_success:
 #Deploy. 
 #Docker Login
