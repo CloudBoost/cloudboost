@@ -48,6 +48,7 @@ after_success:
 - which gcloud
 # Print the gcloud version and make sure it's something
 - gcloud --version
+- ls
 #Activate Google Cloud SDK with your project
 - gcloud auth activate-service-account --key-file gc_cred.json
 #Install Kubectl
