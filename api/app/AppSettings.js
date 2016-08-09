@@ -237,8 +237,41 @@ function _getFileStream(req){
     var Readable = require('stream').Readable;
     var readableStream = new Readable;             
 
-    readableStream.push(req.files.file.data);
-    readableStream.push(null);
+    if (req.body.data) {        
+        
+        readableStream.push(req.body.data);// the string you want
+        readableStream.push(null); 
+        
+        //Setting response
+        resObj.fileStream=readableStream;
+        resObj.contentType="text/plain";
+        resObj.fileObj=req.body.fileObj; 
+
+        deferred.resolve(resObj);       
+    } else if (req.files.file) {              
+
+        readableStream.push(req.files.file.data);
+        readableStream.push(null);
+
+        //Setting response
+        resObj.fileStream=readableStream;
+        resObj.contentType=req.files.file.mimetype;
+        if (req.body.fileObj) {
+            resObj.fileObj=JSON.parse(req.body.fileObj);
+        }
+         
+        deferred.resolve(resObj);      
+    } else {              
+
+        readableStream.push(req.files.fileToUpload.data);
+        readableStream.push(null);
+
+        //Setting response
+        resObj.fileStream=readableStream;
+        resObj.contentType=req.files.file.mimetype;
+            
+        deferred.resolve(resObj);      
+    }    
 
     //Setting response
     resObj.fileStream=readableStream;
