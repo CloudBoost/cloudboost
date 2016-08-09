@@ -374,7 +374,7 @@ Routes:
 app.get('/', function (req, res) {
   console.log('INDEX PAGE RETURNED.');
   res.setHeader('Content-Type', 'application/json');
-  res.send(JSON.stringify({ status: 200, version: pjson.version }));
+  res.send(JSON.stringify({ status: 200, version: pjson.version, message : "This is CloudBoost API.If you're looking for the dashboard. It should be running on port 1440." }));
 });
 
 
