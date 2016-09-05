@@ -179,7 +179,7 @@ global.app.use(['/file/:appId', '/data/:appId', '/app/:appId/:tableName', '/user
      			return res.status(401).send("Error : Key not found.");
       } else {
         console.log("check if app is in the plan");
-        //check if app is in the plan. 
+        //check if app is in the plan.
         var promises = [];
         promises.push(global.apiTracker.isInPlanLimit(appId));
         promises.push(global.appService.isKeyValid(appId, appKey));
@@ -188,7 +188,7 @@ global.app.use(['/file/:appId', '/data/:appId', '/app/:appId/:tableName', '/user
           var isInPlan = result[0];
           if (!isInPlan) {
             res.status(402).send("Reached Plan Limit. Upgrade Plan.");
-            //check if the appIsReleased. 
+            //check if the appIsReleased.
             global.apiTracker.log(appId, "isReleased/isReleased", "", "JavaScript", true);
           }
 
@@ -258,7 +258,7 @@ function attachServices() {
     global.mongoUtil = require('./dbUtil/mongo')();
     global.apiTracker = require('./database-connect/apiTracker')();
 
-    //loading services.        
+    //loading services.
     global.mongoService = require('./databases/mongo.js')();
     global.customService = require('./services/cloudObjects.js')();
     global.userService = require('./services/cloudUser.js')();
@@ -374,7 +374,7 @@ Routes:
 app.get('/', function (req, res) {
   console.log('INDEX PAGE RETURNED.');
   res.setHeader('Content-Type', 'application/json');
-  res.send(JSON.stringify({ status: 200, version: pjson.version, message : "This is CloudBoost API.If you're looking for the dashboard. It should be running on port 1440." }));
+  res.send(JSON.stringify({ status: 200, version: pjson.version, message : "This is CloudBoost API. If you're looking for the dashboard. It should be running on port 1440." }));
 });
 
 
@@ -394,7 +394,11 @@ http.listen(app.get('port'), function () {
     var filePath = './config/cloudboost.json';
     _checkFileExists(filePath).then(function (data) {
       if (data) {
-        global.config = require('./config/cloudboost');
+        try{
+          global.config = require('./config/cloudboost');
+        }catch(e){
+          global.config = null;
+        }
       } else {
         global.config = null;
       }
@@ -529,13 +533,13 @@ function setUpRedis() {
             i++;
           }
 
-         
+
 
         }
       }
     }
 
-     //If everything else failsm then try local redis. 
+     //If everything else failsm then try local redis.
      if (hosts.length === 0) {
         var obj = {
           host: "127.0.0.1",
@@ -572,7 +576,7 @@ function setUpRedis() {
 
 
 function setUpMongoDB() {
-  //MongoDB connections. 
+  //MongoDB connections.
 
   try {
 
@@ -669,9 +673,9 @@ function setUpMongoDB() {
       }
     }
 
-    //if no docker/kubernetes or local config then switch to localhost. 
+    //if no docker/kubernetes or local config then switch to localhost.
     if(mongoConnectionString === "mongodb://"){
-        
+
         global.config.mongo = [];
         global.config.mongo.push({
           host: "localhost",
@@ -679,11 +683,11 @@ function setUpMongoDB() {
         });
 
         mongoConnectionString += "localhost:27017";
-        mongoConnectionString += ","; 
+        mongoConnectionString += ",";
     }
 
     mongoConnectionString = mongoConnectionString.substring(0, mongoConnectionString.length - 1);
-    mongoConnectionString += "/"; //de limitter.      
+    mongoConnectionString += "/"; //de limitter.
     global.keys.mongoConnectionString = mongoConnectionString;
 
     console.log("MongoDb connection string:" + global.keys.mongoConnectionString);
