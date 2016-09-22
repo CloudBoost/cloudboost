@@ -1,4 +1,11 @@
 
+/*
+#     CloudBoost - Core Engine that powers Bakend as a Service
+#     (c) 2014 HackerBay, Inc. 
+#     CloudBoost may be freely distributed under the Apache 2 License
+*/
+
+
 global.env = process.env.NODE_ENV || 'development';
 
 global.express = require('express');
@@ -716,7 +723,7 @@ function servicesKickstart() {
         //Init Secure key for this cluster. Secure key is used for Encryption / Creating apps , etc.
         global.keyService.initSecureKey().then(function (key) {
           console.log("Registering Cluster...");
-          global.serverService.registerServer(key).then(function () {
+          global.serverService.registerServer(key).then(function(){
             console.log("Cluster Registered.");
           }, function (error) {
             console.log("Cluster registration failed.");

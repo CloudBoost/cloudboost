@@ -1,3 +1,11 @@
+
+/*
+#     CloudBoost - Core Engine that powers Bakend as a Service
+#     (c) 2014 HackerBay, Inc. 
+#     CloudBoost may be freely distributed under the Apache 2 License
+*/
+
+
 var smtpConfig = null;
 var defaultTransporter = null;
 var mandrill = require('mandrill-api/mandrill');

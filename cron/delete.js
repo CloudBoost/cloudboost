@@ -1,4 +1,12 @@
-﻿var CronJob = require('cron').CronJob;
+﻿
+/*
+#     CloudBoost - Core Engine that powers Bakend as a Service
+#     (c) 2014 HackerBay, Inc. 
+#     CloudBoost may be freely distributed under the Apache 2 License
+*/
+
+
+var CronJob = require('cron').CronJob;
 var job = new CronJob('15 * * * * *', function () {
     getMessages();
 },

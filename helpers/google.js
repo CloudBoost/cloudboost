@@ -1,3 +1,11 @@
+
+/*
+#     CloudBoost - Core Engine that powers Bakend as a Service
+#     (c) 2014 HackerBay, Inc. 
+#     CloudBoost may be freely distributed under the Apache 2 License
+*/
+
+
 var google = require('googleapis');
 var OAuth2Client = google.auth.OAuth2;
 var plus = google.plus('v1');

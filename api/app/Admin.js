@@ -11,7 +11,7 @@ module.exports = function() {
             if (global.keys.secureKey === req.body.secureKey) {
                 console.log("Secure Key Valid. Changing ClientKey...");
 
-                global.appService.changeAppClientKey(appId).then(function (app){
+                global.appService.changeAppClientKey(appId,req.body.value).then(function (app){
                     console.log("Success : Changing ClientKey.");
                     res.status(200).json(app);
                 }, function (err){
@@ -42,7 +42,7 @@ module.exports = function() {
             if (global.keys.secureKey === req.body.secureKey) {
                 console.log("Secure Key Valid. Changing Masterkey...");
 
-                global.appService.changeAppMasterKey(appId).then(function (app){
+                global.appService.changeAppMasterKey(appId,req.body.value).then(function (app){
                     console.log("Success : Changing Masterkey.");
                     res.status(200).json(app);
                 }, function (err){

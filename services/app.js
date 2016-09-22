@@ -1,3 +1,11 @@
+
+/*
+#     CloudBoost - Core Engine that powers Bakend as a Service
+#     (c) 2014 HackerBay, Inc. 
+#     CloudBoost may be freely distributed under the Apache 2 License
+*/
+
+
 var Collections = require('../database-connect/collections.js');
 var q = require('q');
 var crypto = require("crypto");
@@ -676,7 +684,7 @@ module.exports = function() {
         	return deferred.promise;
         },
 
-        changeAppClientKey: function(appId) {
+        changeAppClientKey: function(appId,value) {
 
             var deferred = q.defer();
 
@@ -686,7 +694,13 @@ module.exports = function() {
                   appId:appId                
                 };
 
+
+
                 var newClientkey = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), global.keys.secureKey, 100, 16).toString("base64");
+
+                if(value){
+                    newClientkey = value;
+                }
 
                 var setJSON={
                     "keys.js":newClientkey 
@@ -717,7 +731,7 @@ module.exports = function() {
             return deferred.promise;
         },
 
-        changeAppMasterKey: function(appId) {
+        changeAppMasterKey: function(appId,value) {
 
             var deferred = q.defer();
 
@@ -728,6 +742,10 @@ module.exports = function() {
                 };
 
                 var newMasterkey = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), global.keys.secureKey, 100, 16).toString("base64");
+
+                if(value){
+                    newMasterkey = value;
+                }
 
                 var setJSON={
                     "keys.master":newMasterkey 
