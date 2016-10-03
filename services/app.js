@@ -814,6 +814,7 @@ module.exports = function() {
             var fileData
             var deferred = q.defer();
             var collectionRemovePromises = []
+            var collectionCreatePromises = []
             var validated = false
 
             try {
@@ -824,10 +825,10 @@ module.exports = function() {
                     }
                 }
                 if(!validated){
-                    deferred.reject('Wrong File');
+                    deferred.reject('Invalid CloudBoost Database file');
                 }
             } catch (e) {
-                deferred.reject('Wrong File');
+                deferred.reject('Invalid CloudBoost Database file');
             }
             
             global.mongoClient.db(appId).listCollections().toArray(function(err, Collections) {

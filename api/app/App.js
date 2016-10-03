@@ -202,10 +202,10 @@ module.exports = function() {
 
 
     //Export Database for :appID
-    global.app.get('/backup/:appId/:key/exportdb',function(req, res) {
+    global.app.post('/backup/:appId/exportdb',function(req, res) {
         console.log("++++ Export Database ++++++");
         try{
-            var appKey = req.params.key;
+            var appKey = req.body.key;
             var appId = req.params.appId;
 
             global.appService.isMasterKey(appId,appKey).then(function (isMasterKey) {
