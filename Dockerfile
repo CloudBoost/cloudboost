@@ -16,6 +16,9 @@ COPY package.json /usr/src/app/
 
 RUN npm install
 
+#Store the Public IP in the env variable. 
+RUN export IP="$(wget http://ipinfo.io/ip -qO -)"
+
 # Bundle app source
 COPY . /usr/src/app
 
