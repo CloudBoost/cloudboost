@@ -199,4 +199,73 @@ module.exports = function() {
 
         global.apiTracker.log(appId,"App / Table / Get", req.url,sdk);
     }
+
+
+    //Export Database for :appID
+    global.app.get('/backup/:appId/:key/exportdb',function(req, res) {
+        console.log("++++ Export Database ++++++");
+        try{
+            var appKey = req.params.key;
+            var appId = req.params.appId;
+
+            global.appService.isMasterKey(appId,appKey).then(function (isMasterKey) {
+
+                if (isMasterKey) {
+                    global.appService.exportDatabase(appId).then(function(data){
+                        res.writeHead(200, {
+                          "Content-Type": "application/octet-stream",
+                          "Content-Disposition" : "attachment; filename=dump"+(new Date())+".json"
+                        });
+                        res.end(JSON.stringify(data))
+                    },function (err){
+                        console.log("Error : Exporting Database.");
+                        console.log(err);
+                        res.status(500).send("Error");
+                    })
+                } else {
+                    res.status(401).send({status : 'Unauthorized'});
+                }
+            }, function (error) {
+                return res.status(500).send('Cannot retrieve security keys.');
+            });
+        } catch(e) {
+            console.log(e);
+        }
+    });
+
+    //Import Database for :appID
+    global.app.post('/backup/:appId/importdb',function(req, res) {
+        console.log("++++ Import Database ++++++");
+        try{         
+            var appKey = req.body.key
+            var appId = req.params.appId;
+            global.appService.isMasterKey(appId,appKey).then(function (isMasterKey) {
+                if (isMasterKey) {
+                    var file;
+                    if(req.files && req.files.file){
+                        file = req.files.file.data                            
+                    }
+                    if(file){
+                        global.appService.importDatabase(appId,file).then(function(data){
+                            if(data){
+                                res.status(200).json({Success:true})
+                            } else {
+                                res.status(500).json({success:false})
+                            }
+                        },function (err){
+                            console.log("Error : Exporting Database.");
+                            console.log(err);
+                            res.status(500).send("Error");
+                        })
+                    }
+                } else {
+                    res.status(401).send({status : 'Unauthorized'});
+                }
+            }, function (error) {
+                return res.status(500).send('Cannot retrieve security keys.');
+            });
+        } catch(e) {
+            console.log(e);
+        }
+    });
 };
