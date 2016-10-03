@@ -32,7 +32,7 @@ module.exports = function() {
     });
 
     //Change MasterKey/ClientKey
-    global.app.put('/admin/:appId/masterkey',function(req, res) { 
+    global.app.put('/admin/:appId/masterkey',function(req, res) {
         console.log("++++ Change Masterkey ++++++");
 
         try{          

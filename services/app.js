@@ -774,6 +774,105 @@ module.exports = function() {
             }
 
             return deferred.promise;
+        },
+
+        exportDatabase : function(appId){
+            var deferred = q.defer();
+            var promises = []
+            global.mongoClient.db(appId).listCollections().toArray(function(err, collections) {
+                if (err) {
+                    global.winston.log('error',err);
+                    deferred.reject(err);
+                }
+                for(var k in collections){
+                    (function(k){
+                        var promise = new Promise(function(resolve,reject){
+                           collections[k].documents = []
+                            data = global.mongoClient.db(appId).collection(collections[k].name).find()
+                            data.toArray(function(err,data){
+                                if (err) {
+                                    global.winston.log('error',err);
+                                    reject(err);
+                                }
+                                collections[k].documents.push(data)
+                                resolve()
+                            }) 
+                        })
+                        promises.push(promise)
+                    })(k)
+                }
+                Promise.all(promises).then(function(data){
+                    deferred.resolve(collections)
+                },function(err){
+                    deferred.reject(err);
+                })
+            }); 
+            return deferred.promise; 
+        },
+
+        importDatabase : function(appId,file){
+            var fileData
+            var deferred = q.defer();
+            var collectionRemovePromises = []
+            var collectionCreatePromises = []
+            var validated = false
+
+            try {
+                fileData = JSON.parse(file.toString())
+                for(var k in fileData){
+                    if(fileData[k].name == '_Schema'){
+                        validated = true
+                    }
+                }
+                if(!validated){
+                    deferred.reject('Invalid CloudBoost Database file');
+                }
+            } catch (e) {
+                deferred.reject('Invalid CloudBoost Database file');
+            }
+            
+            global.mongoClient.db(appId).listCollections().toArray(function(err, Collections) {
+                if (err) {
+                    global.winston.log('error',err);
+                    deferred.reject(err);
+                }
+                for(var k in Collections){
+                    (function(k){
+                        if(Collections[k].name.split('.')[0] != 'system'){ // skipping delete for system namespaces
+                            collectionRemovePromises.push(new Promise(function(resolve,reject){
+                                global.mongoClient.db(appId).collection(Collections[k].name).remove({},function(err, removed){
+                                    if(err){
+                                        reject(err)
+                                    }
+                                    resolve(true)                                
+                                });
+                            }))
+                        }
+                    })(k)
+                }
+                Promise.all(collectionRemovePromises).then(function(data){
+                    for(var i in fileData){
+                        (function(i){
+                            global.mongoClient.db(appId).createCollection(fileData[i].name, function(err, col) {
+                                 global.mongoClient.db(appId).collection(fileData[i].name, function(err, col) {
+                                     for (var j in fileData[i].documents) {
+                                        (function(j){
+                                            col.insert(fileData[i].documents[j], function(err) {
+                                                if(i == (fileData.length-1) && j == (fileData[i].documents.length-1)){
+                                                    deferred.resolve(true);
+                                                }
+                                            });
+                                        })(j)
+                                     }
+                                 });
+                            });
+                        })(i)
+                    }
+                },function(err){
+                    deferred.reject(err);
+                })
+            });
+            return deferred.promise; 
         }
       
 	};
