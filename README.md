@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/CloudBoost/cloudboost.svg?branch=master)](https://travis-ci.org/CloudBoost/cloudboost)
 
-###Deploy CloudBoost to your cloud. 
+##Deploy CloudBoost to any cloud. 
 
 [![Heroku](https://www.herokucdn.com/deploy/button.svg)](https://elements.heroku.com/addons/cloudboost)
 
