@@ -62,23 +62,23 @@ module.exports = function() {
         }
     });
 
-    //MongoDb Native Access
+    /**
+    *Description : Adds a user to its specefic database as a read/write admin
+    *Params: 
+    *- Param appID : Database Name
+    *- Param secureKey: Secure key of System
+    *Returns:
+    -Success : User data (username,password,with req body)
+    -Error : Error Data( 'Server Error' : status 500 )
+    */
     global.app.post('/admin/dbaccess/enable/:appId',function(req, res) {
         console.log("++++ MongoDb Native Access ++++++");
-        try {    
+        try {
             if (global.keys.secureKey === req.body.secureKey) {
-                var username = Math.random().toString(36).substring(7)
-                var password = Math.random().toString(36).substring(7)
-                var Db = require('mongodb').Db
-                Server = require('mongodb').Server
-                var db = new Db(req.params.appId, new Server('localhost', 27017))
-                db.open(function(err, db) {
-                    db.addUser(username, password, { roles: [
-                                { role: "readWrite", db: req.params.appId }
-                                ]},function(err, result) {
-                            if(err) res.status(500).send("Server Erorr");
-                                else res.status(200).json({'Success':true,data:req.body,app:req.params.appId,user:{username:username,password:password}})
-                    });
+                global.appService.createDatabaseUser(req.params.appId).then(function (userData){
+                    res.status(200).json({'success':true,data:req.body,app:req.params.appId,user:userData})
+                }, function (err){
+                    res.status(500).send("Server Erorr");
                 });
             } else {
                 console.log("Unauthorized: Invalid Secure Key ");
