@@ -61,4 +61,32 @@ module.exports = function() {
             console.log(e);
         }
     });
+
+    /**
+    *Description : Adds a user to its specefic database as a read/write admin
+    *Params: 
+    *- Param appID : Database Name
+    *- Param secureKey: Secure key of System
+    *Returns:
+    -Success : User data (username,password,with req body)
+    -Error : Error Data( 'Server Error' : status 500 )
+    */
+    global.app.post('/admin/dbaccess/enable/:appId',function(req, res) {
+        console.log("++++ MongoDb Native Access ++++++");
+        try {
+            if (global.keys.secureKey === req.body.secureKey) {
+                global.appService.createDatabaseUser(req.params.appId).then(function (userData){
+                    res.status(200).json({'success':true,data:req.body,app:req.params.appId,user:userData})
+                }, function (err){
+                    res.status(500).send("Server Erorr");
+                });
+            } else {
+                console.log("Unauthorized: Invalid Secure Key ");
+                res.status(401).send("Unauthorized");
+            } 
+  
+        } catch(e){
+            console.log(e);
+        }
+    });
 };
