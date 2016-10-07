@@ -155,7 +155,7 @@ module.exports = function() {
             });
 
             global.apiTracker.log(appId,"App / Table / Create", req.url,sdk);
-            /***************************UPDATE******************************/
+            
         }
 
     });

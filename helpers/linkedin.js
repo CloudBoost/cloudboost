@@ -6,6 +6,7 @@
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
+
 module.exports = {
 
 	getLoginUrl : function(req, appId, authSettings){
