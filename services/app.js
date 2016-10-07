@@ -881,14 +881,9 @@ module.exports = function() {
             var username = util.getId()
             var password = util.getId()
 
-            var Db = require('mongodb').Db
-            var replSet = require('../database-connect/mongoConnect.js')().replSet();
-            var db = new Db(appId, replSet, { w: 1 });
-            db.open(function(err, db) {
-                db.addUser(username, password, { roles: [{role:"readWrite",db:appId}]},function(err, result) {
-                    if(err) deferred.reject(err)
-                        else deferred.resolve({username:username,password:password})
-                });
+            global.mongoClient.db(appId).addUser(username, password, { roles: [{role:"readWrite",db:appId}]},function(err, result) {
+                if(err) deferred.reject(err)
+                    else deferred.resolve({username:username,password:password})
             });
             return deferred.promise;
         }
