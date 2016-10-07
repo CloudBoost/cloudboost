@@ -68,7 +68,7 @@ module.exports = function() {
     *- Param appID : Database Name
     *- Param secureKey: Secure key of System
     *Returns:
-    -Success : User data (username,password,with req body)
+    -Success : User data (username,password)
     -Error : Error Data( 'Server Error' : status 500 )
     */
     global.app.post('/admin/dbaccess/enable/:appId',function(req, res) {
@@ -76,7 +76,7 @@ module.exports = function() {
         try {
             if (global.keys.secureKey === req.body.secureKey) {
                 global.appService.createDatabaseUser(req.params.appId).then(function (userData){
-                    res.status(200).json({'success':true,data:req.body,app:req.params.appId,user:userData})
+                    res.status(200).json({user:userData})
                 }, function (err){
                     res.status(500).send("Server Erorr");
                 });
