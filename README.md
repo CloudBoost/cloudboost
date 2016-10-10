@@ -11,39 +11,39 @@ CloudBoost is the Complete NoSQL Database Service for your app. **Think of Cloud
  - Queues
  - More - ACL's, User Authentication, Server-less apps and more. 
  
-##Deploy CloudBoost to Heroku
+###Deploy CloudBoost to Heroku
  
 Use this button to connect your Heroku app with CloudBoost. 
 
 [![Heroku](https://www.herokucdn.com/deploy/button.svg)](https://elements.heroku.com/addons/cloudboost)
 
-##Deploy CloudBoost with Docker Cloud
+###Deploy CloudBoost with Docker Cloud
  
 Use this button to deploy CloudBoost to any cloud with Docker Cloud.
 
 [![Deploy to Docker Cloud](https://files.cloud.docker.com/images/deploy-to-dockercloud.svg)](https://github.com/CloudBoost/cloud-deployment)
 
-##Deploy CloudBoost to Azure
+###Deploy CloudBoost to Azure
  
 Use this button to deploy CloudBoost to Azure with Docker Cloud.
 
 [![Deploy to Azure](http://azuredeploy.net/deploybutton.png)](https://github.com/CloudBoost/cloud-deployment)
 
-##Deploy CloudBoost to AWS
+###Deploy CloudBoost to AWS
  
 [Install CloudBoost on AWS](https://github.com/CloudBoost/cloud-deployment)
 
-##Deploy CloudBoost to DigitalOcean
+###Deploy CloudBoost to DigitalOcean
  
 Use this button to deploy CloudBoost to Digital Ocean with Docker Cloud.
 
 [![Install on DigitalOcean](http://installer.71m.us/button.svg)](https://github.com/CloudBoost/cloud-deployment)
 
-##Deploy CloudBoost to SoftLayer
+###Deploy CloudBoost to SoftLayer
  
 [Install CloudBoost on SoftLayer](https://github.com/CloudBoost/cloud-deployment)
 
-##Deploy CloudBoost to Packet
+###Deploy CloudBoost to Packet
  
 [Install CloudBoost on Packet](https://github.com/CloudBoost/cloud-deployment)
 
