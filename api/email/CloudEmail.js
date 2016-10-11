@@ -28,10 +28,10 @@ module.exports = function() {
 
             global.appService.isMasterKey(appId,appKey).then(function (isMasterKey) {
                 if (isMasterKey) {
-                    global.emailService.sendEmailsToAll(appId,emailBody,emailSubject).then(function(data){
-                        res.json({data:data,message:"Message sent to all"})
+                    global.emailService.sendEmail(appId,emailBody,emailSubject,isMasterKey).then(function(data){
+                        res.status(200).send(null)
                     },function(err){
-                        if(err == "Email Configuration is not found." || err == "No users found"){
+                        if(err === "Email Configuration is not found." || err === "No users found"){
                             res.status(400).send({error:err});
                         } else {
                             res.status(500).json({message:"Something went wrong",error:err});

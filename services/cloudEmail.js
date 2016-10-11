@@ -11,9 +11,9 @@ var q = require('q');
 module.exports = function() {
 
 	return {
-		sendEmailsToAll: function(appId,emailBody,emailSubject){
+		sendEmail: function(appId,emailBody,emailSubject,isMasterKey){
 			var deferred = q.defer();
-			global.customService.find(appId,'User',null,{email:true},null,null,null,{},true).then(function(data){
+			global.customService.find(appId,'User',null,{email:true},null,null,null,{},isMasterKey).then(function(data){
 				if(data.length != 0){
 					var emailPromises = []
 					for(var k in data){

@@ -334,7 +334,8 @@ function _mailGun(emailSettings){
 }
 
 /*Desc   : Get EMail Settings
-  Params : appSettings Json
+  Params : appSettings Json, 
+           returnDefault(default cloudboost setting will be returned if no email setting found on settings param)
   Returns: Promise
            Resolve->Settings Json
            Reject-> Error on retriving Json from Internal File or Confirguration not found
