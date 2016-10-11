@@ -91,7 +91,7 @@ module.exports = function() {
     					console.log('App found in Redis :');
     					console.log(res);
     					deferred.resolve(res);
-    				}else{
+    				} else {
     					console.log('App not found in Redis. Retrieving from Storage.');
     					//if not found in cache then hit the Db.
 
