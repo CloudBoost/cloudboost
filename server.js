@@ -277,6 +277,7 @@ function attachServices() {
     global.serverService = require('./services/server.js')();
     global.mailService = require('./services/mail.js')();
     global.pushService = require('./services/cloudPush.js')();
+    global.emailService = require('./services/cloudEmail.js')();
     global.authService = require('./services/auth.js')();
 
     console.log('+++++++++++ Services Status : OK. ++++++++++++++++++');
@@ -310,6 +311,7 @@ function attachAPI() {
     require('./api/cache/CloudCache.js')();
     require('./api/server/Server.js')();
     require('./api/pushNotifications/CloudPush.js')();
+    require('./api/pushNotifications/CloudEmail.js')();
     require('./api/pages/Page.js')();
     require('./api/auth/Auth.js')();
 
