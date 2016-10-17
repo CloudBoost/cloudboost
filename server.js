@@ -595,6 +595,10 @@ function setUpMongoDB() {
 
     var mongoConnectionString = "mongodb://";
 
+    if(process.env["MONGODB_USERNAME"] && process.env["MONGODB_PASSWORD"]){
+      var mongoConnectionString += process.env["MONGODB_USERNAME"] +":"+ process.env["MONGODB_PASSWORD"]+"@";
+    }
+
     var isReplicaSet = false;
 
     if (global.config && global.config.mongo && global.config.mongo.length > 0) {

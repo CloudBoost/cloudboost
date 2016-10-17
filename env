@@ -1,0 +1,5 @@
+process.env["ACCOUNTS_URL"]
+process.env["CLOUDBOOST_HOSTED"]
+process.env["CB_MONGO_"+m+"_SERVER"]
+MONGODB_USERNAME
+MONGODB_PASSWORD
