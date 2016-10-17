@@ -36,7 +36,7 @@ module.exports = function(){
             global.appService.getAllSettings(appId).then(function(settings){
 
                 var promises=[];
-                promises.push(_getEmailSettings(settings));
+                promises.push(_getEmailSettings(settings,true));
                 promises.push(_getEmailTemplate(settings,"reset-password"));
                 promises.push(global.keyService.getMyUrl());
 
@@ -119,7 +119,7 @@ module.exports = function(){
                 
                 if(emailOnSignupEnabled){
                     var promises=[];
-                    promises.push(_getEmailSettings(settings));
+                    promises.push(_getEmailSettings(settings,true));
                     promises.push(_getEmailTemplate(settings,"sign-up"));
                     promises.push(global.keyService.getMyUrl());
 
@@ -176,7 +176,60 @@ module.exports = function(){
 
         return deferred.promise;
          
-    };  
+    };
+
+    /*Desc   : Send Push Campaign Email
+      Params : appId,user, email body
+      Returns: Promise
+               Resolve->Success Message
+               Reject->Error on getAllSettings() or _getEmailSettings() or sendMail
+    */
+    mail.emailCampaign = function(appId,userEmail,emailBody,emailSubject){
+        var deferred = q.defer();
+
+        try{         
+
+            var emailSettings=null;
+            var emailTemplate=null;
+            var serverUrl=null;
+
+            global.appService.getAllSettings(appId).then(function(settings){
+
+                var promises=[];
+                promises.push(_getEmailSettings(settings,false));
+
+                q.all(promises).then(function(list){
+
+                    //Resolved data
+                    emailSettings=list[0];
+                   
+                    emailSettings.emailTo=userEmail;
+                    emailSettings.subject=emailSubject;
+                    emailSettings.template=emailBody;
+
+                    if(emailSettings.provider=="mandrill"){
+                        return _mandrill(emailSettings);
+                    }else if(emailSettings.provider=="mailgun"){
+                        return _mailGun(emailSettings);
+                    }
+
+                }).then(function(response){
+                    deferred.resolve(response);
+                },function(error){
+                    deferred.reject(error);
+                });                             
+
+            },function(error){
+                deferred.reject(error);
+            });     
+
+        } catch(err){           
+            global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+            deferred.reject(err);
+        }
+
+        return deferred.promise;
+    }
   
     return mail;
 
@@ -265,7 +318,7 @@ function _mailGun(emailSettings){
         }, function (err, info) {
           if (err) {
             console.log(err);
-            deferred.reject(error);
+            deferred.reject(err);
           }else {
             console.log(info);
             deferred.resolve(info);
@@ -281,12 +334,13 @@ function _mailGun(emailSettings){
 }
 
 /*Desc   : Get EMail Settings
-  Params : appSettings Json
+  Params : appSettings Json, 
+           returnDefault(default cloudboost setting will be returned if no email setting found on settings param)
   Returns: Promise
            Resolve->Settings Json
            Reject-> Error on retriving Json from Internal File or Confirguration not found
 */
-function _getEmailSettings(settings){
+function _getEmailSettings(settings,returnDefault){
 
     var deferred = q.defer();
 
@@ -322,7 +376,7 @@ function _getEmailSettings(settings){
                 emailConfig.domain=emailSettings[0].settings.mailgun.domain;
                 emailConfig.fromEmail=emailSettings[0].settings.fromEmail;
             }
-        }else{
+        } else if ( returnDefault == true ) {
 
             try{
                 var smtpConfig = require('../config/smtp.json');
@@ -332,7 +386,7 @@ function _getEmailSettings(settings){
                  
             if(!smtpConfig){
                 deferred.reject("SMTP Configuration file not found.");
-            }else{
+            } else {
                 emailConfig=smtpConfig;
             }          
         }
@@ -476,4 +530,5 @@ function _mergeVariablesInTemplate(template, variableArray){
 
     return deferred.promise;
 }
+
 
