@@ -1,4 +1,4 @@
-<img src="https://www.dropbox.com/s/7ghf1kl7crp5bvy/CbLogoIcon.png?raw=1" height="100" />
+<img src="https://www.dropbox.com/s/7ghf1kl7crp5bvy/CbLogoIcon.png?raw=1" height="80" />
 
 [![Build Status](https://travis-ci.org/CloudBoost/cloudboost.svg?branch=master)](https://travis-ci.org/CloudBoost/cloudboost)
 
