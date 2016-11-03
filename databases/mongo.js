@@ -1018,7 +1018,7 @@ module.exports = function() {
                     }
                     
 
-                    if (key === "createdAt" || key === "updatedAt") {
+                    if (key === "createdAt" || key === "updatedAt" || key === "expires") {
                         if (typeof document[key] === "string") { 
                             document[key] = new Date(document[key]);
                         }
