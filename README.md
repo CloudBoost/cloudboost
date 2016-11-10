@@ -21,31 +21,31 @@ Use this button to connect your Heroku app with CloudBoost.
  
 Use this button to deploy CloudBoost to any cloud with Docker Cloud.
 
-[![Deploy to Docker Cloud](https://files.cloud.docker.com/images/deploy-to-dockercloud.svg)](https://github.com/CloudBoost/cloud-deployment)
+[![Deploy to Docker Cloud](https://files.cloud.docker.com/images/deploy-to-dockercloud.svg)](https://github.com/CloudBoost/docker)
 
 ###Deploy CloudBoost to Azure
  
 Use this button to deploy CloudBoost to Azure with Docker Cloud.
 
-[![Deploy to Azure](http://azuredeploy.net/deploybutton.png)](https://github.com/CloudBoost/cloud-deployment)
+[![Deploy to Azure](http://azuredeploy.net/deploybutton.png)](https://github.com/CloudBoost/docker)
 
 ###Deploy CloudBoost to AWS
  
-[Install CloudBoost on AWS](https://github.com/CloudBoost/cloud-deployment)
+[Install CloudBoost on AWS](https://github.com/CloudBoost/docker)
 
 ###Deploy CloudBoost to DigitalOcean
  
 Use this button to deploy CloudBoost to Digital Ocean with Docker Cloud.
 
-[![Install on DigitalOcean](http://installer.71m.us/button.svg)](https://github.com/CloudBoost/cloud-deployment)
+[![Install on DigitalOcean](http://installer.71m.us/button.svg)](https://github.com/CloudBoost/docker)
 
 ###Deploy CloudBoost to SoftLayer
  
-[Install CloudBoost on SoftLayer](https://github.com/CloudBoost/cloud-deployment)
+[Install CloudBoost on SoftLayer](https://github.com/CloudBoost/docker)
 
 ###Deploy CloudBoost to Packet
  
-[Install CloudBoost on Packet](https://github.com/CloudBoost/cloud-deployment)
+[Install CloudBoost on Packet](https://github.com/CloudBoost/docker)
 
 
 #CloudBoost Indexing Backends
