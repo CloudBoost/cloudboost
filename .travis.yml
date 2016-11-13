@@ -59,7 +59,7 @@ after_success:
 - docker push cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER
 - docker push cloudboost/cloudboost:latest
 #Upload to Kubernetes for deployment.
-- kubectl rolling-update cloudboost-engine --image=cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER 
+- kubectl rolling-update cloudboost-engine --image=cloudboost/cloudboost:latest --image-pull-policy=Always 
 #Notify Team on Slack
 notifications:
   slack: cloudboost:gm7nWJDLDtBRyF75VKLKOoMW
