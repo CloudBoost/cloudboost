@@ -141,7 +141,7 @@ module.exports = function () {
                     return deferred.promise;
                 }
 
-                if (column.dataType === 'GeoPoint') {
+                if (column.dataType === 'GeoPoint' || column.dataType === 'Text') {
                         obj.collection.createIndex(appId, collectionName, column.name, column.dataType).then(function () {
                         deferred.resolve("Index Created");
                     }, function (err) {
@@ -207,6 +207,9 @@ module.exports = function () {
                 if(columnType==='GeoPoint'){
                     obj[columnName] = "2dsphere";
                 }
+                if(columnType==='Text'){
+                    obj[columnName] = "text";
+                }
                 
                 if(Object.keys(obj).length>0){
                     var collection =  global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));
@@ -248,7 +251,7 @@ module.exports = function () {
                 //Prepare new text indexes
                 var indexObj={};
                 for (var i = 0; i < schema.length; ++i) {
-                    if(schema[i].dataType==="Text" && schema[i].isSearchable){
+                    if(schema[i].dataType==="Text"){
                         indexObj[schema[i].name]="text";
                     }                    
                 }
@@ -257,7 +260,7 @@ module.exports = function () {
                 var indexString="";                              
                 if(oldColumns && oldColumns.length>0){
                     for (var i = 0; i < oldColumns.length; ++i) {
-                        if(oldColumns[i].dataType==="Text" && oldColumns[i].isSearchable){
+                        if(oldColumns[i].dataType==="Text"){
                             if(indexString===""){
                                 indexString=oldColumns[i].name+"_text";
                             }else{
