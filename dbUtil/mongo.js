@@ -201,33 +201,27 @@ module.exports = function () {
                     deferred.reject("Database Not Connected");
                     return deferred.promise;
                 }
-
-                var obj = {};                
-
-                if(columnType==='GeoPoint'){
+                /**
+                    Creating a wild card index , instaed of creating individual $text index on each column seperately
+                **/
+                var obj = {}
+                if(columnType ==='GeoPoint'){
                     obj[columnName] = "2dsphere";
                 }
-                if(columnType==='Text'){
-                    obj[columnName] = "text";
-                }
-                
-                if(Object.keys(obj).length>0){
-                    var collection =  global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));
-                    collection.createIndex(obj, function (err, res) {
-                        if (err) {
-                            global.winston.log('error',err);
-                            console.log("Could not create index");
-                            deferred.reject(err);
-                        }
-                        else {
-                            console.log(res);
-                            deferred.resolve(res);
-                        }
+                var collection =  global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));
+                collection.createIndex({ "$**": "text" }, function (err, res) {
+                    if (err) {
+                        global.winston.log('error',err);
+                        console.log("Could not create index");
+                        deferred.reject(err);
+                    }else {
+                        // create geopoint indexing explicitly
+                        collection.createIndex(obj)
+                        console.log(res);
+                        deferred.resolve(res);
+                    }
 
-                    });
-                }else{
-                    deferred.resolve(null);
-                }
+                }); 
                 
 
             }catch(err){                    
@@ -241,57 +235,25 @@ module.exports = function () {
             var deferred = global.q.defer();
 
             try{
-                var _self = obj;
-
                 if(global.mongoDisconnected ) {
                     deferred.reject("Database Not Connected");
                     return deferred.promise;
                 } 
-
-                //Prepare new text indexes
-                var indexObj={};
-                for (var i = 0; i < schema.length; ++i) {
-                    if(schema[i].dataType==="Text"){
-                        indexObj[schema[i].name]="text";
-                    }                    
-                }
-
-                //Prepare indexString for delete
-                var indexString="";                              
-                if(oldColumns && oldColumns.length>0){
-                    for (var i = 0; i < oldColumns.length; ++i) {
-                        if(oldColumns[i].dataType==="Text"){
-                            if(indexString===""){
-                                indexString=oldColumns[i].name+"_text";
-                            }else{
-                                indexString=indexString+"_"+oldColumns[i].name+"_text";
-                            }
-                        }                                            
+                /**
+                    Creating a wild card index , instaed of creating individual $text index on each column seperately
+                **/
+                var collection =  global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));
+                collection.createIndex({ "$**": "text" }, function (err, res) {
+                    if (err) {
+                        global.winston.log('error',err);
+                        console.log("Could not create index");
+                        deferred.reject(err);
+                    }else {
+                        console.log(res);
+                        deferred.resolve(res);
                     }
-                }                  
 
-                //Drop and Create freshly 
-                _dropIndex(appId,collectionName,indexString).then(function(resp){
-                    //Freshly create indexes for text fields 
-                    if(Object.keys(indexObj).length>0){
-                        var collection =  global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));
-                        collection.createIndex(indexObj, function (err, res) {
-                            if (err) {
-                                global.winston.log('error',err);
-                                console.log("Could not create index");
-                                deferred.reject(err);
-                            }else {
-                                console.log(res);
-                                deferred.resolve(res);
-                            }
-
-                        });
-                    }else{
-                        deferred.resolve(null);
-                    }
-                },function(error){
-                    deferred.reject(error);
-                });                                             
+                });                                            
 
             }catch(err){                    
                 global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
