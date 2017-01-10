@@ -401,6 +401,10 @@ var _isSchemaValid = function(appId,collectionName,document,accessList,isMasterK
                 if( columns[i].name === 'id')
                     continue; //ignore.
 
+                if(document[columns[i].name] === undefined){
+                    document[columns[i].name] = columns[i].defaultValue;
+                }
+
                 if(columns[i].dataType === 'File' && document[columns[i].name] &&
                     document[columns[i].name]._type &&  document[columns[i].name]._type === 'file' &&
                     !document[columns[i].name]._id){ //if url of the file is null, which means file is not saved. Remove the whole object.

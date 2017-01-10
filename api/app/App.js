@@ -64,7 +64,7 @@ module.exports = function() {
                 console.log("Internal Server Error");
                 return res.status(500).send({status : 'Error'});
             });
-        }else{
+        } else{
             console.log("Unauthorized");
             return res.status(401).send({status : 'Unauthorized'});
         }

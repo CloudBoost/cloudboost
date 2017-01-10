@@ -25,10 +25,10 @@ module.exports = function() {
         updateSettings : function(appId, category, settings){
             var deferred = q.defer();
 
-            try{
+            try {
                 
                 global.mongoService.document.findOne(appId, "_Settings", {category:category}, null, null, 0, null, true).then(function(document){
-                    if(!document){
+                    if(!document) {
                         document = {};
                         document._id = util.getId();
                         document.category = category;
@@ -450,7 +450,8 @@ module.exports = function() {
     				}else{
     					deferred.resolve(false);
     				}
-    			}, function(){
+    			}, 
+                function(){
     				deferred.reject("Error in getting key");
     			});
 
@@ -463,6 +464,7 @@ module.exports = function() {
 		},
 
         upsertTable: function(appId,tableName,schema){
+
 
             var deferred = global.q.defer();
 
@@ -512,12 +514,13 @@ module.exports = function() {
 
                 //dataType check.
                 var defaultDataType = _getDefaultColumnWithDataType(tableType);
-                if (!_checkValidDataType(schema, defaultDataType)) {
+                var valid = _checkValidDataType(schema, defaultDataType);
+                if (!valid) {
                     deferred.reject("Error : Invalid DataType Found.");
                     return deferred.promise;
                 }
 
-                 var collection =  global.mongoClient.db(appId).collection("_Schema");
+                var collection = global.mongoClient.db(appId).collection("_Schema");
                 var findQuery = collection.find({name: tableName});
                 findQuery.toArray(function(err, tables) {
                     var oldColumns = null;
@@ -664,8 +667,8 @@ module.exports = function() {
         createColumn: function (appId, collectionName, column){
 
             var deferred = global.q.defer();
-
-            try{
+        
+            try {
                 var mongoPromise = global.mongoUtil.collection.addColumn(appId, collectionName, column);               
                 q.allSettled([mongoPromise]).then(function (res) {
                     if(res[0].state === 'fulfilled') {
@@ -675,7 +678,6 @@ module.exports = function() {
                         deferred.reject("Unable to create column");
                     }
                 });
-
             } catch(err){           
                 global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
@@ -1098,6 +1100,30 @@ function _checkValidDataType(columns, deafultDataType) {
                         return false;
                 }
 
+                if(typeof columns[i].defaultValue === 'string') {
+                    if(columns[i].dataType === 'URL') {
+                        if (columns[i].defaultValue.match(/^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/i)[0] !== columns[i].defaultValue){
+                            return false;
+                        }
+                    }     
+                    else if(columns[i].dataType === 'Email'){
+                        if (columns[i].defaultValue.match(/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/i)[0] !== columns[i].defaultValue){
+                            return false;
+                        }
+                    }
+                    // if the set dataType is not other string Datatypes (Text, EncryptedText, DateTime) available in cloudboost
+                    else if (['Text', 'EncryptedText', 'DateTime'].indexOf(columns[i].dataType) === -1){
+                        return false;
+                    }
+                }
+                else if(columns[i].defaultValue === null) {
+                        // Do nothing
+                }
+                else if(['number', 'boolean', 'object', 'undefined'].indexOf(typeof columns[i].defaultValue) > -1) {
+                    if(columns[i].dataType.toUpperCase() !== (typeof columns[i].defaultValue).toUpperCase()){
+                        return false;
+                    }
+                }
             }
         }
 
@@ -1147,7 +1173,6 @@ function _getColumnsToAdd(oldColumns, newColumns){
         global.winston.log('error',{"error":String(e),"stack": new Error().stack});
         return null;
     }
-    
 }
 
 function _getDefaultColumnWithDataType(type) {
@@ -1203,4 +1228,35 @@ function deleteAppFromRedis(appId){
   } 
 
   return deferred.promise;
+}
+
+function _invalidDefaultValue(column){
+    if(typeof column.defaultValue === 'string') {
+        if(column.dataType === 'URL') {
+            if (column.defaultValue.match(/^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/i)[0] !== column.defaultValue){
+                return true;
+            }
+        }     
+        else if(columnt.dataType === 'Email'){
+            if (column.defaultValue.match(/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/i)[0] !== column.defaultValue){
+                return true;
+            }
+        }
+        // if the set dataType is not other string Datatypes (Text, EncryptedText, DateTime) available in cloudboost
+        else if (['Text', 'EncryptedText', 'DateTime'].indexOf(column.dataType) === -1){
+            return true;
+        }
+    }
+    else if(column.defaultValue === null) {
+            return false;
+    }
+    else if(['number', 'boolean', 'object', 'undefined'].indexOf(typeof column.defaultValue) > -1) {
+        if(column.dataType.toUpperCase() !== (typeof column.defaultValue).toUpperCase()){
+            return true;
+        }
+    }
+    else {
+        return true;
+    }
+    return false;
 }
