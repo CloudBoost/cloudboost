@@ -1229,34 +1229,3 @@ function deleteAppFromRedis(appId){
 
   return deferred.promise;
 }
-
-function _invalidDefaultValue(column){
-    if(typeof column.defaultValue === 'string') {
-        if(column.dataType === 'URL') {
-            if (column.defaultValue.match(/^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/i)[0] !== column.defaultValue){
-                return true;
-            }
-        }     
-        else if(columnt.dataType === 'Email'){
-            if (column.defaultValue.match(/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/i)[0] !== column.defaultValue){
-                return true;
-            }
-        }
-        // if the set dataType is not other string Datatypes (Text, EncryptedText, DateTime) available in cloudboost
-        else if (['Text', 'EncryptedText', 'DateTime'].indexOf(column.dataType) === -1){
-            return true;
-        }
-    }
-    else if(column.defaultValue === null) {
-            return false;
-    }
-    else if(['number', 'boolean', 'object', 'undefined'].indexOf(typeof column.defaultValue) > -1) {
-        if(column.dataType.toUpperCase() !== (typeof column.defaultValue).toUpperCase()){
-            return true;
-        }
-    }
-    else {
-        return true;
-    }
-    return false;
-}
