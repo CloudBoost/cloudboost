@@ -1,10 +1,8 @@
-
 /*
 #     CloudBoost - Core Engine that powers Bakend as a Service
-#     (c) 2014 HackerBay, Inc. 
+#     (c) 2014 HackerBay, Inc.
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
-
 
 var q = require("q");
 var fs = require('fs');
@@ -24,65 +22,66 @@ module.exports = function() {
             var _self = obj;
 
             var deferred = q.defer();
-            try{
+            try {
                 _self.document.findOne(appId, collectionName, {
                     _id: documentId
                 }, null, null, null, accessList, isMasterKey).then(function(doc) {
                     deferred.resolve(doc);
                 }, function(error) {
-                    global.winston.log('error',error);
+                    global.winston.log('error', error);
                     deferred.reject(error);
                 });
 
-            }catch(err){                    
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
-                deferred.reject(err);;                                      
+            } catch (err) {
+                global.winston.log('error', {
+                    "error": String(err),
+                    "stack": new Error().stack
+                });
+                deferred.reject(err);;
             }
             return deferred.promise;
         },
 
-        _include:function(appId, include, docs){
+        _include: function(appId, include, docs) {
             //This function is for joins. :)
             var _self = obj;
-            var join=[];
+            var join = [];
             var deferred = global.q.defer();
-            try{
+            try {
                 //include and merge all the documents.
                 var promises = [];
                 include.sort();
-                for(var i=0;i<include.length;i++) {
+                for (var i = 0; i < include.length; i++) {
                     var columnName = include[i].split('.')[0];
                     join.push(columnName);
-                    for(var k=1;k<include.length;k++)
-                    {
-                            if (columnName === include[k].split('.')[0]) {
-                                i = i + 1;
-                            }else {
-                                break;
-                            }
+                    for (var k = 1; k < include.length; k++) {
+                        if (columnName === include[k].split('.')[0]) {
+                            i = i + 1;
+                        } else {
+                            break;
+                        }
                     }
                     //include this column and merge.
                     var idList = [];
                     var collectionName = null;
-                    _.each(docs, function (doc) {
+                    _.each(docs, function(doc) {
                         if (doc[columnName] != null) {
                             // checks if the doc[columnName] is an list of relations or a relation
                             if (Object.getPrototypeOf(doc[columnName]) === Object.prototype) {
                                 if (doc[columnName] && doc[columnName]._id) {
-                                    if(doc[columnName]._type === 'file'){
+                                    if (doc[columnName]._type === 'file') {
                                         collectionName = "_File";
-                                    }else {
+                                    } else {
                                         collectionName = doc[columnName]._tableName;
                                     }
                                     idList.push(doc[columnName]._id);
                                 }
-                            }
-                            else {
+                            } else {
                                 for (var j = 0; j < doc[columnName].length; j++) {
                                     if (doc[columnName][j] && doc[columnName][j]._id) {
-                                        if(doc[columnName][j]._type === 'file'){
+                                        if (doc[columnName][j]._type === 'file') {
                                             collectionName = "_File";
-                                        }else {
+                                        } else {
                                             collectionName = doc[columnName][j]._tableName;
                                         }
                                         idList.push(doc[columnName][j]._id);
@@ -92,11 +91,11 @@ module.exports = function() {
                         }
                     }, null);
 
-                   // if(idList.length >0 && collectionName) {
-                        var q = {};
-                        q ['_id'] = {};
-                        q ['_id']['$in'] = idList;
-                        promises.push(_self.document.fetch_data(appId, collectionName, q));
+                    // if(idList.length >0 && collectionName) {
+                    var q = {};
+                    q['_id'] = {};
+                    q['_id']['$in'] = idList;
+                    promises.push(_self.document.fetch_data(appId, collectionName, q));
                     //}
                 }
 
@@ -107,33 +106,29 @@ module.exports = function() {
                         for (var k = 0; k < include.length; k++) {
                             if (join[i] === include[k].split('.')[0])
                                 r_include.push(include[k]);
-                        }
-                        for (var k=0;k<r_include.length;k++)
-                        {
-                            var temp=join[i];
-                            var temp1=r_include[k];
+                            }
+                        for (var k = 0; k < r_include.length; k++) {
+                            var temp = join[i];
+                            var temp1 = r_include[k];
                             r_include[k] = r_include[k].split('.').splice(1, 1).join('.');
                         }
-                        for(var k=0;k<r_include.length;k++)
-                        {
-                            if(r_include[k]===join[i] || r_include[k]==='')
-                            {
-                                r_include.splice(k,1);
-                                k=k-1;
+                        for (var k = 0; k < r_include.length; k++) {
+                            if (r_include[k] === join[i] || r_include[k] === '') {
+                                r_include.splice(k, 1);
+                                k = k - 1;
                             }
                         }
-                        if(r_include.length>0) {
+                        if (r_include.length > 0) {
                             pr.push(_self.document._include(appId, r_include, arrayOfDocs[i]));
-                        }
-                        else{
-                            var new_promise=global.q.defer();
+                        } else {
+                            var new_promise = global.q.defer();
                             new_promise.resolve(arrayOfDocs[i]);
                             pr.push(new_promise.promise);
                         }
 
                     }
 
-                    global.q.all(pr).then(function (arrayOfDocs) {
+                    global.q.all(pr).then(function(arrayOfDocs) {
                         for (var i = 0; i < docs.length; i++) {
                             for (var j = 0; j < join.length; j++) {
                                 //if the doc contains an relation with a columnName.
@@ -152,8 +147,7 @@ module.exports = function() {
                                                 docs[i][include[j]][m] = rel;
                                             }
                                         }
-                                    }
-                                    else {
+                                    } else {
                                         for (var k = 0; k < arrayOfDocs[j].length; k++) {
                                             if (arrayOfDocs[j][k]._id.toString() === relationalDoc._id.toString()) {
                                                 rel = arrayOfDocs[j][k];
@@ -171,50 +165,56 @@ module.exports = function() {
 
                         docs = _deserialize(docs);
                         deferred.resolve(docs);
-                    }, function (error) {
-                        global.winston.log('error',error);
+                    }, function(error) {
+                        global.winston.log('error', error);
                         console.log(error);
                         deferred.reject(error);
                     });
-                }, function (error){
-                    global.winston.log('error',error);
-                   console.log(error);
+                }, function(error) {
+                    global.winston.log('error', error);
+                    console.log(error);
                     deferred.reject();
                 });
 
-            }catch(err){                    
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
-                deferred.reject(err);;                                      
+            } catch (err) {
+                global.winston.log('error', {
+                    "error": String(err),
+                    "stack": new Error().stack
+                });
+                deferred.reject(err);;
             }
             return deferred.promise;
         },
 
-        fetch_data: function(appId,collectionName,q,promises){
+        fetch_data: function(appId, collectionName, q, promises) {
             var includeDeferred = global.q.defer();
 
-            try{
-                if(global.mongoDisconnected ) {
+            try {
+                if (global.mongoDisconnected) {
                     includeDeferred.reject("Database Not Connected");
                     return includeDeferred.promise;
                 }
-                
+
                 if (!collectionName || !q._id['$in']) {
                     includeDeferred.resolve([]);
                     return includeDeferred.promise;
                 }
 
-                global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName)).find(q).toArray(function (err, includeDocs) {
+                global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName)).find(q).toArray(function(err, includeDocs) {
                     if (err) {
                         global.winston.log('error', err);
                         includeDeferred.reject(err);
-                    }else {
+                    } else {
                         includeDeferred.resolve(includeDocs);
                     }
                 });
 
-            }catch(err){                    
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
-                includeDeferred.reject(err);;                                      
+            } catch (err) {
+                global.winston.log('error', {
+                    "error": String(err),
+                    "stack": new Error().stack
+                });
+                includeDeferred.reject(err);;
             }
             return includeDeferred.promise;
         },
@@ -223,34 +223,42 @@ module.exports = function() {
 
             console.log('++++++ In find ++++++');
             var deferred = q.defer();
-            try{
+            try {
 
-                if(global.mongoDisconnected) {
+                if (global.mongoDisconnected) {
                     deferred.reject("Database Not Connected");
                     return deferred.promise;
                 }
 
                 console.log(query);
-                var collection =  global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));
+                var collection = global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));
                 var include = [];
                 /*query for expires*/
-                
-                if(!query.$or){
 
-                    query.$or=[{"expires":null}, {"expires":{$gte:new Date()}}];
+                if (!query.$or) {
 
-                }else{
+                    query.$or = [
+                        {
+                            "expires": null
+                        }, {
+                            "expires": {
+                                $gte: new Date()
+                            }
+                        }
+                    ];
 
-                    old_query=query.$or;
-                    if(old_query[0].$include) {
+                } else {
+
+                    old_query = query.$or;
+                    if (old_query[0].$include) {
                         if (old_query[0].$include.length > 0) {
                             include = include.concat(old_query[0].$include);
                         }
                         delete old_query[0].$include;
                         delete old_query[0].$includeList;
                     }
-                    if(old_query[1]) {
-                        if(old_query[1].$include) {
+                    if (old_query[1]) {
+                        if (old_query[1].$include) {
                             if (old_query[1].$include.length > 0) {
                                 include = include.concat(old_query[1].$include);
                             }
@@ -258,50 +266,82 @@ module.exports = function() {
                             delete old_query[1].$includeList;
                         }
                     }
-                    query.$and=[{"$or":old_query},{"$or":[{"expires":null},{"expires":{$gte:new Date().getTime()}}]}];
+                    query.$and = [
+                        {
+                            "$or": old_query
+                        }, {
+                            "$or": [
+                                {
+                                    "expires": null
+                                }, {
+                                    "expires": {
+                                        $gte: new Date().getTime()
+                                    }
+                                }
+                            ]
+                        }
+                    ];
                     delete query.$or;
                 }
 
                 if (!select || Object.keys(select).length === 0) {
                     select = {}
                 } else {
-                     //defult columns which should be selected. 
-                     select["ACL"] = 1;
-                     select["createdAt"] = 1;
-                     select["updatedAt"] = 1;
-                     select["_id"] = 1;
-                     select["_tableName"] = 1;
-                     select["_type"] = 1;
-                     select["expires"] = 1;
+                    //defult columns which should be selected.
+                    select["ACL"] = 1;
+                    select["createdAt"] = 1;
+                    select["updatedAt"] = 1;
+                    select["_id"] = 1;
+                    select["_tableName"] = 1;
+                    select["_type"] = 1;
+                    select["expires"] = 1;
                 }
-                
+
                 if (!sort) {
                     sort = {};
                 }
-                
+
                 if (!limit || limit === -1) {
                     limit = 20;
                 }
 
-                if(!isMasterKey) {
+                if (!isMasterKey) {
                     //if its not master key then apply ACL.
                     if (accessList.userId) {
-                        var acl_query = [{
-                                $or: [{"ACL.read.allow.user": 'all'},
-                                    {"ACL.read.allow.user": accessList.userId},
-                                    {"ACL.read.allow.role": {$in: accessList.roles}}
-                                ]},
-                                {$and:[
-                                    {"ACL.read.deny.user": {$ne: accessList.userId}},
-                                    {"ACL.read.deny.role": {$nin: accessList.roles}}
-                                ]}
-                            ];
-                        if(query.$and)
-                            query.$and.push({"$and":acl_query});
+                        var acl_query = [
+                            {
+                                $or: [
+                                    {
+                                        "ACL.read.allow.user": 'all'
+                                    }, {
+                                        "ACL.read.allow.user": accessList.userId
+                                    }, {
+                                        "ACL.read.allow.role": {
+                                            $in: accessList.roles
+                                        }
+                                    }
+                                ]
+                            }, {
+                                $and: [
+                                    {
+                                        "ACL.read.deny.user": {
+                                            $ne: accessList.userId
+                                        }
+                                    }, {
+                                        "ACL.read.deny.role": {
+                                            $nin: accessList.roles
+                                        }
+                                    }
+                                ]
+                            }
+                        ];
+                        if (query.$and)
+                            query.$and.push({"$and": acl_query});
                         else
-                            query.$and=acl_query;
-                    }else{
-                        query["ACL.read.allow.user"]='all';
+                            query.$and = acl_query;
+                        }
+                    else {
+                        query["ACL.read.allow.user"] = 'all';
                     }
                 }
 
@@ -309,13 +349,13 @@ module.exports = function() {
                 if (query.$include) {
                     console.log('Include : ');
                     console.log(query.$include);
-                    if(query.$include.length>0){
+                    if (query.$include.length > 0) {
                         include = include.concat(query.$include);
-                    }                    
+                    }
                 }
 
                 //delete $include and $includeList recursively
-                query=_sanitizeQuery(query);
+                query = _sanitizeQuery(query);
 
                 var findQuery = collection.find(query, select);
 
@@ -325,9 +365,7 @@ module.exports = function() {
 
                 if (skip) {
                     if (Object.keys(sort).length === 0) { //default sort it in desc order on createdAt
-                        findQuery = findQuery.sort({
-                            "createdAt": -1
-                        });
+                        findQuery = findQuery.sort({"createdAt": -1});
                     }
                     findQuery = findQuery.skip(skip);
                 }
@@ -336,26 +374,29 @@ module.exports = function() {
 
                 findQuery.toArray(function(err, docs) {
                     if (err) {
-                        global.winston.log('error',err);
+                        global.winston.log('error', err);
                         deferred.reject(err);
                     } else {
-                        if (!include || include.length===0) {
+                        if (!include || include.length === 0) {
                             docs = _deserialize(docs);
                             deferred.resolve(docs);
                         } else {
-                            obj.document._include(appId, include, docs).then(function (docs) {
+                            obj.document._include(appId, include, docs).then(function(docs) {
                                 deferred.resolve(docs);
-                            }, function (error) {
-                                global.winston.log('error',error);
+                            }, function(error) {
+                                global.winston.log('error', error);
                                 deferred.reject(error);
                             });
                         }
                     }
                 });
 
-            }catch(err){                    
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
-                deferred.reject(err);;                                      
+            } catch (err) {
+                global.winston.log('error', {
+                    "error": String(err),
+                    "stack": new Error().stack
+                });
+                deferred.reject(err);;
             }
 
             return deferred.promise;
@@ -365,101 +406,114 @@ module.exports = function() {
 
             var mainPromise = q.defer();
 
-            try{
-                if(global.mongoDisconnected) {
+            try {
+                if (global.mongoDisconnected) {
                     mainPromise.reject("Database Not Connected");
                     return mainPromise.promise;
                 }
 
-                obj.document.find(appId, collectionName, query, select, sort, 1, skip, accessList, isMasterKey).then(function(list){
-                    if(Object.prototype.toString.call( list ) === '[object Array]' ){
-                        if(list.length===0){
+                obj.document.find(appId, collectionName, query, select, sort, 1, skip, accessList, isMasterKey).then(function(list) {
+                    if (Object.prototype.toString.call(list) === '[object Array]') {
+                        if (list.length === 0) {
                             mainPromise.resolve(null);
-                        }else{
+                        } else {
                             mainPromise.resolve(list[0]);
                         }
                     }
-                }, function(error){
-                    global.winston.log('error',error);
+                }, function(error) {
+                    global.winston.log('error', error);
                     mainPromise.reject(null);
                 });
 
-            }catch(err){                    
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
-                mainPromise.reject(err);;                                      
+            } catch (err) {
+                global.winston.log('error', {
+                    "error": String(err),
+                    "stack": new Error().stack
+                });
+                mainPromise.reject(err);;
             }
 
             return mainPromise.promise;
         },
 
-        save: function(appId, documentArray){
-            
+        save: function(appId, documentArray) {
+
             var _self = obj;
 
             var deferred = q.defer();
 
-            try{
-                if(global.mongoDisconnected ) {
+            try {
+                if (global.mongoDisconnected) {
                     deferred.reject("Database Not Connected");
                     return deferred.promise;
                 }
 
                 var promises = [];
                 console.log('++++++++ MongoDB Database Save ++++++++');
-                for(var i=0;i<documentArray.length;i++){
-                    promises.push(_save(appId,documentArray[i].document._tableName,documentArray[i].document));
+                for (var i = 0; i < documentArray.length; i++) {
+                    promises.push(_save(appId, documentArray[i].document._tableName, documentArray[i].document));
                 }
-                global.q.allSettled(promises).then(function(docs){
+                global.q.allSettled(promises).then(function(docs) {
                     deferred.resolve(docs);
-                },function(err){
-                    global.winston.log('error',err);
+                }, function(err) {
+                    global.winston.log('error', err);
                     deferred.reject(err);
                 });
 
-            }catch(err){                    
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
-                deferred.reject(err);;                                      
+            } catch (err) {
+                global.winston.log('error', {
+                    "error": String(err),
+                    "stack": new Error().stack
+                });
+                deferred.reject(err);;
             }
             return deferred.promise;
 
         },
-        _update : function(appId, collectionName, document){
+        _update: function(appId, collectionName, document) {
 
             var _self = obj;
 
-            var deferred= q.defer();
+            var deferred = q.defer();
 
-            try{
+            try {
 
-                if(global.mongoDisconnected ) {
+                if (global.mongoDisconnected) {
                     deferred.reject("Database Not Connected");
                     return deferred.promise;
                 }
-                
+
                 console.log('Creatign a MongoDB collection object.');
 
-                var collection =  global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));
-                
+                var collection = global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));
+
                 console.log('Collection Object Created.');
 
                 var documentId = document._id;
 
                 var query = {};
                 query._id = documentId;
-                collection.update({_id:documentId},document,{upsert:true},function(err,list,status){
-                    if(err) {
-                        global.winston.log('error',err);
+                collection.update({
+                    _id: documentId
+                }, document, {
+                    upsert: true
+                }, function(err, list, status) {
+                    if (err) {
+                        global.winston.log('error', err);
                         deferred.reject(err);
-                    }else if(list) {
+                    } else if (list) {
                         console.log('++++ Object Updated +++');
                         deferred.resolve(document);
                     }
 
                 });
 
-            }catch(err){                    
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
-                deferred.reject(err);;                                      
+            } catch (err) {
+                global.winston.log('error', {
+                    "error": String(err),
+                    "stack": new Error().stack
+                });
+                deferred.reject(err);;
             }
             return deferred.promise;
         },
@@ -468,75 +522,72 @@ module.exports = function() {
             var _self = obj;
             var deferred = q.defer();
 
-            try{
-                if(global.mongoDisconnected) {
+            try {
+                if (global.mongoDisconnected) {
                     deferred.reject("Database Not Connected");
                     return deferred.promise;
                 }
 
-                if(skip){
-                    skip=parseInt(skip);
+                if (skip) {
+                    skip = parseInt(skip);
                 }
 
-                if(limit){
-                    limit=parseInt(limit);
-                }
+                var collection = global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));
 
-                var collection =  global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));
-               
                 //delete $include and $includeList recursively
-                query=_sanitizeQuery(query);
+                query = _sanitizeQuery(query);
 
                 var findQuery = collection.find(query);
                 if (skip) {
                     findQuery = findQuery.skip(skip);
                 }
-                if (limit !== -1) {
-                    findQuery = findQuery.limit(limit);
-                }
+
                 findQuery.count(query, function(err, count) {
                     if (err) {
-                        global.winston.log('error',err);
+                        global.winston.log('error', err);
                         deferred.reject(err);
                     } else {
                         deferred.resolve(count);
                     }
                 });
 
-            }catch(err){                    
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
-                deferred.reject(err);;                                      
+            } catch (err) {
+                global.winston.log('error', {
+                    "error": String(err),
+                    "stack": new Error().stack
+                });
+                deferred.reject(err);;
             }
             return deferred.promise;
         },
 
-        distinct: function(appId, collectionName, onKey, query, select, sort, limit, skip, accessList , isMasterKey) {
-            
+        distinct: function(appId, collectionName, onKey, query, select, sort, limit, skip, accessList, isMasterKey) {
+
             var _self = obj;
             var deferred = q.defer();
 
-            try{
-                if(global.mongoDisconnected ) {
+            try {
+                if (global.mongoDisconnected) {
                     deferred.reject("Database Not Connected");
                     return deferred.promise;
                 }
 
-                var collection =  global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));
-                
+                var collection = global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));
+
                 var include = [];
 
                 if (query.$include) {
                     if (query.$include.length > 0) {
                         include = include.concat(query.$include);
-                    }                    
+                    }
                 }
 
                 //delete $include and $includeList recursively
-                query=_sanitizeQuery(query);
+                query = _sanitizeQuery(query);
 
                 var keys = {};
-                
-                keys[onKey]="$"+onKey;
+
+                keys[onKey] = "$" + onKey;
                 if (!sort || Object.keys(sort).length === 0) {
                     sort = {
                         "createdAt": 1
@@ -550,13 +601,12 @@ module.exports = function() {
                         }
                     }
                 }
-                
+
                 var pipeline = [];
-                pipeline.push({ $match: query });
-                pipeline.push({ $sort: sort });
-                
-                
-                //push the distinct aggregation. 
+                pipeline.push({$match: query});
+                pipeline.push({$sort: sort});
+
+                //push the distinct aggregation.
                 pipeline.push({
                     $group: {
                         _id: keys,
@@ -566,111 +616,136 @@ module.exports = function() {
                     }
                 });
 
-                if (skip && skip!=0) {
-                    pipeline.push({ $skip : skip });
+                if (skip && skip != 0) {
+                    pipeline.push({$skip: skip});
                 }
-                
+
                 if (limit && limit != 0) {
-                    pipeline.push({ $limit : limit });
+                    pipeline.push({$limit: limit});
                 }
-                
+
                 if (select && Object.keys(select).length > 0) {
                     pipeline.push({
-                        $project : {
-                            document : select
+                        $project: {
+                            document: select
                         }
                     });
                 }
 
-                collection.aggregate(pipeline, function (err, res) {
+                collection.aggregate(pipeline, function(err, res) {
                     if (err) {
                         deferred.reject(err);
                     } else {
                         var docs = [];
-                        
+
                         //filter out
                         for (var i = 0; i < res.length; i++) {
                             docs.push(res[i].document);
                         }
-                        
-                        //include. 
-                        obj.document._include(appId, include, docs).then(function (docs) {
+
+                        //include.
+                        obj.document._include(appId, include, docs).then(function(docs) {
                             docs = _deserialize(docs);
                             deferred.resolve(docs);
-                        }, function (error) {
-                            global.winston.log('error',error);
+                        }, function(error) {
+                            global.winston.log('error', error);
                             deferred.reject(error);
                         });
                     }
                 });
 
-            }catch(err){                    
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
-                deferred.reject(err);;                                      
+            } catch (err) {
+                global.winston.log('error', {
+                    "error": String(err),
+                    "stack": new Error().stack
+                });
+                deferred.reject(err);;
             }
             return deferred.promise;
         },
-        
-        
-        aggregate: function (appId, collectionName, pipeline, limit, skip,accessList , isMasterKey) {
-            
+
+        aggregate: function(appId, collectionName, pipeline, limit, skip, accessList, isMasterKey) {
+
             var _self = obj;
             var deferred = q.defer();
-            
-            try{
+
+            try {
                 if (global.mongoDisconnected) {
                     deferred.reject("Database Not Connected");
                     return deferred.promise;
                 }
-                
+
                 var collection = global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));
-                
+
                 var query = {};
                 if (pipeline.length > 0 && pipeline[0] && pipeline[0]["$match"]) {
                     query = pipeline[0]["$match"];
-                    pipeline.shift();//remove first element. 
+                    pipeline.shift(); //remove first element.
                 }
-                    
+
                 if (!isMasterKey) {
                     //if its not master key then apply ACL.
                     if (accessList.userId) {
-                        var acl_query = [{
-                                $or: [{ "ACL.read.allow.user": 'all' },
-                                    { "ACL.read.allow.user": accessList.userId },
-                                    { "ACL.read.allow.role": { $in: accessList.roles } }
-                                ]
-                            },
+                        var acl_query = [
                             {
+                                $or: [
+                                    {
+                                        "ACL.read.allow.user": 'all'
+                                    }, {
+                                        "ACL.read.allow.user": accessList.userId
+                                    }, {
+                                        "ACL.read.allow.role": {
+                                            $in: accessList.roles
+                                        }
+                                    }
+                                ]
+                            }, {
                                 $and: [
-                                    { "ACL.read.deny.user": { $ne: accessList.userId } },
-                                    { "ACL.read.deny.role": { $nin: accessList.roles } }
+                                    {
+                                        "ACL.read.deny.user": {
+                                            $ne: accessList.userId
+                                        }
+                                    }, {
+                                        "ACL.read.deny.role": {
+                                            $nin: accessList.roles
+                                        }
+                                    }
                                 ]
                             }
                         ];
                         if (query.$and)
-                            query.$and.push({ "$and": acl_query });
+                            query.$and.push({"$and": acl_query});
                         else
                             query.$and = acl_query;
-                    } else {
+                        }
+                    else {
                         query["ACL.read.allow.user"] = 'all';
                     }
                 }
-                
+
                 if (!query.$or) {
-                    query.$or = [{ "expires": null }, { "expires": { $gte: new Date() } }];
+                    query.$or = [
+                        {
+                            "expires": null
+                        }, {
+                            "expires": {
+                                $gte: new Date()
+                            }
+                        }
+                    ];
                 }
-                
-                pipeline.unshift({"$match":query}); //add item to the begining of the pipeline.
+
+                pipeline.unshift({"$match": query}); //add item to the begining of the pipeline.
 
                 if (skip && skip != 0) {
-                    pipeline.push({ $skip : skip });
+                    pipeline.push({$skip: skip});
                 }
-                
+
                 if (limit && limit != 0) {
-                    pipeline.push({ $limit : limit });
+                    pipeline.push({$limit: limit});
                 }
-                
-                collection.aggregate(pipeline, function (err, res) {
+
+                collection.aggregate(pipeline, function(err, res) {
                     if (err) {
                         deferred.reject(err);
                     } else {
@@ -678,35 +753,37 @@ module.exports = function() {
                     }
                 });
 
-            }catch(err){                    
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
-                deferred.reject(err);;                                      
+            } catch (err) {
+                global.winston.log('error', {
+                    "error": String(err),
+                    "stack": new Error().stack
+                });
+                deferred.reject(err);;
             }
 
             return deferred.promise;
         },
 
-
-        _insert : function(appId, collectionName, document, accessList,isMasterKey){
+        _insert: function(appId, collectionName, document, accessList, isMasterKey) {
             var _self = obj;
 
-            var deferred= q.defer();
+            var deferred = q.defer();
 
-            try{
-                if(global.mongoDisconnected) {
+            try {
+                if (global.mongoDisconnected) {
                     deferred.reject("Database Not Connected");
                     return deferred.promise;
                 }
 
-                var collection =  global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));
+                var collection = global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));
 
                 collection.save(document, function(err, doc) {
                     if (err) {
-                        global.winston.log('error',err);
+                        global.winston.log('error', err);
                         deferred.reject(err);
                     } else {
                         //elastic search code.
-                        document =doc;
+                        document = doc;
                         console.log('++++ Object Inserted +++');
                         console.log(document);
                         deferred.resolve(document);
@@ -714,9 +791,12 @@ module.exports = function() {
 
                 });
 
-            }catch(err){                    
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
-                deferred.reject(err);;                                      
+            } catch (err) {
+                global.winston.log('error', {
+                    "error": String(err),
+                    "stack": new Error().stack
+                });
+                deferred.reject(err);;
             }
 
             return deferred.promise;
@@ -728,16 +808,16 @@ module.exports = function() {
             var _self = obj;
             var deferred = q.defer();
 
-            try{
-                if(global.mongoDisconnected) {
+            try {
+                if (global.mongoDisconnected) {
                     deferred.reject("Database Not Connected");
                     return deferred.promise;
                 }
 
-                if(!document._id){
+                if (!document._id) {
                     deferred.reject('You cant delete an unsaved object');
-                }else{
-                    var collection =  global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));
+                } else {
+                    var collection = global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));
                     var query = {
                         _id: documentId
                     };
@@ -751,90 +831,98 @@ module.exports = function() {
                                     "code": 401,
                                     "message": "You do not have permission to delete"
                                 };
-                                global.winston.log('error',err);
+                                global.winston.log('error', err);
                                 deferred.reject(err);
                             }
                         }
                         if (err) {
-                            global.winston.log('error',err);
+                            global.winston.log('error', err);
                             deferred.reject(err);
                         } else if (doc.result.n !== 0) {
                             deferred.resolve(doc.result);
                         } else {
-                            deferred.reject({
-                                "code": 500,
-                                "message": "Server Error"
-                            })
+                            deferred.reject({"code": 500, "message": "Server Error"})
                         }
                     });
                 }
 
-            }catch(err){                    
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
-                deferred.reject(err);;                                      
+            } catch (err) {
+                global.winston.log('error', {
+                    "error": String(err),
+                    "stack": new Error().stack
+                });
+                deferred.reject(err);;
             }
 
             return deferred.promise;
         },
 
-        deleteByQuery: function (appId, collectionName, query) {
-            
+        deleteByQuery: function(appId, collectionName, query) {
+
             var _self = obj;
             var deferred = q.defer();
-            
-            try{
+
+            try {
                 if (global.mongoDisconnected) {
                     deferred.reject("Database Not Connected");
                     return deferred.promise;
                 }
-               
-                var collection = global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));  
-                    
+
+                var collection = global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));
+
                 collection.remove(query, {
                     w: 1 //returns the number of documents removed
-                }, function (err, doc) {
+                }, function(err, doc) {
                     if (err) {
                         global.winston.log('error', err);
                         deferred.reject(err);
-                    } 
+                    }
                     deferred.resolve(doc.result);
                 });
 
-            }catch(err){                    
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
-                deferred.reject(err);;                                      
+            } catch (err) {
+                global.winston.log('error', {
+                    "error": String(err),
+                    "stack": new Error().stack
+                });
+                deferred.reject(err);;
             }
-            
+
             return deferred.promise;
         },
         /**********************GRIDFS FILES***************************************************************/
-        
+
         /*Desc   : Get file from gridfs
           Params : appId,filename
           Returns: Promise
                    Resolve->file
                    Reject->Error on findOne() or file not found(null)
         */
-        getFile : function(appId,filename){
+        getFile: function(appId, filename) {
 
             var deferred = global.q.defer();
 
-            try{
+            try {
                 var gfs = Grid(global.mongoClient.db(appId), require('mongodb'));
 
-                gfs.findOne({filename: filename},function (err, file) {
-                    if (err){           
+                gfs.findOne({
+                    filename: filename
+                }, function(err, file) {
+                    if (err) {
                         deferred.reject(err);
-                    }    
-                    if(!file){
-                        return deferred.resolve(null);                    
-                    }  
+                    }
+                    if (!file) {
+                        return deferred.resolve(null);
+                    }
 
-                    deferred.resolve(file);  
+                    deferred.resolve(file);
                 });
 
-            } catch(err){           
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+            } catch (err) {
+                global.winston.log('error', {
+                    "error": String(err),
+                    "stack": new Error().stack
+                });
                 deferred.reject(err);
             }
 
@@ -842,20 +930,21 @@ module.exports = function() {
         },
         /*Desc   : Get fileStream from gridfs
           Params : appId,fileId
-          Returns: fileStream 
+          Returns: fileStream
         */
-        getFileStreamById: function(appId,fileId){
-            try{
+        getFileStreamById: function(appId, fileId) {
+            try {
                 var gfs = Grid(global.mongoClient.db(appId), require('mongodb'));
 
-                var readstream = gfs.createReadStream({
-                  _id: fileId
-                });
+                var readstream = gfs.createReadStream({_id: fileId});
 
                 return readstream;
 
-            } catch(err){           
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+            } catch (err) {
+                global.winston.log('error', {
+                    "error": String(err),
+                    "stack": new Error().stack
+                });
                 return null;
             }
         },
@@ -865,42 +954,49 @@ module.exports = function() {
                    Resolve->true
                    Reject->Error on exist() or remove() or file does not exists
         */
-        deleteFileFromGridFs: function(appId,filename){
+        deleteFileFromGridFs: function(appId, filename) {
 
-            var deferred = global.q.defer(); 
+            var deferred = global.q.defer();
 
-            try{
+            try {
                 var gfs = Grid(global.mongoClient.db(appId), require('mongodb'));
 
                 //File existence checking
-                gfs.exist({filename: filename}, function (err, found) {
-                  if (err){
-                    //Error while checking file existence
-                    deferred.reject(err);
-                  }
-                  if(found){       
-                    gfs.remove({filename: filename},function (err) {
-                        if (err){
-                            deferred.reject(err);
-                            //unable to delete     
-                        }else{
-                            deferred.resolve(true);
-                            //deleted
-                        }                            
-                        
-                        return deferred.resolve("Success");  
-                    });
-                  }else{
-                    //file does not exists
-                    deferred.reject("file does not exists");
-                  }
+                gfs.exist({
+                    filename: filename
+                }, function(err, found) {
+                    if (err) {
+                        //Error while checking file existence
+                        deferred.reject(err);
+                    }
+                    if (found) {
+                        gfs.remove({
+                            filename: filename
+                        }, function(err) {
+                            if (err) {
+                                deferred.reject(err);
+                                //unable to delete
+                            } else {
+                                deferred.resolve(true);
+                                //deleted
+                            }
+
+                            return deferred.resolve("Success");
+                        });
+                    } else {
+                        //file does not exists
+                        deferred.reject("file does not exists");
+                    }
                 });
 
-            } catch(err){           
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+            } catch (err) {
+                global.winston.log('error', {
+                    "error": String(err),
+                    "stack": new Error().stack
+                });
                 deferred.reject(err);
             }
-            
+
             return deferred.promise;
         },
         /*Desc   : Save filestream to gridfs
@@ -909,35 +1005,34 @@ module.exports = function() {
                    Resolve->fileObject
                    Reject->Error on writing file
         */
-        saveFileStream:function (appId,fileStream,fileName,contentType){
+        saveFileStream: function(appId, fileStream, fileName, contentType) {
 
             var deferred = global.q.defer();
 
-            try{
+            try {
                 var gfs = Grid(global.mongoClient.db(appId), require('mongodb'));
 
-                //streaming to gridfs    
-                var writestream = gfs.createWriteStream({
-                    filename: fileName,
-                    mode: 'w',
-                    content_type:contentType
-                });
+                //streaming to gridfs
+                var writestream = gfs.createWriteStream({filename: fileName, mode: 'w', content_type: contentType});
 
-                fileStream.pipe(writestream);           
-                
-                writestream.on('close', function (file) {               
-                    deferred.resolve(file);             
+                fileStream.pipe(writestream);
+
+                writestream.on('close', function(file) {
+                    deferred.resolve(file);
                     console.log("Successfully saved in gridfs");
                 });
 
-                writestream.on('error', function (error) {           
+                writestream.on('error', function(error) {
                     deferred.reject(error);
                     writestream.destroy();
                     console.log("Failed to saved in gridfs");
-                }); 
+                });
 
-            } catch(err){           
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+            } catch (err) {
+                global.winston.log('error', {
+                    "error": String(err),
+                    "stack": new Error().stack
+                });
                 deferred.reject(err);
             }
 
@@ -946,68 +1041,70 @@ module.exports = function() {
         /**********************END OF GRIDFS FILES***************************************************************/
     };
 
-
     /* Private functions */
 
-    function _sanitizeQuery(query){
+    function _sanitizeQuery(query) {
 
-        if(query && query.$includeList){
+        if (query && query.$includeList) {
             delete query.$includeList;
         }
 
-        if(query && query.$include){
+        if (query && query.$include) {
             delete query.$include;
         }
 
-        if(query && query.$or && query.$or.length>0){
-            for(var i=0; i<query.$or.length; ++i){
-               query.$or[i] = _sanitizeQuery(query.$or[i]);
+        if (query && query.$or && query.$or.length > 0) {
+            for (var i = 0; i < query.$or.length; ++i) {
+                query.$or[i] = _sanitizeQuery(query.$or[i]);
             }
         }
 
-        if(query && query.$and && query.$and.length>0){
-            for(var i=0; i<query.$and.length; ++i){
-               query.$and[i] = _sanitizeQuery(query.$and[i]);
+        if (query && query.$and && query.$and.length > 0) {
+            for (var i = 0; i < query.$and.length; ++i) {
+                query.$and[i] = _sanitizeQuery(query.$and[i]);
             }
         }
 
         return query;
     }
 
-    function _save(appId,collectionName,document){
+    function _save(appId, collectionName, document) {
         var deferredMain = q.defer();
-        try{
+        try {
             console.log('In MongoDB provate save function.');
-            if(document._isModified){
+            if (document._isModified) {
                 delete document._isModified;
             }
-            if(document._modifiedColumns){
+            if (document._modifiedColumns) {
                 delete document._modifiedColumns;
             }
             document = _serialize(document);
             var promises = [];
             //column key array to track sub documents.
             var columns = [];
-            global.mongoService.document._update(appId, collectionName, document).then(function(doc){
+            global.mongoService.document._update(appId, collectionName, document).then(function(doc) {
                 console.log('Document updated.');
                 doc = _deserialize(doc);
                 deferredMain.resolve(doc);
-            },function(err){
-                global.winston.log('error',err);
+            }, function(err) {
+                global.winston.log('error', err);
                 deferredMain.reject(err);
             });
 
-        }catch(err){                    
-            global.winston.log('error',{"error":String(err),"stack": new Error().stack});  
-            deferred.reject(err);;                                      
+        } catch (err) {
+            global.winston.log('error', {
+                "error": String(err),
+                "stack": new Error().stack
+            });
+            deferred.reject(err);;
         }
         return deferredMain.promise;
     }
 
-    function _serialize(document){
-        try{
-            for(key in document){
-                if(document[key]) {
+    function _serialize(document) {
+        try {
+            for (key in document) {
+                if (document[key]) {
                     if (document[key].constructor === Object && document[key]._type) {
                         if (document[key]._type === 'point') {
                             var obj = {};
@@ -1016,10 +1113,9 @@ module.exports = function() {
                             document[key] = obj;
                         }
                     }
-                    
 
                     if (key === "createdAt" || key === "updatedAt" || key === "expires") {
-                        if (typeof document[key] === "string") { 
+                        if (typeof document[key] === "string") {
                             document[key] = new Date(document[key]);
                         }
                     }
@@ -1027,17 +1123,20 @@ module.exports = function() {
             }
             return document;
 
-        }catch(err){                    
-            global.winston.log('error',{"error":String(err),"stack": new Error().stack});                                                  
+        } catch (err) {
+            global.winston.log('error', {
+                "error": String(err),
+                "stack": new Error().stack
+            });
         }
     }
-    function _deserialize(docs){
-        try{
-            if(docs.length>0) {
+    function _deserialize(docs) {
+        try {
+            if (docs.length > 0) {
                 for (var i = 0; i < docs.length; i++) {
                     var document = docs[i];
                     for (key in document) {
-                        if(document[key]) {
+                        if (document[key]) {
                             if (document[key].constructor === Object && document[key].type) {
                                 if (document[key].type === 'Point') {
                                     var obj = {};
@@ -1047,9 +1146,9 @@ module.exports = function() {
                                     obj.longitude = obj.coordinates[0];
                                     document[key] = obj;
                                 }
-                            }else if(document[key].constructor === Array && document[key][0] &&document[key][0].type && document[key][0].type === 'Point'){
-                                var arr =[];
-                                for(var j=0;j<document[key].length;j++){
+                            } else if (document[key].constructor === Array && document[key][0] && document[key][0].type && document[key][0].type === 'Point') {
+                                var arr = [];
+                                for (var j = 0; j < document[key].length; j++) {
                                     var obj = {};
                                     obj._type = 'point';
                                     obj.coordinates = document[key][j].coordinates;
@@ -1064,10 +1163,10 @@ module.exports = function() {
                     }
                     docs[i] = document;
                 }
-            }else{
+            } else {
                 var document = docs;
                 for (var key in document) {
-                    if(document[key]) {
+                    if (document[key]) {
                         if (document[key].constructor === Object && document[key].type) {
                             if (document[key].type === 'Point') {
                                 var obj = {};
@@ -1077,9 +1176,9 @@ module.exports = function() {
                                 obj.longitude = obj.coordinates[0];
                                 document[key] = obj;
                             }
-                        }else if(document[key].constructor === Array && document[key][0] &&document[key][0].type && document[key][0].type === 'Point'){
-                            var arr =[];
-                            for(var j=0;j<document[key].length;j++){
+                        } else if (document[key].constructor === Array && document[key][0] && document[key][0].type && document[key][0].type === 'Point') {
+                            var arr = [];
+                            for (var j = 0; j < document[key].length; j++) {
                                 var obj = {};
                                 obj._type = 'point';
                                 obj.coordinates = document[key][j].coordinates;
@@ -1095,104 +1194,127 @@ module.exports = function() {
                 docs = document;
             }
             return docs;
-        }catch(err){                    
-            global.winston.log('error',{"error":String(err),"stack": new Error().stack});                                                  
-        }        
+        } catch (err) {
+            global.winston.log('error', {
+                "error": String(err),
+                "stack": new Error().stack
+            });
+        }
     }
-    function _checkBasicDataTypes(data, datatype, columnName, tableName){
+    function _checkBasicDataTypes(data, datatype, columnName, tableName) {
 
-        try{
-            if( Object.prototype.toString.call( data ) === '[object Array]' ) {
-                for(var i=0;i<data.length; i++){
+        try {
+            if (Object.prototype.toString.call(data) === '[object Array]') {
+                for (var i = 0; i < data.length; i++) {
 
-                    var res = _checkDataTypeUtil(data[i],datatype, columnName, tableName);
+                    var res = _checkDataTypeUtil(data[i], datatype, columnName, tableName);
 
-                    if(res !== '')
+                    if (res !== '')
                         return res;
-                }
-            }else{
-                return _checkDataTypeUtil(data,datatype, columnName, tableName);
+                    }
+                } else {
+                return _checkDataTypeUtil(data, datatype, columnName, tableName);
             }
 
             return ''; //success!
 
-        }catch(err){                    
-            global.winston.log('error',{"error":String(err),"stack": new Error().stack});                                                  
-        } 
+        } catch (err) {
+            global.winston.log('error', {
+                "error": String(err),
+                "stack": new Error().stack
+            });
+        }
     }
 
-    function _checkDataTypeUtil(data, datatype, columnName,  tableName){
+    function _checkDataTypeUtil(data, datatype, columnName, tableName) {
 
-        try{
+        try {
             var isValid = true;
-            if(data && datatype === 'Text' && typeof data !== 'string'){
+            if (data && datatype === 'Text' && typeof data !== 'string') {
                 isValid = false;
             }
 
-            if(data && datatype === 'Email' && typeof data !== 'string' && util.isEmailValid(data)){
+            if (data && datatype === 'Email' && typeof data !== 'string' && util.isEmailValid(data)) {
                 isValid = false;
             }
 
-            if(data && datatype === 'URL' && typeof data !== 'string' && util.isEmailValid(data)){
+            if (data && datatype === 'URL' && typeof data !== 'string' && util.isEmailValid(data)) {
                 isValid = false;
             }
 
-            if(data && datatype === 'Password' && typeof data !== 'string'){
+            if (data && datatype === 'Password' && typeof data !== 'string') {
                 isValid = false;
             }
 
-            if(data && datatype === 'Boolean' && typeof data !== 'boolean'){
+            if (data && datatype === 'Boolean' && typeof data !== 'boolean') {
                 isValid = false;
             }
 
-            if(data && datatype === 'DateTime' && new Date(data).toString() === 'Invalid Date'){
+            if (data && datatype === 'DateTime' && new Date(data).toString() === 'Invalid Date') {
                 isValid = false;
             }
 
-            if(data && datatype === 'ACL' && typeof data !== 'object' && doc[key].read && doc[key].write){
+            if (data && datatype === 'ACL' && typeof data !== 'object' && doc[key].read && doc[key].write) {
                 isValid = false;
             }
 
-            if(data && datatype === 'Object' && typeof data !== 'object'){
+            if (data && datatype === 'Object' && typeof data !== 'object') {
                 isValid = false;
             }
 
-            if(data && datatype === 'File' && (data._type &&  data._type !== 'file')){
+            if (data && datatype === 'File' && (data._type && data._type !== 'file')) {
                 isValid = false;
             }
 
-            if(!isValid){
-                return 'Invalid data in column '+columnName+' of table '+tableName+'. It should be of type '+datatype;
+            if (!isValid) {
+                return 'Invalid data in column ' + columnName + ' of table ' + tableName + '. It should be of type ' + datatype;
             }
 
             return ''; //success!
 
-        }catch(err){                    
-            global.winston.log('error',{"error":String(err),"stack": new Error().stack});                                                  
-        } 
+        } catch (err) {
+            global.winston.log('error', {
+                "error": String(err),
+                "stack": new Error().stack
+            });
+        }
     }
 
-    function _isBasicDataType(dataType){
-        try{
-            var types = ['Object', 'ACL', 'DateTime', 'Boolean', 'Password', 'URL', 'Email','Text', 'File' ];
+    function _isBasicDataType(dataType) {
+        try {
+            var types = [
+                'Object',
+                'ACL',
+                'DateTime',
+                'Boolean',
+                'Password',
+                'URL',
+                'Email',
+                'Text',
+                'File'
+            ];
 
-            if(types.indexOf(dataType)>-1){
+            if (types.indexOf(dataType) > -1) {
                 return true;
             }
 
             return false;
 
-        }catch(err){                    
-            global.winston.log('error',{"error":String(err),"stack": new Error().stack});                                                  
-        } 
+        } catch (err) {
+            global.winston.log('error', {
+                "error": String(err),
+                "stack": new Error().stack
+            });
+        }
     }
 
     function clone(obj) {
-        try{
+        try {
             var copy;
 
             // Handle the 3 simple types, and null or undefined
-            if (null == obj || "object" != typeof obj) return obj;
+            if (null == obj || "object" != typeof obj)
+                return obj;
 
             // Handle Date
             if (obj instanceof Date) {
@@ -1214,18 +1336,21 @@ module.exports = function() {
             if (obj instanceof Object) {
                 copy = {};
                 for (var attr in obj) {
-                    if (obj.hasOwnProperty(attr)) copy[attr] = clone(obj[attr]);
-                }
+                    if (obj.hasOwnProperty(attr))
+                        copy[attr] = clone(obj[attr]);
+                    }
                 return copy;
             }
 
             throw new Error("Unable to copy obj! Its type isn't supported.");
 
-        }catch(err){                    
-            global.winston.log('error',{"error":String(err),"stack": new Error().stack});                                                  
-        } 
+        } catch (err) {
+            global.winston.log('error', {
+                "error": String(err),
+                "stack": new Error().stack
+            });
+        }
     }
-
 
     return obj;
 };
