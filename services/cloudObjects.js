@@ -1,13 +1,11 @@
-
 /*
 #     CloudBoost - Core Engine that powers Bakend as a Service
-#     (c) 2014 HackerBay, Inc. 
+#     (c) 2014 HackerBay, Inc.
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
-
 var q = require("q");
-var util=require("../helpers/util.js");
+var util = require("../helpers/util.js");
 var _ = require('underscore');
 var crypto = require('crypto');
 var customHelper = require('../helpers/custom.js');
@@ -15,230 +13,250 @@ var customHelper = require('../helpers/custom.js');
 var databaseDriver = global.mongoService.document;
 module.exports = function() {
 
-	return {
-		
-		find: function(appId, collectionName, query, select, sort, limit, skip, accessList,isMasterKey, opts) {
+    return {
+
+        find: function(appId, collectionName, query, select, sort, limit, skip, accessList, isMasterKey, opts) {
             var deferred = q.defer();
 
-            try{
-                if (opts && opts.ignoreSchema || collectionName === "_File") { 
-                    databaseDriver.find(appId, collectionName, query, select, sort, limit, skip, accessList, isMasterKey).then(function (doc) {
+            try {
+                if (opts && opts.ignoreSchema || collectionName === "_File") {
+                    databaseDriver.find(appId, collectionName, query, select, sort, limit, skip, accessList, isMasterKey).then(function(doc) {
                         deferred.resolve(doc);
-                    }, function (err) {
+                    }, function(err) {
                         deferred.reject(err);
                     });
                 } else {
-                    
-                    _encryptPasswordInQuery(appId, collectionName, query).then(function (query) {
-                        databaseDriver.find(appId, collectionName, query, select, sort, limit, skip, accessList, isMasterKey).then(function (doc) {
+
+                    _encryptPasswordInQuery(appId, collectionName, query).then(function(query) {
+                        databaseDriver.find(appId, collectionName, query, select, sort, limit, skip, accessList, isMasterKey).then(function(doc) {
                             deferred.resolve(doc);
-                        }, function (err) {
+                        }, function(err) {
                             deferred.reject(err);
                         });
-                    }, function (error) {
+                    }, function(error) {
                         deferred.reject(error);
                     });
-                        
+
                 }
 
-            } catch(err){           
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
-                deferred.reject(err);
-            }
-
-			return deferred.promise;
-		},
-		count: function(appId, collectionName, query, limit, skip, accessList,isMasterKey) {
-		    var deferred = q.defer();
-
-            try{
-    		    _encryptPasswordInQuery(appId, collectionName, query).then(function (query) {
-                      databaseDriver.count(appId, collectionName, query, limit, skip, accessList, isMasterKey).then(function (doc) {
-                            deferred.resolve(doc);
-                        }, function (err) {
-                            deferred.reject(err);
-                        });
-    		    }, function (error) {
-    		        deferred.reject(error);
+            } catch (err) {
+                global.winston.log('error', {
+                    "error": String(err),
+                    "stack": new Error().stack
                 });
-            } catch(err){           
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
 
-			return deferred.promise;
-		},
-		distinct: function(appId, collectionName, onKey, query, select, sort, limit, skip, accessList ,isMasterKey) {
-		    var deferred = q.defer();
+            return deferred.promise;
+        },
+        count: function(appId, collectionName, query, limit, skip, accessList, isMasterKey) {
+            var deferred = q.defer();
 
-            try{
-    		    _encryptPasswordInQuery(appId, collectionName, query).then(function (query) {
-                        databaseDriver.distinct(appId, collectionName,onKey,query, select, sort, limit, skip, accessList, isMasterKey).then(function (doc) {
-                            deferred.resolve(doc);
-                        }, function (err) {
-                            deferred.reject(err);
-                        });
-    		    }, function (error) {
-    		        deferred.reject(error);
-    		    });
-
-            } catch(err){           
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+            try {
+                _encryptPasswordInQuery(appId, collectionName, query).then(function(query) {
+                    databaseDriver.count(appId, collectionName, query, limit, skip, accessList, isMasterKey).then(function(doc) {
+                        deferred.resolve(doc);
+                    }, function(err) {
+                        deferred.reject(err);
+                    });
+                }, function(error) {
+                    deferred.reject(error);
+                });
+            } catch (err) {
+                global.winston.log('error', {
+                    "error": String(err),
+                    "stack": new Error().stack
+                });
                 deferred.reject(err);
             }
-			return deferred.promise;
-		},
-		
-		findOne: function(appId, collectionName, query, select, sort, skip, accessList,isMasterKey) {
-		    var deferred = q.defer();
 
-            try{
-    		    _encryptPasswordInQuery(appId, collectionName, query).then(function (query) {
-                       databaseDriver.findOne(appId, collectionName, query, select, sort, skip, accessList, isMasterKey).then(function (doc) {
-                            deferred.resolve(doc);
-                        }, function (err) {
-                            deferred.reject(err);
-                        });
-    		    }, function (error) {
-    		        deferred.reject(error);
-    		    });
+            return deferred.promise;
+        },
+        distinct: function(appId, collectionName, onKey, query, select, sort, limit, skip, accessList, isMasterKey) {
+            var deferred = q.defer();
 
-            } catch(err){           
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+            try {
+                _encryptPasswordInQuery(appId, collectionName, query).then(function(query) {
+                    databaseDriver.distinct(appId, collectionName, onKey, query, select, sort, limit, skip, accessList, isMasterKey).then(function(doc) {
+                        deferred.resolve(doc);
+                    }, function(err) {
+                        deferred.reject(err);
+                    });
+                }, function(error) {
+                    deferred.reject(error);
+                });
+
+            } catch (err) {
+                global.winston.log('error', {
+                    "error": String(err),
+                    "stack": new Error().stack
+                });
                 deferred.reject(err);
             }
             return deferred.promise;
-		},
+        },
 
-        save: function(appId,collectionName,document,accessList,isMasterKey, opts){
-            
+        findOne: function(appId, collectionName, query, select, sort, skip, accessList, isMasterKey) {
+            var deferred = q.defer();
+
+            try {
+                _encryptPasswordInQuery(appId, collectionName, query).then(function(query) {
+                    databaseDriver.findOne(appId, collectionName, query, select, sort, skip, accessList, isMasterKey).then(function(doc) {
+                        deferred.resolve(doc);
+                    }, function(err) {
+                        deferred.reject(err);
+                    });
+                }, function(error) {
+                    deferred.reject(error);
+                });
+
+            } catch (err) {
+                global.winston.log('error', {
+                    "error": String(err),
+                    "stack": new Error().stack
+                });
+                deferred.reject(err);
+            }
+            return deferred.promise;
+        },
+
+        save: function(appId, collectionName, document, accessList, isMasterKey, opts) {
+
             console.log("In Custom Save function");
 
             var deferred = global.q.defer();
 
-            try{
+            try {
                 var promises = [];
                 var reqType = {};
                 reqType.save = [];
                 reqType.update = [];
-                if(document.constructor === Array){
-                    for(var i=0;i<document.length;i++) {
-                        document[i] = _checkIdList(document[i],reqType);
+                if (document.constructor === Array) {
+                    for (var i = 0; i < document.length; i++) {
+                        document[i] = _checkIdList(document[i], reqType);
                         _generateId(document[i], reqType);
                         console.log('Saving document...');
-                        promises.push(_save(appId, collectionName, document[i], accessList, isMasterKey,reqType, opts));
+                        promises.push(_save(appId, collectionName, document[i], accessList, isMasterKey, reqType, opts));
                     }
-                    global.q.allSettled(promises).then(function(res){
+                    global.q.allSettled(promises).then(function(res) {
 
                         var status = true;
                         var success = [];
                         var error = [];
-                        for(var i=0;i<res.length;i++){
-                          if(res[i].status === 'fulfilled'){
-                            success.push(res[i].value);
-                            error.push(null);
-                          }else{
-                            status = false;
-                            error.push(res[i].value);
-                          }
+                        for (var i = 0; i < res.length; i++) {
+                            if (res[i].status === 'fulfilled') {
+                                success.push(res[i].value);
+                                error.push(null);
+                            } else {
+                                status = false;
+                                error.push(res[i].value);
+                            }
                         }
 
-                        if(status === true){
+                        if (status === true) {
                             deferred.resolve(success);
-                        }else{
+                        } else {
                             deferred.resolve(error);
                         }
                     });
                 } else {
                     console.log('Saving document...');
-                    _save(appId, collectionName, document, accessList, isMasterKey, opts).then(function(res){
+                    _save(appId, collectionName, document, accessList, isMasterKey, opts).then(function(res) {
                         deferred.resolve(res);
-                    },function(err){
+                    }, function(err) {
                         deferred.reject(err);
                     });
                 }
 
-            } catch(err){           
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+            } catch (err) {
+                global.winston.log('error', {
+                    "error": String(err),
+                    "stack": new Error().stack
+                });
                 deferred.reject(err);
             }
             return deferred.promise;
 
         },
 
-		delete: function(appId, collectionName, document, accessList,isMasterKey, opts) {
+        delete: function(appId, collectionName, document, accessList, isMasterKey, opts) {
 
             var deferred = global.q.defer();
 
-            try{
+            try {
                 var promises = [];
-                if(document.constructor === Array){
-                    for(var i=0;i<document.length;i++) {
+                if (document.constructor === Array) {
+                    for (var i = 0; i < document.length; i++) {
                         promises.push(_delete(appId, collectionName, document[i], accessList, isMasterKey));
                     }
-                    global.q.allSettled(promises).then(function(res){
+                    global.q.allSettled(promises).then(function(res) {
                         var status = true;
                         var success = [];
                         var error = [];
-                        for(var i=0;i<res.length;i++){
-                            if(res[i].status === 'fulfilled'){
+                        for (var i = 0; i < res.length; i++) {
+                            if (res[i].status === 'fulfilled') {
                                 success.push(res[i].value);
                                 error.push(null);
-                            }else{
+                            } else {
                                 status = false;
                                 error.push(res[i].value);
                             }
                         }
-                        if(status === true){
+                        if (status === true) {
                             deferred.resolve(success);
-                        }else{
+                        } else {
                             deferred.resolve(error);
                         }
                     });
-                }else{
-                    _delete(appId, collectionName, document, accessList,isMasterKey).then(function(res){
+                } else {
+                    _delete(appId, collectionName, document, accessList, isMasterKey).then(function(res) {
                         deferred.resolve(res);
-                    },function(err){
-                       deferred.reject(err);
+                    }, function(err) {
+                        deferred.reject(err);
                     });
                 }
 
-            } catch(err){           
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+            } catch (err) {
+                global.winston.log('error', {
+                    "error": String(err),
+                    "stack": new Error().stack
+                });
                 deferred.reject(err);
             }
             return deferred.promise;
-			
 
-		},
+        },
         createIndex: function(appId, collectionName, columnName) {
 
             var deferred = q.defer();
 
-            try{
+            try {
                 databaseDriver.createIndex(appId, collectionName, columnName).then(function(doc) {
                     deferred.resolve(doc);
                 }, function(error) {
                     deferred.reject(error);
                 });
-            } catch(err){           
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+            } catch (err) {
+                global.winston.log('error', {
+                    "error": String(err),
+                    "stack": new Error().stack
+                });
                 deferred.reject(err);
             }
             return deferred.promise;
         }
-	};
+    };
 };
 
-function _save(appId, collectionName, document, accessList, isMasterKey, reqType, opts){
-    
+function _save(appId, collectionName, document, accessList, isMasterKey, reqType, opts) {
+
     var deferred = q.defer();
 
-    try{
+    try {
         console.log("DOCUMENT TO SAVE : ");
         console.log(document);
 
-        var docToSave = document;    
+        var docToSave = document;
 
         var promises = [];
         //To keep track of documents whether the document is save or update, this keeps track by id document with value
@@ -246,51 +264,51 @@ function _save(appId, collectionName, document, accessList, isMasterKey, reqType
         var unModDoc = [];
         /* reqType keeps track of the collections which are for save and which are for update.
          * It stores the id of collections for save in save array and update in update array*/
-        if(!reqType) {
-            
+        if (!reqType) {
+
             reqType = {
                 save: [],
                 update: []
             };
-            
+
             document = _generateId(document, reqType);
         }
         var parentId = document._id;
         console.log("Id Generated");
-        document = _getModifiedDocs(document,unModDoc);
-        if(document && Object.keys(document).length>0){
-            customHelper.checkWriteAclAndUpdateVersion(appId,document,accessList,isMasterKey).then(function(listOfDocs){
+        document = _getModifiedDocs(document, unModDoc);
+        if (document && Object.keys(document).length > 0) {
+            customHelper.checkWriteAclAndUpdateVersion(appId, document, accessList, isMasterKey).then(function(listOfDocs) {
                 var obj = _seperateDocs(listOfDocs);
                 listOfDocs = obj.newDoc;
                 obj = obj.oldDoc;
                 console.log("ACL checked");
-                _validateSchema(appId,listOfDocs,accessList,isMasterKey).then(function(listOfDocs){
+                _validateSchema(appId, listOfDocs, accessList, isMasterKey).then(function(listOfDocs) {
                     console.log("Schema checked");
-                    
-                    var mongoDocs = JSON.parse(JSON.stringify(listOfDocs)); //making copies of an array to avoid modification by "call by reference" 
-                                       
-                    promises.push(databaseDriver.save(appId,mongoDocs));                    
-                    global.q.allSettled(promises).then(function (array) {
-                        if(array[0].state === 'fulfilled') {
-                            _sendNotification(appId,array[0],reqType);
+
+                    var mongoDocs = JSON.parse(JSON.stringify(listOfDocs)); //making copies of an array to avoid modification by "call by reference"
+
+                    promises.push(databaseDriver.save(appId, mongoDocs));
+                    global.q.allSettled(promises).then(function(array) {
+                        if (array[0].state === 'fulfilled') {
+                            _sendNotification(appId, array[0], reqType);
                             unModDoc = _merge(parentId, array[0].value, unModDoc);
                             console.log('SAVED Doc');
                             console.log(unModDoc);
                             deferred.resolve(unModDoc);
-                        }else{
-                            _rollBack(appId,array,listOfDocs,obj).then(function(res){
-                                global.winston.log('error',res);
+                        } else {
+                            _rollBack(appId, array, listOfDocs, obj).then(function(res) {
+                                global.winston.log('error', res);
                                 deferred.reject("Unable to Save the document at this time");
-                            },function(err){
-                                global.winston.log('error',err);
+                            }, function(err) {
+                                global.winston.log('error', err);
                                 deferred.reject(err);
                             });
                         }
                     });
-                },function(err){
+                }, function(err) {
                     deferred.reject(err);
                 });
-            },function(err){
+            }, function(err) {
                 deferred.reject("Unauthorized to modify");
             });
         } else {
@@ -299,73 +317,82 @@ function _save(appId, collectionName, document, accessList, isMasterKey, reqType
             deferred.resolve(docToSave);
         }
 
-    } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+    } catch (err) {
+        global.winston.log('error', {
+            "error": String(err),
+            "stack": new Error().stack
+        });
         deferred.reject(err);
     }
     return deferred.promise;
 }
 
-function _delete(appId, collectionName, document, accessList,isMasterKey){
+function _delete(appId, collectionName, document, accessList, isMasterKey) {
     var deferred = q.defer();
 
-    try{
+    try {
         var promises = [];
         if (document._id) {
-            customHelper.verifyWriteACLAndUpdateVersion(appId, collectionName, document, accessList, isMasterKey).then(function(doc){             
+            customHelper.verifyWriteACLAndUpdateVersion(appId, collectionName, document, accessList, isMasterKey).then(function(doc) {
                 promises.push(databaseDriver.delete(appId, collectionName, document, accessList, isMasterKey));
                 if (promises.length > 0) {
-                    global.q.allSettled(promises).then(function (res) {
+                    global.q.allSettled(promises).then(function(res) {
                         if (res[0].state === 'fulfilled') {
                             global.realTime.sendObjectNotification(appId, document, 'deleted');
                             deferred.resolve(document);
-                        }else {
-                            _deleteRollback(appId, doc.oldDoc, res).then(function (res) {
+                        } else {
+                            _deleteRollback(appId, doc.oldDoc, res).then(function(res) {
                                 deferred.reject("Unable to Delete Document Right Now Try Again !!!");
-                            }, function () {
+                            }, function() {
                                 deferred.reject("Unable to Delete");
                             });
                         }
                     });
                 }
-            }, function (err) {
+            }, function(err) {
                 deferred.reject("You do not have permission to delete the Object");
             });
         } else {
             deferred.reject("CanNot Delete an Unsaved Object");
         }
 
-    } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+    } catch (err) {
+        global.winston.log('error', {
+            "error": String(err),
+            "stack": new Error().stack
+        });
         deferred.reject(err);
     }
     return deferred.promise;
 
 }
 
-function _validateSchema(appId,listOfDocs,accessList,isMasterKey){
+function _validateSchema(appId, listOfDocs, accessList, isMasterKey) {
     var deferred = global.q.defer();
-    try{
+    try {
         var promises = [];
-        for(var i=0;i<listOfDocs.length;i++)
-            promises.push(_isSchemaValid(appId,listOfDocs[i]._tableName,listOfDocs[i],accessList,isMasterKey));
-        global.q.all(promises).then(function(docs){
+        for (var i = 0; i < listOfDocs.length; i++)
+            promises.push(_isSchemaValid(appId, listOfDocs[i]._tableName, listOfDocs[i], accessList, isMasterKey));
+        global.q.all(promises).then(function(docs) {
             deferred.resolve(docs);
-        },function(err){
+        }, function(err) {
             deferred.reject(err);
         });
 
-    } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+    } catch (err) {
+        global.winston.log('error', {
+            "error": String(err),
+            "stack": new Error().stack
+        });
         deferred.reject(err);
     }
     return deferred.promise;
 }
 
-function _sendNotification(appId,res,reqType){
-    try{
+function _sendNotification(appId, res, reqType) {
+    try {
         for (var i = 0; i < res.value.length; i++) {
-            if (res.value[i].state === 'fulfilled') { 
+            if (res.value[i].state === 'fulfilled') {
                 if (reqType.save.indexOf(res.value[i].value._id) >= 0) {
                     global.realTime.sendObjectNotification(appId, res.value[i].value, 'created');
                 } else {
@@ -375,39 +402,40 @@ function _sendNotification(appId,res,reqType){
         }
         return '';
 
-    } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+    } catch (err) {
+        global.winston.log('error', {
+            "error": String(err),
+            "stack": new Error().stack
+        });
         return null;
     }
 }
 
-var _isSchemaValid = function(appId,collectionName,document,accessList,isMasterKey){
+var _isSchemaValid = function(appId, collectionName, document, accessList, isMasterKey) {
     var mainPromise = q.defer();
 
-    try{
+    try {
         var promises = [];
-        if(!document){
+        if (!document) {
             mainPromise.reject('Document is undefined');
             return mainPromise.promise;
         }
         var modifiedDocuments = document._modifiedColumns;
-        global.mongoUtil.collection.getSchema(appId, collectionName).then(function(columns){
-               //check for required.
-            if(!document['_tableName'] || !document['_type']){
+        global.mongoUtil.collection.getSchema(appId, collectionName).then(function(columns) {
+            //check for required.
+            if (!document['_tableName'] || !document['_type']) {
                 mainPromise.reject('Not a type of table');
                 return mainPromise.promise;
             }
-            for(var i=0;i<columns.length; i++){
-                if( columns[i].name === 'id')
+            for (var i = 0; i < columns.length; i++) {
+                if (columns[i].name === 'id')
                     continue; //ignore.
 
-                if(document[columns[i].name] === undefined){
+                if (document[columns[i].name] === undefined) {
                     document[columns[i].name] = columns[i].defaultValue;
                 }
 
-                if(columns[i].dataType === 'File' && document[columns[i].name] &&
-                    document[columns[i].name]._type &&  document[columns[i].name]._type === 'file' &&
-                    !document[columns[i].name]._id){ //if url of the file is null, which means file is not saved. Remove the whole object.
+                if (columns[i].dataType === 'File' && document[columns[i].name] && document[columns[i].name]._type && document[columns[i].name]._type === 'file' && !document[columns[i].name]._id) { //if url of the file is null, which means file is not saved. Remove the whole object.
                     document[columns[i].name] = null;
                 }
 
@@ -419,7 +447,7 @@ var _isSchemaValid = function(appId,collectionName,document,accessList,isMasterK
                 }
 
                 //Is Editable only by master key is true?
-                if (columns[i].editableByMasterKey && modifiedDocuments.indexOf(columns[i].name)>-1) {
+                if (columns[i].editableByMasterKey && modifiedDocuments.indexOf(columns[i].name) > -1) {
                     if (!isMasterKey) {
                         mainPromise.reject(columns[i].name + ' is only editable by Master Key.');
                         return mainPromise.promise;
@@ -427,9 +455,8 @@ var _isSchemaValid = function(appId,collectionName,document,accessList,isMasterK
                 }
 
                 //This code encrypts the password in the documents. It shouldn't be here in validateSchema - Let's have it here for temp.
-                if(columns[i].dataType === 'EncryptedText'){
-                    if (document[columns[i].name] &&  typeof document[columns[i].name] === 'string'
-                        && document._modifiedColumns.indexOf(columns[i].name) !== -1) {
+                if (columns[i].dataType === 'EncryptedText') {
+                    if (document[columns[i].name] && typeof document[columns[i].name] === 'string' && document._modifiedColumns.indexOf(columns[i].name) !== -1) {
                         document[columns[i].name] = _encrypt(document[columns[i].name]);
                     }
                 }
@@ -437,21 +464,23 @@ var _isSchemaValid = function(appId,collectionName,document,accessList,isMasterK
             }
 
             //check for unique.
-            var query = { $or: [  ] };
+            var query = {
+                $or: []
+            };
 
-            for(var i=0;i<columns.length; i++){
-                if(columns[i].unique && document[columns[i].name] && modifiedDocuments.indexOf(columns[i].name)>=0){
+            for (var i = 0; i < columns.length; i++) {
+                if (columns[i].unique && document[columns[i].name] && modifiedDocuments.indexOf(columns[i].name) >= 0) {
                     var temp = {};
-                        //relation unique check.
-                    if(columns[i].dataType === 'List' || columns[i].dataType === 'Object')
+                    //relation unique check.
+                    if (columns[i].dataType === 'List' || columns[i].dataType === 'Object')
                         continue;
-                    if(columns[i].dataType === 'Relation' && !document[columns[i].name]._id) //if relation and object is not saved.
+                    if (columns[i].dataType === 'Relation' && !document[columns[i].name]._id) //if relation and object is not saved.
                         continue;
-                    if(columns[i].dataType === 'Relation' && document[columns[i].name]._id){ //if it is a relation and the object is saved before and has an id.
-                        temp[columns[i].name+'._id'] = document[columns[i].name]._id;
-                    }else if(columns[i].dataType === 'File' && document[columns[i].name]._id){ //if it is a relation and the object is saved before and has an id.
-                        temp[columns[i].name+'._id'] = document[columns[i].name]._id;
-                    }else{
+                    if (columns[i].dataType === 'Relation' && document[columns[i].name]._id) { //if it is a relation and the object is saved before and has an id.
+                        temp[columns[i].name + '._id'] = document[columns[i].name]._id;
+                    } else if (columns[i].dataType === 'File' && document[columns[i].name]._id) { //if it is a relation and the object is saved before and has an id.
+                        temp[columns[i].name + '._id'] = document[columns[i].name]._id;
+                    } else {
                         temp[columns[i].name] = document[columns[i].name];
                     }
                     query.$or.push(temp);
@@ -459,37 +488,35 @@ var _isSchemaValid = function(appId,collectionName,document,accessList,isMasterK
                     console.log(query);
                 }
             }
-            if(query.$or.length>0){
+            if (query.$or.length > 0) {
                 var findPromise = q.defer();
                 promises.push(findPromise.promise);
-                global.mongoService.document.find(appId, collectionName, query, null, null, 9999999, 0, null, true).then(function(res){
+                global.mongoService.document.find(appId, collectionName, query, null, null, 9999999, 0, null, true).then(function(res) {
                     console.log('Unique Result');
                     console.log(res);
                     if (res.length === 1 && res[0]._id === document._id) {
                         findPromise.resolve('Update the document');
-                    }else if(res.length>0){
+                    } else if (res.length > 0) {
                         findPromise.reject('Unique constraint violated.');
-                    }else{
+                    } else {
                         findPromise.resolve('save the document');
                     }
-                }, function(error){
+                }, function(error) {
                     findPromise.reject(error);
                 });
             }
-                //check the schema here.
-            for(var key in document) {
+            //check the schema here.
+            for (var key in document) {
                 if (modifiedDocuments.indexOf(key) >= 0) {
                     if (key === '_tableName' || key === '_type' || key === '_version')
-                        continue; //ignore.
-                        //check id.
+                        continue; //check id; //ignore.
                     else if (key === '_id') {
-                            //check if this is a string.
+                        //check if this is a string.
                         if (typeof document[key] !== 'string') {
                             mainPromise.reject('Invalid data in ID of type ' + collectionName + '. It should be of type string');
                             return mainPromise.promise;
                         }
-                    }
-                    else {
+                    } else {
                         var col = _.first(_.where(columns, {name: key})); //get the column of this key.
                         if (!col) {
                             mainPromise.reject('Invalid column ' + key + ' in ' + collectionName);
@@ -501,7 +528,7 @@ var _isSchemaValid = function(appId,collectionName,document,accessList,isMasterK
                             if (res.message) {
                                 mainPromise.reject(res.message);
                                 return mainPromise.promise;
-                            }else{
+                            } else {
                                 document[key] = res.data;
                             }
                         }
@@ -522,10 +549,10 @@ var _isSchemaValid = function(appId,collectionName,document,accessList,isMasterK
                                 return mainPromise.promise;
                             }
                         }
-                        
+
                         /// List check
                         if (document[key] && datatype === 'List' && Object.prototype.toString.call(document[key]) !== '[object Array]') {
-                                //if it is a list.
+                            //if it is a list.
                             mainPromise.reject('Invalid Data in ' + key + ' of type ' + document._tableName + '. It should be of type ' + datatype);
                             return mainPromise.promise;
                         }
@@ -537,16 +564,13 @@ var _isSchemaValid = function(appId,collectionName,document,accessList,isMasterK
                                         //if something is wrong.
                                         mainPromise.reject(res.message);
                                         return mainPromise.promise;
-                                    }else{
+                                    } else {
                                         document[key] = res.data;
                                     }
                                 } else {
                                     for (var i = 0; i < document[key].length; i++) {
                                         if (document[key][i]._tableName) {
-                                            if (col.relatedTo === document[key][i]._tableName) {
-
-                                            }
-                                            else {
+                                            if (col.relatedTo === document[key][i]._tableName) {} else {
                                                 mainPromise.reject('Invalid Data in ' + key + ' of type ' + collectionName + '. It should be list of ' + col.relatedTo);
                                                 return mainPromise.promise;
                                             }
@@ -561,29 +585,31 @@ var _isSchemaValid = function(appId,collectionName,document,accessList,isMasterK
                     }
                 }
             }
-            if(promises.length>0){
-                   //you have related documents or unique queries.
-                q.all(promises).then(function(results){
+            if (promises.length > 0) {
+                //you have related documents or unique queries.
+                q.all(promises).then(function(results) {
                     var obj = {}
                     obj.document = document;
                     obj.schema = columns;
                     mainPromise.resolve(obj);
-                }, function(error){
+                }, function(error) {
                     mainPromise.reject(error);
                 });
-            }else{
+            } else {
                 var obj = {}
                 obj.document = document;
                 obj.schema = columns;
                 mainPromise.resolve(obj); //resolve this promise.
             }
-        }, function(error){
+        }, function(error) {
             mainPromise.reject(error);
         });
 
-    
-    } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+    } catch (err) {
+        global.winston.log('error', {
+            "error": String(err),
+            "stack": new Error().stack
+        });
         mainPromise.reject(err);
     }
 
@@ -591,13 +617,13 @@ var _isSchemaValid = function(appId,collectionName,document,accessList,isMasterK
 
 };
 
-function _checkBasicDataTypes(data, datatype, columnName, tableName){
+function _checkBasicDataTypes(data, datatype, columnName, tableName) {
 
-    try{
-        if( Object.prototype.toString.call( data ) === '[object Array]' ) {
-            for(var i=0;i<data.length; i++){
+    try {
+        if (Object.prototype.toString.call(data) === '[object Array]') {
+            for (var i = 0; i < data.length; i++) {
 
-                var res = _checkDataTypeUtil(data[i],datatype, columnName, tableName);
+                var res = _checkDataTypeUtil(data[i], datatype, columnName, tableName);
 
                 if (!res.message) {
                     data[i] = res.data;
@@ -605,8 +631,8 @@ function _checkBasicDataTypes(data, datatype, columnName, tableName){
                     return res;
                 }
             }
-        }else{
-            return _checkDataTypeUtil(data,datatype, columnName, tableName);
+        } else {
+            return _checkDataTypeUtil(data, datatype, columnName, tableName);
         }
         var obj = {};
         obj.data = data;
@@ -614,224 +640,247 @@ function _checkBasicDataTypes(data, datatype, columnName, tableName){
 
         return obj; //success!
 
-    }catch(err){
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+    } catch (err) {
+        global.winston.log('error', {
+            "error": String(err),
+            "stack": new Error().stack
+        });
         return null;
     }
 }
 
-function _checkDataTypeUtil(data, datatype, columnName,  tableName){
+function _checkDataTypeUtil(data, datatype, columnName, tableName) {
 
-    try{
+    try {
         var obj = {};
         obj.data = data;
         obj.message = null;
         var isValid = true;
 
-        if(data && datatype === 'Number' && typeof data !== 'number'){
+        if (data && datatype === 'Number' && typeof data !== 'number') {
             isValid = false;
         }
 
-        if(data && datatype === 'Text' && typeof data !== 'string'){
+        if (data && datatype === 'Text' && typeof data !== 'string') {
             isValid = false;
         }
 
-        if(data && datatype === 'EncryptedText' && typeof data !== 'string'){
+        if (data && datatype === 'EncryptedText' && typeof data !== 'string') {
             isValid = false;
         }
 
-        if(data && datatype === 'Email' && typeof data !== 'string'){
-            isValid = false;
-        }
-        
-        if(data && datatype === 'Email' && typeof data === 'string' && !util.isEmailValid(data)){
-            isValid = false;
-        }   
-        
-        if(data && datatype === 'URL' && typeof data !== 'string'){
-            isValid = false;
-        }
-        
-        if(data && datatype === 'URL' && typeof data === 'string' && !util.isUrlValid(data)){
-            isValid = false;
-        }
-        
-
-        if(data && datatype === 'EncryptedText' && typeof data !== 'string'){
+        if (data && datatype === 'Email' && typeof data !== 'string') {
             isValid = false;
         }
 
-        if(data && datatype === 'Boolean' && typeof data !== 'boolean'){
+        if (data && datatype === 'Email' && typeof data === 'string' && !util.isEmailValid(data)) {
             isValid = false;
         }
 
-        if(data && datatype === 'DateTime' && new Date(data).toString() === 'Invalid Date'){
+        if (data && datatype === 'URL' && typeof data !== 'string') {
             isValid = false;
-        }else{
-            if(data && datatype === 'DateTime' && typeof data === "string"){
+        }
+
+        if (data && datatype === 'URL' && typeof data === 'string' && !util.isUrlValid(data)) {
+            isValid = false;
+        }
+
+        if (data && datatype === 'EncryptedText' && typeof data !== 'string') {
+            isValid = false;
+        }
+
+        if (data && datatype === 'Boolean' && typeof data !== 'boolean') {
+            isValid = false;
+        }
+
+        if (data && datatype === 'DateTime' && new Date(data).toString() === 'Invalid Date') {
+            isValid = false;
+        } else {
+            if (data && datatype === 'DateTime' && typeof data === "string") {
                 obj.data = new Date(data);
             }
         }
 
-
-        if(data && datatype === 'ACL' && typeof data !== 'object' && data.read && data.write){
+        if (data && datatype === 'ACL' && typeof data !== 'object' && data.read && data.write) {
             isValid = false;
         }
 
-        if(data && datatype === 'Object' && typeof data !== 'object'){
+        if (data && datatype === 'Object' && typeof data !== 'object') {
             isValid = false;
         }
 
-        if(data && datatype === 'GeoPoint' && data._type !== 'point'){
+        if (data && datatype === 'GeoPoint' && data._type !== 'point') {
             isValid = false;
         }
 
-        if(data && datatype === 'GeoPoint' && data._type === 'point'){
-            if((Number(data.latitude)<= -90 || Number(data.latitude)>=90)  || (Number(data.longitude)<= -180 && Number(data.longitude)>=180)) {
+        if (data && datatype === 'GeoPoint' && data._type === 'point') {
+            if ((Number(data.latitude) <= -90 || Number(data.latitude) >= 90) || (Number(data.longitude) <= -180 && Number(data.longitude) >= 180)) {
                 isValid = false;
             }
         }
 
-        if(data && datatype === 'File' && (data._type &&  data._type !== 'file')){
+        if (data && datatype === 'File' && (data._type && data._type !== 'file')) {
             isValid = false;
         }
 
-        if(!isValid){
-            obj.message = 'Invalid data in column '+columnName+' of table '+tableName+'. It should be of type '+datatype;
+        if (!isValid) {
+            obj.message = 'Invalid data in column ' + columnName + ' of table ' + tableName + '. It should be of type ' + datatype;
         }
 
         return obj; //success!
 
-    } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+    } catch (err) {
+        global.winston.log('error', {
+            "error": String(err),
+            "stack": new Error().stack
+        });
         return null;
     }
 }
 
-function _isBasicDataType(dataType){
-    try{
+function _isBasicDataType(dataType) {
+    try {
 
-        var types = ['Object', 'ACL', 'DateTime', 'Boolean', 'EncryptedText', 'URL', 'Email','Text', 'File','Number','GeoPoint'];
+        var types = [
+            'Object',
+            'ACL',
+            'DateTime',
+            'Boolean',
+            'EncryptedText',
+            'URL',
+            'Email',
+            'Text',
+            'File',
+            'Number',
+            'GeoPoint'
+        ];
 
-        if(types.indexOf(dataType)>-1){
+        if (types.indexOf(dataType) > -1) {
             return true;
         }
 
         return false;
 
-    } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack});       
+    } catch (err) {
+        global.winston.log('error', {
+            "error": String(err),
+            "stack": new Error().stack
+        });
     }
 }
 
-function _generateId(document,reqType) {
+function _generateId(document, reqType) {
 
-    try{
-        if(document._type)
-        {
-            if(!document._id)
-            {
+    try {
+        if (document._type) {
+            if (!document._id) {
                 var id;
-                if(document._hash) {
+                if (document._hash) {
                     id = document._hash;
                     delete document._hash;
-                }
-                else
+                } else
                     id = util.getId();
                 document._id = id;
                 reqType.save.push(id);
-            }else{
+            } else {
                 reqType.update.push(document._id);
             }
         }
-        for(var key in document)
-        {
-            if(document[key]) {
+        for (var key in document) {
+            if (document[key]) {
                 if (document[key].constructor === Array && document[key].length) {
-                        for (var i = 0; i < document[key].length; i++){
-                            if (document[key][i]._tableName) {
-                                _generateId(document[key][i], reqType);
-                            }
+                    for (var i = 0; i < document[key].length; i++) {
+                        if (document[key][i]._tableName) {
+                            _generateId(document[key][i], reqType);
                         }
+                    }
                 }
                 if (typeof document[key] === 'object' && document[key] != null) {
                     if (document[key]._type) {
-                        _generateId(document[key],reqType);
+                        _generateId(document[key], reqType);
                     }
                 }
             }
         }
         return document;
 
-    } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+    } catch (err) {
+        global.winston.log('error', {
+            "error": String(err),
+            "stack": new Error().stack
+        });
         return null;
     }
 }
 
-
 function _checkForRelation(document) {
-    try{
+    try {
         for (keys in document) {
             if (keys._type)
                 return true;
-        }
+            }
         return false;
-    } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack});        
+    } catch (err) {
+        global.winston.log('error', {
+            "error": String(err),
+            "stack": new Error().stack
+        });
     }
 }
 
 //clones an object.
-function _clone(document){
-    try{
+function _clone(document) {
+    try {
         return JSON.parse(JSON.stringify(document));
-    } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
-       return null;
+    } catch (err) {
+        global.winston.log('error', {
+            "error": String(err),
+            "stack": new Error().stack
+        });
+        return null;
     }
 }
 
-function _getModifiedDocs(document,unModDoc){
-    
-    try{
+function _getModifiedDocs(document, unModDoc) {
+
+    try {
         var modifiedDocument = [];
         /* check for isModified with id so as to ensure that if document is modified or it is created
             as a newly created document will have isModified as false*/
         var doc = {};
-        if(document._isModified) {
+        if (document._isModified) {
             var modifiedColumns = document._modifiedColumns;
-            
+
             if (!document.createdAt) {
                 document.createdAt = new Date();
-                if(modifiedColumns.indexOf('createdAt') === -1)
+                if (modifiedColumns.indexOf('createdAt') === -1)
                     modifiedColumns.push('createdAt');
-            }
+                }
             if (!document.expires) {
                 document.expires = null;
-                if(modifiedColumns.indexOf('expires') === -1)
+                if (modifiedColumns.indexOf('expires') === -1)
                     modifiedColumns.push('expires');
-            }
+                }
             document.updatedAt = new Date();
-            if(modifiedColumns.indexOf('updatedAt') === -1) {
+            if (modifiedColumns.indexOf('updatedAt') === -1) {
                 modifiedColumns.push('updatedAt');
             }
             modifiedColumns.push('_version');
 
             doc = {};
-            
-            for(var key in document){
+
+            for (var key in document) {
                 //Push in the basic fields as they are not there in Modified Array
-                if(key === '_id' || key === '_type' || key === '_tableName' || key === '_isModified' || key === '_modifiedColumns'){
+                if (key === '_id' || key === '_type' || key === '_tableName' || key === '_isModified' || key === '_modifiedColumns') {
                     doc[key] = document[key];
                     // Check if it is a List of Relation's if yes then just have the basic parameter's not all
-                }else if(modifiedColumns.indexOf(key) >= 0) {
-                    if (document[key] !== null && document[key].constructor === Array && document[key].length>0) {
+                } else if (modifiedColumns.indexOf(key) >= 0) {
+                    if (document[key] !== null && document[key].constructor === Array && document[key].length > 0) {
                         if (document[key][0]._type && document[key][0]._tableName) {
                             var subDoc = [];
 
                             //get the unique objects
-                            document[key]=_getUniqueObjects(document[key]);
+                            document[key] = _getUniqueObjects(document[key]);
 
                             for (var i = 0; i < document[key].length; i++) {
                                 var temp = {};
@@ -841,7 +890,7 @@ function _getModifiedDocs(document,unModDoc){
                                 subDoc.push(temp);
                             }
                             doc[key] = subDoc;
-                        }else if(document[key][0]._type && document[key][0]._type === 'file'){
+                        } else if (document[key][0]._type && document[key][0]._type === 'file') {
                             var subDoc = [];
                             for (var i = 0; i < document[key].length; i++) {
                                 var temp = {};
@@ -850,8 +899,7 @@ function _getModifiedDocs(document,unModDoc){
                                 subDoc.push(temp);
                             }
                             doc[key] = subDoc;
-                        }
-                        else{
+                        } else {
                             doc[key] = document[key];
                         }
                     } else if (document[key] !== null && document[key].constructor === Object) {
@@ -861,73 +909,76 @@ function _getModifiedDocs(document,unModDoc){
                             subDoc._tableName = document[key]._tableName;
                             subDoc._id = document[key]._id;
                             doc[key] = subDoc;
-                        }else if(document[key]._type && document[key]._type === 'file'){
+                        } else if (document[key]._type && document[key]._type === 'file') {
                             var subDoc = {};
                             subDoc._type = document[key]._type;
                             subDoc._id = document[key]._id;
                             doc[key] = subDoc;
-                        }else{
+                        } else {
                             doc[key] = document[key];
                         }
-                    }else{
+                    } else {
                         doc[key] = document[key];
                     }
                 }
             }
-            
+
             delete document._modifiedColumns;
             document._isModified = false;
-            
-        }else{
-           
+
+        } else {
+
             var unDoc = _stripChildDocs(document);
             unModDoc.push(unDoc);
-            
-             delete document._modifiedColumns;
+
+            delete document._modifiedColumns;
             document._isModified = false;
         }
-        if(doc) {
+        if (doc) {
             if (Object.keys(doc).length > 0)
                 modifiedDocument.push(doc);
-        }
-        for(var key in document){
-            if(document[key]){
-                if(document[key].constructor === Array && document[key].length>0) {
-                    
+            }
+        for (var key in document) {
+            if (document[key]) {
+                if (document[key].constructor === Array && document[key].length > 0) {
+
                     for (var i = 0; i < document[key].length; i++) {
-                            if (document[key][i]._type && document[key][i]._type!== "point") { //geopoint has no modified array, so we skip passing that to the function.
+                        if (document[key][i]._type && document[key][i]._type !== "point") { //geopoint has no modified array, so we skip passing that to the function.
                             var subDoc = _getModifiedDocs(document[key][i], unModDoc);
                             //concat, as the there can be subDocuments to subDocuments
                             if (subDoc.length !== 0)
                                 modifiedDocument = modifiedDocument.concat(subDoc);
+                            }
+                        }
+
+                }
+                if (typeof document[key] === 'object' && document[key] != null) {
+                    if (document[key]._type && document[key]._type !== "point") { //geopoint has no modified array, so we skip passing that to the function.
+                        var subDoc = _getModifiedDocs(document[key], unModDoc);
+                        if (subDoc.length !== 0)
+                            modifiedDocument = modifiedDocument.concat(subDoc);
                         }
                     }
-                    
-                }
-                if(typeof document[key] ==='object' && document[key]!= null){
-                    if(document[key]._type && document[key]._type!== "point"){//geopoint has no modified array, so we skip passing that to the function.
-                        var subDoc = _getModifiedDocs(document[key],unModDoc);
-                        if(subDoc.length !==0)
-                            modifiedDocument = modifiedDocument.concat(subDoc);
-                    }
-                }
             }
         }
         return modifiedDocument;
 
-    } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
-       return null;
+    } catch (err) {
+        global.winston.log('error', {
+            "error": String(err),
+            "stack": new Error().stack
+        });
+        return null;
     }
 }
 
 /*this function checks returns a document with all its sub-documents removed from it. In case of sub-documents
 it leaves the basic values like id, tableName and type*/
-function _stripChildDocs (document){
-    try{
+function _stripChildDocs(document) {
+    try {
         var doc = {};
-        for(var key in document) {
-            if (document[key] !== null && document[key].constructor === Array && document[key].length>0) {
+        for (var key in document) {
+            if (document[key] !== null && document[key].constructor === Array && document[key].length > 0) {
                 if (document[key][0]._type && document[key][0]._tableName) {
                     var subDoc = [];
                     for (var i = 0; i < document[key].length; i++) {
@@ -957,63 +1008,69 @@ function _stripChildDocs (document){
         }
         return doc;
 
-    } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
-       return null;
+    } catch (err) {
+        global.winston.log('error', {
+            "error": String(err),
+            "stack": new Error().stack
+        });
+        return null;
     }
 }
 
-function _deleteRollback(appId, document, res){
+function _deleteRollback(appId, document, res) {
     var deferred = global.q.defer();
 
-    try{
+    try {
         var promises = [];
-        _getSchema(appId,document._tableName).then(function(schema){
+        _getSchema(appId, document._tableName).then(function(schema) {
             var docToSave = {};
             docToSave.document = document;
             docToSave.schema = schema;
             document = [];
             document.push(docToSave);
-          
+
             if (res[0].state === 'fulfilled') {
                 promises.push(global.mongoService.document.save(appId, document));
             }
             if (promises.length > 0) {
-                global.q.all(promises).then(function () {
+                global.q.all(promises).then(function() {
                     deferred.resolve("Success");
-                }, function () {
+                }, function() {
                     deferred.reject(err);
                 });
             }
-        },function(){
+        }, function() {
             deferred.reject();
         });
 
-    } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+    } catch (err) {
+        global.winston.log('error', {
+            "error": String(err),
+            "stack": new Error().stack
+        });
         deferred.reject(err);
     }
     return deferred.promise;
 }
 
-function _merge(collectionId,listOfDocs,unModDoc){
-    try{
+function _merge(collectionId, listOfDocs, unModDoc) {
+    try {
         var document = {};
-        for(var i=0;i<listOfDocs.length;i++) {
+        for (var i = 0; i < listOfDocs.length; i++) {
             if (listOfDocs[i].value)
                 if (listOfDocs[i].value._id === collectionId) {
                     document = listOfDocs[i].value;
                     break;
                 }
-        }
-        if(Object.keys(document).length === 0) {
+            }
+        if (Object.keys(document).length === 0) {
             for (var i = 0; i < unModDoc.length; i++) {
                 if (unModDoc[i])
                     if (unModDoc[i]._id === collectionId) {
                         document = unModDoc[i];
                         break;
                     }
-            }
+                }
         }
         for (var key in document) {
             if (document[key]) {
@@ -1025,13 +1082,13 @@ function _merge(collectionId,listOfDocs,unModDoc){
                                     if (listOfDocs[k].value._id === document[key][i]._id) {
                                         document[key][i] = _merge(listOfDocs[k].value._id, listOfDocs, unModDoc);
                                     }
-                            }
+                                }
                             for (var k = 0; k < unModDoc.length; k++) {
                                 if (unModDoc[k])
                                     if (unModDoc[k]._id === document[key][i]._id)
                                         document[key][i] = _merge(unModDoc[k]._id, listOfDocs, unModDoc);
-                            }
-                        }
+                                    }
+                                }
                     }
                 } else if (document[key] !== null && document[key].constructor === Object) {
                     if (document[key]._type) {
@@ -1039,49 +1096,52 @@ function _merge(collectionId,listOfDocs,unModDoc){
                             if (listOfDocs[k].value)
                                 if (listOfDocs[k].value._id === document[key]._id)
                                     document[key] = listOfDocs[k].value;
-                        }
-                        for (var k = 0; k < unModDoc.length; k++) {
+                                }
+                            for (var k = 0; k < unModDoc.length; k++) {
                             if (unModDoc[k])
                                 if (unModDoc[k]._id === document[key]._id)
                                     document[key] = unModDoc[k];
-                        }
-                    }
+                                }
+                            }
                 }
             }
         }
         return document;
 
-    } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+    } catch (err) {
+        global.winston.log('error', {
+            "error": String(err),
+            "stack": new Error().stack
+        });
         return null;
     }
 }
 
-function _queryType(query,select){
-    try{
-        var orientQuery = ['$all','$any','$index','$first'];
+function _queryType(query, select) {
+    try {
+        var orientQuery = ['$all', '$any', '$index', '$first'];
         var keys = Object.keys(query);
-        if(query.$include && query.$include.length > 0){
+        if (query.$include && query.$include.length > 0) {
             return true;
         }
-        if(query.$includeList && query.$includeList.length >0){
+        if (query.$includeList && query.$includeList.length > 0) {
             return true;
         }
-        if(query.$or && query.$or.length > 0){
-            if(_queryType(query.$or[0]))
+        if (query.$or && query.$or.length > 0) {
+            if (_queryType(query.$or[0]))
                 return true;
-            if(_queryType(query.$or[1]))
-                return true;
-        }
-        for(var i=0;i<keys.length;i++){
-            if(orientQuery.indexOf(keys[i]) !== -1 ){
+            if (_queryType(query.$or[1]))
                 return true;
             }
-            if(keys[i].split('.').length>1){
+        for (var i = 0; i < keys.length; i++) {
+            if (orientQuery.indexOf(keys[i]) !== -1) {
+                return true;
+            }
+            if (keys[i].split('.').length > 1) {
                 return true;
             }
         }
-        if(select) {
+        if (select) {
             var keys = Object.keys(select);
             for (var i = 0; i < keys.length; i++) {
                 if (keys[i].split('.').length > 1) {
@@ -1091,66 +1151,72 @@ function _queryType(query,select){
         }
         return false;
 
-    } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack});        
+    } catch (err) {
+        global.winston.log('error', {
+            "error": String(err),
+            "stack": new Error().stack
+        });
     }
 }
 
 //this function gets the schema of the table from the db.
-function _getSchema(appId, collectionName){
+function _getSchema(appId, collectionName) {
 
     var deferred = global.q.defer();
 
-    try{
-        global.mongoUtil.collection.getSchema(appId, collectionName).then(function(columns){
+    try {
+        global.mongoUtil.collection.getSchema(appId, collectionName).then(function(columns) {
             deferred.resolve(columns);
-        }, function(error){
+        }, function(error) {
             deferred.reject(error);
         });
 
-    } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-        deferred.reject(err);       
+    } catch (err) {
+        global.winston.log('error', {
+            "error": String(err),
+            "stack": new Error().stack
+        });
+        deferred.reject(err);
     }
 
     return deferred.promise;
 }
 
 //this function encrypts the password, if the password is passed in the Query.
-function _encryptPasswordInQuery(appId, collectionName, query){
+function _encryptPasswordInQuery(appId, collectionName, query) {
 
     var deferred = global.q.defer();
 
-    try{
-        if(collectionName === '_File'){
+    try {
+        if (collectionName === '_File') {
             deferred.resolve(query);
-        }else{
-            _getSchema(appId, collectionName).then(function (columns) {
+        } else {
+            _getSchema(appId, collectionName).then(function(columns) {
                 var passwordColumnNames = [];
-                
+
                 for (var i = 0; i < columns.length; i++) {
-                    if (columns[i].dataType === 'EncryptedText') { 
+                    if (columns[i].dataType === 'EncryptedText') {
                         passwordColumnNames.push(columns[i].name);
                     }
                 }
-                
-                //resolve if there are no password fields. 
+
+                //resolve if there are no password fields.
                 if (passwordColumnNames.length === 0) {
                     deferred.resolve(query);
                 } else {
-                    //or modify the query and resolve it. 
+                    //or modify the query and resolve it.
                     function _recursiveEncryptQuery(query, passwordColumnNames) {
-                        
+
                         for (var key in query) {
                             if (key === '$or') {
-                                for (var i = 0; i < query[key].length; i++) { 
+                                for (var i = 0; i < query[key].length; i++) {
                                     query[key][i] = _recursiveEncryptQuery(query[key][i], passwordColumnNames);
                                 }
-                                
+
                             }
-                        }     
-                        
-                        return _.mapObject(query, function (val, key) {
+                        }
+
+                        return _.mapObject(query, function(val, key) {
                             if (passwordColumnNames.indexOf(key) > -1) {
                                 if (typeof val !== 'object') {
                                     return _encrypt(val);
@@ -1159,38 +1225,43 @@ function _encryptPasswordInQuery(appId, collectionName, query){
                             return val;
                         });
                     }
-                    
+
                     query = _recursiveEncryptQuery(query, passwordColumnNames);
-                    
+
                     deferred.resolve(query);
                 }
-            }, function (error) {
+            }, function(error) {
                 deferred.reject(error);
-            });    
+            });
         }
-    } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-        deferred.reject(err);       
+    } catch (err) {
+        global.winston.log('error', {
+            "error": String(err),
+            "stack": new Error().stack
+        });
+        deferred.reject(err);
     }
-    
+
     return deferred.promise;
 }
 
-
-function _encrypt(data) { 
-    try{
+function _encrypt(data) {
+    try {
         return crypto.pbkdf2Sync(data, global.keys.secureKey, 10000, 64).toString('base64');
-    } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-        return null;     
+    } catch (err) {
+        global.winston.log('error', {
+            "error": String(err),
+            "stack": new Error().stack
+        });
+        return null;
     }
 }
 
-function _attachSchema(docsArray,oldDocs){
-    try{
-        for(var i=0;i<oldDocs.length;i++){
-            for(var j=0;j<docsArray.length;j++){
-                if(oldDocs[i]._id === docsArray[j].document._id){
+function _attachSchema(docsArray, oldDocs) {
+    try {
+        for (var i = 0; i < oldDocs.length; i++) {
+            for (var j = 0; j < docsArray.length; j++) {
+                if (oldDocs[i]._id === docsArray[j].document._id) {
                     var obj = {};
                     obj.document = oldDocs[i];
                     obj.schema = docsArray[j].schema;
@@ -1199,47 +1270,53 @@ function _attachSchema(docsArray,oldDocs){
             }
         }
         return oldDocs;
-    } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-        return null;     
+    } catch (err) {
+        global.winston.log('error', {
+            "error": String(err),
+            "stack": new Error().stack
+        });
+        return null;
     }
 }
 
-function _rollBack(appId,status,docsArray,oldDocs){
+function _rollBack(appId, status, docsArray, oldDocs) {
     var deferred = global.q.defer();
 
-    try{
-        oldDocs = _attachSchema(docsArray,oldDocs);
+    try {
+        oldDocs = _attachSchema(docsArray, oldDocs);
         var promises = [];
-        var arr = []; 
-        if(status[0].state === 'fulfilled'){
-            if(oldDocs)
-                promises.push(global.mongoService.document.save(appId,oldDocs));
+        var arr = [];
+        if (status[0].state === 'fulfilled') {
+            if (oldDocs)
+                promises.push(global.mongoService.document.save(appId, oldDocs));
             else {
-                for(var i=0;i<docsArray.length;i++) {
-                    promises.push(global.mongoService.delete(appId,docsArray[i]._tableName,docsArray[i]));
+                for (var i = 0; i < docsArray.length; i++) {
+                    promises.push(global.mongoService.delete(appId, docsArray[i]._tableName, docsArray[i]));
                 }
             }
             arr.push('Mongo');
         }
-       
-        global.q.allSettled(promises).then(function(res){
+
+        global.q.allSettled(promises).then(function(res) {
             var status = true;
-            for(var i=0;i<res.length;i++){
-                if(res[i].state !== 'fulfilled'){
+            for (var i = 0; i < res.length; i++) {
+                if (res[i].state !== 'fulfilled') {
                     status = false;
                     deferred.reject();
                     break;
                 }
             }
-            if(status === true) {
+            if (status === true) {
                 deferred.resolve();
             }
         });
 
-    } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-        deferred.reject(err);     
+    } catch (err) {
+        global.winston.log('error', {
+            "error": String(err),
+            "stack": new Error().stack
+        });
+        deferred.reject(err);
     }
     return deferred.promise;
 }
@@ -1248,71 +1325,75 @@ function _rollBack(appId,status,docsArray,oldDocs){
     Remove this Function it is no Longer Reqd
  */
 
-function _revertBack(appId, statusArray, docsArray, oldDocs){
+function _revertBack(appId, statusArray, docsArray, oldDocs) {
     var promises = [];
     var deferred = global.q.defer();
 
-    try{       
-        promises.push(_mongoRevert(appId,statusArray[1],docsArray,oldDocs));       
-        global.q.all(promises).then(function(res){
+    try {
+        promises.push(_mongoRevert(appId, statusArray[1], docsArray, oldDocs));
+        global.q.all(promises).then(function(res) {
             deferred.resolve(res);
-        },function(err){
+        }, function(err) {
             deferred.reject(err);
         });
 
-    } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-        deferred.reject(err);     
+    } catch (err) {
+        global.winston.log('error', {
+            "error": String(err),
+            "stack": new Error().stack
+        });
+        deferred.reject(err);
     }
     return deferred.promise;
 }
-
 
 /*
  Remove this Function it is no Longer Reqd
  */
 
-function _mongoRevert(appId, status, docsArray, oldDocs){
+function _mongoRevert(appId, status, docsArray, oldDocs) {
     var promises = [];
     var deferred = global.q.defer();
 
-    try{
-        if(status.state === 'fulfilled'){
+    try {
+        if (status.state === 'fulfilled') {
             deferred.resolve();
-        }else{
+        } else {
             var docs = status.value;
             var save = [];
             var del = [];
-            for(var i=0;i<docs.length;i++){
-                if(docs[i].state !== 'fulfilled'){
-                    for(var j=0;j<oldDocs.length;j++){
-                        if(docs[i].value._id === oldDocs[i]._id){
+            for (var i = 0; i < docs.length; i++) {
+                if (docs[i].state !== 'fulfilled') {
+                    for (var j = 0; j < oldDocs.length; j++) {
+                        if (docs[i].value._id === oldDocs[i]._id) {
                             save.push(oldDocs[i]);
                         }
                     }
                 }
             }
-            global.mongoService.document.save(appId,docs).then(function(){
+            global.mongoService.document.save(appId, docs).then(function() {
                 deferred.resove();
-            },function(){
+            }, function() {
                 deferred.reject();
             });
         }
 
-    } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-        deferred.reject(err);     
+    } catch (err) {
+        global.winston.log('error', {
+            "error": String(err),
+            "stack": new Error().stack
+        });
+        deferred.reject(err);
     }
     return deferred.promise;
 }
 
-
-function _seperateDocs(listOfDocs){
-    try{
+function _seperateDocs(listOfDocs) {
+    try {
         var newDoc = [];
         var oldDoc = [];
-        for(var i=0;i<listOfDocs.length;i++){
-            if(listOfDocs[i].oldDoc){
+        for (var i = 0; i < listOfDocs.length; i++) {
+            if (listOfDocs[i].oldDoc) {
                 oldDoc.push(listOfDocs[i].oldDoc);
             }
             newDoc.push(listOfDocs[i].newDoc);
@@ -1322,33 +1403,36 @@ function _seperateDocs(listOfDocs){
         obj.oldDoc = oldDoc;
         return obj;
 
-    } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-        return null;    
+    } catch (err) {
+        global.winston.log('error', {
+            "error": String(err),
+            "stack": new Error().stack
+        });
+        return null;
     }
 }
 
-function _checkIdList(document,reqType){
-    try{
+function _checkIdList(document, reqType) {
+    try {
         var idList = reqType.save;
         idList = idList.concat(reqType.update);
-        if(idList.indexOf(document._id) !== -1  || idList.indexOf(document._hash) !== -1){
-            if(document._isModified){
+        if (idList.indexOf(document._id) !== -1 || idList.indexOf(document._hash) !== -1) {
+            if (document._isModified) {
                 delete document._isModified;
                 delete document._modifiedColumns;
             }
-        }else{
-            for(var key in document) {
-                if(document[key]) {
+        } else {
+            for (var key in document) {
+                if (document[key]) {
                     if (document[key].constructor === Array && document[key].length) {
                         if (document[key][0]._tableName) {
                             for (var i = 0; i < document[key].length; i++)
-                                document[key][i]= _checkIdList(document[key][i],reqType);
+                                document[key][i] = _checkIdList(document[key][i], reqType);
+                            }
                         }
-                    }
                     if (typeof document[key] === 'object' && document[key] != null) {
                         if (document[key]._type) {
-                            document[key] = _checkIdList(document[key],reqType);
+                            document[key] = _checkIdList(document[key], reqType);
                         }
                     }
                 }
@@ -1356,9 +1440,12 @@ function _checkIdList(document,reqType){
         }
         return document;
 
-    } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-        return null;    
+    } catch (err) {
+        global.winston.log('error', {
+            "error": String(err),
+            "stack": new Error().stack
+        });
+        return null;
     }
 }
 
@@ -1366,38 +1453,30 @@ function _checkIdList(document,reqType){
   Params : objectsList
   Returns: uniqueListObject
 */
-function _getUniqueObjects(objectsList){
+function _getUniqueObjects(objectsList) {
 
+    var uniqueListIds = [];
+    var uniqueListObject = [];
 
-    var uniqueListIds=[];
-    var uniqueListObject=[];
-
-    try{
-        if(objectsList && objectsList.length>0){
-            for(var i=0;i<objectsList.length;++i){
-                if(uniqueListIds.indexOf(objectsList[i]._id)<0){
+    try {
+        if (objectsList && objectsList.length > 0) {
+            for (var i = 0; i < objectsList.length; ++i) {
+                if (uniqueListIds.indexOf(objectsList[i]._id) < 0) {
                     uniqueListIds.push(objectsList[i]._id);
                     uniqueListObject.push(objectsList[i]);
                 }
             }
-        }else{
-            uniqueListObject=objectsList;
-        }    
+        } else {
+            uniqueListObject = objectsList;
+        }
 
         return uniqueListObject;
 
-    } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
-        return uniqueListObject;    
+    } catch (err) {
+        global.winston.log('error', {
+            "error": String(err),
+            "stack": new Error().stack
+        });
+        return uniqueListObject;
     }
 }
-
-
-
-
-
-
-
-
-
-
