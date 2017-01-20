@@ -45,7 +45,7 @@ module.exports = function() {
 
 
      //create a new key for an existing app.
-    global.app.put('/app/keys/:appId', function (req, res) {
+    global.app.put('/app/key/:appId', function (req, res) { 
 
         console.log("++++ Create App API ++++++");
 
@@ -57,12 +57,12 @@ module.exports = function() {
             var name = req.body.name.toLowerCase();
             if(keyType =='master' || keyType =='client')
             {
-
                 console.log("App ID : "+appId);
 
                 var sdk = req.body.sdk || "REST";
 
-                if (global.keys.secureKey === req.body.secureKey) {
+                if (global.keys.secureKey === req.body.secureKey) 
+                {
                     console.log("Secure Key Valid. Creating keys for app...");
                     if(appId && keyType && name)
                     {
@@ -74,6 +74,7 @@ module.exports = function() {
                             console.log(err);
                             res.status(500).send("Error");
                         });
+
                     } else{
                         console.log("Params Missing ");
                         res.status(401).send("Params Missing");

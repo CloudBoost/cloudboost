@@ -358,7 +358,7 @@ function ignoreUrl(requestUrl) {
 
     console.log("Adding Ingnore URLS....");
     var ignoreUrl = [ //for the routes to check whether the particular service is active/not
-      "/api/userService", "/api/customService", "/api/roleService", "/api/status", "/file", "/api/createIndex", "/pages", "/status","keys"
+      "/api/userService", "/api/customService", "/api/roleService", "/api/status", "/file", "/api/createIndex", "/pages", "/status"
     ];
 
     for (var i = 0; i < ignoreUrl.length; i++) {

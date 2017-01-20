@@ -178,12 +178,12 @@ module.exports = function() {
 
                         masterObj['key'] = _generateKey();
                         masterObj['type'] ='master';
-                        masterObj['name'] = 'master';
+                        masterObj['name'] = 'Master';
                         arr.push(masterObj);
 
                         clientObj['key'] = _generateKey();
                         clientObj['type'] ='client';
-                        clientObj['name'] = 'client';
+                        clientObj['name'] = 'Client';
                         arr.push(clientObj);
 
                        document.keys =arr
@@ -234,33 +234,36 @@ module.exports = function() {
 
                 console.log("Find AppID  exists or not...");
                 var collection =  global.mongoClient.db(global.keys.globalDb).collection("projects");
-                var findAppIdQuery = collection.find({appId:appId});
-                var findNameQuery  = collection.find({"keys.name":name})
-                findAppIdQuery.toArray(function(err, projects) {  
+                var findQuery = collection.find({appId:appId});
+
+                findQuery.toArray(function(err, projects) {
+
                     if (err) {
                         global.winston.log('error',err);
                         deferred.reject(err);
                     }
                     if(projects.length>0) {
                     
-                    console.log("appId found, Checking for existing name.");   
+                        console.log("appId found, Checking for existing name."); 
 
-                    findNameQuery.toArray(function(err,projects){        
-                        if (err) {
-                            global.winston.log('error',err);
-                            deferred.reject(err);
+                        nameExist = false;  
+
+                        for(i=0;i<projects[0].keys.length;i++)
+                        {
+                            if(projects[0].keys[i].name.toLowerCase() == name)
+                            {
+                                nameExist = true
+                            }
                         }
 
-                        if(projects.length>0) { console.log('Name exists')
-                            deferred.reject('Name already exists');
-                        }else {
+                        if(!nameExist)
+                        {
                             var obj = {};
 
                             obj['key'] = _generateKey();
                             obj['type'] = keyType;
                             obj['name'] = name;
 
-                    
                             console.log('Collection Object Created.');
 
                             collection.update({appId:appId}, {$push:{keys:obj}} ,function(err,project){
@@ -269,20 +272,22 @@ module.exports = function() {
                                     console.log(error);
                                     deferred.reject("Cannot create a new app masterkey now.");
 
-                                }else if(project) {
+                                } else if(project) {
                                     console.log("new app masterkey got saved...");
-
                                         deferred.resolve(project); 
                                 }
 
-                            });  
-                        }
-                    });
+                            }); 
 
-                }else{
-                console.log(" AppID not exists");
-                 deferred.reject("AppID not exists.");
-                }                                         
+                        } else{
+                            console.log(" Name already exists");
+                            deferred.reject("Name already exists.");
+                        }
+
+                    } else{
+                         console.log(" AppID not exists");
+                         deferred.reject("AppID not exists.");
+                    }                                         
                 });                              
                
             }catch(e){
@@ -509,14 +514,16 @@ module.exports = function() {
     			var _self = this;
 
     			_self.getApp(appId).then(function(project){
+
                     for(i=0;i<project.keys.length;i++)
                     {
-        				if(project.keys[i].key === key && project.keys[i].type =='master'){
-        					deferred.resolve(true);
+        				if(project.keys[i].key === key && project.keys[i].type =='master')
+                        {
+                          deferred.resolve(true);
                         }
     				}
 
-    				deferred.resolve(false);
+    			  deferred.resolve(false);
     				
     			}, function(){});
 
@@ -540,7 +547,8 @@ module.exports = function() {
                     {
                        // if(project.keys.master === key || project.keys.js === key){
 
-        				if(project.keys[i].key === key){
+        				if(project.keys[i].key === key)
+                        {
         					deferred.resolve(true);
                         }
                     }
