@@ -171,9 +171,22 @@ module.exports = function() {
 
                         var document = {};
                         document.appId = appId;
-                        document.keys = {};
-                        document.keys.js = _generateKey();
-                        document.keys.master = _generateKey();
+                        document.keys ={}
+                        var  masterObj = {};
+                        var  clientObj = {};
+                        var  arr =[];
+
+                        masterObj['key'] = _generateKey();
+                        masterObj['type'] ='master';
+                        masterObj['name'] = 'master';
+                        arr.push(masterObj);
+
+                        clientObj['key'] = _generateKey();
+                        clientObj['type'] ='client';
+                        clientObj['name'] = 'client';
+                        arr.push(clientObj);
+
+                       document.keys =arr
 
                         var collection =  global.mongoClient.db(global.keys.globalDb).collection("projects");
                 
@@ -209,6 +222,79 @@ module.exports = function() {
 
             return deferred.promise;
         },
+
+        createAppKeys: function (appId, keyType,name){
+
+            console.log("Create App Masterkey function...");
+
+            var deferred = q.defer();
+            try {                
+
+                var promises = [];
+
+                console.log("Find AppID  exists or not...");
+                var collection =  global.mongoClient.db(global.keys.globalDb).collection("projects");
+                var findAppIdQuery = collection.find({appId:appId});
+                var findNameQuery  = collection.find({"keys.name":name})
+                findAppIdQuery.toArray(function(err, projects) {  
+                    if (err) {
+                        global.winston.log('error',err);
+                        deferred.reject(err);
+                    }
+                    if(projects.length>0) {
+                    
+                    console.log("appId found, Checking for existing name.");   
+
+                    findNameQuery.toArray(function(err,projects){        
+                        if (err) {
+                            global.winston.log('error',err);
+                            deferred.reject(err);
+                        }
+
+                        if(projects.length>0) { console.log('Name exists')
+                            deferred.reject('Name already exists');
+                        }else {
+                            var obj = {};
+
+                            obj['key'] = _generateKey();
+                            obj['type'] = keyType;
+                            obj['name'] = name;
+
+                    
+                            console.log('Collection Object Created.');
+
+                            collection.update({appId:appId}, {$push:{keys:obj}} ,function(err,project){
+                                if(err) {
+                                    console.log("Error : Cannot create app masterkey .");
+                                    console.log(error);
+                                    deferred.reject("Cannot create a new app masterkey now.");
+
+                                }else if(project) {
+                                    console.log("new app masterkey got saved...");
+
+                                        deferred.resolve(project); 
+                                }
+
+                            });  
+                        }
+                    });
+
+                }else{
+                console.log(" AppID not exists");
+                 deferred.reject("AppID not exists.");
+                }                                         
+                });                              
+               
+            }catch(e){
+                global.winston.log('error',{"error":String(e),"stack": new Error().stack});
+                console.log("FATAL : Cannot create app masterkey.");
+                console.log(e);
+                deferred.reject("Cannot create an app masterkey  right now.");
+            }
+
+            return deferred.promise;
+        },
+
 
 		deleteApp: function(appId) {
 			
@@ -423,11 +509,15 @@ module.exports = function() {
     			var _self = this;
 
     			_self.getApp(appId).then(function(project){
-    				if(project.keys.master === key){
-    					deferred.resolve(true);
-    				}else{
-    					deferred.resolve(false);
+                    for(i=0;i<project.keys.length;i++)
+                    {
+        				if(project.keys[i].key === key && project.keys[i].type =='master'){
+        					deferred.resolve(true);
+                        }
     				}
+
+    				deferred.resolve(false);
+    				
     			}, function(){});
 
             } catch(err){           
@@ -445,11 +535,18 @@ module.exports = function() {
     			var _self = this;
 
     			_self.getApp(appId).then(function(project){
-    				if(project.keys.master === key || project.keys.js === key){
-    					deferred.resolve(true);
-    				}else{
-    					deferred.resolve(false);
-    				}
+
+                    for(i=0;i<project.keys.length;i++)
+                    {
+                       // if(project.keys.master === key || project.keys.js === key){
+
+        				if(project.keys[i].key === key){
+        					deferred.resolve(true);
+                        }
+                    }
+    			
+    			 	deferred.resolve(false);
+    			
     			}, 
                 function(){
     				deferred.reject("Error in getting key");
@@ -685,99 +782,6 @@ module.exports = function() {
         	
         	return deferred.promise;
         },
-
-        changeAppClientKey: function(appId,value) {
-
-            var deferred = q.defer();
-
-            try{                
-
-                var query={
-                  appId:appId                
-                };
-
-
-
-                var newClientkey = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), global.keys.secureKey, 100, 16).toString("base64");
-
-                if(value){
-                    newClientkey = value;
-                }
-
-                var setJSON={
-                    "keys.js":newClientkey 
-                };
-
-                var collection =  global.mongoClient.db(global.keys.globalDb).collection("projects");
-                collection.findOneAndUpdate(query,{$set:setJSON},{returnOriginal: false},function(err,newDoc){                
-                    if (err) {
-                        global.winston.log('error',err);
-                        deferred.reject(err);
-                    }
-                    if(newDoc){
-                        console.log("Successfull on Change client key in app...");
-                        //delete project/app from redis so further request will make a new entry with new keys
-                        deleteAppFromRedis(appId);
-                        deferred.resolve(newDoc.value);
-                    }else{
-                        console.log("App not found for Change client key in app...");
-                        deferred.resolve(null);
-                    }
-                });
-
-            } catch(err){           
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
-                deferred.reject(err);
-            }
-
-            return deferred.promise;
-        },
-
-        changeAppMasterKey: function(appId,value) {
-
-            var deferred = q.defer();
-
-            try{                
-
-                var query={
-                  appId:appId                
-                };
-
-                var newMasterkey = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), global.keys.secureKey, 100, 16).toString("base64");
-
-                if(value){
-                    newMasterkey = value;
-                }
-
-                var setJSON={
-                    "keys.master":newMasterkey 
-                };
-
-                var collection =  global.mongoClient.db(global.keys.globalDb).collection("projects");
-                collection.findOneAndUpdate(query,{$set:setJSON},{returnOriginal: false},function(err,newDoc){                
-                    if (err) {
-                        global.winston.log('error',err);
-                        deferred.reject(err);
-                    }
-                    if(newDoc){
-                        console.log("Successfull on Change client key in app...");
-                        //delete project/app from redis so further request will make a new entry with new keys
-                        deleteAppFromRedis(appId);
-                        deferred.resolve(newDoc.value);
-                    }else{
-                        console.log("App not found for Change client key in app...");
-                        deferred.resolve(null);
-                    }
-                });
-
-            } catch(err){           
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
-                deferred.reject(err);
-            }
-
-            return deferred.promise;
-        },
-
         exportDatabase : function(appId){
             var deferred = q.defer();
             var promises = []
