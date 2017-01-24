@@ -43,59 +43,6 @@ module.exports = function() {
         }
     });
 
-
-     //create a new key for an existing app.
-    global.app.put('/app/key/:appId', function (req, res) { 
-
-        console.log("++++ Create App API ++++++");
-
-        try{
-            console.log("SecureKey to create app:"+req.body.secureKey);
-
-            var appId = req.params.appId;
-            var keyType = req.body.keyType.toLowerCase();
-            var name = req.body.name.toLowerCase();
-            if(keyType =='master' || keyType =='client')
-            {
-                console.log("App ID : "+appId);
-
-                var sdk = req.body.sdk || "REST";
-
-                if (global.keys.secureKey === req.body.secureKey) 
-                {
-                    console.log("Secure Key Valid. Creating keys for app...");
-                    if(appId && keyType && name)
-                    {
-                        global.appService.createAppKeys(appId,keyType,name).then(function (app){
-                            console.log("Success : App Keys Successfully Created.");
-                            res.status(200).send(app);
-                        }, function (err){
-                            console.log("Error : Cannot create keys for app.");
-                            console.log(err);
-                            res.status(500).send("Error");
-                        });
-
-                    } else{
-                        console.log("Params Missing ");
-                        res.status(401).send("Params Missing");
-
-                    }
-                } else {
-                    console.log("Unauthorized: Invalid Secure Key ");
-                    res.status(401).send("Unauthorized");
-                }
-                
-                global.apiTracker.log(appId,"App /  keys /:appId", req.url,sdk);
-            }
-            else{
-                    console.log("Keyname must be master or client. ");
-                    res.status(401).send("Invalid keyType");
-            }
-        }catch(e){
-            console.log(e);
-        }
-    });
-
     //delete app.
 	global.app.delete('/app/:appId', _deleteApp);
     global.app.put('/app/:appId', _deleteApp);

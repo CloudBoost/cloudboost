@@ -16,44 +16,38 @@ module.exports = function() {
 
             var appId   = req.params.appId;
             var keyType = req.body.keyType.toLowerCase();
-            var name    = req.body.name.toLowerCase();
-            
-            if(keyType =='master' || keyType =='client')
+            var name    = req.body.name;
+         
+            console.log("App ID : "+appId);
+
+            var sdk = req.body.sdk || "REST";
+
+            if (global.keys.secureKey === req.body.secureKey) 
             {
-                console.log("App ID : "+appId);
-
-                var sdk = req.body.sdk || "REST";
-
-                if (global.keys.secureKey === req.body.secureKey) 
+                console.log("Secure Key Valid. Creating keys for app...");
+                if(appId && keyType && name)
                 {
-                    console.log("Secure Key Valid. Creating keys for app...");
-                    if(appId && keyType && name)
-                    {
-                        global.appService.createAppKeys(appId,keyType,name).then(function (app){
-                            console.log("Success : App Keys Successfully Created.");
-                            res.status(200).send(app);
-                        }, function (err){
-                            console.log("Error : Cannot create keys for app.");
-                            console.log(err);
-                            res.status(500).send("Error");
-                        });
+                    global.appService.createAppKeys(appId,keyType,name).then(function (app){
+                        console.log("Success : App Keys Successfully Created.");
+                        res.status(200).send(app);
+                    }, function (err){
+                        console.log("Error : Cannot create keys for app.");
+                        console.log(err);
+                        res.status(500).send("Error");
+                    });
 
-                    } else{
-                        console.log("Params Missing ");
-                        res.status(401).send("Params Missing");
+                } else{
+                    console.log("Params Missing ");
+                    res.status(401).send("Params Missing");
 
-                    }
-                } else {
-                    console.log("Unauthorized: Invalid Secure Key ");
-                    res.status(401).send("Unauthorized");
                 }
-                
-                global.apiTracker.log(appId,"App /  keys /:appId", req.url,sdk);
+            } else {
+                console.log("Unauthorized: Invalid Secure Key ");
+                res.status(401).send("Unauthorized");
             }
-            else{
-                console.log("Keyname must be master or client. ");
-                res.status(401).send("Invalid keyType");
-            }
+            
+            global.apiTracker.log(appId,"App /  keys /:appId", req.url,sdk);
+            
         }catch(e){
             console.log(e);
         }
