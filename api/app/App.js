@@ -5,7 +5,6 @@
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
-
 module.exports = function() {
 
     //create a new app.
@@ -24,8 +23,16 @@ module.exports = function() {
             if (global.keys.secureKey === req.body.secureKey) {
                 console.log("Secure Key Valid. Creating app...");
                 global.appService.createApp(appId).then(function (app){
-                    console.log("Success : App Successfully Created.");
-                    res.status(200).send(app);
+
+                    global.appService.createDefaultTables(appId).then(function(){
+                        console.log("Success : App Successfully Created.");
+                        res.status(200).send(app);
+                    },function(err){
+                        console.log("Error : Cannot create an app.");
+                        console.log(err);
+                        res.status(500).send("Error");
+                    })
+
                 }, function (err){
                     console.log("Error : Cannot create an app.");
                     console.log(err);
