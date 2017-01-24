@@ -12,6 +12,7 @@ var crypto = require("crypto");
 var uuid = require('uuid');
 var _ = require('underscore');
 var util = require('../helpers/util.js');
+var tablesData = require('./tablesData.js')
 
 module.exports = function() {
 
@@ -684,6 +685,14 @@ module.exports = function() {
             }
         	
         	return deferred.promise;
+        },
+
+        createDefaultTables: function (appId){
+            return q.all([
+                        global.appService.upsertTable(appId,'Role',tablesData.Role),
+                        global.appService.upsertTable(appId,'Device',tablesData.Device),
+                        global.appService.upsertTable(appId,'User',tablesData.User)
+                    ])
         },
 
         changeAppClientKey: function(appId,value) {
