@@ -4,7 +4,8 @@
 #     (c) 2014 HackerBay, Inc. 
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
-
+var q = require('q');
+var tablesData = require('../../config/tablesData.js')
 
 module.exports = function() {
 
@@ -24,8 +25,20 @@ module.exports = function() {
             if (global.keys.secureKey === req.body.secureKey) {
                 console.log("Secure Key Valid. Creating app...");
                 global.appService.createApp(appId).then(function (app){
-                    console.log("Success : App Successfully Created.");
-                    res.status(200).send(app);
+
+                    q.all([
+                        global.appService.upsertTable(appId,'Role',tablesData.Role),
+                        global.appService.upsertTable(appId,'Device',tablesData.Device),
+                        global.appService.upsertTable(appId,'User',tablesData.User)
+                    ]).then(function(){
+                        console.log("Success : App Successfully Created.");
+                        res.status(200).send(app);
+                    },function(err){
+                        console.log("Error : Cannot create an app.");
+                        console.log(err);
+                        res.status(500).send("Error");
+                    })
+
                 }, function (err){
                     console.log("Error : Cannot create an app.");
                     console.log(err);
