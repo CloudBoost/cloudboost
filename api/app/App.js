@@ -5,7 +5,7 @@
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 var q = require('q');
-var tablesData = require('../../config/tablesData.js')
+var tablesData = require('./tablesData.js')
 
 module.exports = function() {
 
