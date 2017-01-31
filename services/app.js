@@ -15,6 +15,7 @@ var util = require('../helpers/util.js');
 var tablesData = require('./tablesData.js')
 var jsonexport = require('jsonexport');
 var json2xls = require('json2xls');
+var csv=require('csvtojson')
 
 module.exports = function() {
 
@@ -888,19 +889,18 @@ module.exports = function() {
             return deferred.promise; 
         },
 
-        exportTableDb : function(appId,tableName,formatType){
-           var deferred = q.defer();
-           var promises = []
-           var data = global.mongoClient.db(appId).collection(tableName).find()
-           data.toArray(function(err,data){ 
-                if (err) {
-                   global.winston.log('error',err);
-                   deferred.reject(err)
-                }
+        exportTable : function(appId,tableName,formatType){
+            var deferred = q.defer();
+            var promises = []
+        
+            global.customService.find(appId,tableName,{_tableName:tableName}, null, null, 0, null, true).then(function(data) 
+            
+            {
                 if(formatType === 'csv')
                 {
-                  jsonexport(data,function(err, csv){
-                    if(err) {deferred.reject(err)};
+                  jsonexport(data,function(err, csv)
+                  {
+                    if(err) {deferred.reject(err)}; 
                     deferred.resolve(csv)
                   });
                 }
@@ -909,9 +909,49 @@ module.exports = function() {
                     var xls = json2xls(data);
                     deferred.resolve(xls);
                 }          
-           })       
+            },function(err){
+
+               deferred.reject(err)
+            })       
            return deferred.promise;
-       },     
+       }, 
+
+        importTableDb : function(appId,tableName,data){console.log('hit')
+           var deferred = q.defer()
+          
+            csv()
+            .fromString(data)
+            .on('csv',(csvRow)=>{ //this func will be called twice. Header row will not be populated 
+                // csvRow =>  [1,2,3] and [4,5,6] 
+                console.log(csvRow)
+            })
+            .on('done',()=>{
+                console.log('end')
+            })
+
+           global.mongoClient.db(appId).collection(tableName).remove({},function(err, removed){
+               if(err) deferred.reject(err)
+
+               global.mongoClient.db(appId).createCollection(tableName, function(err, col) {
+                   if(err) deferred.reject(err)
+                    global.mongoClient.db(appId).collection(data, function(err, col) {
+                       if(err) deferred.reject(err)
+                       for (var j in data) {
+                           (function(j){
+                               col.insert(data[j], function(err) {
+                                   if(j == (data[j].length-1))
+                                   {
+                                       deferred.resolve(true);
+                                   }
+                               });
+                           })(j)
+                       }
+                    });
+               });                          
+           });
+         deferred.resolve(data)
+           return deferred.promise;
+       },   
 
         createDatabaseUser: function(appId){
             var deferred = q.defer();
