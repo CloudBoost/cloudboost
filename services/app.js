@@ -13,6 +13,8 @@ var uuid = require('uuid');
 var _ = require('underscore');
 var util = require('../helpers/util.js');
 var tablesData = require('./tablesData.js')
+var jsonexport = require('jsonexport');
+var json2xls = require('json2xls');
 
 module.exports = function() {
 
@@ -885,6 +887,31 @@ module.exports = function() {
             });
             return deferred.promise; 
         },
+
+        exportTableDb : function(appId,tableName,formatType){
+           var deferred = q.defer();
+           var promises = []
+           var data = global.mongoClient.db(appId).collection(tableName).find()
+           data.toArray(function(err,data){ 
+                if (err) {
+                   global.winston.log('error',err);
+                   deferred.reject(err)
+                }
+                if(formatType === 'csv')
+                {
+                  jsonexport(data,function(err, csv){
+                    if(err) {deferred.reject(err)};
+                    deferred.resolve(csv)
+                  });
+                }
+                if(formatType ==='xls')
+                {
+                    var xls = json2xls(data);
+                    deferred.resolve(xls);
+                }          
+           })       
+           return deferred.promise;
+       },     
 
         createDatabaseUser: function(appId){
             var deferred = q.defer();
