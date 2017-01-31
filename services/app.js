@@ -13,6 +13,9 @@ var uuid = require('uuid');
 var _ = require('underscore');
 var util = require('../helpers/util.js');
 var tablesData = require('./tablesData.js')
+var jsonexport = require('jsonexport');
+var json2xls = require('json2xls');
+const csv   =require('csvtojson')
 
 module.exports = function() {
 
@@ -172,9 +175,22 @@ module.exports = function() {
 
                         var document = {};
                         document.appId = appId;
-                        document.keys = {};
-                        document.keys.js = _generateKey();
-                        document.keys.master = _generateKey();
+                        document.keys ={}
+                        var  masterObj = {};
+                        var  clientObj = {};
+                        var  arr =[];
+
+                        masterObj['key'] = _generateKey();
+                        masterObj['type'] ='master';
+                        masterObj['name'] = 'Master';
+                        arr.push(masterObj);
+
+                        clientObj['key'] = _generateKey();
+                        clientObj['type'] ='client';
+                        clientObj['name'] = 'Client';
+                        arr.push(clientObj);
+
+                       document.keys =arr
 
                         var collection =  global.mongoClient.db(global.keys.globalDb).collection("projects");
                 
@@ -210,6 +226,89 @@ module.exports = function() {
 
             return deferred.promise;
         },
+
+        createAppKeys: function (appId, keyType,name){
+
+            console.log("Create App Masterkey function...");
+
+            var deferred = q.defer();
+            try {
+                    if(keyType =='master' || keyType =='client')
+                    {       
+                        var promises = [];
+
+                        console.log("Find AppID  exists or not...");
+                        var collection =  global.mongoClient.db(global.keys.globalDb).collection("projects");
+                        var findQuery = collection.find({appId:appId});
+
+                        findQuery.toArray(function(err, projects) {
+
+                            if (err) {
+                                global.winston.log('error',err);
+                                deferred.reject(err);
+                            }
+                            if(projects.length>0) {
+                            
+                                console.log("appId found, Checking for existing name."); 
+
+                                nameExist = false;  
+
+                                for(i=0;i<projects[0].keys.length;i++)
+                                {
+                                    if(projects[0].keys[i].name.toLowerCase() === name.toLowerCase())
+                                    {
+                                        nameExist = true
+                                    }
+                                }
+
+                                if(!nameExist)
+                                {
+                                    var obj = {};
+
+                                    obj['key'] = _generateKey();
+                                    obj['type'] = keyType;
+                                    obj['name'] = name;
+
+                                    console.log('Collection Object Created.');
+
+                                    collection.update({appId:appId}, {$push:{keys:obj}} ,function(err,project){
+                                        if(err) {
+                                            console.log("Error : Cannot create app masterkey .");
+                                            console.log(error);
+                                            deferred.reject("Cannot create a new app masterkey now.");
+
+                                        } else if(project) {
+                                            console.log("new app masterkey got saved...");
+                                                deferred.resolve(project); 
+                                        }
+
+                                    }); 
+
+                                } else{
+                                    console.log(" Key with name already exists");
+                                    deferred.reject("Key with name already exists.");
+                                }
+
+                            } else{
+                                 console.log(" App with App ID does not exists");
+                                 deferred.reject("App with App ID does not exists.");
+                            }                                         
+                        });  
+                } else{
+                    console.log("Keyname must be master or client. ");
+                    res.status(400).send("Invalid keyType");
+                }                            
+               
+            }catch(e){
+                global.winston.log('error',{"error":String(e),"stack": new Error().stack});
+                console.log("FATAL : Cannot create app masterkey.");
+                console.log(e);
+                deferred.reject("Cannot create an app masterkey  right now.");
+            }
+
+            return deferred.promise;
+        },
+
 
 		deleteApp: function(appId) {
 			
@@ -424,12 +523,21 @@ module.exports = function() {
     			var _self = this;
 
     			_self.getApp(appId).then(function(project){
-    				if(project.keys.master === key){
-    					deferred.resolve(true);
-    				}else{
-    					deferred.resolve(false);
+
+                    for(i=0;i<project.keys.length;i++)
+                    {
+        				if(project.keys[i].key === key && project.keys[i].type =='master')
+                        {
+                          deferred.resolve(true);
+                          break ;
+                        }
     				}
-    			}, function(){});
+
+    			    deferred.resolve(false);
+
+    			}, function(){
+                    deferred.reject("Error in getting key");
+                });
 
             } catch(err){           
                 global.winston.log('error',{"error":String(err),"stack": new Error().stack});
@@ -446,11 +554,17 @@ module.exports = function() {
     			var _self = this;
 
     			_self.getApp(appId).then(function(project){
-    				if(project.keys.master === key || project.keys.js === key){
-    					deferred.resolve(true);
-    				}else{
-    					deferred.resolve(false);
-    				}
+
+                    for(i=0;i<project.keys.length;i++)
+                    {
+        				if(project.keys[i].key === key)
+                        {
+        					deferred.resolve(true);
+                            break;
+                        }
+                    }
+    			
+    			 	deferred.resolve(false);    			
     			}, 
                 function(){
     				deferred.reject("Error in getting key");
@@ -686,6 +800,7 @@ module.exports = function() {
         	
         	return deferred.promise;
         },
+<<<<<<< HEAD
 
         createDefaultTables: function (appId){
             return q.all([
@@ -787,6 +902,8 @@ module.exports = function() {
             return deferred.promise;
         },
 
+=======
+>>>>>>> 5c76185abacafd354a81c6d98738304a3bb81774
         exportDatabase : function(appId){
             var deferred = q.defer();
             var promises = []
@@ -897,7 +1014,76 @@ module.exports = function() {
                     else deferred.resolve({username:username,password:password})
             });
             return deferred.promise;
-        }
+        },
+
+        exportTableDb : function(appId,tableName,formatType){
+           var deferred = q.defer();
+           var promises = []
+           var data = global.mongoClient.db(appId).collection(tableName).find()
+           data.toArray(function(err,data){ console.log('ok');console.log(data)
+                if (err) {
+                   global.winston.log('error',err);
+                   deferred.reject(err)
+                }
+                if(formatType === 'csv')
+                {
+                  jsonexport(data,function(err, csv){
+                    if(err) {deferred.reject(err)};
+                    console.log(csv);
+                    deferred.resolve(csv)
+                   
+                    });
+                }
+                if(formatType ==='xls')
+                {
+                    var xls = json2xls(data);
+                    console.log(xls)
+                    deferred.resolve(xls);
+                }
+                 
+           })
+
+            
+           return deferred.promise;
+       },
+
+       importTableDb : function(appId,tableName,data){console.log('hit')
+           var deferred = q.defer()
+          
+            csv({noheader:true})
+            .fromString(data)
+            .on('csv',(csvRow)=>{ 
+                console.log(csvRow)  
+            })
+            .on('done',(data)=>{
+                console.log(data) 
+            })
+
+            
+
+           // global.mongoClient.db(appId).collection(tableName).remove({},function(err, removed){
+           //     if(err) deferred.reject(err)
+
+           //     global.mongoClient.db(appId).createCollection(tableName, function(err, col) {
+           //         if(err) deferred.reject(err)
+           //          global.mongoClient.db(appId).collection(data, function(err, col) {
+           //             if(err) deferred.reject(err)
+           //             for (var j in data) {
+           //                 (function(j){
+           //                     col.insert(data[j], function(err) {
+           //                         if(j == (data[j].length-1))
+           //                         {
+           //                             deferred.resolve(true);
+           //                         }
+           //                     });
+           //                 })(j)
+           //             }
+           //          });
+           //     });                          
+           // });
+         deferred.resolve(data)
+           return deferred.promise;
+       },
       
 	};
 
