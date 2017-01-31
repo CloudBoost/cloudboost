@@ -13,6 +13,9 @@ var uuid = require('uuid');
 var _ = require('underscore');
 var util = require('../helpers/util.js');
 var tablesData = require('./tablesData.js')
+var jsonexport = require('jsonexport');
+var json2xls = require('json2xls');
+const csv   =require('csvtojson')
 
 module.exports = function() {
 
@@ -897,7 +900,76 @@ module.exports = function() {
                     else deferred.resolve({username:username,password:password})
             });
             return deferred.promise;
-        }
+        },
+
+        exportTableDb : function(appId,tableName,formatType){
+           var deferred = q.defer();
+           var promises = []
+           var data = global.mongoClient.db(appId).collection(tableName).find()
+           data.toArray(function(err,data){ console.log('ok');console.log(data)
+                if (err) {
+                   global.winston.log('error',err);
+                   deferred.reject(err)
+                }
+                if(formatType === 'csv')
+                {
+                  jsonexport(data,function(err, csv){
+                    if(err) {deferred.reject(err)};
+                    console.log(csv);
+                    deferred.resolve(csv)
+                   
+                    });
+                }
+                if(formatType ==='xls')
+                {
+                    var xls = json2xls(data);
+                    console.log(xls)
+                    deferred.resolve(xls);
+                }
+                 
+           })
+
+            
+           return deferred.promise;
+       },
+
+       importTableDb : function(appId,tableName,data){console.log('hit')
+           var deferred = q.defer()
+          
+            csv({noheader:true})
+            .fromString(data)
+            .on('csv',(csvRow)=>{ 
+                console.log(csvRow)  
+            })
+            .on('done',(data)=>{
+                console.log(data) 
+            })
+
+            
+
+           // global.mongoClient.db(appId).collection(tableName).remove({},function(err, removed){
+           //     if(err) deferred.reject(err)
+
+           //     global.mongoClient.db(appId).createCollection(tableName, function(err, col) {
+           //         if(err) deferred.reject(err)
+           //          global.mongoClient.db(appId).collection(data, function(err, col) {
+           //             if(err) deferred.reject(err)
+           //             for (var j in data) {
+           //                 (function(j){
+           //                     col.insert(data[j], function(err) {
+           //                         if(j == (data[j].length-1))
+           //                         {
+           //                             deferred.resolve(true);
+           //                         }
+           //                     });
+           //                 })(j)
+           //             }
+           //          });
+           //     });                          
+           // });
+         deferred.resolve(data)
+           return deferred.promise;
+       },
       
 	};
 
