@@ -276,7 +276,7 @@ module.exports = function() {
         }
     });
 
-    //Export Tabel , parmas ->appId,tableId,formatType
+    //Export Tabel DB , parmas ->appId,tableName,formatType
     global.app.post('/backup/:appId/exporttable',function(req, res) {
         console.log("++++ Export Database ++++++");
         try{
@@ -285,9 +285,7 @@ module.exports = function() {
             var tableName = req.body.tableName;
             var appKey = req.body.appKey;
 
-
             global.appService.isMasterKey(appId,appKey).then(function (isMasterKey) {
-
                 if (isMasterKey) {
                     global.appService.exportTableDb(appId,tableName,formatType).then(function(data){
                         res.writeHead(200, {
