@@ -15,7 +15,8 @@ var util = require('../helpers/util.js');
 var tablesData = require('./tablesData.js')
 var jsonexport = require('jsonexport');
 var json2xls = require('json2xls');
-var csv=require('csvtojson')
+var csv=require('csvtojson');
+
 
 module.exports = function() {
 
@@ -893,7 +894,7 @@ module.exports = function() {
             var deferred = q.defer();
             var promises = []
         
-            global.customService.find(appId,tableName,{_tableName:tableName}, null, null, 0, null, true).then(function(data) 
+            global.customService.find(appId,tableName,{}, null, null, 0, null, true).then(function(data) 
             
             {
                 if(formatType === 'csv')
@@ -907,8 +908,10 @@ module.exports = function() {
                 if(formatType ==='xls')
                 {
                     var xls = json2xls(data);
+                    console.log(xls)
                     deferred.resolve(xls);
-                }          
+                }   
+                       
             },function(err){
 
                deferred.reject(err)
@@ -916,40 +919,89 @@ module.exports = function() {
            return deferred.promise;
        }, 
 
-        importTableDb : function(appId,tableName,data){console.log('hit')
-           var deferred = q.defer()
-          
-            csv()
-            .fromString(data)
-            .on('csv',(csvRow)=>{ //this func will be called twice. Header row will not be populated 
-                // csvRow =>  [1,2,3] and [4,5,6] 
-                console.log(csvRow)
-            })
-            .on('done',()=>{
-                console.log('end')
-            })
+     
+        importTable : function(appId,tableName,file){
 
-           global.mongoClient.db(appId).collection(tableName).remove({},function(err, removed){
-               if(err) deferred.reject(err)
+             var deferred = q.defer();
+            // convert file buffer string to JSON
+            convertToJSON(file.toString()).then(function(data)
+            { 
 
-               global.mongoClient.db(appId).createCollection(tableName, function(err, col) {
-                   if(err) deferred.reject(err)
-                    global.mongoClient.db(appId).collection(data, function(err, col) {
-                       if(err) deferred.reject(err)
-                       for (var j in data) {
-                           (function(j){
-                               col.insert(data[j], function(err) {
-                                   if(j == (data[j].length-1))
-                                   {
-                                       deferred.resolve(true);
-                                   }
-                               });
-                           })(j)
-                       }
-                    });
-               });                          
-           });
-         deferred.resolve(data)
+               var _SchemaFromFile = Object.keys(data[0]);
+
+                // find if table name exist in _Schema collection , if exist push columns into array 
+                var collection =  global.mongoClient.db(appId).collection("_Schema").find({name:tableName});
+                collection.toArray(function(err,data)
+                { 
+                    if (err) {
+                        global.winston.log('error',err);
+                        deferred.reject(err);
+                    }
+                    if(data.length<1)
+                    { 
+                        deferred.reject('No tableName found in Collection _Schema');
+                    }
+
+                    var _SchemaFromCollection = []
+                    for(j=0; j<data[0].columns.length; j++)
+                    {
+                      _SchemaFromCollection.push(data[0].columns[j].name)
+                    } 
+
+                    var nonExistingColumns = _SchemaFromFile.filter(function(x){
+                                                return _SchemaFromCollection.indexOf(x) == -1
+                                                })
+                       
+                        //console.log(nonExistingColumns)
+                    var saveColumns = nonExistingColumns.filter(function(x){
+                                            return x.substring(0,1) != "_"
+                                      }).map(x =>{
+                                            return {
+                                                "name" : x,
+                                                "_type" : "column",
+                                                "dataType" : "string",
+                                                "required" : false,
+                                                "unique" : false,
+                                                "relatedTo" : null,
+                                                "relationType" : null,
+                                                "isDeletable" : false,
+                                                "isEditable" : false,
+                                                "isRenamable" : false,
+                                                "editableByMasterKey" : false,
+                                                "defaultValue" : null
+                                            }
+                                      })
+
+                    if(saveColumns.length>0)
+                    { 
+                        var obj = saveColumns.reduce(function(acc, cur, i) {
+                                      acc[i] = cur;
+                                      return acc;
+                                  });       
+                        coll = global.mongoClient.db(appId).collection("_Schema")        
+                        coll.update({name:tableName},{$push:{columns:obj}})          
+                    }
+                })
+                global.mongoClient.db(appId).collection(tableName, function(err, collection) {
+                    if(err) 
+                    {
+                        deferred.reject(err)
+                    }
+                    for (var j in data)
+                    {
+                        (function(j){
+                            collection.insert(data[j], function(err) {
+                               if(j == (data[j].length-1))
+                               {   
+                                   deferred.resolve(true);
+                               } 
+                            });
+                        })(j);
+                    };
+                });
+            },function(err){
+                deferred.reject(err)
+            })    
            return deferred.promise;
        },   
 
@@ -971,6 +1023,23 @@ module.exports = function() {
 };
 
 
+function convertToJSON(file){
+    
+    var def = q.defer()
+    arr =[]; 
+
+    csv()
+   .fromString(file.toString())
+   .on('json', (json) => {
+       arr.push(json)
+   })
+   .on('done',(error)=>{
+       if(error) def.reject(error)
+       def.resolve(arr)
+   })
+
+   return def.promise  
+}
 
 function _isBasicDataType(dataType){
     try{

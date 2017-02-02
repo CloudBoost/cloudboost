@@ -285,11 +285,12 @@ module.exports = function() {
             var tableName = req.params.tablename;
             var appKey = req.body.appKey;
 
-            if(formatType === 'csv' || formatType === 'xls')
+            if(formatType === "csv" || formatType === "xls")
             {
                 global.appService.isMasterKey(appId,appKey).then(function (isMasterKey) {
 
-                    if (isMasterKey) {
+                    if (isMasterKey) 
+                    {
                         global.appService.exportTable(appId,tableName,formatType).then(function(data){
                             res.writeHead(200, {
                               "Content-Type": "application/octet-stream",
@@ -303,7 +304,7 @@ module.exports = function() {
                         })
                     } else {
                         res.status(401).send({status : 'Unauthorized'});
-                        }
+                    }
                 }, function (error) {
                     return res.status(500).send('Cannot retrieve security keys.');
                 });
@@ -316,21 +317,21 @@ module.exports = function() {
     });
 
      //Import Database for :appID
-    global.app.post('/backup/:appId/importtable',function(req, res) { console.log('hhh')
+    global.app.post('/import/:appId/:tablename',function(req, res) { 
         console.log("++++ Import Database ++++++");
         try{         
             var appKey = req.body.key;
             var appId = req.params.appId;
-            var tableName = req.body.tableName
-            data = req.body.data
-            // global.appService.isMasterKey(appId,appKey).then(function (isMasterKey) {
-            //     if (isMasterKey) {console.log('hiy')
-                   // var file;
-                    // if(req.files && req.files.file){
-                    //     file = req.files.file.data                            
-                    // }
-                    // if(file){
-                        global.appService.importTableDb(appId,tableName,data).then(function(data){
+            var tableName = req.params.tablename;
+
+            global.appService.isMasterKey(appId,appKey).then(function (isMasterKey) {
+                if (isMasterKey) {
+                   var file;
+                    if(req.files && req.files.file){
+                        file = req.files.file.data                            
+                    }
+                    if(file){ 
+                        global.appService.importTable(appId,tableName,file).then(function(data){
                             if(data){
                                 res.status(200).json({Success:true})
                             } else {
@@ -341,14 +342,14 @@ module.exports = function() {
                             console.log(err);
                             res.status(500).send("Error");
                         })
-                //     }
-                // } else {
-                //     res.status(401).send({status : 'Unauthorized'});
-               // }
+                    }
+                } else {
+                    res.status(401).send({status : 'Unauthorized'});
+                }
 
-            // }, function (error) {
-            //     return res.status(500).send('Cannot retrieve security keys.');
-            // });
+            }, function (error) {
+                return res.status(500).send('Cannot retrieve security keys.');
+            });
         } catch(e) {
             console.log(e);
         }
