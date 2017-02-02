@@ -277,7 +277,7 @@ module.exports = function() {
     });
 
     //Export Tabel , parmas ->appId,tableId,formatType
-    global.app.post('/export/:appId/:tablename',function(req, res) {
+    global.app.post('/export/:appId/:tablename',function(req, res) {console.log('hit')
         console.log("++++ Export Database ++++++");
         try{
             var formatType = req.body.formatType.toLowerCase();
@@ -331,7 +331,7 @@ module.exports = function() {
                         file = req.files.file.data                            
                     }
                     if(file){ 
-                        global.appService.importTable(appId,tableName,file).then(function(data){
+                        global.appService.importTable(appId,tableName,file).then(function(data){ 
                             if(data){
                                 res.status(200).json({Success:true})
                             } else {
