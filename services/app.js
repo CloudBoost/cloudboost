@@ -13,10 +13,15 @@ var uuid = require('uuid');
 var _ = require('underscore');
 var util = require('../helpers/util.js');
 var tablesData = require('./tablesData.js')
+var jsonexport = require('jsonexport');
+var json2xls = require('json2xls');
+var csv=require('csvtojson');
+var csvjson = require('csvjson');
+var excel2json = require("excel-to-json");
 
 module.exports = function() {
 
-	return {
+    return {
         /*Desc   : Update Settings
           Params : appId,categoryName,SettingsObject
           Returns: Promise
@@ -79,22 +84,22 @@ module.exports = function() {
             return deferred.promise;
         },
         
-		getApp: function(appId) {
-			var deferred = q.defer();
+        getApp: function(appId) {
+            var deferred = q.defer();
 
             try{
-    			//check redis cache first. 
-    			console.log('+++++ Redis Get App +++++++');
-    			global.redisClient.get(global.keys.cacheAppPrefix+':'+appId, function (err, res){
-    				
-    				if(res) {
-    					res = JSON.parse(res);
-    					console.log('App found in Redis :');
-    					console.log(res);
-    					deferred.resolve(res);
-    				} else {
-    					console.log('App not found in Redis. Retrieving from Storage.');
-    					//if not found in cache then hit the Db.
+                //check redis cache first. 
+                console.log('+++++ Redis Get App +++++++');
+                global.redisClient.get(global.keys.cacheAppPrefix+':'+appId, function (err, res){
+                    
+                    if(res) {
+                        res = JSON.parse(res);
+                        console.log('App found in Redis :');
+                        console.log(res);
+                        deferred.resolve(res);
+                    } else {
+                        console.log('App not found in Redis. Retrieving from Storage.');
+                        //if not found in cache then hit the Db.
 
                         var collection =  global.mongoClient.db(global.keys.globalDb).collection("projects");
                         var findQuery = collection.find({appId: appId});
@@ -110,16 +115,16 @@ module.exports = function() {
                                 deferred.resolve(docs[0]);
                             }
                         });
-    				}
+                    }
 
-    			});
+                });
 
             } catch(err){           
                 global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             } 
 
-			return deferred.promise;
+            return deferred.promise;
         },
 
         getAppList: function() {
@@ -211,12 +216,12 @@ module.exports = function() {
             return deferred.promise;
         },
 
-		deleteApp: function(appId) {
-			
-			var deferred = q.defer();
+        deleteApp: function(appId) {
+            
+            var deferred = q.defer();
 
             try{
-    			var promises = [];
+                var promises = [];
 
                 var collection =  global.mongoClient.db(global.keys.globalDb).collection("projects");                
 
@@ -264,8 +269,8 @@ module.exports = function() {
             }
 
             //delete app from cache
-			return deferred.promise;
-		},
+            return deferred.promise;
+        },
 
         getTable: function(appId, tableName) {
 
@@ -331,7 +336,7 @@ module.exports = function() {
             return deferred.promise;
         },
 
-		deleteTable: function(appId, tableName) {
+        deleteTable: function(appId, tableName) {
 
             var deferred = q.defer();
 
@@ -392,9 +397,9 @@ module.exports = function() {
             return deferred.promise;
         },
 
-		deleteColumn: function(appId, collectionName, columnName, columnType) {
-			
-			var deferred = q.defer();
+        deleteColumn: function(appId, collectionName, columnName, columnType) {
+            
+            var deferred = q.defer();
 
             try{
                 var promises = [];
@@ -414,55 +419,55 @@ module.exports = function() {
                 deferred.reject(err);
             }
 
-			return deferred.promise;
-		},
+            return deferred.promise;
+        },
 
-		isMasterKey: function(appId, key) {
-			var deferred = q.defer();
+        isMasterKey: function(appId, key) {
+            var deferred = q.defer();
 
             try{
-    			var _self = this;
+                var _self = this;
 
-    			_self.getApp(appId).then(function(project){
-    				if(project.keys.master === key){
-    					deferred.resolve(true);
-    				}else{
-    					deferred.resolve(false);
-    				}
-    			}, function(){});
+                _self.getApp(appId).then(function(project){
+                    if(project.keys.master === key){
+                        deferred.resolve(true);
+                    }else{
+                        deferred.resolve(false);
+                    }
+                }, function(){});
 
             } catch(err){           
                 global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
 
-			return deferred.promise;
-		},
+            return deferred.promise;
+        },
 
-		isKeyValid: function(appId, key) {
-			var deferred = q.defer();
+        isKeyValid: function(appId, key) {
+            var deferred = q.defer();
 
             try{
-    			var _self = this;
+                var _self = this;
 
-    			_self.getApp(appId).then(function(project){
-    				if(project.keys.master === key || project.keys.js === key){
-    					deferred.resolve(true);
-    				}else{
-    					deferred.resolve(false);
-    				}
-    			}, 
+                _self.getApp(appId).then(function(project){
+                    if(project.keys.master === key || project.keys.js === key){
+                        deferred.resolve(true);
+                    }else{
+                        deferred.resolve(false);
+                    }
+                }, 
                 function(){
-    				deferred.reject("Error in getting key");
-    			});
+                    deferred.reject("Error in getting key");
+                });
 
             } catch(err){           
                 global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
 
-			return deferred.promise;
-		},
+            return deferred.promise;
+        },
 
         upsertTable: function(appId,tableName,schema){
 
@@ -683,8 +688,8 @@ module.exports = function() {
                 global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
-        	
-        	return deferred.promise;
+            
+            return deferred.promise;
         },
 
         createDefaultTables: function (appId){
@@ -886,6 +891,150 @@ module.exports = function() {
             return deferred.promise; 
         },
 
+        exportTable : function(appId,tableName,formatType){ 
+            var deferred = q.defer();
+            var collection =  global.mongoClient.db(appId).collection(tableName).find({});
+            collection.toArray(function(err,data)
+            { 
+                if (err) {
+                    global.winston.log('error',err);
+                    deferred.reject(err);
+                } 
+                for(j in data)
+                {
+                    if(tableName ==="User" || tableName ==="Role" || tableName ==="Device")
+                    {
+                        data[j]._type = tableName;   
+                    } else{
+                        data[j]._type = "custom";
+                    }
+                } 
+                if(formatType === 'csv')
+                {
+                  jsonexport(data,function(err, csv)
+                  { 
+                    if(err) {deferred.reject(err)}; 
+                    deferred.resolve(csv);
+                  });
+                }
+                if(formatType ==='xls')
+                {
+                    var xls = json2xls(data);
+                    deferred.resolve(xls);
+                }   
+                       
+            });
+
+           return deferred.promise;
+       }, 
+
+     
+        importTable : function(appId,tableName,file){
+
+            var deferred = q.defer();
+
+            // convert file buffer string to JSON
+            convertToJSON(file.toString()).then(function(data)
+            { 
+                var fileSchema =[];
+                var keys = Object.keys(data[0]);
+                for (var j=0; j<keys.length; j++)
+                {   
+                    var name = keys[j];
+                    var structure = {};
+                    structure["name"] = name;
+                    structure["dataType"] = typeof data[0][name];
+                    fileSchema.push(structure);
+                }
+                   
+                // find if table name exist in _Schema collection , if exist,push columns into array 
+                var collection =  global.mongoClient.db(appId).collection("_Schema").find({name:tableName});
+                collection.toArray(function(err,tables)
+                    { 
+                    if (err) {
+                        global.winston.log('error',err);
+                        deferred.reject(err);
+                    }
+                    if(tables.length===0)
+                    { 
+                        deferred.reject('No table found');
+                    }
+
+                    var tableColumns = [];
+                    for(var j=0; j<tables[0].columns.length; j++)
+                    {
+                      tableColumns.push(tables[0].columns[j].name);
+                    } 
+        
+                    var nonExistingTableColumns = [];
+                    for(var i =0; i<fileSchema.length; i++)
+                    {   
+                        
+                        if(tableColumns.indexOf(fileSchema[i].name) === -1)
+                        {
+                            nonExistingTableColumns.push(fileSchema[i]);
+                        }
+                    }
+                    var nonExistingTableColumns = nonExistingTableColumns.filter(function(x){
+                                                    return x.name.substring(0,1) != "_"
+                                                        }).map(x =>{
+                                                                return {
+                                                                    "name" : x.name,
+                                                                    "_type" : "column",
+                                                                    "dataType" : x.dataType,
+                                                                    "required" : false,
+                                                                    "unique" : false,
+                                                                    "relatedTo" : null,
+                                                                    "relationType" : null,
+                                                                    "isDeletable" : false,
+                                                                    "isEditable" : false,
+                                                                    "isRenamable" : false,
+                                                                    "editableByMasterKey" : false,
+                                                                    "defaultValue" : null
+                                                                };
+                                                        });
+
+                    if(nonExistingTableColumns.length>0)
+                    { 
+                        var addColumns =nonExistingTableColumns.reduce(function(acc, cur, i){
+                                                              acc[i] = cur;
+                                                              return acc;
+                                                            });       
+                        coll = global.mongoClient.db(appId).collection("_Schema");        
+                        coll.update({name:tableName},{$push:{columns:addColumns}});          
+                    }
+                });
+                global.mongoClient.db(appId).collection(tableName, function(err, collection) {
+                    if(err) 
+                    {
+                        deferred.reject(err);
+                    }
+                    var completed = false;
+                    for (var j in data)
+                    {   
+                        (function(j){
+                            data[j]._tableName = tableName;
+                            if(tableName ==="User" || tableName ==="Role" || tableName ==="Device")
+                            {
+                                data[j]._type = tableName;   
+                            } else{
+                                data[j]._type = "custom";
+                            }
+                            collection.insert(data[j], function(err) {
+                               if(j == (data.length-1))
+                               {   
+                                   deferred.resolve(true);
+                               } 
+                            })
+                        }) (j);
+                    }
+                });
+            },function(err){
+                deferred.reject(err);
+            })
+
+           return deferred.promise;
+        },   
         createDatabaseUser: function(appId){
             var deferred = q.defer();
 
@@ -899,11 +1048,28 @@ module.exports = function() {
             return deferred.promise;
         }
       
-	};
+    };
 
 };
 
 
+function convertToJSON(file){
+    
+    var def = q.defer()
+    arr =[]; 
+
+    csv()
+   .fromString(file.toString())
+   .on('json', (json) => {
+       arr.push(json)
+   })
+   .on('done',(error)=>{
+       if(error) def.reject(error)
+       def.resolve(arr)
+   })
+
+   return def.promise  
+}
 
 function _isBasicDataType(dataType){
     try{
