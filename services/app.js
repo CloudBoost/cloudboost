@@ -891,7 +891,7 @@ module.exports = function() {
             return deferred.promise; 
         },
 
-        exportTable : function(appId,tableName,formatType){ console.log(appId,tableName,formatType)
+        exportTable : function(appId,tableName,formatType){ 
             var deferred = q.defer();
             var collection =  global.mongoClient.db(appId).collection(tableName).find({});
             collection.toArray(function(err,data)
