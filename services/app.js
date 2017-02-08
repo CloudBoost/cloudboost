@@ -628,7 +628,12 @@ module.exports = function() {
                         upsert: true,
                         returnOriginal: false
                     }, function(err, response) {
-                        var table = response.value || null;
+                        
+                        var table = null;
+
+                        if(response && response.value)
+                            table = response.value;
+                        
                         if (err) {
                             deferred.reject("Error : Failed to save the table. ");
                         } else if (table) {

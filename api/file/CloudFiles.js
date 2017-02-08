@@ -14,7 +14,6 @@ var Grid = require('gridfs-stream');
 module.exports = function() {
 
     global.app.post('/file/:appId', function(req, res) {
-
         var userId = req.session.userId || null;
         var appId = req.params.appId;
         var document = {};
