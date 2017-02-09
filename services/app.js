@@ -339,6 +339,10 @@ module.exports = function() {
                         console.log(err);
                     }
                     if (tables.length > 0) {
+                        // filtering out private '_Tables'
+                        tables = tables.filter(function(table){
+                            return table.name[0] !== '_'
+                        })
                         console.log("Tables found...");
                         deferred.resolve(tables);
                     } else {
