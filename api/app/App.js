@@ -30,13 +30,13 @@ module.exports = function() {
                     },function(err){
                         console.log("Error : Cannot create an app.");
                         console.log(err);
-                        res.status(500).send("Error");
+                        res.status(500).send(err);
                     })
 
                 }, function (err){
                     console.log("Error : Cannot create an app.");
                     console.log(err);
-                    res.status(500).send("Error");
+                    res.status(500).send(err);
                 });
             } else {
                 console.log("Unauthorized: Invalid Secure Key ");
