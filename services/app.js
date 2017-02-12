@@ -632,12 +632,12 @@ module.exports = function() {
                         upsert: true,
                         returnOriginal: false
                     }, function(err, response) {
-                        
+
                         var table = null;
 
                         if(response && response.value)
                             table = response.value;
-                        
+
                         if (err) {
                             deferred.reject("Error : Failed to save the table. ");
                         } else if (table) {
@@ -706,7 +706,7 @@ module.exports = function() {
                 });
                 console.log("FATAL : Error updating a table");
                 console.log(e);
-                deferred.reject("Error saving a table.");
+                deferred.reject(e);
             }
 
             return deferred.promise;

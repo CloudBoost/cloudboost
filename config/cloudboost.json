@@ -1,17 +1,14 @@
 
 {
  "mongo" : [{
-   "host" : "localhost",
-   "port" : "27017"
- }],
- 
- "elasticsearch" : [{
-   "host" : "localhost",
-   "port" : "9200"
- }],
- 
+   "host" : "13.82.98.244",
+   "port" : "27017",
+   "username" : "cloudboost-admin",
+   "password" : "372b60f4-704c-4205-8e5c-45cdbf44b1fc"
+  }],
+
  "redis" : [{
                "host" : "127.0.0.1",
-               "port" : 6379               
+               "port" : 6379
            }]
 }

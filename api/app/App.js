@@ -1,7 +1,7 @@
 
 /*
 #     CloudBoost - Core Engine that powers Bakend as a Service
-#     (c) 2014 HackerBay, Inc. 
+#     (c) 2014 HackerBay, Inc.
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
@@ -42,7 +42,7 @@ module.exports = function() {
                 console.log("Unauthorized: Invalid Secure Key ");
                 res.status(401).send("Unauthorized");
             }
-            
+
             global.apiTracker.log(appId,"App / Create", req.url,sdk);
 
         }catch(e){
@@ -77,7 +77,7 @@ module.exports = function() {
         }
 
         global.apiTracker.log(appId,"App / Delete", req.url,sdk);
-        
+
     }
 
     //delete a table.
@@ -117,7 +117,7 @@ module.exports = function() {
             console.log(e);
             return res.status(500).send('Cannot delete table.');
         }
-        
+
         global.apiTracker.log(appId,"App / Table / Delete", req.url,sdk);
     }
 
@@ -152,7 +152,7 @@ module.exports = function() {
                     global.appService.upsertTable(appId,tableName,body.data.columns).then(function(table){
                         return res.status(200).send(table);
                     },function(err){
-                        return res.status(500).send('Error');
+                        return res.status(500).send(err);
                     });
                 }else{
                     return res.status(401).send({status : 'Unauthorized'});
@@ -162,7 +162,7 @@ module.exports = function() {
             });
 
             global.apiTracker.log(appId,"App / Table / Create", req.url,sdk);
-            
+
         }
 
     });
@@ -243,14 +243,14 @@ module.exports = function() {
     //Import Database for :appID
     global.app.post('/backup/:appId/importdb',function(req, res) {
         console.log("++++ Import Database ++++++");
-        try{         
+        try{
             var appKey = req.body.key
             var appId = req.params.appId;
             global.appService.isMasterKey(appId,appKey).then(function (isMasterKey) {
                 if (isMasterKey) {
                     var file;
                     if(req.files && req.files.file){
-                        file = req.files.file.data                            
+                        file = req.files.file.data
                     }
                     if(file){
                         global.appService.importDatabase(appId,file).then(function(data){
