@@ -893,7 +893,7 @@ module.exports = function() {
             return deferred.promise; 
         },
 
-        exportTable : function(appId,tableName,formatType){ console.log(appId,tableName,formatType)
+        exportTable : function(appId,tableName,formatType){
             var deferred = q.defer();
             var promises = []
             var select = null;
@@ -950,7 +950,6 @@ module.exports = function() {
                     var name = keys[j];
                     var structure = {};
                     structure["name"] = name;
-                    //structure["dataType"] = typeof data[0][name];
                     dataType = findDataType(data[0][name]);
                     structure["dataType"] = dataType;
                     fileSchema.push(structure);
