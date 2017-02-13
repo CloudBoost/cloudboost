@@ -611,9 +611,9 @@ function setUpMongoDB() {
 
       console.log("Setting up MongoDB from config.....");
 
-      // if (global.config.mongo.length > 1) {
+      if (global.config.mongo.length > 1) {
         isReplicaSet = true;
-      // }
+      }
 
       for (var i = 0; i < global.config.mongo.length; i++) {
         mongoConnectionString += global.config.mongo[i].host + ":" + global.config.mongo[i].port;
