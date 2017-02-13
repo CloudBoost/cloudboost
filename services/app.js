@@ -370,6 +370,10 @@ module.exports = function() {
                         console.log(err);
                     }
                     if (tables.length > 0) {
+                        // filtering out private '_Tables'
+                        tables = tables.filter(function(table){
+                            return table.name[0] !== '_'
+                        })
                         console.log("Tables found...");
                         deferred.resolve(tables);
                     } else {
@@ -733,7 +737,7 @@ module.exports = function() {
                 });
                 console.log("FATAL : Error updating a table");
                 console.log(e);
-                deferred.reject("Error saving a table.");
+                deferred.reject(e);
             }
 
             return deferred.promise;

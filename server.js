@@ -1,7 +1,7 @@
 
 /*
 #     CloudBoost - Core Engine that powers Bakend as a Service
-#     (c) 2014 HackerBay, Inc. 
+#     (c) 2014 HackerBay, Inc.
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
@@ -604,9 +604,13 @@ function setUpMongoDB() {
     var isReplicaSet = false;
 
     if (global.config && global.config.mongo && global.config.mongo.length > 0) {
-      //take from config file
+
+      if(global.config.mongo[0].username && global.config.mongo[0].password){
+        mongoConnectionString+=global.config.mongo[0].username+":"+global.config.mongo[0].password+"@";
+      }
 
       console.log("Setting up MongoDB from config.....");
+
       if (global.config.mongo.length > 1) {
         isReplicaSet = true;
       }
@@ -624,21 +628,9 @@ function setUpMongoDB() {
 
       global.config.mongo = [];
 
-      if (process.env["MONGO_SERVICE_HOST"]) {
+      if (process.env["MONGO1_SERVICE_HOST"]) {
         console.log("MongoDB is running on Kubernetes");
-
-        global.config.mongo.push({
-          host: process.env["MONGO_SERVICE_HOST"],
-          port: process.env["MONGO_SERVICE_PORT"]
-        });
-
-        mongoConnectionString += process.env["MONGO_SERVICE_HOST"] + ":" + process.env["MONGO_SERVICE_PORT"];
-        mongoConnectionString += ",";
-
-        var i = 2;
-
-
-
+        var i = 1;
         while (process.env["MONGO" + i + "_SERVICE_HOST"]) {
           global.config.mongo.push({
             host: process.env["MONGO" + i + "_SERVICE_HOST"],
