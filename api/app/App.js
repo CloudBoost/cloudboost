@@ -4,7 +4,7 @@
 #     (c) 2014 HackerBay, Inc. 
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
-
+var customHelper = require('../../helpers/custom.js');
 module.exports = function() {
 
     //create a new app.
@@ -323,15 +323,15 @@ module.exports = function() {
             var appKey = req.body.key;
             var appId = req.params.appId;
             var tableName = req.params.tablename;
-
+            
             global.appService.isMasterKey(appId,appKey).then(function (isMasterKey) {
-                if (isMasterKey) {
+                if (isMasterKey) { 
                    var file;
                     if(req.files && req.files.file){
                         file = req.files.file.data                            
                     }
                     if(file){ 
-                        global.appService.importTable(appId,tableName,file).then(function(data){ 
+                        global.appService.importTable(appId,tableName,file,customHelper.getAccessList(req)).then(function(data){ 
                             if(data){
                                 res.status(200).json({Success:true})
                             } else {
@@ -342,7 +342,7 @@ module.exports = function() {
                             console.log(err);
                             res.status(500).send("Error");
                         })
-                    }
+                    } 
                 } else {
                     res.status(401).send({status : 'Unauthorized'});
                 }

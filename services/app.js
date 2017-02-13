@@ -18,6 +18,8 @@ var json2xls = require('json2xls');
 var csv=require('csvtojson');
 var csvjson = require('csvjson');
 var excel2json = require("excel-to-json");
+var moment = require('moment')
+
 
 module.exports = function() {
 
@@ -891,15 +893,19 @@ module.exports = function() {
             return deferred.promise; 
         },
 
-        exportTable : function(appId,tableName,formatType){ 
+        exportTable : function(appId,tableName,formatType){ console.log(appId,tableName,formatType)
             var deferred = q.defer();
-            var collection =  global.mongoClient.db(appId).collection(tableName).find({});
-            collection.toArray(function(err,data)
+            var promises = []
+            var select = null;
+            var sort = false;
+            var skip = 0;               
+            var limit =null;
+            var query = {};
+            var accessList = null ;
+            var isMasterKey = true; 
+        
+            global.customService.find(appId, tableName,query, select, sort, limit, skip, accessList, isMasterKey).then(function(data) 
             { 
-                if (err) {
-                    global.winston.log('error',err);
-                    deferred.reject(err);
-                } 
                 for(j in data)
                 {
                     if(tableName ==="User" || tableName ==="Role" || tableName ==="Device")
@@ -908,7 +914,7 @@ module.exports = function() {
                     } else{
                         data[j]._type = "custom";
                     }
-                } 
+                }
                 if(formatType === 'csv')
                 {
                   jsonexport(data,function(err, csv)
@@ -921,33 +927,35 @@ module.exports = function() {
                 {
                     var xls = json2xls(data);
                     deferred.resolve(xls);
-                }   
-                       
+                }                     
+            },function(err)
+            {
+              deferred.reject(err)
             });
-
+            
            return deferred.promise;
        }, 
 
-     
-        importTable : function(appId,tableName,file){
-
+        importTable : function(appId,tableName,file,accessList)
+        {
             var deferred = q.defer();
-
+           
             // convert file buffer string to JSON
             convertToJSON(file.toString()).then(function(data)
             { 
                 var fileSchema =[];
                 var keys = Object.keys(data[0]);
-                for (var j=0; j<keys.length; j++)
+                for (let j=0; j<keys.length; j++)
                 {   
                     var name = keys[j];
                     var structure = {};
                     structure["name"] = name;
-                    structure["dataType"] = typeof data[0][name];
+                    //structure["dataType"] = typeof data[0][name];
+                    dataType = findDataType(data[0][name]);
+                    structure["dataType"] = dataType;
                     fileSchema.push(structure);
                 }
-                   
-                // find if table name exist in _Schema collection , if exist,push columns into array 
+               //find if table name exist in _Schema collection , if exist,push columns into array 
                 var collection =  global.mongoClient.db(appId).collection("_Schema").find({name:tableName});
                 collection.toArray(function(err,tables)
                     { 
@@ -961,11 +969,12 @@ module.exports = function() {
                     }
 
                     var tableColumns = [];
+                    console.log(tables)
                     for(var j=0; j<tables[0].columns.length; j++)
                     {
                       tableColumns.push(tables[0].columns[j].name);
                     } 
-        
+
                     var nonExistingTableColumns = [];
                     for(var i =0; i<fileSchema.length; i++)
                     {   
@@ -993,46 +1002,37 @@ module.exports = function() {
                                                                     "defaultValue" : null
                                                                 };
                                                         });
-
+                                  
                     if(nonExistingTableColumns.length>0)
-                    { 
-                        var addColumns =nonExistingTableColumns.reduce(function(acc, cur, i){
-                                                              acc[i] = cur;
-                                                              return acc;
-                                                            });       
-                        coll = global.mongoClient.db(appId).collection("_Schema");        
-                        coll.update({name:tableName},{$push:{columns:addColumns}});          
-                    }
-                });
-                global.mongoClient.db(appId).collection(tableName, function(err, collection) {
-                    if(err) 
-                    {
-                        deferred.reject(err);
-                    }
-                    var completed = false;
-                    for (var j in data)
-                    {   
-                        (function(j){
-                            data[j]._tableName = tableName;
-                            if(tableName ==="User" || tableName ==="Role" || tableName ==="Device")
-                            {
-                                data[j]._type = tableName;   
-                            } else{
-                                data[j]._type = "custom";
+                        { 
+                            coll = global.mongoClient.db(appId).collection("_Schema"); 
+                            for(var i=0;i<nonExistingTableColumns.length;i++) 
+                            {   
+                                coll.update({name:tableName},{$push:{columns:nonExistingTableColumns[i]}});          
                             }
-                            collection.insert(data[j], function(err) {
-                               if(j == (data.length-1))
-                               {   
-                                   deferred.resolve(true);
-                               } 
-                            })
-                        }) (j);
+                        }               
+                });          
+                var modifiedData = [];
+                for (let j=0; j<data.length; j++)
+                {   
+                    data[j]._tableName = tableName;
+                    if(tableName ==="User" || tableName ==="Role" || tableName ==="Device")
+                    {
+                        data[j]._type = tableName;   
+                    } else{
+                        data[j]._type = "custom";
                     }
-                });
-            },function(err){
-                deferred.reject(err);
-            })
 
+                    data[j]._modifiedColumns = Object.keys(data[j])
+                    data[j]._isModified = true;
+                    modifiedData.push(data[j])                  
+                };
+                global.customService.save(appId, tableName, modifiedData , accessList, true,null).then(function(saved){
+                    deferred.resolve(saved)
+                },function(err){
+                    deferred.reject(err)
+                })                                         
+            });   
            return deferred.promise;
         },   
         createDatabaseUser: function(appId){
@@ -1046,12 +1046,9 @@ module.exports = function() {
                     else deferred.resolve({username:username,password:password})
             });
             return deferred.promise;
-        }
-      
+        }   
     };
-
 };
-
 
 function convertToJSON(file){
     
@@ -1403,4 +1400,55 @@ function deleteAppFromRedis(appId){
   } 
 
   return deferred.promise;
+}
+
+function findDataType(value)
+{   
+    var dataType = typeof(value)
+
+    if(dataType ==='object')
+    {   
+       dataType = 'Object';
+
+       if(value.read && value.write)
+          dataType = 'ACL';
+        if(value.hasOwnProperty('_type'))
+        {           
+           if(value._type === 'point')
+            dataType = 'GeoPoint';
+           else if(value._type ==='file')
+            dataType = 'File';
+           else dataType = 'Relation';
+        }
+    }else if(dataType =='string')
+    {   
+        dataType ='Text';
+
+        if (value.split('/').length >1)
+        {  if(Date.parse(value))
+           dataType = 'DateTime';
+        }
+        if (util.isEmailValid(value))
+           dataType = 'Email';
+        if (util.isUrlValid(value))
+           dataType = 'URL';  
+    } else if(dataType ==='boolean' || dataType ==='number')
+    {
+        dataType = dataType.charAt(0).toUpperCase() + dataType.slice(1);
+    }
+    
+return dataType;
+
+}
+
+function isValidDate(value) {
+  var bits = value.split('/');
+  var d = new Date(bits[2], bits[1] - 1, bits[0]);
+ if(d && (d.getMonth() + 1) == bits[1])
+ {
+   return true;
+ }
+ else{
+    return false;
+ }
 }

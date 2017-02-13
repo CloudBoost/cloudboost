@@ -23,6 +23,7 @@
     "cron": "^1.1.0",
     "crypto": "^0.0.3",
     "csvtojson": "^1.1.3",
+    "datejs": "^1.0.0-rc3",
     "ejs": "^2.4.1",
     "elasticsearch": "^8.0.0",
     "excel-to-json": "^1.0.0",
