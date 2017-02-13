@@ -230,16 +230,47 @@ module.exports = function() {
             return deferred.promise;
         },
 
-        deleteApp: function(appId) {
+        deleteApp: function(appId, deleteReason) {
 
             var deferred = q.defer();
-
+            if (!deleteReason)
+                deleteReason = 'userInitiatedDeleteFromDashboard';
             try {
                 var promises = [];
 
                 var collection = global.mongoClient.db(global.keys.globalDb).collection("projects");
+                collection.findOneAndUpdate({
+                    appId: appId
+                }, {
+                    $set: {
+                        deleted: true,
+                        deleteReason: deleteReason
+                    }
+                }, {
+                    new: true
+                }, function(err, doc) {
+                    if (err) {
+                        global.winston.log('error', err);
+                        deferred.reject(err);
+                    } else {
+                        global.redisClient.del(global.keys.cacheAppPrefix + ':' + appId); //delete the app from redis.
 
-                collection.remove({
+                        //delete  the app databases.
+                        promises.push(global.mongoUtil.app.drop(appId)); //delete all mongo app data.
+
+                        q.allSettled(promises).then(function(res) {
+                            if (res[0].state === 'fulfilled') {
+                                deferred.resolve();
+                            } else {
+                                //TODO : Something wrong happened. Roll back.
+                                deferred.resolve();
+                            }
+                        });
+                    }
+
+                    console.log(doc);
+                });
+                /*  collection.remove({
                     appId: appId
                 }, {
                     w: 1 //returns the number of documents removed
@@ -260,7 +291,7 @@ module.exports = function() {
                     } else if (doc.result.n !== 0) {
                         global.redisClient.del(global.keys.cacheAppPrefix + ':' + appId); //delete the app from redis.
 
-                        //delete all the databases.
+                        //delete  the app databases.
                         promises.push(global.mongoUtil.app.drop(appId)); //delete all mongo app data.
 
                         q.allSettled(promises).then(function(res) {
@@ -275,7 +306,7 @@ module.exports = function() {
                         deferred.reject({"code": 500, "message": "Server Error"})
                     }
                 });
-
+*/
             } catch (err) {
                 global.winston.log('error', {
                     "error": String(err),
@@ -635,7 +666,7 @@ module.exports = function() {
 
                         var table = null;
 
-                        if(response && response.value)
+                        if (response && response.value)
                             table = response.value;
 
                         if (err) {
