@@ -620,10 +620,24 @@ function setUpMongoDB() {
             mongoConnectionString += process.env["CLOUDBOOST_MONGODB_USERNAME"] + ":" + process.env["CLOUDBOOST_MONGODB_PASSWORD"] + "@";
         }
 
+<<<<<<< HEAD
         var isReplicaSet = false;
 
         if (global.config && global.config.mongo && global.config.mongo.length > 0) {
             //take from config file
+=======
+    if (global.config && global.config.mongo && global.config.mongo.length > 0) {
+
+      if(global.config.mongo[0].username && global.config.mongo[0].password){
+        mongoConnectionString+=global.config.mongo[0].username+":"+global.config.mongo[0].password+"@";
+      }
+
+      console.log("Setting up MongoDB from config.....");
+
+      if (global.config.mongo.length > 1) {
+        isReplicaSet = true;
+      }
+>>>>>>> b5a2cc44ddce80d1cc53b271cc738030fadad017
 
             console.log("Setting up MongoDB from config.....");
             if (global.config.mongo.length > 1) {
@@ -641,6 +655,7 @@ function setUpMongoDB() {
                 global.config = {};
             }
 
+<<<<<<< HEAD
             global.config.mongo = [];
 
             if (process.env["MONGO_SERVICE_HOST"]) {
@@ -664,6 +679,20 @@ function setUpMongoDB() {
                 }
 
                 isReplicaSet = true;
+=======
+      if (process.env["MONGO1_SERVICE_HOST"]) {
+        console.log("MongoDB is running on Kubernetes");
+        var i = 1;
+        while (process.env["MONGO" + i + "_SERVICE_HOST"]) {
+          global.config.mongo.push({
+            host: process.env["MONGO" + i + "_SERVICE_HOST"],
+            port: process.env["MONGO" + i + "_SERVICE_PORT"]
+          });
+          mongoConnectionString += process.env["MONGO" + i + "_SERVICE_HOST"] + ":" + process.env["MONGO" + i + "_SERVICE_PORT"];
+          mongoConnectionString += ",";
+          ++i;
+        }
+>>>>>>> b5a2cc44ddce80d1cc53b271cc738030fadad017
 
             } else {
 

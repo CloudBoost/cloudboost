@@ -379,7 +379,7 @@ function _getEmailSettings(settings,returnDefault){
         } else if ( returnDefault == true ) {
 
             try{
-                var smtpConfig = require('../config/smtp.json');
+                var smtpConfig = require('../config/smtp.js');
             }catch(e){
                 return deferred.reject("SMTP Configuration file not found.");
             }

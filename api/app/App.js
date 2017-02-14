@@ -29,13 +29,13 @@ module.exports = function() {
                     }, function(err) {
                         console.log("Error : Cannot create an app.");
                         console.log(err);
-                        res.status(500).send("Error");
+                        res.status(500).send(err);
                     })
 
                 }, function(err) {
                     console.log("Error : Cannot create an app.");
                     console.log(err);
-                    res.status(500).send("Error");
+                    res.status(500).send(err);
                 });
             } else {
                 console.log("Unauthorized: Invalid Secure Key ");
@@ -75,7 +75,7 @@ module.exports = function() {
             return res.status(401).send({status: 'Unauthorized'});
         }
 
-        global.apiTracker.log(appId, "App / Delete", req.url, sdk);
+        global.apiTracker.log(appId,"App / Delete", req.url,sdk);
 
     }
 
@@ -117,7 +117,7 @@ module.exports = function() {
             return res.status(500).send('Cannot delete table.');
         }
 
-        global.apiTracker.log(appId, "App / Table / Delete", req.url, sdk);
+        global.apiTracker.log(appId,"App / Table / Delete", req.url,sdk);
     }
 
     //create a table.
@@ -150,8 +150,9 @@ module.exports = function() {
 
                     global.appService.upsertTable(appId, tableName, body.data.columns).then(function(table) {
                         return res.status(200).send(table);
-                    }, function(err) {
-                        return res.status(500).send('Error');
+
+                    },function(err){
+                        return res.status(500).send(err);
                     });
                 } else {
                     return res.status(401).send({status: 'Unauthorized'});
@@ -159,8 +160,7 @@ module.exports = function() {
             }, function(error) {
                 return res.status(500).send('Cannot retrieve security keys.');
             });
-
-            global.apiTracker.log(appId, "App / Table / Create", req.url, sdk);
+            global.apiTracker.log(appId,"App / Table / Create", req.url,sdk);
 
         }
 
@@ -241,14 +241,14 @@ module.exports = function() {
     //Import Database for :appID
     global.app.post('/backup/:appId/importdb', function(req, res) {
         console.log("++++ Import Database ++++++");
-        try {
+        try{
             var appKey = req.body.key
             var appId = req.params.appId;
             global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
                 if (isMasterKey) {
                     var file;
-                    if (req.files && req.files.file) {
-                        file = req.files.file.data
+                    if(req.files && req.files.file){                       
+                      file = req.files.file.data
                     }
                     if (file) {
                         global.appService.importDatabase(appId, file).then(function(data) {

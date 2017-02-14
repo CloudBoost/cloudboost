@@ -4,7 +4,6 @@ smtp.json
 gc_cred.json
 .vscode/
 *.dat
-config/
 *.suo
 *.user
 *.userosscache
