@@ -9,6 +9,9 @@ language: node_js
 node_js:
 - '6'
 before_install:
+- curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+- chmod +x ./kubectl
+- sudo mv ./kubectl /usr/local/bin/kubectl
 - docker run --name mongo -p 27017:27017 -d mongo:3.2 
 - docker run --name redis -p 6379:6379 -d redis:3.0 
 - sleep 30s
@@ -34,7 +37,6 @@ before_deploy:
   - export GIT_TAG=2.0.$TRAVIS_BUILD_NUMBER
   - git tag $GIT_TAG -a -m "Generated tag from TravisCI for build $TRAVIS_BUILD_NUMBER"
   - git push -q https://$GITLOGIN@github.com/CloudBoost/cloudboost --tags
-  - ls -R
 deploy:
   provider: releases
   api_key: $GH_TOKEN
@@ -49,6 +51,12 @@ after_deploy:
   docker login --username $DOCKERUSERNAME --password $DOCKERPASSWORD --email $DOCKEREMAIL;
   docker push cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER;
   docker push cloudboost/cloudboost:latest;
+  git clone https://github.com/CloudBoost/kube-cred.git;
+  cd kube-cred;
+  openssl enc -in config.enc -out config -d -aes256 -k $KUBE_ENC;
+  mkdir ~/.kube;
+  mv config ~/.kube/;
+  kubectl rolling-update cloudboost-engine --image=cloudboost/cloudboost:latest --image-pull-policy=Always;
   fi
 branches:
   except:

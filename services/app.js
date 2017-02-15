@@ -270,43 +270,6 @@ module.exports = function() {
 
                     console.log(doc);
                 });
-                /*  collection.remove({
-                    appId: appId
-                }, {
-                    w: 1 //returns the number of documents removed
-                }, function(err, doc) {
-                    if (err || doc.result.n === 0) {
-                        if (doc.result.n === 0) {
-                            err = {
-                                "code": 401,
-                                "message": "You do not have permission to delete"
-                            };
-                            global.winston.log('error', err);
-                            deferred.reject(err);
-                        }
-                    }
-                    if (err) {
-                        global.winston.log('error', err);
-                        deferred.reject(err);
-                    } else if (doc.result.n !== 0) {
-                        global.redisClient.del(global.keys.cacheAppPrefix + ':' + appId); //delete the app from redis.
-
-                        //delete  the app databases.
-                        promises.push(global.mongoUtil.app.drop(appId)); //delete all mongo app data.
-
-                        q.allSettled(promises).then(function(res) {
-                            if (res[0].state === 'fulfilled') {
-                                deferred.resolve();
-                            } else {
-                                //TODO : Something wrong happened. Roll back.
-                                deferred.resolve();
-                            }
-                        });
-                    } else {
-                        deferred.reject({"code": 500, "message": "Server Error"})
-                    }
-                });
-*/
             } catch (err) {
                 global.winston.log('error', {
                     "error": String(err),
