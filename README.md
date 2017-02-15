@@ -2,7 +2,6 @@
 
 [![Build Status](https://travis-ci.org/CloudBoost/cloudboost.svg?branch=master)](https://travis-ci.org/CloudBoost/cloudboost)
 [![OpenCollective](https://opencollective.com/cloudboost/backers/badge.svg)](#backers) 
-[![OpenCollective](https://opencollective.com/cloudboost/sponsors/badge.svg)](#sponsors)
 
 CloudBoost is the Complete NoSQL Database Service for your app. **Think of CloudBoost as Parse + Firebase + Algolia + Iron.io all combined into one** :
  - Data-Storage / JSON Storage / BLOB Storage
@@ -180,7 +179,7 @@ We'd love to hear your feedback and suggestions in the issue tracker.
 
 # Backers
 
-Support us with a monthly donation and help us continue our activities. [[Become a backer](https://opencollective.com/cloudboost#backer)]
+If you're using CloudBoost Open Source and like what we've built, help us speed development by being a backer. [[Become a backer](https://opencollective.com/cloudboost#backer)]
 
 <a href="https://opencollective.com/cloudboost/backer/0/website" target="_blank"><img src="https://opencollective.com/cloudboost/backer/0/avatar.svg"></a>
 <a href="https://opencollective.com/cloudboost/backer/1/website" target="_blank"><img src="https://opencollective.com/cloudboost/backer/1/avatar.svg"></a>
@@ -193,60 +192,7 @@ Support us with a monthly donation and help us continue our activities. [[Become
 <a href="https://opencollective.com/cloudboost/backer/8/website" target="_blank"><img src="https://opencollective.com/cloudboost/backer/8/avatar.svg"></a>
 <a href="https://opencollective.com/cloudboost/backer/9/website" target="_blank"><img src="https://opencollective.com/cloudboost/backer/9/avatar.svg"></a>
 <a href="https://opencollective.com/cloudboost/backer/10/website" target="_blank"><img src="https://opencollective.com/cloudboost/backer/10/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/backer/11/website" target="_blank"><img src="https://opencollective.com/cloudboost/backer/11/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/backer/12/website" target="_blank"><img src="https://opencollective.com/cloudboost/backer/12/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/backer/13/website" target="_blank"><img src="https://opencollective.com/cloudboost/backer/13/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/backer/14/website" target="_blank"><img src="https://opencollective.com/cloudboost/backer/14/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/backer/15/website" target="_blank"><img src="https://opencollective.com/cloudboost/backer/15/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/backer/16/website" target="_blank"><img src="https://opencollective.com/cloudboost/backer/16/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/backer/17/website" target="_blank"><img src="https://opencollective.com/cloudboost/backer/17/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/backer/18/website" target="_blank"><img src="https://opencollective.com/cloudboost/backer/18/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/backer/19/website" target="_blank"><img src="https://opencollective.com/cloudboost/backer/19/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/backer/20/website" target="_blank"><img src="https://opencollective.com/cloudboost/backer/20/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/backer/21/website" target="_blank"><img src="https://opencollective.com/cloudboost/backer/21/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/backer/22/website" target="_blank"><img src="https://opencollective.com/cloudboost/backer/22/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/backer/23/website" target="_blank"><img src="https://opencollective.com/cloudboost/backer/23/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/backer/24/website" target="_blank"><img src="https://opencollective.com/cloudboost/backer/24/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/backer/25/website" target="_blank"><img src="https://opencollective.com/cloudboost/backer/25/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/backer/26/website" target="_blank"><img src="https://opencollective.com/cloudboost/backer/26/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/backer/27/website" target="_blank"><img src="https://opencollective.com/cloudboost/backer/27/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/backer/28/website" target="_blank"><img src="https://opencollective.com/cloudboost/backer/28/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/backer/29/website" target="_blank"><img src="https://opencollective.com/cloudboost/backer/29/avatar.svg"></a>
 
-# Sponsors
-
-Become a sponsor and get your logo on our README on Github with a link to your site. [[Become a sponsor](https://opencollective.com/cloudboost#sponsor)]
-
-<a href="https://opencollective.com/cloudboost/sponsor/0/website" target="_blank"><img src="https://opencollective.com/cloudboost/sponsor/0/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/sponsor/1/website" target="_blank"><img src="https://opencollective.com/cloudboost/sponsor/1/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/sponsor/2/website" target="_blank"><img src="https://opencollective.com/cloudboost/sponsor/2/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/sponsor/3/website" target="_blank"><img src="https://opencollective.com/cloudboost/sponsor/3/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/sponsor/4/website" target="_blank"><img src="https://opencollective.com/cloudboost/sponsor/4/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/sponsor/5/website" target="_blank"><img src="https://opencollective.com/cloudboost/sponsor/5/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/sponsor/6/website" target="_blank"><img src="https://opencollective.com/cloudboost/sponsor/6/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/sponsor/7/website" target="_blank"><img src="https://opencollective.com/cloudboost/sponsor/7/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/sponsor/8/website" target="_blank"><img src="https://opencollective.com/cloudboost/sponsor/8/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/sponsor/9/website" target="_blank"><img src="https://opencollective.com/cloudboost/sponsor/9/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/sponsor/10/website" target="_blank"><img src="https://opencollective.com/cloudboost/sponsor/10/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/sponsor/11/website" target="_blank"><img src="https://opencollective.com/cloudboost/sponsor/11/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/sponsor/12/website" target="_blank"><img src="https://opencollective.com/cloudboost/sponsor/12/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/sponsor/13/website" target="_blank"><img src="https://opencollective.com/cloudboost/sponsor/13/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/sponsor/14/website" target="_blank"><img src="https://opencollective.com/cloudboost/sponsor/14/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/sponsor/15/website" target="_blank"><img src="https://opencollective.com/cloudboost/sponsor/15/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/sponsor/16/website" target="_blank"><img src="https://opencollective.com/cloudboost/sponsor/16/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/sponsor/17/website" target="_blank"><img src="https://opencollective.com/cloudboost/sponsor/17/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/sponsor/18/website" target="_blank"><img src="https://opencollective.com/cloudboost/sponsor/18/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/sponsor/19/website" target="_blank"><img src="https://opencollective.com/cloudboost/sponsor/19/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/sponsor/20/website" target="_blank"><img src="https://opencollective.com/cloudboost/sponsor/20/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/sponsor/21/website" target="_blank"><img src="https://opencollective.com/cloudboost/sponsor/21/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/sponsor/22/website" target="_blank"><img src="https://opencollective.com/cloudboost/sponsor/22/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/sponsor/23/website" target="_blank"><img src="https://opencollective.com/cloudboost/sponsor/23/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/sponsor/24/website" target="_blank"><img src="https://opencollective.com/cloudboost/sponsor/24/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/sponsor/25/website" target="_blank"><img src="https://opencollective.com/cloudboost/sponsor/25/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/sponsor/26/website" target="_blank"><img src="https://opencollective.com/cloudboost/sponsor/26/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/sponsor/27/website" target="_blank"><img src="https://opencollective.com/cloudboost/sponsor/27/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/sponsor/28/website" target="_blank"><img src="https://opencollective.com/cloudboost/sponsor/28/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/sponsor/29/website" target="_blank"><img src="https://opencollective.com/cloudboost/sponsor/29/avatar.svg"></a>
 
 #LICENSE
 
