@@ -1239,7 +1239,8 @@ function _checkValidDataType(columns, deafultDataType) {
                     }
                 } else if (columns[i].defaultValue === null) {
                     // Do nothing
-                } else if (['number', 'boolean', 'object', 'undefined'].indexOf(typeof columns[i].defaultValue) > -1) {
+                } else if (['number', 'boolean', 'object'].indexOf(typeof columns[i].defaultValue) > -1) {
+                    //TODO : Doing a quick fix for undefined default Value -> should be fixed later.
                     if (columns[i].dataType.toUpperCase() !== (typeof columns[i].defaultValue).toUpperCase()) {
                         return false;
                     }
