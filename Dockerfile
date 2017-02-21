@@ -2,7 +2,7 @@
 # CloudBoost Dockerfile
 #
 # Pull base image nodejs image.
-FROM node:boron
+FROM node:7.5.0
 
 #Maintainer.
 MAINTAINER Nawaz Dhandala <nawazdhandala@outlook.com>
