@@ -101,7 +101,7 @@ module.exports = function(io) {
                     } else { //data has both the room id and the sessionId.
                         socket.join(data.room);
                         //connect socket.id and sessionId together
-                        global.socketQueryHelper.setQuery(socket.id, data.query);
+                        global.socketQueryHelper.setData(socket.id, data.data);
                         global.socketSessionHelper.saveSession(socket.id, data.sessionId);
                     }
                 } catch (e) {
@@ -116,7 +116,15 @@ module.exports = function(io) {
                 try {
                     console.log('++++++++ Leave Object Realtime Channel+++++');
                     console.log(data);
-                    socket.leave(data);
+                    global.socketQueryHelper.getData(socket.id, data.eventType, function(err, socketData) {
+                        if (err)
+                            throw err;
+                        else {
+                            socket.leave(data.event + socketData.timestamp);
+                            socket.emit('leave' + data.event + data.timestamp, socketData.timestamp); //to removeAlListeners
+                            global.socketQueryHelper.deleteData(socket.id, data.event);
+                        }
+                    });
                 } catch (e) {
                     global.winston.log('error', {
                         "error": String(e),
@@ -202,13 +210,17 @@ function _sendNotification(appId, document, socket, eventType) {
                 deferred.reject();
             }
             if (!session || global.aclHelper.isAllowedReadAccess(session.userId, session.roles, document.ACL)) {
-                global.socketQueryHelper.getQuery(socket.id, function(err, socketQuery) {
+                global.socketQueryHelper.getData(socket.id, eventType, function(err, socketData) {
                     var socketQueryValidate = true;
-                    if (socketQuery)
-                        socketQueryValidate = global.socketQueryHelper.validateSocketQuery(document, socketQuery.query);
+                    if (socketData && socketData.query)
+                        socketQueryValidate = global.socketQueryHelper.validateSocketQuery(document, socketData.query.query);
                     if (socketQueryValidate) {
-                        socket.emit(appId.toLowerCase() + 'table' + document._tableName.toLowerCase() + eventType.toLowerCase(), document);
-                        console.log("Socket Emitted.");
+                        if (!socketData)
+                            socketData = {
+                                timestamp: ''
+                            };
+                        socket.emit(appId.toLowerCase() + 'table' + document._tableName.toLowerCase() + eventType.toLowerCase() + socketData.timestamp, JSON.stringify(document));
+                        console.log("Socket Emitteddddddddddddddddddddddddddddddddddddd.", document);
                     } else {
                         console.log('Socket Query doesn\'t satsfies the current document');
                     }
