@@ -922,11 +922,13 @@ module.exports = function() {
                     for (var i in fileData) {
                         (function(i) {
                             global.mongoClient.db(appId).createCollection(fileData[i].name, function(err, col) {
+                                if(err) deferred.reject('Error creating Collections/Tables')
                                 global.mongoClient.db(appId).collection(fileData[i].name, function(err, col) {
-                                    for (var j in fileData[i].documents) {
+                                    if(err) deferred.reject('Error getting Collections/Tables')
+                                    for (var j in fileData[i].documents[0]) {
                                         (function(j) {
-                                            col.insert(fileData[i].documents[j], function(err) {
-                                                if (i == (fileData.length - 1) && j == (fileData[i].documents.length - 1)) {
+                                            col.insert(fileData[i].documents[0][j], function(err) {
+                                                if (i == (fileData.length - 1) && j == (fileData[i].documents[0].length - 1)) {
                                                     deferred.resolve(true);
                                                 }
                                             });
