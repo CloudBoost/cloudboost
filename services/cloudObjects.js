@@ -588,7 +588,7 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
             if (promises.length > 0) {
                 //you have related documents or unique queries.
                 q.all(promises).then(function(results) {
-                    var obj = {}
+                    var obj = {};
                     obj.document = document;
                     obj.schema = columns;
                     mainPromise.resolve(obj);
@@ -596,7 +596,7 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                     mainPromise.reject(error);
                 });
             } else {
-                var obj = {}
+                var obj = {};
                 obj.document = document;
                 obj.schema = columns;
                 mainPromise.resolve(obj); //resolve this promise.
@@ -1361,7 +1361,6 @@ function _mongoRevert(appId, status, docsArray, oldDocs) {
         } else {
             var docs = status.value;
             var save = [];
-            var del = [];
             for (var i = 0; i < docs.length; i++) {
                 if (docs[i].state !== 'fulfilled') {
                     for (var j = 0; j < oldDocs.length; j++) {

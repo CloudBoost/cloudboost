@@ -39,9 +39,9 @@ module.exports = function(io) {
                     });
                 }
             });
-
-            socket.on('socket-disconnect', function(data) {
-                try {
+            
+            socket.on('socket-disconnect', function () {
+                try{
                     socket.disconnect();
                 } catch (e) {
                     global.winston.log('error', {

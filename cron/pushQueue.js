@@ -9,7 +9,6 @@
 var CronJob = require('cron').CronJob;
 var request = require('request');
 
-var apps = [];
 
 var job = new CronJob('* * * * * *', function () {
    

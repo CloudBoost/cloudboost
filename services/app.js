@@ -4,13 +4,12 @@
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
-var Collections = require('../database-connect/collections.js');
 var q = require('q');
 var crypto = require("crypto");
 var uuid = require('uuid');
 var _ = require('underscore');
 var util = require('../helpers/util.js');
-var tablesData = require('./tablesData.js')
+var tablesData = require('./tablesData.js');
 
 module.exports = function() {
 
@@ -163,7 +162,7 @@ module.exports = function() {
             return deferred.promise;
         },
 
-        createApp: function(appId, userId, appName) {
+        createApp: function(appId, userId) {
 
             console.log("Create App function...");
 
@@ -206,7 +205,7 @@ module.exports = function() {
                                 console.log("new app got saved...");
                                 //create a mongodb app.
                                 promises.push(global.mongoUtil.app.create(appId));
-                                global.q.all(promises).then(function(res) {
+                                global.q.all(promises).then(function() {
                                     deferred.resolve(document);
                                 }, function(err) {
                                     deferred.reject(err);
@@ -294,7 +293,7 @@ module.exports = function() {
                 findQuery.toArray(function(err, tables) {
                     if (err) {
                         deferred.reject("Error : Failed to retrieve the table.");
-                        console.log("Error : Failed to retrieve the table.")
+                        console.log("Error : Failed to retrieve the table.");
                         console.log(err);
                     }
                     if (tables && tables.length > 0) {
@@ -329,14 +328,15 @@ module.exports = function() {
                 findQuery.toArray(function(err, tables) {
                     if (err) {
                         deferred.reject("Error : Failed to retrieve the table.");
-                        console.log("Error : Failed to retrieve the table.")
+                        console.log("Error : Failed to retrieve the table.");
                         console.log(err);
                     }
                     if (tables.length > 0) {
                         // filtering out private '_Tables'
                         tables = tables.filter(function(table){
                             return table.name[0] !== '_'
-                        })
+                        });
+
                         console.log("Tables found...");
                         deferred.resolve(tables);
                     } else {
@@ -404,7 +404,7 @@ module.exports = function() {
                             }
                         });
                     } else {
-                        deferred.reject({"code": 500, "message": "Server Error"})
+                        deferred.reject({"code": 500, "message": "Server Error"});
                     }
                 });
 
@@ -509,7 +509,6 @@ module.exports = function() {
                 var isNewTable = false;
                 var tableType = null;
                 var maxCount = null; //How many tables of this type can be in an app.
-                var originalTable = null;
 
                 if (!tableName) {
                     deferred.reject("Table name is empty");
@@ -605,7 +604,7 @@ module.exports = function() {
 
                         isNewTable = true;
 
-                        table = {}
+                        table = {};
                         table.id = util.getId();
                         table.columns = schema;
 
@@ -678,7 +677,7 @@ module.exports = function() {
                                     //Index all text fields
                                     promises.push(global.mongoUtil.collection.deleteAndCreateTextIndexes(appId, tableName, cloneOldColumns, schema));
 
-                                    q.all(promises).then(function(res) {
+                                    q.all(promises).then(function() {
                                         deferred.resolve(table);
                                     }, function(error) {
                                         //TODO : Rollback.
@@ -737,7 +736,7 @@ module.exports = function() {
                 global.appService.upsertTable(appId, 'Device', tablesData.Device),
                 global.appService.upsertTable(appId, 'User', tablesData.User),
                 global.appService.upsertTable(appId, '_File', tablesData._File)
-            ])
+            ]);
         },
 
         changeAppClientKey: function(appId, value) {
@@ -846,7 +845,7 @@ module.exports = function() {
 
         exportDatabase: function(appId) {
             var deferred = q.defer();
-            var promises = []
+            var promises = [];
             global.mongoClient.db(appId).listCollections().toArray(function(err, collections) {
                 if (err) {
                     global.winston.log('error', err);
@@ -855,7 +854,7 @@ module.exports = function() {
                 for (var k in collections) {
                     (function(k) {
                         var promise = new Promise(function(resolve, reject) {
-                            collections[k].documents = []
+                            collections[k].documents = [];
                             data = global.mongoClient.db(appId).collection(collections[k].name).find()
                             data.toArray(function(err, data) {
                                 if (err) {
@@ -866,10 +865,10 @@ module.exports = function() {
                                 resolve()
                             })
                         })
-                        promises.push(promise)
+                        promises.push(promise);
                     })(k)
                 }
-                Promise.all(promises).then(function(data) {
+                Promise.all(promises).then(function() {
                     deferred.resolve(collections)
                 }, function(err) {
                     deferred.reject(err);
@@ -881,15 +880,14 @@ module.exports = function() {
         importDatabase: function(appId, file) {
             var fileData
             var deferred = q.defer();
-            var collectionRemovePromises = []
-            var collectionCreatePromises = []
-            var validated = false
+            var collectionRemovePromises = [];
+            var validated = false ;
 
             try {
-                fileData = JSON.parse(file.toString())
+                fileData = JSON.parse(file.toString());
                 for (var k in fileData) {
                     if (fileData[k].name == '_Schema') {
-                        validated = true
+                        validated = true;
                     }
                 }
                 if (!validated) {
@@ -908,7 +906,7 @@ module.exports = function() {
                     (function(k) {
                         if (Collections[k].name.split('.')[0] != 'system') { // skipping delete for system namespaces
                             collectionRemovePromises.push(new Promise(function(resolve, reject) {
-                                global.mongoClient.db(appId).collection(Collections[k].name).remove({}, function(err, removed) {
+                                global.mongoClient.db(appId).collection(Collections[k].name).remove({}, function(err) {
                                     if (err) {
                                         reject(err)
                                     }
@@ -918,7 +916,7 @@ module.exports = function() {
                         }
                     })(k)
                 }
-                Promise.all(collectionRemovePromises).then(function(data) {
+                Promise.all(collectionRemovePromises).then(function() {
                     for (var i in fileData) {
                         (function(i) {
                             global.mongoClient.db(appId).createCollection(fileData[i].name, function(err, col) {
@@ -932,7 +930,7 @@ module.exports = function() {
                                                     deferred.resolve(true);
                                                 }
                                             });
-                                        })(j)
+                                        })(j);
                                     }
                                 });
                             });
@@ -948,8 +946,8 @@ module.exports = function() {
         createDatabaseUser: function(appId) {
             var deferred = q.defer();
 
-            var username = util.getId()
-            var password = util.getId()
+            var username = util.getId();
+            var password = util.getId();
 
             global.mongoClient.db(appId).addUser(username, password, {
                 roles: [
@@ -960,9 +958,9 @@ module.exports = function() {
                 ]
             }, function(err, result) {
                 if (err)
-                    deferred.reject(err)
+                    deferred.reject(err);
                 else
-                    deferred.resolve({username: username, password: password})
+                    deferred.resolve({username: username, password: password});
             });
             return deferred.promise;
         }
@@ -1234,7 +1232,7 @@ function _checkValidDataType(columns, deafultDataType) {
                     } else if (columns[i].dataType === 'Email') {
                         if (columns[i].defaultValue.match(/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/i)[0] !== columns[i].defaultValue) {
                             return
-                            false // if the set dataType is not other string Datatypes (Text, EncryptedText, DateTime) available in cloudboost;
+                            false ; // if the set dataType is not other string Datatypes (Text, EncryptedText, DateTime) available in cloudboost;
                         }
                     } else if (['Text', 'EncryptedText', 'DateTime'].indexOf(columns[i].dataType) === -1) {
                         return false;
@@ -1262,7 +1260,7 @@ function _checkValidDataType(columns, deafultDataType) {
 }
 
 function _getColumnsToDelete(oldColumns, newColumns) {
-    var deferred = q.defer()
+    var deferred = q.defer();
     try {
         var originalColumns = oldColumns;
 
@@ -1321,7 +1319,7 @@ function _getDefaultColumnWithDataType(type) {
         if (type == 'user') {
             defaultColumn['username'] = 'Text';
             defaultColumn['email'] = 'Email';
-            defaultColumn['password'] = 'EncryptedText'
+            defaultColumn['password'] = 'EncryptedText';
             defaultColumn['roles'] = 'List';
         } else if (type == 'role') {
             defaultColumn['name'] = 'Text';
@@ -1373,3 +1371,4 @@ function deleteAppFromRedis(appId) {
 
     return deferred.promise;
 }
+

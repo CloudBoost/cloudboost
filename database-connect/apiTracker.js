@@ -5,8 +5,6 @@
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
-
-var querystring = require("querystring");
 var q = require('q');
 
 module.exports = function (){

@@ -15,11 +15,9 @@ var busboyBodyParser = require('busboy-body-parser');
 var q = require("q");
 var _ = require('underscore');
 var path = require('path');
-var ejs = require('ejs');
 
 global.mongoDisconnected = false;
 global.winston = require('winston');
-expressWinston = require('express-winston');
 require('winston-loggly');
 
 global.keys = require('./database-connect/keys.js')();
@@ -42,8 +40,6 @@ global.keyService = require('./database-connect/keyService.js');
 global.q = require('q');
 global.uuid = require('uuid');
 var bodyParser = require('body-parser');
-var cookies = require("cookies");
-var session = require('express-session');
 global.app = global.express();
 
 //For pages in cloudboost
@@ -79,7 +75,6 @@ if (https) {
     io.attach(http);
 }
 
-var multer = require('multer');
 var Redis = require('ioredis');
 
 var ioRedisAdapter = require('socket.io-redis');

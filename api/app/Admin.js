@@ -6,63 +6,48 @@
 
 module.exports = function() {   
 
-    //Change MasterKey/ClientKey
-    global.app.put('/admin/:appId/clientkey',function(req, res) { 
-        console.log("++++ Change ClientKey ++++++");
+      //create a new key for an existing app.
+    global.app.put('/admin/:appId/key', function (req, res) { 
 
-        try{          
+        console.log("++++ Create App API ++++++");
 
-            var appId = req.params.appId;   
+        try{
+            console.log("SecureKey to create app:"+req.body.secureKey);
 
-            if (global.keys.secureKey === req.body.secureKey) {
-                console.log("Secure Key Valid. Changing ClientKey...");
+            var appId   = req.params.appId;
+            var keyType = req.body.keyType.toLowerCase();
+            var name    = req.body.name;
+         
+            console.log("App ID : "+appId);
 
-                global.appService.changeAppClientKey(appId,req.body.value).then(function (app){
-                    console.log("Success : Changing ClientKey.");
-                    res.status(200).json(app);
-                }, function (err){
-                    console.log("Error : Changing ClientKey.");
-                    console.log(err);
-                    res.status(500).send("Error");
-                });
+            var sdk = req.body.sdk || "REST";
 
+            if (global.keys.secureKey === req.body.secureKey) 
+            {
+                console.log("Secure Key Valid. Creating keys for app...");
+                if(appId && keyType && name)
+                {
+                    global.appService.createAppKeys(appId,keyType,name).then(function (app){
+                        console.log("Success : App Keys Successfully Created.");
+                        res.status(200).send(app);
+                    }, function (err){
+                        console.log("Error : Cannot create keys for app.");
+                        console.log(err);
+                        res.status(500).send("Error");
+                    });
+
+                } else{
+                    console.log("Params Missing ");
+                    res.status(401).send("Params Missing");
+
+                }
             } else {
                 console.log("Unauthorized: Invalid Secure Key ");
                 res.status(401).send("Unauthorized");
-            }        
+            }
             
-
-        }catch(e){
-            console.log(e);
-        }
-    });
-
-    //Change MasterKey/ClientKey
-    global.app.put('/admin/:appId/masterkey',function(req, res) {
-        console.log("++++ Change Masterkey ++++++");
-
-        try{          
-
-            var appId = req.params.appId;   
-
-            if (global.keys.secureKey === req.body.secureKey) {
-                console.log("Secure Key Valid. Changing Masterkey...");
-
-                global.appService.changeAppMasterKey(appId,req.body.value).then(function (app){
-                    console.log("Success : Changing Masterkey.");
-                    res.status(200).json(app);
-                }, function (err){
-                    console.log("Error : Changing Masterkey.");
-                    console.log(err);
-                    res.status(500).send("Error");
-                });
-
-            } else {
-                console.log("Unauthorized: Invalid Secure Key ");
-                res.status(401).send("Unauthorized");
-            }        
+            global.apiTracker.log(appId,"App /  keys /:appId", req.url,sdk);
             
-
         }catch(e){
             console.log(e);
         }
@@ -82,7 +67,7 @@ module.exports = function() {
         try {
             if (global.keys.secureKey === req.body.secureKey) {
                 global.appService.createDatabaseUser(req.params.appId).then(function (userData){
-                    res.status(200).json({user:userData})
+                    res.status(200).json({user:userData});
                 }, function (err){
                     res.status(500).send("Server Erorr");
                 });

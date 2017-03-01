@@ -1,6 +1,6 @@
 {
   "name": "DataServices",
-  "version": "1.0.23",
+  "version": "1.0.90",
   "main": "server.js",
   "engines": {
     "node": ">=5.0.0"
@@ -22,6 +22,7 @@
     "cors": "^2.7.1",
     "cron": "^1.1.0",
     "crypto": "^0.0.3",
+    "csvtojson": "^1.1.3",
     "ejs": "^2.4.1",
     "elasticsearch": "^8.0.0",
     "express": "^4.13.4",
@@ -38,6 +39,9 @@
     "jimp": "^0.2.21",
     "jquery": "^2.2.0",
     "jsdom": "^8.0.4",
+    "json2csv": "^3.7.3",
+    "json2xls": "^0.1.2",
+    "jsonexport": "^1.5.2",
     "mandrill-api": "^1.0.45",
     "mongodb": "^2.1.11",
     "mongoose": "^4.4.10",
@@ -63,5 +67,9 @@
     "winston": "^1.1.2",
     "winston-loggly": "^1.1.0",
     "wns": "^0.5.3"
+  },
+  "devDependencies": {
+    "eslint": "^3.16.1",
+    "grunt-eslint": "^19.0.0"
   }
 }

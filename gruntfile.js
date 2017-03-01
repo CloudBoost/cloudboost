@@ -16,11 +16,16 @@ module.exports = function (grunt) {
           build : {
                 CLOUDBOOST_VERSION : pkg.version 
             },
-         } 
+         },
+         eslint : {
+            all:["api/app/App.js","!node_modules/**/*.js"]
+         }
+         
     });
    
     grunt.loadNpmTasks("grunt-bumpup");
     grunt.loadNpmTasks("grunt-env");
+    grunt.loadNpmTasks("grunt-eslint");
     
-    grunt.registerTask('default', ['bumpup', "env:build"]);
+    grunt.registerTask('default', ['bumpup', "env:build","eslint:all"]);
 };

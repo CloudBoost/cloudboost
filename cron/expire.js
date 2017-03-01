@@ -20,7 +20,6 @@ var job= new CronJob('00 00 22 * * *', function(){
                     var appId = databaseNameList[j];
 
                     var curr = new Date();
-                    var count = 0;
 
                     var collectionName = "_Schema";        
                     var collection = global.mongoClient.db(appId).collection(collectionName);

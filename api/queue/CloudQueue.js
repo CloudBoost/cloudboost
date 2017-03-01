@@ -16,11 +16,8 @@ module.exports = function () {
         console.log('PUSH QUEUE MESSAGE HANDLER');
 
         var appId = req.params.appId;
-        var queueName = req.params.queueName;
 
         var document = req.body.document;
-
-        var userId = req.session.userId || null;
 
         var appKey = req.body.key;
         var sdk = req.body.sdk || "REST";
@@ -46,11 +43,6 @@ module.exports = function () {
         console.log('GET QUEUE MESSAGE HANDLER');
 
         var appId = req.params.appId;
-        var queueName = req.params.queueName;
-
-        var document = req.body.document;
-
-        var userId = req.session.userId || null;
         var appKey = req.body.key;
         var sdk = req.body.sdk || "REST";
 
@@ -76,11 +68,6 @@ module.exports = function () {
         console.log('GET ALL MESSAGES');
 
         var appId = req.params.appId;
-        var queueName = req.params.queueName;
-
-        var document = req.body.document;
-
-        var userId = req.session.userId || null;
         var appKey = req.body.key;
         var sdk = req.body.sdk || "REST";
 
@@ -107,9 +94,6 @@ module.exports = function () {
         console.log('CREATE QUEUE HANDLER');
 
         var appId = req.params.appId;
-        var queueName = req.params.queueName;
-
-        var userId = req.session.userId || null;
         var appKey = req.body.key;
         
         var document = req.body.document;
@@ -137,11 +121,6 @@ module.exports = function () {
         console.log('PULL QUEUE MESSAGE HANDLER');
 
         var appId = req.params.appId;
-        var queueName = req.params.queueName;
-
-        var document = req.body.document;
-
-        var userId = req.session.userId || null;
         var appKey = req.body.key;
         var count = req.body.count;
         var sdk = req.body.sdk || "REST";
@@ -168,11 +147,6 @@ module.exports = function () {
         console.log('PEEK QUEUE MESSAGE HANDLER');
 
         var appId = req.params.appId;
-        var queueName = req.params.queueName;
-
-        var document = req.body.document;
-
-        var userId = req.session.userId || null;
         var appKey = req.body.key;
         var count = req.body.count;
         var sdk = req.body.sdk || "REST";
@@ -237,9 +211,6 @@ module.exports = function () {
 
         var appId = req.params.appId;
         var queueName = req.params.queueName;
-        var document = req.body.document;
-
-        var userId = req.session.userId || null;
         var appKey = req.body.key;
         var sdk = req.body.sdk || "REST";
 
@@ -270,10 +241,7 @@ module.exports = function () {
         console.log('Remove SUBSCRIBER QUEUE MESSAGE HANDLER');
 
         var appId = req.params.appId;
-        var queueName = req.params.queueName;
         var document = req.body.document;
-
-        var userId = req.session.userId || null;
         var appKey = req.body.key;
         var sdk = req.body.sdk || "REST";
 
@@ -300,10 +268,7 @@ module.exports = function () {
         console.log('DELETE');
 
         var appId = req.params.appId;
-        var queueName = req.params.queueName;
         var document = req.body.document;
-
-        var userId = req.session.userId || null;
         var appKey = req.body.key;
         var sdk = req.body.sdk || "REST";
 
@@ -335,9 +300,7 @@ module.exports = function () {
             console.log('Update Queue');
 
             var appId = req.params.appId;
-            var queueName = req.params.queueName;
-
-            var userId = req.session.userId || null;
+           
             var appKey = req.body.key;
             var document = req.body.document;
             var sdk = req.body.sdk || "REST";
@@ -369,10 +332,8 @@ module.exports = function () {
         console.log('CLEAR QUEUE');
 
         var appId = req.params.appId;
-        var queueName = req.params.queueName;
         var document = req.body.document;
 
-        var userId = req.session.userId || null;
         var appKey = req.body.key;
         var sdk = req.body.sdk || "REST";
 
@@ -427,9 +388,7 @@ module.exports = function () {
         var appId = req.params.appId;
         var queueName = req.params.queueName;
 
-        var userId = req.session.userId || null;
         var appKey = req.body.key;
-        var queueName = req.params.queueName;
         var messageId = req.params.messageId;
 
         var timeout = req.body.timeout;
@@ -458,7 +417,6 @@ module.exports = function () {
 
         var appId = req.params.appId;
 
-        var userId = req.session.userId || null;
         var appKey = req.body.key;
         var sdk = req.body.sdk || "REST";
 

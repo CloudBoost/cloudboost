@@ -8,7 +8,6 @@
 
 var q = require("q");
 var _ = require('underscore');
-var fs = require('fs');
 var customHelper = require('../../helpers/custom.js');
 
 
@@ -69,7 +68,6 @@ module.exports = function() {
         var appId = req.params.appId;
 		var document = req.body.document; //document contains the credentials
 		var appKey = req.body.key || req.param('key');
-        var userId = req.session.userId || null;
 		var sdk = req.body.sdk || "REST";
         
         var isMasterKey=false;
@@ -207,7 +205,7 @@ module.exports = function() {
                 }else{
                     var deferred = global.q.defer();
                     deferred.reject("Invalid accessToken");
-                    return deferred.promise
+                    return deferred.promise;
                 }
                 
             }).then(function(result){                
@@ -283,7 +281,6 @@ module.exports = function() {
 
 	global.app.post('/user/:appId/logout', function(req, res) { //for logging user out
         var appId = req.params.appId || null;
-        var userId = req.session.userId || null;
 		var sdk = req.body.sdk || "REST";
 		if (req.session.loggedIn === true) {
             req.session.userId = null;
@@ -296,7 +293,7 @@ module.exports = function() {
             });
             res.json(req.body.document);
  		} else {
-			res.status(400).json({
+		    res.status(400).json({
 				"message": "You are not logged in"
 			});
 		}
@@ -335,7 +332,7 @@ module.exports = function() {
 			var userId = req.session.userId;
             
             global.appService.isMasterKey(appId,appKey).then(function(isMasterKey){
-                return global.userService.changePassword(appId, userId, oldPassword, newPassword, customHelper.getAccessList(req), isMasterKey)
+                return global.userService.changePassword(appId, userId, oldPassword, newPassword, customHelper.getAccessList(req), isMasterKey);
             }).then(function(result) {
                 res.json(result);
             }, function(error) {
@@ -394,12 +391,11 @@ module.exports = function() {
         var appId = req.params.appId;
 		var user = req.body.user;
 		var role = req.body.role;
-		var userId = req.session.userId || "";
 		var appKey = req.body.key || req.param('key');
 		var sdk = req.body.sdk || "REST";
 		
 		global.appService.isMasterKey(appId,appKey).then(function(isMasterKey){
-			return global.userService.addToRole(appId, user._id, role._id, customHelper.getAccessList(req), isMasterKey)
+			return global.userService.addToRole(appId, user._id, role._id, customHelper.getAccessList(req), isMasterKey);
 		}).then(function(result) {
 			res.json(result);
  		}, function(error) {
@@ -410,7 +406,7 @@ module.exports = function() {
         global.apiTracker.log(appId,"User / Role / Add", req.url,sdk);
 	});   
     
-	global.app.put('/user/:appId/removeFromRole', function(req, res, next) { //for removing role from the user
+	global.app.put('/user/:appId/removeFromRole', function(req, res) { //for removing role from the user
         console.log("REMOVE FROM ROLE API");
         var appId = req.params.appId;
 		var user = req.body.user;
@@ -455,5 +451,5 @@ module.exports = function() {
         req.session = obj;
         
         global.sessionHelper.saveSession(obj,sessionLength);
-	}
+	};
 };

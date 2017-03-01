@@ -6,13 +6,6 @@
 */
 
 
-
-var q = require("q");
-var fs = require('fs');
-var util = require("../../helpers/util.js");
-var Stream = require('stream');
-
-
 module.exports = function() {    
 
     //get file from gridfs
@@ -46,5 +39,5 @@ module.exports = function() {
         });                 
 
     });
-}    
+};    
 

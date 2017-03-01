@@ -6,16 +6,8 @@
 */
 
 
-var Collections = require('../database-connect/collections.js');
 var q = require('q');
-var fs = require('fs');
-var crypto = require("crypto");
-var uuid = require('uuid');
-var customHelper = require('../helpers/custom.js');
 var _ = require('underscore');
-var util = require('../helpers/util.js');
-var Stream = require('stream');
-var Grid = require('gridfs-stream');
 
 var gcm = require('node-gcm');
 var apn = require('apn');
@@ -33,8 +25,6 @@ module.exports = function() {
 		           Reject->Error on findOne() or save()
 		*/
 		upsertDevice: function(appId, collectionName, document, accessList, isMasterKey){
-
-			var _self=this;			
 			
 			var deferred = global.q.defer();
 
@@ -77,7 +67,7 @@ module.exports = function() {
 	            deferred.reject(err);
 	        }	
 
-			return deferred.promise
+			return deferred.promise;
 		},
 
 		/*Desc   : Delete Device Object
@@ -87,9 +77,7 @@ module.exports = function() {
 		           Reject->Error on find()  or delete()
 		*/
 		deleteDevice: function(appId, collectionName, document, accessList, isMasterKey){
-
-			var _self=this;			
-			
+	
 			var deferred = global.q.defer();
 
 			try{					
@@ -120,7 +108,7 @@ module.exports = function() {
 	            deferred.reject(err);
 	        }	
 
-			return deferred.promise
+			return deferred.promise;
 		},
 		
 
@@ -131,8 +119,6 @@ module.exports = function() {
 		           Reject->Error on find() or getAllSettings() or pushSettings not found or failure of sending all push notifications failed
 		*/
 		sendPush: function(appId,collectionName,query, sort, limit, skip,accessList,isMasterKey,pushData){
-
-			var _self=this;
 
 			var deferred = global.q.defer();
 
@@ -364,7 +350,7 @@ module.exports = function() {
 
 			return deferred.promise;
 		}
-	}
+	};
 
 };
 
@@ -378,7 +364,6 @@ module.exports = function() {
 */
 function _checkAndGetTitle(appId,data,appSettingsObject){
 
-	var deferred = global.q.defer();
 
 	try{
 
@@ -429,7 +414,7 @@ function _getAppleCertificateBuffer(appId,fileName){
 			return global.mongoService.document.getFileStreamById(appId,appleCertFileObj._id);
 		}).then(function(fileStream){
 
-			  var str = []
+			  var str = [];
 			  fileStream.on('data', function(chunk) {
 			    str.push(chunk);
 			  });
@@ -798,7 +783,6 @@ function _browserPush(browserArrayObj, pushData, isChromeBrowser, GCMAPIKey){
     			respObj.response=resRejected;
     			defer.reject(respObj);
     		}
-    		
     	});    		
 
 	} catch(err){           

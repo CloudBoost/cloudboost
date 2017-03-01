@@ -243,7 +243,7 @@ module.exports = {
                         console.log("URL Record Found");
                         docs[0].myURL = url;
                         console.log("Updating...");
-                        collection.save(docs[0], function(err, doc){
+                        collection.save(docs[0], function(err){
 
                             if(err){
                                 console.log("Error Updating");

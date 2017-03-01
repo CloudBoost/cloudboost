@@ -227,7 +227,7 @@ module.exports = function (){
     };
     
     
-    function _getItemsCount(req, res, next) {
+    function _getItemsCount(req, res) {
         var appId = req.params.appId;
         var cacheName = req.params.name;
         var key = req.params.key;
@@ -250,7 +250,7 @@ module.exports = function (){
         });
         
         global.apiTracker.log(appId,"Cache / Item / Count", req.url,sdk);
-    };
+    }
 
     function _getCache(req, res, next){
         var appId =      req.params.appId;
@@ -299,7 +299,7 @@ module.exports = function (){
         global.apiTracker.log(appId,"Cache / GetAll", req.url,sdk);
     };
 
-    function _getAllItems(req, res, next){
+    function _getAllItems(req, res){
         var appId =      req.params.appId;
         var cacheName =  req.params.name;
         var appKey    =  req.body.key;
@@ -345,6 +345,6 @@ module.exports = function (){
         });
         
         global.apiTracker.log(appId,"Cache / GetInfo", req.url,sdk);
-    };
+    }
 
 };

@@ -30,7 +30,7 @@ module.exports = function() {
                         console.log("Error : Cannot create an app.");
                         console.log(err);
                         res.status(500).send(err);
-                    })
+                    });
 
                 }, function(err) {
                     console.log("Error : Cannot create an app.");
@@ -90,7 +90,6 @@ module.exports = function() {
             var appId = req.params.appId;
             var tableName = req.params.tableName;
 
-            var body = req.body || {};
             var sdk = req.body.sdk || "REST";
 
             var appKey = req.body.key || req.params.key;
@@ -136,7 +135,6 @@ module.exports = function() {
             var appId = req.params.appId;
             var tableName = req.params.tableName;
             var body = req.body || {};
-            var schema = req.body.schema;
             var sdk = req.body.sdk || "REST";
             var appKey = req.body.key || req.params.key;
 
@@ -175,7 +173,6 @@ module.exports = function() {
 
         var appId = req.params.appId;
         var tableName = req.params.tableName;
-        var body = req.body || {};
         var sdk = req.body.sdk || "REST";
         var appKey = req.body.key || req.params.key;
 
@@ -221,12 +218,12 @@ module.exports = function() {
                             "Content-Type": "application/octet-stream",
                             "Content-Disposition": "attachment; filename=dump" + (new Date()) + ".json"
                         });
-                        res.end(JSON.stringify(data))
+                        res.end(JSON.stringify(data));
                     }, function(err) {
                         console.log("Error : Exporting Database.");
                         console.log(err);
                         res.status(500).send("Error");
-                    })
+                    });
                 } else {
                     res.status(401).send({status: 'Unauthorized'});
                 }
@@ -242,13 +239,13 @@ module.exports = function() {
     global.app.post('/backup/:appId/importdb', function(req, res) {
         console.log("++++ Import Database ++++++");
         try{
-            var appKey = req.body.key
+            var appKey = req.body.key;
             var appId = req.params.appId;
             global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
                 if (isMasterKey) {
                     var file;
                     if(req.files && req.files.file){                       
-                      file = req.files.file.data
+                      file = req.files.file.data;
                     }
                     if (file) {
                         global.appService.importDatabase(appId, file).then(function(data) {
@@ -261,7 +258,7 @@ module.exports = function() {
                             console.log("Error : Exporting Database.");
                             console.log(err);
                             res.status(500).send("Error");
-                        })
+                        });
                     }
                 } else {
                     res.status(401).send({status: 'Unauthorized'});

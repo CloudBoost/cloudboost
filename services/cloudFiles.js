@@ -7,9 +7,6 @@
 
 
 var q =           require("q");
-var fs =          require('fs');
-var GridStore =   require('mongodb').GridStore;
-var Grid =        require('gridfs-stream');
 var util =        require("../helpers/util.js");
 var jimp =        require("jimp");
 
@@ -28,8 +25,7 @@ module.exports = function() {
 			var deferred = q.defer();
 
             try{
-                var promises = [];
-                var newFileName ='';      
+                var promises = [];   
 
                 global.keyService.getMyUrl().then(function(url){
 
@@ -222,7 +218,7 @@ function _checkWriteACL(appId,collectionName,fileId,accessList,isMasterKey){
             // then this will return true which is wrong.
             global.mongoService.document.get(appId, collectionName, fileId, accessList, true).then(function (doc) {
 
-                console.log("File object found.")
+                console.log("File object found.");
                 console.log(doc);
 
                 if (doc) {
@@ -321,7 +317,7 @@ function _readFileACL(appId,collectionName,fileId,accessList,isMasterKey){
                             deferred.reject(false);
                         } else {
                             if (accessList.userId && acl.read.allow.user.indexOf(accessList.userId) > -1) {
-                                console.log("Specific User Access Allowed.")
+                                console.log("Specific User Access Allowed.");
                                 status = true;
                                 deferred.resolve(true);
                             }
@@ -419,7 +415,7 @@ function _processImage(appId,fileName, resizeWidth, resizeHeight,cropX, cropY, c
         q.all(promises).then(function (image) {
              deferred.resolve(image);
           }, function (err) {
-             deferred.reject(err)
+             deferred.reject(err);
         });
 
     } catch(err){           
@@ -428,4 +424,4 @@ function _processImage(appId,fileName, resizeWidth, resizeHeight,cropX, cropY, c
     }
 
     return deferred.promise;
-};
+}

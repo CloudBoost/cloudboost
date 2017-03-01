@@ -8,9 +8,7 @@
 
 
 var q = require("q");
-var util = require("../../helpers/util.js");
 var _ = require('underscore');
-var request = require('request');
 var customHelper = require('../../helpers/custom.js');
 
 var twitterHelper = require('../../helpers/twitter.js');
@@ -347,7 +345,7 @@ module.exports = function() {
             });         
         });
     });  
-}    
+};    
 
 /************************ Private Functions *************************/
 
@@ -410,7 +408,7 @@ function _getAppSettings(req,res){
         return res.status(400).send(error);
     });
 
-    return deferred.promise    
+    return deferred.promise ;   
 }
 
 
