@@ -9,8 +9,6 @@
 var crypto = require('crypto');
 var q = require('q');
 var Collections = require('../database-connect/collections.js');
-var jsdom = require("jsdom");
-var fs = require("fs");
 var _ = require('underscore');
 
 
@@ -95,7 +93,7 @@ module.exports = function() {
 					var encryptedPassword = crypto.pbkdf2Sync(oldPassword, global.keys.secureKey, 10000, 64).toString('base64');
 					if (encryptedPassword === user.password) { //authenticate user.
 						 user.password = crypto.pbkdf2Sync(newPassword, global.keys.secureKey, 10000, 64).toString('base64');
-					     global.mongoService.document.save(appId,  [{document:user}]).then(function(document) {
+					     global.mongoService.document.save(appId,  [{document:user}]).then(function() {
 	                        deferred.resolve(user); //returns no. of items matched
 	                     }, function(error) {
 	                        deferred.reject(error);
@@ -158,7 +156,7 @@ module.exports = function() {
 			return deferred.promise;
         },
         
-        resetUserPassword: function(appId, username, newPassword, resetKey, accessList, isMasterKey){
+        resetUserPassword: function(appId, username, newPassword, resetKey, accessList){
             var deferred = q.defer();
 			
 			try{
@@ -176,7 +174,7 @@ module.exports = function() {
 	                
 	                if(passwordResetKey === resetKey){
 	                    user.password = crypto.pbkdf2Sync(newPassword, global.keys.secureKey, 10000, 64).toString('base64');
-	                    global.mongoService.document.save(appId,  [{document:user}]).then(function(user) {
+	                    global.mongoService.document.save(appId,  [{document:user}]).then(function() {
 	                        deferred.resolve(); //returns no. of items matched
 	                    }, function(error) {
 	                        deferred.reject(error);
@@ -387,7 +385,6 @@ module.exports = function() {
 
 			try{
 				//Get role
-	            var acc=accessList;
 				global.customService.find(appId, Collections.Role, { _id: roleId }, null, null, 1, 0, accessList, isMasterKey).then(function(role) {
 					if (!role) {
 						deferred.reject('Role does not exists');
@@ -447,6 +444,6 @@ module.exports = function() {
             }
 			return deferred.promise;
 		}
-	}
-}
+	};
+};
 

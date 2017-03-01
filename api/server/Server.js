@@ -7,8 +7,6 @@
 
 
 var util = require('../../helpers/util.js');
-var request = require('request');
-var q = require('q');
 
 module.exports = function() {
 
@@ -46,11 +44,11 @@ module.exports = function() {
     });
 
 
-    global.app.get('/status', function(req,res,next) {
+    global.app.get('/status', function(req,res) {
 
         console.log("MongoDB,RedisDB");        
 
-        global.serverService.getDBStatuses().then(function(response){           
+        global.serverService.getDBStatuses().then(function(){           
             return res.status(200).json({status:200, message : "Service Status : OK"});            
         },function(error){
             return res.status(500).send(error);

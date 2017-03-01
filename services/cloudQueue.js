@@ -8,11 +8,8 @@
 
 var q = require("q");
 var util = require("../helpers/util.js");
-var _ = require('underscore');
-var crypto = require('crypto');
 var customHelper = require('../helpers/custom.js');
 
-var databaseDriver = global.mongoService.document;
 
 module.exports = function () {
     
@@ -20,12 +17,10 @@ module.exports = function () {
         
         pushOrUpdate: function (appId, document, accessList, isMasterKey) {
             
-            var collectionName = "_Queue";
             var deferred = global.q.defer();
 
             try{
-                var promises = [];
-                
+               
                 //pluck messages out of queue object.
                 var messages = document.messages;
                 
@@ -78,7 +73,7 @@ module.exports = function () {
                         queue.totalMessages += result.length;
                         queue.updatedAt = new Date();
                         
-                        global.mongoService.document.save(appId, [{ document: queue }]).then(function (result) {
+                        global.mongoService.document.save(appId, [{ document: queue }]).then(function () {
                             console.log('Queue updated.');
                         }, function (error) {
                             console.log('Queue Failed to update');
@@ -125,11 +120,7 @@ module.exports = function () {
             var deferred = global.q.defer();
 
             try{
-
-                var thisObj = this;
-                var collectionName = "_Queue";            
-                var promises = [];
-                
+            
                 //pluck messages out of queue object.
                 var messages = document.messages;
 
@@ -141,8 +132,6 @@ module.exports = function () {
                 
                 //find the queue in the queue collection. 
                 
-                var isValid = true;
-
                 global.mongoService.document.find(appId, "_Queue", { name : document.name }, null, null, 1, 0, accessList, true).then(function (result) {
                     if (result.length === 0) {
                         isValid = false;
@@ -189,7 +178,7 @@ module.exports = function () {
                             }
 
                             //now save this object. 
-                            global.mongoService.document.save(appId, [{ document: result[0] }]).then(function (res) {
+                            global.mongoService.document.save(appId, [{ document: result[0] }]).then(function () {
                                 deferred.resolve(result[0]);
                             }, function (error) {
                                 console.log('Queue Failed to update');
@@ -263,7 +252,7 @@ module.exports = function () {
                                 
                                 if (!isPeek) {
                                     //re-save this object. 
-                                    global.mongoService.document.save(appId, saveArray).then(function (res) {
+                                    global.mongoService.document.save(appId, saveArray).then(function () {
                                         console.log("QUEUE MESSAGE UPDATE SUCCESS");
                                         if (count === 1)
                                             deferred.resolve(result[0]);

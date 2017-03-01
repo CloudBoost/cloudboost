@@ -92,7 +92,7 @@ module.exports = function () {
 
             return deferred.promise;
         }
-}
+};
 
 	obj.document = {
 
@@ -172,7 +172,7 @@ module.exports = function () {
                 var promises = [];
                 for (var i = 0; i < schema.length; i++) {
                     if (schema[i].dataType === 'GeoPoint') {
-                        promises.push(obj.collection.createIndex(appId, collectionName,schema[i].name, schema[i].dataType))
+                        promises.push(obj.collection.createIndex(appId, collectionName,schema[i].name, schema[i].dataType));
                     }
                 }
                 if (promises.length > 0) {
@@ -204,7 +204,7 @@ module.exports = function () {
                 /**
                     Creating a wild card index , instaed of creating individual $text index on each column seperately
                 **/
-                var obj = {}
+                var obj = {};
                 if(columnType ==='GeoPoint'){
                     obj[columnName] = "2dsphere";
                 }
@@ -231,7 +231,7 @@ module.exports = function () {
             return deferred.promise;
         },
 
-        deleteAndCreateTextIndexes: function (appId, collectionName, oldColumns, schema) {
+        deleteAndCreateTextIndexes: function (appId, collectionName, oldColumns) {
             var deferred = global.q.defer();
 
             try{
@@ -336,7 +336,6 @@ module.exports = function () {
     			console.log('Collection Name : '+ collectionName);
     			console.log('Column Name : '+columnName);			
 
-                var _self = obj;
 
                 if(global.mongoDisconnected) {
                     deferred.reject("Database Not Connected");
@@ -446,7 +445,7 @@ module.exports = function () {
 
     			var collection =  global.mongoClient.db(appId).collection(_self.collection.getId(appId, oldCollectionName));
     			
-    			collection.rename(_self.collection.getId(appId, newCollectionName), function(err, collection) {
+    			collection.rename(_self.collection.getId(appId, newCollectionName), function(err) {
     				if(err){
     					
     					console.log(err);

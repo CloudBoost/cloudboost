@@ -5,15 +5,6 @@
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
-
-var Collections = require('../database-connect/collections.js');
-var q = require('q');
-var crypto = require("crypto");
-var uuid = require('uuid');
-var customHelper = require('../helpers/custom.js');
-var _ = require('underscore');
-var util = require('../helpers/util.js');
-
 module.exports = function() {
 
 	return {
@@ -26,7 +17,6 @@ module.exports = function() {
 		*/
 		upsertUserWithProvider: function(appId, accessList, provider, providerUserId, providerAccessToken, providerAccessSecret){
 
-			var _self=this;			
 			
 			var deferred = global.q.defer();
 
@@ -103,7 +93,7 @@ module.exports = function() {
                 deferred.reject(err);
             }	
 
-			return deferred.promise
+			return deferred.promise;
 		}
 	};
 

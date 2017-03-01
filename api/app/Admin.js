@@ -67,7 +67,7 @@ module.exports = function() {
         try {
             if (global.keys.secureKey === req.body.secureKey) {
                 global.appService.createDatabaseUser(req.params.appId).then(function (userData){
-                    res.status(200).json({user:userData})
+                    res.status(200).json({user:userData});
                 }, function (err){
                     res.status(500).send("Server Erorr");
                 });

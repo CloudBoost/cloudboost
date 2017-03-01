@@ -11,7 +11,7 @@ var customHelper = require('../../helpers/custom.js');
 module.exports = function() {
 
 
-    global.app.put('/data/:appId/:tableName', function (req, res, next) { //save a new document into <tableName> of app
+    global.app.put('/data/:appId/:tableName', function (req, res) { //save a new document into <tableName> of app
         if(req.body && req.body.method=="DELETE"){
             /******************DELETE API*********************/
             _deleteApi(req, res);
@@ -22,7 +22,6 @@ module.exports = function() {
             var appId = req.params.appId;
             var document = req.body.document;
             var collectionName = req.params.tableName;
-            var userId = req.session.userId || null;
             var appKey = req.body.key || req.params.key;
             var sdk = req.body.sdk || "REST";
             
@@ -62,7 +61,6 @@ module.exports = function() {
         console.log("DELETE API");
         var appId = req.params.appId;
         var collectionName = req.params.tableName;
-        var userId = req.session.userId || null;
         var document = req.body.document;
         var appKey = req.body.key || req.param('key');
         var sdk = req.body.sdk || "REST";
@@ -105,14 +103,13 @@ function _getData(req, res, next) { //get document(s) object based on query and 
     global.apiTracker.log(appId,"Object / Find", req.url,sdk);
 }
 
-function _count(req, res, next) { //get document(s) object based on query and various parameters
+function _count(req, res) { //get document(s) object based on query and various parameters
     console.log("COUNT API");
     var appId = req.params.appId;
     var collectionName = req.params.tableName;
     var query = req.body.query;
     var limit = req.body.limit;
     var skip = req.body.skip;
-    var userId = req.session.userId || null;
     var appKey = req.body.key || req.param('key');
     var sdk = req.body.sdk || "REST";
     
@@ -127,7 +124,7 @@ function _count(req, res, next) { //get document(s) object based on query and va
     global.apiTracker.log(appId,"Object / Count", req.url,sdk);
 }
 
-function _distinct(req, res, next) { //get document(s) object based on query and various parameters
+function _distinct(req, res) { //get document(s) object based on query and various parameters
     console.log("DISTINCT API");
     var appId = req.params.appId;
     var collectionName = req.params.tableName;
@@ -137,7 +134,6 @@ function _distinct(req, res, next) { //get document(s) object based on query and
     var sort = req.body.sort;
     var limit = req.body.limit;
     var skip = req.body.skip;
-    var userId = req.session.userId || null;
     var appKey = req.body.key || req.param('key');
     var sdk = req.body.sdk || "REST";
     
@@ -152,7 +148,7 @@ function _distinct(req, res, next) { //get document(s) object based on query and
     global.apiTracker.log(appId,"Object / Distinct", req.url,sdk);
 }
 
-function _findOne(req, res, next) { //get a single document matching the search query
+function _findOne(req, res) { //get a single document matching the search query
     console.log("FIND ONE API");
     var appId = req.params.appId;
     var collectionName = req.params.tableName;
@@ -160,7 +156,6 @@ function _findOne(req, res, next) { //get a single document matching the search 
     var select = req.body.select;
     var sort = req.body.sort;
     var skip = req.body.skip;
-    var userId = req.session.userId || null;
     var appKey = req.body.key || req.param('key');
     var sdk = req.body.sdk || "REST";
     

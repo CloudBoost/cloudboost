@@ -5,9 +5,6 @@
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
-
-var smtpConfig = null;
-var defaultTransporter = null;
 var mandrill = require('mandrill-api/mandrill');
 var _ = require('underscore');
 var jsdom = require("jsdom");
@@ -190,8 +187,6 @@ module.exports = function(){
         try{         
 
             var emailSettings=null;
-            var emailTemplate=null;
-            var serverUrl=null;
 
             global.appService.getAllSettings(appId).then(function(settings){
 
@@ -229,7 +224,7 @@ module.exports = function(){
         }
 
         return deferred.promise;
-    }
+    };
   
     return mail;
 

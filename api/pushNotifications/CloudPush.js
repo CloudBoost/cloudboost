@@ -6,13 +6,8 @@
 */
 
 
-var q = require("q");
-var fs = require('fs');
 var customHelper = require('../../helpers/custom.js');
 var util = require("../../helpers/util.js");
-var _ = require('underscore');
-var Stream = require('stream');
-var Grid = require('gridfs-stream');
 
 module.exports = function() {   
 
@@ -30,8 +25,7 @@ module.exports = function() {
         var select         = body.select;
         var sort           = body.sort;
         var limit          = body.limit;
-        var skip           = body.skip;
-        var userId         = req.session.userId || null;       
+        var skip           = body.skip;     
         var sdk            = body.sdk || "REST";
         var pushData       = body.data;        
        
@@ -56,7 +50,7 @@ module.exports = function() {
         
     });
 
-    global.app.put('/push/:appId', function (req, res, next) { 
+    global.app.put('/push/:appId', function (req, res) { 
         if(req.body && req.body.method=="DELETE"){
             /******************DELETE API*********************/
             _deleteApi(req, res);
@@ -67,7 +61,6 @@ module.exports = function() {
             var appId = req.params.appId;
             var document = req.body.document;
             var collectionName = "Device";
-            var userId = req.session.userId || null;
             var appKey = req.body.key || req.params.key;
             var sdk = req.body.sdk || "REST";
             
@@ -94,7 +87,6 @@ module.exports = function() {
         console.log("DELETE API");
         var appId = req.params.appId;
         var collectionName = "Device";
-        var userId = req.session.userId || null;
         var document = req.body.document;
         var appKey = req.body.key || req.param('key');
         var sdk = req.body.sdk || "REST";

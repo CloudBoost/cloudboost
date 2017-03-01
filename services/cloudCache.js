@@ -206,7 +206,7 @@ module.exports = function () {
                     q.all(promises).then(function (cacheItems) {
                         deferred.resolve(cacheItems);
                     }, function (err) {
-                        deferred.reject(err)
+                        deferred.reject(err);
                     });
 
                 });
@@ -228,11 +228,11 @@ module.exports = function () {
                     if (!value) {
                         deferred.reject("Cache does not exist");
                     } else {
-                        global.redisClient.del(hashKey, function (err, caches) {
+                        global.redisClient.del(hashKey, function (err) {
                             if (err)
                                 deferred.reject(err);
 
-                            global.redisClient.hdel(appId, hashKey, function (err, caches) {
+                            global.redisClient.hdel(appId, hashKey, function (err) {
                                 if (err)
                                     deferred.reject(err);
                                 deferred.resolve(global.cacheService._makeCacheDocument(cacheName, "0kb"));
@@ -256,7 +256,7 @@ module.exports = function () {
             try{
 
                 var hashKey = global.cacheService._makeHashKey(appId, cacheName);
-                global.redisClient.hdel(hashKey, key, function (err, item) {
+                global.redisClient.hdel(hashKey, key, function (err) {
                     if (err)
                         deferred.reject(err);
                     deferred.resolve(key);
@@ -280,7 +280,7 @@ module.exports = function () {
                     if (!value) {
                         deferred.reject("Cache does not exist");
                     } else {
-                        global.redisClient.del(hashKey, function (err, caches) {
+                        global.redisClient.del(hashKey, function (err) {
                             if (err)
                                 deferred.reject(err);
                             deferred.resolve(global.cacheService._makeCacheDocument(cacheName, "0kb"));

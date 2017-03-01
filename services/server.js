@@ -13,8 +13,6 @@ module.exports = function() {
   return {
     registerServer: function (secureKey) {
 
-      var _self = this;
-
       var deferred = Q.defer();
 
       try{
@@ -33,8 +31,6 @@ module.exports = function() {
       return deferred.promise;
     },
     getDBStatuses: function () {
-
-      var _self = this;
 
       var deferred = Q.defer();
 
@@ -60,7 +56,7 @@ module.exports = function() {
 
       return deferred.promise;
     }
-  }  
+  };  
 };
 
 function _registerServerAnalytics(secureKey){
@@ -166,7 +162,7 @@ function _redisDbStatus(){
               deferred.resolve(responseJson); 
             }else{
               responseJson.error="CBEngine Redisdb PING is failed";
-              deferred.reject(responseJson)
+              deferred.reject(responseJson);
             }
         });        
 

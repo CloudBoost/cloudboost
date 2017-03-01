@@ -5,11 +5,8 @@
 */
 
 var q = require("q");
-var fs = require('fs');
 var _ = require('underscore');
-var ObjectID = require('mongodb').ObjectID; //for generating _id values
 var util = require('../helpers/util.js');
-var Stream = require('stream');
 var Grid = require('gridfs-stream');
 
 module.exports = function() {
@@ -37,7 +34,7 @@ module.exports = function() {
                     "error": String(err),
                     "stack": new Error().stack
                 });
-                deferred.reject(err);;
+                deferred.reject(err);
             }
             return deferred.promise;
         },
@@ -108,8 +105,6 @@ module.exports = function() {
                                 r_include.push(include[k]);
                             }
                         for (var k = 0; k < r_include.length; k++) {
-                            var temp = join[i];
-                            var temp1 = r_include[k];
                             r_include[k] = r_include[k].split('.').splice(1, 1).join('.');
                         }
                         for (var k = 0; k < r_include.length; k++) {
@@ -181,12 +176,12 @@ module.exports = function() {
                     "error": String(err),
                     "stack": new Error().stack
                 });
-                deferred.reject(err);;
+                deferred.reject(err);
             }
             return deferred.promise;
         },
 
-        fetch_data: function(appId, collectionName, q, promises) {
+        fetch_data: function(appId, collectionName, q) {
             var includeDeferred = global.q.defer();
 
             try {
@@ -214,7 +209,7 @@ module.exports = function() {
                     "error": String(err),
                     "stack": new Error().stack
                 });
-                includeDeferred.reject(err);;
+                includeDeferred.reject(err);
             }
             return includeDeferred.promise;
         },
@@ -430,15 +425,13 @@ module.exports = function() {
                     "error": String(err),
                     "stack": new Error().stack
                 });
-                mainPromise.reject(err);;
+                mainPromise.reject(err);
             }
 
             return mainPromise.promise;
         },
 
         save: function(appId, documentArray) {
-
-            var _self = obj;
 
             var deferred = q.defer();
 
@@ -465,14 +458,12 @@ module.exports = function() {
                     "error": String(err),
                     "stack": new Error().stack
                 });
-                deferred.reject(err);;
+                deferred.reject(err);
             }
             return deferred.promise;
 
         },
         _update: function(appId, collectionName, document) {
-
-            var _self = obj;
 
             var deferred = q.defer();
 
@@ -513,13 +504,12 @@ module.exports = function() {
                     "error": String(err),
                     "stack": new Error().stack
                 });
-                deferred.reject(err);;
+                deferred.reject(err);
             }
             return deferred.promise;
         },
 
-        count: function(appId, collectionName, query, limit, skip, accessList, isMasterKey) {
-            var _self = obj;
+        count: function(appId, collectionName, query, limit, skip, accessList) {
             var deferred = q.defer();
 
             try {
@@ -556,7 +546,7 @@ module.exports = function() {
                     "error": String(err),
                     "stack": new Error().stack
                 });
-                deferred.reject(err);;
+                deferred.reject(err);
             }
             return deferred.promise;
         },
@@ -659,7 +649,7 @@ module.exports = function() {
                     "error": String(err),
                     "stack": new Error().stack
                 });
-                deferred.reject(err);;
+                deferred.reject(err);
             }
             return deferred.promise;
         },
@@ -758,13 +748,13 @@ module.exports = function() {
                     "error": String(err),
                     "stack": new Error().stack
                 });
-                deferred.reject(err);;
+                deferred.reject(err);
             }
 
             return deferred.promise;
         },
 
-        _insert: function(appId, collectionName, document, accessList, isMasterKey) {
+        _insert: function(appId, collectionName, document, accessList) {
             var _self = obj;
 
             var deferred = q.defer();
@@ -796,16 +786,15 @@ module.exports = function() {
                     "error": String(err),
                     "stack": new Error().stack
                 });
-                deferred.reject(err);;
+                deferred.reject(err);
             }
 
             return deferred.promise;
         },
 
-        delete: function(appId, collectionName, document, accessList, isMasterKey) {
+        delete: function(appId, collectionName, document, accessList) {
 
             var documentId = document._id;
-            var _self = obj;
             var deferred = q.defer();
 
             try {
@@ -851,7 +840,7 @@ module.exports = function() {
                     "error": String(err),
                     "stack": new Error().stack
                 });
-                deferred.reject(err);;
+                deferred.reject(err);
             }
 
             return deferred.promise;
@@ -885,7 +874,7 @@ module.exports = function() {
                     "error": String(err),
                     "stack": new Error().stack
                 });
-                deferred.reject(err);;
+                deferred.reject(err);
             }
 
             return deferred.promise;
@@ -1079,7 +1068,6 @@ module.exports = function() {
                 delete document._modifiedColumns;
             }
             document = _serialize(document);
-            var promises = [];
             //column key array to track sub documents.
             var columns = [];
             global.mongoService.document._update(appId, collectionName, document).then(function(doc) {
@@ -1096,7 +1084,7 @@ module.exports = function() {
                 "error": String(err),
                 "stack": new Error().stack
             });
-            deferred.reject(err);;
+            deferred.reject(err);
         }
         return deferredMain.promise;
     }

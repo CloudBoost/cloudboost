@@ -34,7 +34,7 @@ module.exports = function (io){
                     }
             });
             
-            socket.on('socket-disconnect', function (data) {
+            socket.on('socket-disconnect', function () {
                 try{
                     socket.disconnect();
                 }catch(e){                    

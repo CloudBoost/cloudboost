@@ -46,7 +46,7 @@ module.exports = {
             
             var OAuth2 = new oauth(githhubClientId, githubClientSecret, "https://github.com/", "login/oauth/authorize", "login/oauth/access_token");    
             
-            OAuth2.getOAuthAccessToken(code, {}, function (err, access_token, refresh_token) {
+            OAuth2.getOAuthAccessToken(code, {}, function (err, access_token) {
                 if (err) {                  
                   deferred.reject(err);
                 }else{ 
@@ -70,7 +70,7 @@ module.exports = {
             
             var client = github.client(accessToken);
             
-            client.get('/user', {}, function (err, status, body, headers) {
+            client.get('/user', {}, function (err, status, body) {
                 if (err) {                  
                   deferred.reject(err);
                 }else{ 
