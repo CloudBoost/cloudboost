@@ -1,7 +1,7 @@
 
 /*
 #     CloudBoost - Core Engine that powers Bakend as a Service
-#     (c) 2014 HackerBay, Inc. 
+#     (c) 2014 HackerBay, Inc.
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
@@ -38,14 +38,14 @@ module.exports = function () {
                     } else {
                         var cacheDocument = { _type : 'cache', name: null, size : null, items: null };
                         cacheDocument.name = String(cacheName).slice(cacheName.indexOf(":") + 1, cacheName.length);
-                        cacheDocument.size = String(parseFloat(Buffer.byteLength(cacheItems, 'utf8') / 1025).toFixed(4)) + "kb";
+                        cacheDocument.size = String(parseFloat(Buffer.byteLength(JSON.stringify(cacheItems), 'utf8') / 1025).toFixed(4)) + "kb";
                         cacheDocument.items = cacheItems;
 
                     }
                     deferred.resolve(cacheDocument);
                 });
 
-            } catch(err){           
+            } catch(err){
                 global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
@@ -58,17 +58,17 @@ module.exports = function () {
             var deferred = q.defer();
 
             try{
-                var hashKey = global.cacheService._makeHashKey(appId, cacheName);                
+                var hashKey = global.cacheService._makeHashKey(appId, cacheName);
                 global.redisClient.hset(appId, hashKey, hashKey, function (err) {
                     if (err)
                         deferred.reject(err);
                     deferred.resolve(global.cacheService._makeCacheDocument(cacheName, "0kb"));
                 });
-            } catch(err){           
+            } catch(err){
                 global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
-            
+
             return deferred.promise;
         },
 
@@ -83,7 +83,7 @@ module.exports = function () {
                     global.redisClient.hset(appId, hashKey, hashKey);
                     deferred.resolve(item);
                 });
-            } catch(err){           
+            } catch(err){
                 global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
@@ -100,7 +100,7 @@ module.exports = function () {
                         deferred.reject(err);
                     deferred.resolve(JSON.parse(result));
                 });
-            } catch(err){           
+            } catch(err){
                 global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
@@ -121,7 +121,7 @@ module.exports = function () {
                     deferred.resolve(values);
                 });
 
-            } catch(err){           
+            } catch(err){
                 global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
@@ -138,7 +138,7 @@ module.exports = function () {
                     deferred.resolve(count);
                 });
 
-            } catch(err){           
+            } catch(err){
                 global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
@@ -157,14 +157,15 @@ module.exports = function () {
                     } else {
                         global.redisClient.hvals(hashKey, function (err, caches) {
                             if (err) deferred.reject(err);
-                            var cacheSize = String(parseFloat(Buffer.byteLength(caches, 'utf8') / 1025).toFixed(4)) + "kb";
+                            var length = Buffer.byteLength(JSON.stringify(caches), 'utf8') / 1025;
+                            var cacheSize = String(parseFloat(length).toFixed(4)) + "KB";
                             deferred.resolve(global.cacheService._makeCacheDocument(cacheName, cacheSize));
                         });
                     }
 
                 });
 
-            } catch(err){           
+            } catch(err){
                 global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
@@ -185,7 +186,7 @@ module.exports = function () {
                     deferred.resolve(cacheDocument);
                 });
 
-            } catch(err){           
+            } catch(err){
                 global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
@@ -210,7 +211,7 @@ module.exports = function () {
                     });
 
                 });
-            } catch(err){           
+            } catch(err){
                 global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
@@ -242,7 +243,7 @@ module.exports = function () {
                     }
                 });
 
-            } catch(err){           
+            } catch(err){
                 global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
@@ -262,7 +263,7 @@ module.exports = function () {
                     deferred.resolve(key);
                 });
 
-            } catch(err){           
+            } catch(err){
                 global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
@@ -288,7 +289,7 @@ module.exports = function () {
                     }
                 });
 
-            } catch(err){           
+            } catch(err){
                 global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
@@ -318,7 +319,7 @@ module.exports = function () {
 
                 });
 
-            } catch(err){           
+            } catch(err){
                 global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
@@ -328,4 +329,3 @@ module.exports = function () {
     };
 
 };
-

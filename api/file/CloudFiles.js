@@ -10,25 +10,44 @@ var customHelper = require('../../helpers/custom.js');
 module.exports = function() {
 
     global.app.post('/file/:appId', function(req, res) {
-
         var appId = req.params.appId;
+        var document = {};
+        try {
+            document = JSON.parse(req.body.fileObj);
+        } catch (e) {}
+        var appKey = req.body.key;
+        var collectionName = "_File";
 
         var sdk = req.body.sdk || "REST";
+        if (document._id) {
+            global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
+                return global.customService.save(appId, "_File", document, customHelper.getAccessList(req), isMasterKey);
+            }).then(function(result) {
+                console.log('+++ Save Success +++');
+                console.log(result);
+                res.status(200).send(result);
+            }, function(error) {
+                console.log('++++++ Save Error +++++++');
+                console.log(error);
+                res.status(400).send(error);
+            });
 
-        _getFileStream(req).then(function(result) {
+            global.apiTracker.log(appId, "File / Save", req.url, sdk);
+        } else {
+            _getFileStream(req).then(function(result) {
 
-            global.keys.fileUrl = global.keys.myURL + "/file/";
+                global.keys.fileUrl = global.keys.myURL + "/file/";
 
-            return global.fileService.upload(appId, result.fileStream, result.contentType, result.fileObj);
+                return global.fileService.upload(appId, result.fileStream, result.contentType, result.fileObj);
 
-        }).then(function(file) {
-            return res.status(200).send(file);
-        }, function(err) {
-            return res.status(500).send(err);
-        });
+            }).then(function(file) {
+                return res.status(200).send(file);
+            }, function(err) {
+                return res.status(500).send(err);
+            });
 
-        global.apiTracker.log(appId, "File / Upload", req.url, sdk);
-
+            global.apiTracker.log(appId, "File / Upload", req.url, sdk);
+        }
     });
 
     //Delete File

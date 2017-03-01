@@ -336,6 +336,7 @@ module.exports = function() {
                         tables = tables.filter(function(table){
                             return table.name[0] !== '_'
                         });
+
                         console.log("Tables found...");
                         deferred.resolve(tables);
                     } else {
@@ -1370,3 +1371,4 @@ function deleteAppFromRedis(appId) {
 
     return deferred.promise;
 }
+

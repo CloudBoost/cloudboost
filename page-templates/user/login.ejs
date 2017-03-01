@@ -7,13 +7,6 @@
     <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
     <link rel="stylesheet" href="/css/login.css">   
     
-    <!--IMPORTANT:Bind data from server to javascript variables-->
-    <script type="text/javascript">  
-        var _appKeys=<%- JSON.stringify(appKeys) %>;       
-        var _generalSettings=<%- JSON.stringify(generalSettings) %>; 
-        var _authSettings=<%- JSON.stringify(authSettings) %>;           
-    </script>  
-
 </head>
 <body>
 
@@ -341,6 +334,13 @@
 </div>
 
 </body>
+
+<!--IMPORTANT:Bind data from server to javascript variables-->
+<script type="text/javascript">  
+    var _appKeys=<%- JSON.stringify(appKeys) %>;       
+    var _generalSettings=<%- JSON.stringify(generalSettings) %>; 
+    var _authSettings=<%- JSON.stringify(authSettings) %>;           
+</script>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
 <script src="https://cloudboost.io/js-sdk/cloudboost.js"></script>
