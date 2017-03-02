@@ -15,26 +15,26 @@ module.exports = function() {
 			var deferred = q.defer();
 			global.customService.find(appId,'User',null,{email:true},null,null,null,{},isMasterKey).then(function(data){
 				if(data.length != 0){
-					var emailPromises = []
+					var emailPromises = [];
 					for(var k in data){
 						if(data[k].email){
-							emailPromises.push(global.mailService.emailCampaign(appId,data[k].email,emailBody,emailSubject))
+							emailPromises.push(global.mailService.emailCampaign(appId,data[k].email,emailBody,emailSubject));
 						}
 					}
 					q.all(emailPromises).then(function(data){
-						deferred.resolve(data)
+						deferred.resolve(data);
 					},function(err){
-						deferred.reject(err)
+						deferred.reject(err);
 					})
 				} else {
-					deferred.reject("No users found")
+					deferred.reject("No users found");
 				}
 			},function(err){
-				deferred.reject(err)
+				deferred.reject(err);
 			})
-			return deferred.promise
+			return deferred.promise;
 		}
 		
-	}
+	};
 
 };

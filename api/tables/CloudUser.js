@@ -8,7 +8,6 @@
 
 var q = require("q");
 var _ = require('underscore');
-var fs = require('fs');
 var customHelper = require('../../helpers/custom.js');
 
 
@@ -69,7 +68,6 @@ module.exports = function() {
         var appId = req.params.appId;
 		var document = req.body.document; //document contains the credentials
 		var appKey = req.body.key || req.param('key');
-        var userId = req.session.userId || null;
 		var sdk = req.body.sdk || "REST";
         
         var isMasterKey=false;
@@ -207,7 +205,7 @@ module.exports = function() {
                 }else{
                     var deferred = global.q.defer();
                     deferred.reject("Invalid accessToken");
-                    return deferred.promise
+                    return deferred.promise;
                 }
                 
             }).then(function(result){                
@@ -234,7 +232,6 @@ module.exports = function() {
         var appId = req.params.appId;
 		var document = req.body.document;
 		var appKey = req.body.key || req.param('key');
-        var userId = req.session.userId || null;
 		var sdk = req.body.sdk || "REST";
 
         var isMasterKey=false;
@@ -399,7 +396,7 @@ module.exports = function() {
 		var sdk = req.body.sdk || "REST";
 		
 		global.appService.isMasterKey(appId,appKey).then(function(isMasterKey){
-			return global.userService.addToRole(appId, user._id, role._id, customHelper.getAccessList(req), isMasterKey)
+			return global.userService.addToRole(appId, user._id, role._id, customHelper.getAccessList(req), isMasterKey);
 		}).then(function(result) {
 			res.json(result);
  		}, function(error) {
@@ -415,7 +412,6 @@ module.exports = function() {
         var appId = req.params.appId;
 		var user = req.body.user;
 		var role = req.body.role;
-		var userId = req.session.userId || "";
 		var appKey = req.body.key || req.param('key');
 		var sdk = req.body.sdk || "REST";
 

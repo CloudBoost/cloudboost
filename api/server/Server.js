@@ -8,7 +8,6 @@
 
 var util = require('../../helpers/util.js');
 var request = require('request');
-var q = require('q');
 
 module.exports = function() {
 
@@ -46,7 +45,7 @@ module.exports = function() {
     });
 
 
-    global.app.get('/status', function(req,res,next) {
+    global.app.get('/status', function(req,res) {
 
         console.log("MongoDB,RedisDB");        
 

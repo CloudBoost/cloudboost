@@ -6,14 +6,6 @@
 */
 
 
-var Collections = require('../database-connect/collections.js');
-var q = require('q');
-var crypto = require("crypto");
-var uuid = require('uuid');
-var customHelper = require('../helpers/custom.js');
-var _ = require('underscore');
-var util = require('../helpers/util.js');
-
 module.exports = function() {
 
 	return {
@@ -25,9 +17,7 @@ module.exports = function() {
 		           Reject->Error on findOne()  or save()
 		*/
 		upsertUserWithProvider: function(appId, accessList, provider, providerUserId, providerAccessToken, providerAccessSecret){
-
-			var _self=this;			
-			
+					
 			var deferred = global.q.defer();
 
 			try{
@@ -103,7 +93,7 @@ module.exports = function() {
                 deferred.reject(err);
             }	
 
-			return deferred.promise
+			return deferred.promise;
 		}
 	};
 

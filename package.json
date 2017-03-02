@@ -1,6 +1,6 @@
 {
   "name": "DataServices",
-  "version": "1.0.23",
+  "version": "1.0.112",
   "main": "server.js",
   "engines": {
     "node": ">=5.0.0"
@@ -63,5 +63,9 @@
     "winston": "^1.1.2",
     "winston-loggly": "^1.1.0",
     "wns": "^0.5.3"
+  },
+  "devDependencies": {
+    "eslint": "^3.16.1",
+    "grunt-eslint": "^19.0.0"
   }
 }

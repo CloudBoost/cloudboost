@@ -468,4 +468,4 @@ module.exports = {
             "editableByMasterKey": false
         }
     ]
-}
+};

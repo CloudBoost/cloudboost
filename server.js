@@ -15,7 +15,6 @@ var busboyBodyParser = require('busboy-body-parser');
 var q = require("q");
 var _ = require('underscore');
 var path = require('path');
-var ejs = require('ejs');
 
 global.mongoDisconnected = false;
 global.winston = require('winston');
@@ -42,7 +41,6 @@ global.keyService = require('./database-connect/keyService.js');
 global.q = require('q');
 global.uuid = require('uuid');
 var bodyParser = require('body-parser');
-var cookies = require("cookies");
 var session = require('express-session');
 global.app = global.express();
 
@@ -79,7 +77,6 @@ if (https) {
     io.attach(http);
 }
 
-var multer = require('multer');
 var Redis = require('ioredis');
 
 var ioRedisAdapter = require('socket.io-redis');
@@ -117,7 +114,7 @@ global.app.use(function(req, res, next) {
         req.text = '';
         req.setEncoding('utf8');
         req.on('data', function(chunk) {
-            req.text += chunk
+            req.text += chunk;
         });
         req.on('end', next);
     } else {

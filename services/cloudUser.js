@@ -9,8 +9,6 @@
 var crypto = require('crypto');
 var q = require('q');
 var Collections = require('../database-connect/collections.js');
-var jsdom = require("jsdom");
-var fs = require("fs");
 var _ = require('underscore');
 
 
@@ -447,6 +445,6 @@ module.exports = function() {
             }
 			return deferred.promise;
 		}
-	}
-}
+	};
+};
 

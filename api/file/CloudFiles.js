@@ -5,23 +5,17 @@
 */
 
 var q = require("q");
-var fs = require('fs');
 var customHelper = require('../../helpers/custom.js');
-var util = require("../../helpers/util.js");
-var Stream = require('stream');
-var Grid = require('gridfs-stream');
 
 module.exports = function() {
 
     global.app.post('/file/:appId', function(req, res) {
-        var userId = req.session.userId || null;
         var appId = req.params.appId;
         var document = {};
         try {
             document = JSON.parse(req.body.fileObj);
         } catch (e) {}
         var appKey = req.body.key;
-        var collectionName = "_File";
 
         var sdk = req.body.sdk || "REST";
         if (document._id) {
@@ -65,7 +59,6 @@ module.exports = function() {
 
         var appId = req.params.appId;
         var fileObj = req.body.fileObj;
-        var userId = req.session.userId || null;
         var sdk = req.body.sdk || "REST";
         global.keys.fileUrl = global.keys.myURL + "/file/";
 
