@@ -905,14 +905,15 @@ module.exports = function() {
                 for(let j=0;j<data.length;j++)
                 {
                     var keys = Object.keys(data[j]);
-                    for(var i in keys)
+                    for(var keys in data[j])
                     {
-                        if(typeof data[j][keys[i]] ==='object')
+                        if(typeof data[j][keys] ==='object')
                         {
-                           data[j][keys[i]] = JSON.stringify(data[j][keys[i]]);
+                           data[j][keys] = JSON.stringify(data[j][keys]);
                         }
                     }
                 }
+                console.log(data)
                 if(formatType === 'csv')
                 {
                   jsonexport(data,function(err, csv)
