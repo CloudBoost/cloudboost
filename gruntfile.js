@@ -1,4 +1,4 @@
-﻿
+﻿﻿
 
 /*
 #     CloudBoost - Core Engine that powers Bakend as a Service
@@ -16,11 +16,16 @@ module.exports = function (grunt) {
           build : {
                 CLOUDBOOST_VERSION : pkg.version 
             },
-         } 
+         },
+         eslint : {
+            all:["api/app/Admin.js","!node_modules/**/*.js"]
+         }
+         
     });
    
     grunt.loadNpmTasks("grunt-bumpup");
     grunt.loadNpmTasks("grunt-env");
+    grunt.loadNpmTasks("grunt-eslint");
     
-    grunt.registerTask('default', ['bumpup', "env:build"]);
+    grunt.registerTask('default', ['bumpup', "env:build","eslint:all"]);
 };
