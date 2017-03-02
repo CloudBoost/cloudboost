@@ -8,11 +8,7 @@
 
 var q = require("q");
 var util = require("../helpers/util.js");
-var _ = require('underscore');
-var crypto = require('crypto');
 var customHelper = require('../helpers/custom.js');
-
-var databaseDriver = global.mongoService.document;
 
 module.exports = function () {
 
@@ -20,12 +16,10 @@ module.exports = function () {
 
         pushOrUpdate: function (appId, document, accessList, isMasterKey) {
 
-            var collectionName = "_Queue";
             var deferred = global.q.defer();
 
             try{
-                var promises = [];
-
+             
                 //pluck messages out of queue object.
                 var messages = document.messages;
 
@@ -125,11 +119,7 @@ module.exports = function () {
             var deferred = global.q.defer();
 
             try{
-
-                var thisObj = this;
-                var collectionName = "_Queue";
-                var promises = [];
-
+                
                 //pluck messages out of queue object.
                 var messages = document.messages;
 

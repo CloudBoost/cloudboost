@@ -9,13 +9,12 @@
 
 var _ = require('underscore');
 var customHelper = require('../../helpers/custom.js');
-var fs = require('fs');
 var q = require('q');
 
 module.exports = function() {
     
 
-    global.app.get('/page/:appId/reset-password', function(req, res, next) {
+    global.app.get('/page/:appId/reset-password', function(req, res) {
        
            
         var appId = req.params.appId || null;      

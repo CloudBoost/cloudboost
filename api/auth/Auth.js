@@ -8,7 +8,6 @@
 
 
 var q = require("q");
-var util = require("../../helpers/util.js");
 var _ = require('underscore');
 var request = require('request');
 var customHelper = require('../../helpers/custom.js');
@@ -347,7 +346,7 @@ module.exports = function() {
             });         
         });
     });  
-}    
+};    
 
 /************************ Private Functions *************************/
 
@@ -363,7 +362,7 @@ function setSession(req, appId, sessionLength, result,res) {
         userId : result._id,
         loggedIn : true,
         appId : appId,
-        roles : _.map(result.roles, function (role) { return role._id })        
+        roles : _.map(result.roles, function (role) { return role._id ; })        
     };
 
     req.session = obj;
@@ -410,7 +409,7 @@ function _getAppSettings(req,res){
         return res.status(400).send(error);
     });
 
-    return deferred.promise    
+    return deferred.promise ;   
 }
 
 

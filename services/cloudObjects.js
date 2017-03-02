@@ -570,7 +570,7 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                                 } else {
                                     for (var i = 0; i < document[key].length; i++) {
                                         if (document[key][i]._tableName) {
-                                            if (col.relatedTo === document[key][i]._tableName) {} else {
+                                            if (col.relatedTo !== document[key][i]._tableName)  {
                                                 mainPromise.reject('Invalid Data in ' + key + ' of type ' + collectionName + '. It should be list of ' + col.relatedTo);
                                                 return mainPromise.promise;
                                             }
@@ -588,7 +588,7 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
             if (promises.length > 0) {
                 //you have related documents or unique queries.
                 q.all(promises).then(function(results) {
-                    var obj = {}
+                    var obj = {};
                     obj.document = document;
                     obj.schema = columns;
                     mainPromise.resolve(obj);
@@ -596,7 +596,7 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                     mainPromise.reject(error);
                 });
             } else {
-                var obj = {}
+                var obj = {};
                 obj.document = document;
                 obj.schema = columns;
                 mainPromise.resolve(obj); //resolve this promise.
@@ -1205,27 +1205,6 @@ function _encryptPasswordInQuery(appId, collectionName, query) {
                     deferred.resolve(query);
                 } else {
                     //or modify the query and resolve it.
-                    function _recursiveEncryptQuery(query, passwordColumnNames) {
-
-                        for (var key in query) {
-                            if (key === '$or') {
-                                for (var i = 0; i < query[key].length; i++) {
-                                    query[key][i] = _recursiveEncryptQuery(query[key][i], passwordColumnNames);
-                                }
-
-                            }
-                        }
-
-                        return _.mapObject(query, function(val, key) {
-                            if (passwordColumnNames.indexOf(key) > -1) {
-                                if (typeof val !== 'object') {
-                                    return _encrypt(val);
-                                }
-                            }
-                            return val;
-                        });
-                    }
-
                     query = _recursiveEncryptQuery(query, passwordColumnNames);
 
                     deferred.resolve(query);
@@ -1255,6 +1234,25 @@ function _encrypt(data) {
         });
         return null;
     }
+}
+
+function _recursiveEncryptQuery(query, passwordColumnNames) {
+
+    for (var key in query) {
+        if (key === '$or') {
+            for (var i = 0; i < query[key].length; i++) {
+                query[key][i] = _recursiveEncryptQuery(query[key][i], passwordColumnNames);
+            }
+        }
+    }
+    return _.mapObject(query, function(val, key) {
+        if (passwordColumnNames.indexOf(key) > -1) {
+            if (typeof val !== 'object') {
+                return _encrypt(val);
+            }
+        }
+        return val;
+    });
 }
 
 function _attachSchema(docsArray, oldDocs) {
@@ -1352,7 +1350,6 @@ function _revertBack(appId, statusArray, docsArray, oldDocs) {
  */
 
 function _mongoRevert(appId, status, docsArray, oldDocs) {
-    var promises = [];
     var deferred = global.q.defer();
 
     try {

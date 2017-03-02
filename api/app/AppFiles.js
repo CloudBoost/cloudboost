@@ -5,14 +5,6 @@
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
-
-
-var q = require("q");
-var fs = require('fs');
-var util = require("../../helpers/util.js");
-var Stream = require('stream');
-
-
 module.exports = function() {    
 
     //get file from gridfs
