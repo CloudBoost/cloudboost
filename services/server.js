@@ -60,7 +60,7 @@ module.exports = function() {
 
       return deferred.promise;
     }
-  }  
+  }; 
 };
 
 function _registerServerAnalytics(secureKey){
@@ -166,7 +166,7 @@ function _redisDbStatus(){
               deferred.resolve(responseJson); 
             }else{
               responseJson.error="CBEngine Redisdb PING is failed";
-              deferred.reject(responseJson)
+              deferred.reject(responseJson);
             }
         });        
 
