@@ -919,7 +919,6 @@ module.exports = function() {
                   { 
                     if(err) {deferred.reject(err)}; 
                     deferred.resolve(csv);
-                    console.log(csv);
                   });
                 }
                 if(formatType ==='xls')
