@@ -229,7 +229,7 @@ module.exports = function(){
         }
 
         return deferred.promise;
-    }
+    };
   
     return mail;
 
