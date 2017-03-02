@@ -13,7 +13,6 @@ module.exports = function() {
   return {
     registerServer: function (secureKey) {
 
-      var _self = this;
 
       var deferred = Q.defer();
 
@@ -33,8 +32,6 @@ module.exports = function() {
       return deferred.promise;
     },
     getDBStatuses: function () {
-
-      var _self = this;
 
       var deferred = Q.defer();
 
