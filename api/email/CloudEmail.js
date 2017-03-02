@@ -6,8 +6,6 @@
 */
 
 
-var q = require("q");
-
 module.exports = function() {   
 
    /**
@@ -23,20 +21,20 @@ module.exports = function() {
         try{
             var appId = req.params.appId;
             var appKey = req.body.key;
-            var emailBody = req.body.emailBody
-            var emailSubject = req.body.emailSubject
+            var emailBody = req.body.emailBody;
+            var emailSubject = req.body.emailSubject;
 
             global.appService.isMasterKey(appId,appKey).then(function (isMasterKey) {
                 if (isMasterKey) {
                     global.emailService.sendEmail(appId,emailBody,emailSubject,isMasterKey).then(function(data){
-                        res.status(200).send(null)
+                        res.status(200).send(null);
                     },function(err){
                         if(err === "Email Configuration is not found." || err === "No users found"){
                             res.status(400).send({error:err});
                         } else {
                             res.status(500).json({message:"Something went wrong",error:err});
                         }
-                    })
+                    });
                 } else {
                     res.status(401).send({status : 'Unauthorized'});
                 }
