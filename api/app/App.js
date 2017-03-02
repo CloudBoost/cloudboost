@@ -277,14 +277,13 @@ module.exports = function() {
     });
 
     //Export Tabel , parmas ->appId,tableId,formatType
-    global.app.post('/export/:appId/:tablename',function(req, res) {console.log('hit')
+    global.app.post('/export/:appId/:tablename',function(req, res) {
         console.log("++++ Export Database ++++++");
         try{
             var formatType = req.body.formatType.toLowerCase();
             var appId = req.params.appId;
             var tableName = req.params.tablename;
             var appKey = req.body.appKey;
-
             if(formatType === "csv" || formatType === "xls")
             {
                 global.appService.isMasterKey(appId,appKey).then(function (isMasterKey) {
@@ -323,12 +322,12 @@ module.exports = function() {
             var appKey = req.body.key;
             var appId = req.params.appId;
             var tableName = req.params.tablename;
-            
-            global.appService.isMasterKey(appId,appKey).then(function (isMasterKey) {
+            global.appService.isMasterKey(appId,appKey).then(function (isMasterKey) { 
                 if (isMasterKey) { 
                    var file;
                     if(req.files && req.files.file){
-                        file = req.files.file.data                            
+                        file = req.files.file.data  
+                                              
                     }
                     if(file){ 
                         global.appService.importTable(appId,tableName,file,customHelper.getAccessList(req)).then(function(data){ 

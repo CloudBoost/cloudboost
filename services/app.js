@@ -16,10 +16,6 @@ var tablesData = require('./tablesData.js')
 var jsonexport = require('jsonexport');
 var json2xls = require('json2xls');
 var csv=require('csvtojson');
-var csvjson = require('csvjson');
-var excel2json = require("excel-to-json");
-var moment = require('moment')
-
 
 module.exports = function() {
 
@@ -893,7 +889,7 @@ module.exports = function() {
             return deferred.promise; 
         },
 
-        exportTable : function(appId,tableName,formatType){
+        exportTable : function(appId,tableName,formatType){ console.log(appId,tableName,formatType)
             var deferred = q.defer();
             var promises = []
             var select = null;
@@ -905,14 +901,16 @@ module.exports = function() {
             var isMasterKey = true; 
         
             global.customService.find(appId, tableName,query, select, sort, limit, skip, accessList, isMasterKey).then(function(data) 
-            { 
-                for(j in data)
+            {  
+                for(let j=0;j<data.length;j++)
                 {
-                    if(tableName ==="User" || tableName ==="Role" || tableName ==="Device")
+                    var keys = Object.keys(data[j]);
+                    for(var i in keys)
                     {
-                        data[j]._type = tableName;   
-                    } else{
-                        data[j]._type = "custom";
+                        if(typeof data[j][keys[i]] ==='object')
+                        {
+                           data[j][keys[i]] = JSON.stringify(data[j][keys[i]]);
+                        }
                     }
                 }
                 if(formatType === 'csv')
@@ -921,6 +919,7 @@ module.exports = function() {
                   { 
                     if(err) {deferred.reject(err)}; 
                     deferred.resolve(csv);
+                    console.log(csv);
                   });
                 }
                 if(formatType ==='xls')
@@ -932,7 +931,7 @@ module.exports = function() {
             {
               deferred.reject(err)
             });
-            
+
            return deferred.promise;
        }, 
 
@@ -943,16 +942,157 @@ module.exports = function() {
             // convert file buffer string to JSON
             convertToJSON(file.toString()).then(function(data)
             { 
+                var emptyColumns =[];
                 var fileSchema =[];
-                var keys = Object.keys(data[0]);
-                for (let j=0; j<keys.length; j++)
-                {   
-                    var name = keys[j];
-                    var structure = {};
-                    structure["name"] = name;
-                    dataType = findDataType(data[0][name]);
-                    structure["dataType"] = dataType;
-                    fileSchema.push(structure);
+                var structure = {};
+                relatedTable = [];
+                // finds the dataType of each column by looping through if column value is null on first document
+                for(let i= 0; i<data.length; i++)
+                { 
+                    if(i == 0)
+                    {
+                        var keys = Object.keys(data[0]); 
+                        for (let j=0; j<keys.length; j++)
+                        {   
+                            var name = keys[j];
+                        console.log(data)
+                            if(data[0][name])
+                            {
+                                console.log(data[0][name])
+                                if(typeof(data[0][name]) ==='array')
+                                {
+                                    console.log('ok')
+                                }
+                                if(typeof(data[0][name]) ==='object')
+                                {   
+                                    objKeys = Object.keys(data[0][name]);
+                                    var count = 0;
+                                    var emptyColumnFound = false;
+                                    // check values in object by looping through 
+                                    for(var x in objKeys)
+                                    {  
+                                       if(!data[0][name][objKeys[x]])
+                                       { 
+                                            count++;
+                                       }
+                                       if(count===objKeys.length)
+                                       {
+                                            emptyColumns.push(name);
+                                            emptyColumnFound = true;
+                                            data[0][name] = null;
+                                       }
+                                    }
+                                    if(emptyColumnFound)
+                                    {
+                                        continue;
+                                    }    
+                                }
+                               
+                                var structure = {};
+                                structure["name"] = name;
+                                dataType = findDataType(data[0][name]);
+                                structure["dataType"] = dataType;
+                                if(dataType ==='Relation')
+                                {
+                                    structure["relatedTo"]= data[0][name]._tableName;
+                                } else if(dataType ==='GeoPoint')
+                                {
+                                   var cordinates = data[i][key].coordinates
+                                   var longitude=  cordinates.substring(0,cordinates.indexOf(";"));
+                                   var latitude = cordinates.substring(cordinates.indexOf(";")+1,cordinates.length);
+                                   var coordinatesArray = [longitude,latitude];
+
+                                   data[i][key]["coordinates"] = coordinatesArray
+                                   structure["relatedTo"]= null;
+                                }
+                                else {
+                                    structure["relatedTo"]= null;
+                                }    
+                                fileSchema.push(structure);
+                            
+                            }else{
+                                emptyColumns.push(name)                                
+                                data[0][name] = null;
+                                continue;
+                            }  
+                        }  
+                    }
+                    
+                    if(emptyColumns.length==0)
+                    {
+                        break;
+                    }
+                     
+                  if(emptyColumns.length > 0 && i>0)
+                    { 
+                        var localarr = [].concat(emptyColumns)
+                        for(let k=0;k<localarr.length;k++)
+                        {   
+                            var key = localarr[k];
+
+                            if(data[i][key])
+                            {   
+                                if(typeof(data[0][name]) ==='array')
+                                {
+                                    console.log('ok')
+                                }                       
+                                if(typeof(data[i][name]) ==='object')
+                                {   
+                                    objKeys = Object.keys(data[i][name]);
+                                    var count = 0;
+                                    var emptyColumnFound = false;
+                                    // check values in object by looping through 
+                                    for(var x in objKeys)
+                                    { 
+                                       if(!data[i][name][objKeys[x]])
+                                       { 
+                                            count++;
+                                       }
+                                       if(count===objKeys.length)
+                                       {                                       
+                                            emptyColumnFound =  true;
+                                            data[i][name] = null;
+                                       }
+                                    }
+                                    if(emptyColumnFound)
+                                    {
+                                        continue;
+                                    }        
+                                 }
+                                dataType = findDataType(data[i][key]);
+                                if(dataType ==='Relation')
+                                {
+                                  fileSchema.push({name:key,dataType:dataType,relatedTo:data[i][name]._tableName});
+                                }
+                               else if(dataType ==='GeoPoint')
+                                {
+                                   var cordinates = data[i][key].coordinates
+                                   var longitude=  cordinates.substring(0,cordinates.indexOf(";"));
+                                   var latitude = cordinates.substring(cordinates.indexOf(";")+1,cordinates.length);
+                                   var coordinatesArray = [longitude,latitude];
+
+                                   data[i][key]["coordinates"] = coordinatesArray
+                                   fileSchema.push({name:key,dataType:dataType,relatedTo:null})  
+                                }else{
+                                 fileSchema.push({name:key,dataType:dataType,relatedTo:null})  
+                                }
+                                 emptyColumns.splice(k, 1);
+                             
+                            }else{    
+                                data[i][key] = null;     
+                            }
+                           if(i==data.length-1 && !!!data[i][key])
+                            { 
+                                fileSchema.push(
+                                    {
+                                        name:key,
+                                        dataType:'Text',
+                                        relatedTo:null
+                                    }
+                                );
+                            }
+                        }
+                    }                       
                 }
                //find if table name exist in _Schema collection , if exist,push columns into array 
                 var collection =  global.mongoClient.db(appId).collection("_Schema").find({name:tableName});
@@ -968,7 +1108,6 @@ module.exports = function() {
                     }
 
                     var tableColumns = [];
-                    console.log(tables)
                     for(var j=0; j<tables[0].columns.length; j++)
                     {
                       tableColumns.push(tables[0].columns[j].name);
@@ -992,7 +1131,7 @@ module.exports = function() {
                                                                     "dataType" : x.dataType,
                                                                     "required" : false,
                                                                     "unique" : false,
-                                                                    "relatedTo" : null,
+                                                                    "relatedTo" : x.relatedTo,
                                                                     "relationType" : null,
                                                                     "isDeletable" : false,
                                                                     "isEditable" : false,
@@ -1001,7 +1140,7 @@ module.exports = function() {
                                                                     "defaultValue" : null
                                                                 };
                                                         });
-                                  
+                                 console.log(nonExistingTableColumns)
                     if(nonExistingTableColumns.length>0)
                         { 
                             coll = global.mongoClient.db(appId).collection("_Schema"); 
@@ -1435,19 +1574,32 @@ function findDataType(value)
     {
         dataType = dataType.charAt(0).toUpperCase() + dataType.slice(1);
     }
-    
-return dataType;
+     //console.log(dataType,value)
+  return dataType;
 
 }
+ function filterJson(emptyColumns){
 
-function isValidDate(value) {
-  var bits = value.split('/');
-  var d = new Date(bits[2], bits[1] - 1, bits[0]);
- if(d && (d.getMonth() + 1) == bits[1])
- {
-   return true;
- }
- else{
-    return false;
- }
-}
+if(emptyColumns.length>0)
+                    { console.log('ok')
+                        for(l=0;l<emptyColumns.length;l++)
+                        { key = [emptyColumns[l]]
+                            console.log(fileSchema)
+                             console.log(data[i][key])
+                            if(data[i][key])
+                            {
+                                structure["name"] = key;
+                                dataType = findDataType(data[i][key]);
+                                structure["dataType"] = dataType;
+                                 fileSchema.push(structure);
+                            } else if(i==data.length && !data[i][key])
+                            {
+
+                                structure["name"] = emptyColumns[l];
+                                structure["dataType"] = 'Text';
+                                 fileSchema.push(structure);
+                            }
+                        }
+                    }
+         }
+
