@@ -8,11 +8,8 @@
 
 
 var q = require("q");
-var fs = require('fs');
 var util = require("../../helpers/util.js");
-var Stream = require('stream');
 var _ = require('underscore');
-
 
 module.exports = function() {
 
@@ -22,7 +19,6 @@ module.exports = function() {
         console.log('++++++++ General App Settings API +++++++++');
 
         var appId = req.params.appId;
-        var body = req.body || {};
         var category = req.params.category;
         var sdk = req.body.sdk || "REST";
         var settings = req.body.settings || {};
@@ -62,7 +58,6 @@ module.exports = function() {
         console.log('++++++++ General App Settings API +++++++++');       
 
         var appId = req.params.appId;
-        var body = req.body || {};
         var sdk = req.body.sdk || "REST";
         var appKey = req.body.key || req.params.key;
 
@@ -225,7 +220,7 @@ module.exports = function() {
         });                 
 
     });
-}    
+};    
 
 /*Desc   : Get fileStream and contentType from upload request
   Params : req
