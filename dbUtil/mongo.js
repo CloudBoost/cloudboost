@@ -130,7 +130,6 @@ module.exports = function() {
 
         dropDatabase: function(appId) {
 
-            var _self = obj;
             var deferred = q.defer();
 
             try {
@@ -207,7 +206,7 @@ module.exports = function() {
                 var promises = [];
                 for (var i = 0; i < schema.length; i++) {
                     if (schema[i].dataType === 'GeoPoint') {
-                        promises.push(obj.collection.createIndex(appId, collectionName, schema[i].name, schema[i].dataType))
+                        promises.push(obj.collection.createIndex(appId, collectionName, schema[i].name, schema[i].dataType));
                     }
                 }
                 if (promises.length > 0) {
@@ -242,7 +241,7 @@ module.exports = function() {
                 /**
                     Creating a wild card index , instaed of creating individual $text index on each column seperately
                 **/
-                var obj = {}
+                var obj = {};
                 if (columnType === 'GeoPoint') {
                     obj[columnName] = "2dsphere";
                 }
@@ -256,7 +255,7 @@ module.exports = function() {
                         deferred.reject(err);
                     } else {
                         // create geopoint indexing explicitly
-                        collection.createIndex(obj)
+                        collection.createIndex(obj);
                         console.log(res);
                         deferred.resolve(res);
                     }
