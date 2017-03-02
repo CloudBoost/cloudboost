@@ -91,7 +91,7 @@ module.exports = {
                                     lon1 = cbVal.longitude,
                                     lat2 = qVal['$geometry'].coordinates[1],
                                     lon2 = qVal['$geometry'].coordinates[0];
-                                var maxDistance = qVal['$maxDistance'],
+                                var maxDistance = qVal['$maxDistance'];
                                     minDistance = qVal['$minDistance'];
                                 var distance = util.getLatLongDistance(lat1, lon1, lat2, lon2)
                                 if (!minDistance)
@@ -222,7 +222,7 @@ module.exports = {
                                     var arr = query[key][objectKeys];
                                     var value = null;
                                     if (key.indexOf('.') > -1) { //for CloudObjects
-                                        var tempKey = key.substr(0, key.indexOf('.'))
+                                        var tempKey = key.substr(0, key.indexOf('.'));
                                         value = cloudObject[tempKey];
                                     } else {
                                         value = cloudObject[key];
