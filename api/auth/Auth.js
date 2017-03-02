@@ -362,7 +362,7 @@ function setSession(req, appId, sessionLength, result,res) {
         userId : result._id,
         loggedIn : true,
         appId : appId,
-        roles : _.map(result.roles, function (role) { return role._id })        
+        roles : _.map(result.roles, function (role) { return role._id ; })        
     };
 
     req.session = obj;
