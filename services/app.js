@@ -331,8 +331,8 @@ module.exports = function() {
                     }
                     if (tables.length > 0) {
                         // filtering out private '_Tables'
-                        tables = tables.filter(function(table){
-                            return table.name[0] !== '_' ;
+                        tables = tables.filter(function(table) {
+                            return table.name[0] !== '_';
                         });
                         console.log("Tables found...");
                         deferred.resolve(tables);
@@ -525,11 +525,13 @@ module.exports = function() {
                     tableType = "device";
                 } else if (tableName === "_File") {
                     tableType = "file";
+                } else if (tableName === "_Event") {
+                    tableType = "event";
                 } else {
                     tableType = "custom";
                 }
 
-                if (tableType === 'user' || tableType === 'role' || tableType === 'device' || tableType === 'file') {
+                if (tableType === 'user' || tableType === 'role' || tableType === 'device' || tableType === 'file' || tableType === 'event') {
                     maxCount = 1;
                 } else {
                     maxCount = 99999;
@@ -543,7 +545,7 @@ module.exports = function() {
 
                 //dataType check.
                 var defaultDataType = _getDefaultColumnWithDataType(tableType);
-                var valid = _checkValidDataType(schema, defaultDataType);
+                var valid = _checkValidDataType(schema, defaultDataType, tableType);
                 if (!valid) {
                     deferred.reject("Error : Invalid DataType Found.");
                     return deferred.promise;
@@ -731,7 +733,8 @@ module.exports = function() {
                 global.appService.upsertTable(appId, 'Role', tablesData.Role),
                 global.appService.upsertTable(appId, 'Device', tablesData.Device),
                 global.appService.upsertTable(appId, 'User', tablesData.User),
-                global.appService.upsertTable(appId, '_File', tablesData._File)
+                global.appService.upsertTable(appId, '_File', tablesData._File),
+                global.appService.upsertTable(appId, '_Event', tablesData._Event)
             ]);
         },
 
@@ -880,7 +883,7 @@ module.exports = function() {
             var validated = false;
 
             try {
-                fileData = JSON.parse(file.toString()); 
+                fileData = JSON.parse(file.toString());
                 for (var k in fileData) {
                     if (fileData[k].name == '_Schema') {
                         validated = true;
@@ -916,9 +919,11 @@ module.exports = function() {
                     for (var i in fileData) {
                         (function(i) {
                             global.mongoClient.db(appId).createCollection(fileData[i].name, function(err, col) {
-                                if(err) deferred.reject('Error creating Collections/Tables');
+                                if (err)
+                                    deferred.reject('Error creating Collections/Tables');
                                 global.mongoClient.db(appId).collection(fileData[i].name, function(err, col) {
-                                    if(err) deferred.reject('Error getting Collections/Tables');
+                                    if (err)
+                                        deferred.reject('Error getting Collections/Tables');
                                     for (var j in fileData[i].documents[0]) {
                                         (function(j) {
                                             col.insert(fileData[i].documents[0][j], function(err) {
@@ -957,7 +962,8 @@ module.exports = function() {
                     deferred.reject(err);
                 else
                     deferred.resolve({username: username, password: password});
-            });
+                }
+            );
             return deferred.promise;
         }
 
@@ -1033,6 +1039,8 @@ function _getDefaultColumnList(type) {
             defaultColumn.concat(['channels', 'deviceToken', 'deviceOS', 'timezone', 'metadata']);
         } else if (type == 'file') {
             defaultColumn.concat(['name', 'contentType', 'path', 'url', 'size']);
+        } else if (type == 'event') {
+            defaultColumn.concat(['user', 'type', 'name', 'data']);
         }
         return defaultColumn;
 
@@ -1045,7 +1053,7 @@ function _getDefaultColumnList(type) {
     }
 }
 
-function _checkValidDataType(columns, deafultDataType) {
+function _checkValidDataType(columns, deafultDataType, tableType) {
 
     try {
         var index;
@@ -1128,8 +1136,19 @@ function _checkValidDataType(columns, deafultDataType) {
                 }
 
             //name for role table
-            if (key === 'name') {
+            if (key === 'name' && tableType === 'role') {
                 if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != true || columns[index].dataType != 'Text')
+                    return false;
+                }
+
+            //name for file table
+            if (key === 'name' && tableType === 'file') {
+                if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'Text')
+                    return false;
+                }
+            //name for event table
+            if (key === 'name' && tableType === 'event') {
+                if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'Text')
                     return false;
                 }
 
@@ -1184,9 +1203,34 @@ function _checkValidDataType(columns, deafultDataType) {
                     return false;
                 }
 
+            //user for event table
+            if (key === 'user') {
+                if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'Relation')
+                    return false;
+                }
+
+            //type for event table
+            if (key === 'type') {
+                if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'Text')
+                    return false;
+                }
+
+            //type for event table
+            if (key === 'type') {
+                if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'Text')
+                    return false;
+                }
+
+            //data for event table
+            if (key === 'data') {
+                if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'Object')
+                    return false;
+                }
+
             if (columns[index].isRenamable !== false || columns[index].isEditable !== false || columns[index].isDeletable !== false) {
                 return false;
             }
+
             defaultColumns.push(key);
 
         } //end of for-loop
@@ -1332,6 +1376,11 @@ function _getDefaultColumnWithDataType(type) {
             defaultColumn['url'] = 'URL';
             defaultColumn['path'] = 'Text';
             defaultColumn['contentType'] = 'Text';
+        } else if (type == 'event') {
+            defaultColumn['user'] = 'Relation';
+            defaultColumn['type'] = 'Text';
+            defaultColumn['name'] = 'Text';
+            defaultColumn['data'] = 'Object';
         }
         return defaultColumn;
 
