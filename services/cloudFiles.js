@@ -1,66 +1,66 @@
-
 /*
 #     CloudBoost - Core Engine that powers Bakend as a Service
-#     (c) 2014 HackerBay, Inc. 
+#     (c) 2014 HackerBay, Inc.
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
-
-var q =           require("q");
-var Grid =        require('gridfs-stream');
-var util =        require("../helpers/util.js");
-var jimp =        require("jimp");
-
+var q = require("q");
+var Grid = require('gridfs-stream');
+var util = require("../helpers/util.js");
+var jimp = require("jimp");
 
 module.exports = function() {
 
-	return {
+    return {
         /*Desc   : Save FileStream & CloudBoostFileObject
           Params : appId,fileStream,fileContentType,CloudBoostFileObj
           Returns: Promise
                    Resolve->cloudBoostFileObj
                    Reject->Error on getMyUrl() or saving filestream or saving cloudBoostFileObject
         */
-		upload: function(appId,fileStream,contentType,fileObj) {
-			console.log('+++++ In File Upload Service ++++++++');
-			var deferred = q.defer();
+        upload: function(appId, fileStream, contentType, fileObj) {
+            console.log('+++++ In File Upload Service ++++++++');
+            var deferred = q.defer();
 
-            try{
+            try {
                 var promises = [];
-                var newFileName ='';      
+                var newFileName = '';
 
-                global.keyService.getMyUrl().then(function(url){
+                global.keyService.getMyUrl().then(function(url) {
 
-                    if(!fileObj._id){
+                    if (!fileObj._id) {
                         fileObj._id = util.getId();
                         fileObj._version = 0;
-                        newFileName = fileObj._id+fileObj.name.slice(fileObj.name.indexOf('.'),fileObj.name.length);
-                        fileObj.url = url+"/file/"+appId + "/" + fileObj._id+fileObj.name.slice(fileObj.name.indexOf('.'),fileObj.name.length);
+                        newFileName = fileObj._id + fileObj.name.slice(fileObj.name.indexOf('.'), fileObj.name.length);
+                        fileObj.url = url + "/file/" + appId + "/" + fileObj._id + fileObj.name.slice(fileObj.name.indexOf('.'), fileObj.name.length);
                         console.log("File URL : ");
                         console.log(fileObj.url);
-                    }else{
-                        fileObj._version = fileObj._version+1;
+                    } else {
+                        fileObj._version = fileObj._version + 1;
                     }
 
-                    promises.push(global.mongoService.document.saveFileStream(appId,fileStream,fileObj._id,contentType));
-                    promises.push(_saveFileObj(appId,fileObj));
-                    global.q.all(promises).then(function(array){
+                    promises.push(global.mongoService.document.saveFileStream(appId, fileStream, fileObj._id, contentType));
+                    promises.push(_saveFileObj(appId, fileObj));
+                    global.q.all(promises).then(function(array) {
                         deferred.resolve(array[1]);
-                    },function(err){
+                    }, function(err) {
                         deferred.reject(err);
                     });
 
-                }, function(error){
+                }, function(error) {
                     deferred.reject(error);
                 });
 
-            } catch(err){           
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+            } catch (err) {
+                global.winston.log('error', {
+                    "error": String(err),
+                    "stack": new Error().stack
+                });
                 deferred.reject(err);
             }
-            
-			return deferred.promise;
-		},
+
+            return deferred.promise;
+        },
 
         /*Desc   : delete file from gridFs & delete CloudBoostFileObj
           Params : appId,cloudBoostFileObj,accessList,masterKey
@@ -68,37 +68,40 @@ module.exports = function() {
                    Resolve->cloudBoostFileObj
                    Reject->Error on getMyUrl() or saving filestream or saving cloudBoostFileObject
         */
-		delete: function(appId,fileObj,accessList,isMasterKey) {
-			console.log('+++++ In File Delete Service ++++++++');
+        delete: function(appId, fileObj, accessList, isMasterKey) {
+            console.log('+++++ In File Delete Service ++++++++');
 
-			var deferred = q.defer();
-            try{
+            var deferred = q.defer();
+            try {
                 var collectionName = "_File";
-    			var fileUrl = global.keys.fileUrl +appId+"/";
-    			var filename = fileObj.url.substr(fileUrl.length, fileObj.url.length+1);
-    			console.log(filename + "  " +fileObj.url);
+                var fileUrl = global.keys.fileUrl + appId + "/";
+                var filename = fileObj.url.substr(fileUrl.length, fileObj.url.length + 1);
+                console.log(filename + "  " + fileObj.url);
 
                 var promises = [];
 
-                _checkWriteACL(appId,collectionName,fileObj._id,accessList,isMasterKey).then(function(){
-                    promises.push(global.mongoService.document.deleteFileFromGridFs(appId,fileObj._id));
-                    promises.push(_deleteFileObj(appId,fileObj));
+                _checkWriteACL(appId, collectionName, fileObj._id, accessList, isMasterKey).then(function() {
+                    promises.push(global.mongoService.document.deleteFileFromGridFs(appId, fileObj._id));
+                    promises.push(_deleteFileObj(appId, fileObj));
 
-                    global.q.all(promises).then(function(){
+                    global.q.all(promises).then(function() {
                         deferred.resolve();
-                    },function(err){
+                    }, function(err) {
                         deferred.reject(err);
                     });
-                },function(err){
+                }, function(err) {
                     deferred.reject("Unauthorized");
                 });
 
-            } catch(err){           
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+            } catch (err) {
+                global.winston.log('error', {
+                    "error": String(err),
+                    "stack": new Error().stack
+                });
                 deferred.reject(err);
             }
-			return deferred.promise;
-		},
+            return deferred.promise;
+        },
 
         /*Desc   : get File
           Params : appId,fileName,accessList,masterKey
@@ -106,46 +109,58 @@ module.exports = function() {
                    Resolve->gridFsFileObject
                    Reject->Error on _readFileACL() or getFile from gridFs
         */
-		getFile: function(appId, filename,accessList,isMasterKey) {
-			console.log('+++++ In Get File Service ++++++++');
-			var deferred = q.defer();
+        getFile: function(appId, filename, accessList, isMasterKey) {
+            console.log('+++++ In Get File Service ++++++++');
+            var deferred = q.defer();
 
-            try{
-    			var collectionName = "_File";
-    			_readFileACL(appId,collectionName,filename.split('.')[0],accessList,isMasterKey).then(function(allowRead){
-                    console.log("Read Access Allowed.");
-                    global.mongoService.document.getFile(appId,filename.split('.')[0]).then(function(res){
-                        deferred.resolve(res);
-                    },function(err){
-                       deferred.reject(err);
-                    });
-                },function(){
+            try {
+                var collectionName = "_File";
+                global.customService.find(appId, collectionName, {
+                    _id: filename.split('.')[0]
+                }, null, null, 1, 0, accessList, isMasterKey, null).then(function(file) {
+                    if (file.length == 1) {
+                        console.log("Read Access Allowed.");
+                        global.mongoService.document.getFile(appId, filename.split('.')[0]).then(function(res) {
+                            deferred.resolve(res);
+                        }, function(err) {
+                            deferred.reject(err);
+                        });
+                    } else {
+                        console.log("Read Access Denied.");
+                        deferred.reject("Unauthorized");
+                    }
+                }, function() {
                     deferred.reject("Unauthorized");
                 });
 
-            } catch(err){           
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
-                deferred.reject(err);
-            }
-            return deferred.promise;
-		},
-
-        processImage: function(appId,fileName, resizeWidth, resizeHeight,cropX, cropY, cropW, cropH, quality, opacity, scale, containWidth, containHeight,rDegs,bSigma){
-            var deferred = q.defer();
-            try{
-                _processImage(appId,fileName, resizeWidth, resizeHeight,cropX, cropY, cropW, cropH, quality, opacity, scale, containWidth, containHeight,rDegs,bSigma).then(function(image){
-                    deferred.resolve(image);
-                }, function(err){
-                    deferred.reject(err);
+            } catch (err) {
+                global.winston.log('error', {
+                    "error": String(err),
+                    "stack": new Error().stack
                 });
-            } catch(err){           
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
                 deferred.reject(err);
             }
             return deferred.promise;
         },
-      
-	};
+
+        processImage: function(appId, fileName, resizeWidth, resizeHeight, cropX, cropY, cropW, cropH, quality, opacity, scale, containWidth, containHeight, rDegs, bSigma) {
+            var deferred = q.defer();
+            try {
+                _processImage(appId, fileName, resizeWidth, resizeHeight, cropX, cropY, cropW, cropH, quality, opacity, scale, containWidth, containHeight, rDegs, bSigma).then(function(image) {
+                    deferred.resolve(image);
+                }, function(err) {
+                    deferred.reject(err);
+                });
+            } catch (err) {
+                global.winston.log('error', {
+                    "error": String(err),
+                    "stack": new Error().stack
+                });
+                deferred.reject(err);
+            }
+            return deferred.promise;
+        }
+    };
 };
 
 /*Desc   : Save cloudBoostFileObject
@@ -154,21 +169,24 @@ module.exports = function() {
            Resolve->saved cloudBoostFileObject
            Reject->Error on saving
 */
-function _saveFileObj(appId,document){
+function _saveFileObj(appId, document) {
     var deferred = global.q.defer();
 
-    try{
+    try {
         var collectionName = "_File";
-        global.mongoService.document._update(appId, collectionName, document).then(function(doc){
+        global.mongoService.document._update(appId, collectionName, document).then(function(doc) {
             console.log('Document updated.');
             deferred.resolve(doc);
-        },function(err){
-            global.winston.log('error',err);
+        }, function(err) {
+            global.winston.log('error', err);
             deferred.reject(err);
         });
 
-    } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+    } catch (err) {
+        global.winston.log('error', {
+            "error": String(err),
+            "stack": new Error().stack
+        });
         deferred.reject(err);
     }
 
@@ -181,43 +199,48 @@ function _saveFileObj(appId,document){
            Resolve->deleted cloudBoostFileObject
            Reject->Error on deleting
 */
-function _deleteFileObj(appId,document){
+function _deleteFileObj(appId, document) {
     var deferred = global.q.defer();
 
-    try{
+    try {
         var collectionName = "_File";
-        global.mongoService.document.delete(appId, collectionName, document).then(function(doc){
+        global.mongoService.document.delete(appId, collectionName, document).then(function(doc) {
             console.log('Document Deleted');
             deferred.resolve(doc);
-        },function(err){
-            global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+        }, function(err) {
+            global.winston.log('error', {
+                "error": String(err),
+                "stack": new Error().stack
+            });
             deferred.reject(err);
         });
 
-    } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+    } catch (err) {
+        global.winston.log('error', {
+            "error": String(err),
+            "stack": new Error().stack
+        });
         deferred.reject(err);
     }
     return deferred.promise;
 }
 
-
-function _checkWriteACL(appId,collectionName,fileId,accessList,isMasterKey){
+function _checkWriteACL(appId, collectionName, fileId, accessList, isMasterKey) {
     var deferred = global.q.defer();
 
-    try{
+    try {
         var status = false;
         console.log("File write ACL check...");
 
         var done = false;
 
-        if(isMasterKey){
+        if (isMasterKey) {
             console.log("Deleting file with master key");
             deferred.resolve(true);
-        }else {
+        } else {
             //Setting the Master key to true because if it is False and the User Does not have access to read the document
             // then this will return true which is wrong.
-            global.mongoService.document.get(appId, collectionName, fileId, accessList, true).then(function (doc) {
+            global.mongoService.document.get(appId, collectionName, fileId, accessList, true).then(function(doc) {
 
                 console.log("File object found.");
                 console.log(doc);
@@ -242,13 +265,11 @@ function _checkWriteACL(appId,collectionName,fileId,accessList,isMasterKey){
                                 status = true;
                                 deferred.resolve(true);
                                 done = true;
-                            }
-                            else if (accessList.userId && acl.write.deny.user.indexOf(accessList.userId) > -1){
+                            } else if (accessList.userId && acl.write.deny.user.indexOf(accessList.userId) > -1) {
                                 deferred.reject(false);
                                 console.log("Write Access Denied to specific user");
                                 done = true;
-                            }
-                            else {
+                            } else {
                                 for (var i = 0; i < accessList.roles.length; i++) {
                                     if (acl.write.allow.role.indexOf(accessList.roles[i]) > -1) {
                                         status = true;
@@ -257,7 +278,7 @@ function _checkWriteACL(appId,collectionName,fileId,accessList,isMasterKey){
                                         done = true;
                                     }
 
-                                    if(acl.write.deny.role.indexOf(accessList.roles[i]) > -1){
+                                    if (acl.write.deny.role.indexOf(accessList.roles[i]) > -1) {
                                         console.log("Write Access Denied to a specific role");
                                         deferred.reject(false);
                                         done = true;
@@ -265,7 +286,7 @@ function _checkWriteACL(appId,collectionName,fileId,accessList,isMasterKey){
                                 }
                             }
 
-                            if(!done){
+                            if (!done) {
                                 console.log("Unauthorized to write.");
                                 deferred.reject(false);
                             }
@@ -275,36 +296,39 @@ function _checkWriteACL(appId,collectionName,fileId,accessList,isMasterKey){
                 } else {
                     deferred.reject(false);
                 }
-            }, function (err) {
+            }, function(err) {
                 deferred.reject(false);
             });
         }
 
-    } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+    } catch (err) {
+        global.winston.log('error', {
+            "error": String(err),
+            "stack": new Error().stack
+        });
         deferred.reject(err);
     }
     return deferred.promise;
 }
 
-function _readFileACL(appId,collectionName,fileId,accessList,isMasterKey){
+function _readFileACL(appId, collectionName, fileId, accessList, isMasterKey) {
 
-    console.log("IS MASKER : "+isMasterKey);
+    console.log("IS MASKER : " + isMasterKey);
 
     var deferred = global.q.defer();
 
-    try{
+    try {
         var status = false;
 
-        if(isMasterKey){
+        if (isMasterKey) {
             deferred.resolve(true);
-        }else{
+        } else {
 
             //Setting the Master key to true because if it is False and the User Does not have access to read the document
             // then this will return true which is wrong.
 
-            global.mongoService.document.get(appId, collectionName, fileId, accessList, true).then(function (doc) {
-                if(doc) {
+            global.mongoService.document.get(appId, collectionName, fileId, accessList, true).then(function(doc) {
+                if (doc) {
                     var acl = doc.ACL;
                     console.log("ACL");
                     console.log(acl);
@@ -321,12 +345,10 @@ function _readFileACL(appId,collectionName,fileId,accessList,isMasterKey){
                                 console.log("Specific User Access Allowed.");
                                 status = true;
                                 deferred.resolve(true);
-                            }
-                            else if (accessList.userId && acl.read.deny.user.indexOf(accessList.userId) > -1) {
+                            } else if (accessList.userId && acl.read.deny.user.indexOf(accessList.userId) > -1) {
                                 console.log("Specific User Access Denied.");
                                 deferred.reject(false);
-                            }
-                            else {
+                            } else {
                                 for (var i = 0; i < accessList.roles.length; i++) {
                                     if (acl.read.allow.role.indexOf(accessList.roles[i]) > -1) {
                                         console.log("Specific Role Access Allowed");
@@ -334,7 +356,7 @@ function _readFileACL(appId,collectionName,fileId,accessList,isMasterKey){
                                         deferred.resolve(true);
                                     }
 
-                                    if(acl.read.deny.role.indexOf(accessList.roles[i]) > -1){
+                                    if (acl.read.deny.role.indexOf(accessList.roles[i]) > -1) {
                                         console.log("Specific Role Access Denied");
                                         deferred.reject(false);
                                     }
@@ -344,83 +366,82 @@ function _readFileACL(appId,collectionName,fileId,accessList,isMasterKey){
                             deferred.reject(false);
                         }
                     }
-                }else{
+                } else {
                     deferred.reject(false);
                 }
-            }, function (err) {
+            }, function(err) {
                 deferred.reject(false);
             });
         }
 
-    } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+    } catch (err) {
+        global.winston.log('error', {
+            "error": String(err),
+            "stack": new Error().stack
+        });
         deferred.reject(err);
     }
 
     return deferred.promise;
 }
 
-
-function _processImage(appId,fileName, resizeWidth, resizeHeight,cropX, cropY, cropW, cropH, quality, opacity, scale, containWidth, containHeight,rDegs,bSigma){
+function _processImage(appId, fileName, resizeWidth, resizeHeight, cropX, cropY, cropW, cropH, quality, opacity, scale, containWidth, containHeight, rDegs, bSigma) {
     var deferred = global.q.defer();
 
-    try{
+    try {
         var promises = [];
-        jimp.read(fileName, function(err, image){
-            if(err) deferred.reject(err);
-            if(typeof resizeWidth != 'undefined' && typeof resizeHeight != 'undefined' && typeof quality != 'undefined' && typeof opacity != 'undefined' && typeof scale != 'undefined' && typeof containWidth != 'undefined' && typeof containHeight != 'undefined' && typeof rDegs != 'undefined' && typeof bSigma != 'undefined' && typeof cropX != 'undefined' && typeof cropY != 'undefined' && typeof cropW !='undefined' && typeof cropH != 'undefined'){
-               image.resize(resizeWidth, resizeHeight)
-               .crop(parseInt(cropX), parseInt(cropY), parseInt(cropW), parseInt(cropH))
-               .quality(parseInt(quality))
-               .opacity(parseFloat(opacity))
-               .scale(parseInt(scale))
-               .contain(parseInt(containWidth), parseInt(containHeight))
-               .rotate(parseFloat(rDegs))
-               .blur(parseInt(bSigma), function(err, processedImage){
-                promises.push(processedImage);
-              });
-           }else if(typeof resizeWidth === 'undefined' && typeof resizeHeight === 'undefined' && typeof quality === 'undefined' && typeof opacity === 'undefined' && typeof scale === 'undefined' && typeof containWidth === 'undefined' && typeof containHeight === 'undefined' && typeof rDegs === 'undefined' && typeof bSigma != 'undefined' && typeof cropX === 'undefined' && typeof cropY === 'undefined' && typeof cropW ==='undefined' && typeof cropH === 'undefined'){
-               image.blur(parseInt(bSigma), function(err, processedImage){
-                promises.push(processedImage);
-              });
-          }else if(typeof resizeWidth != 'undefined' && typeof resizeHeight != 'undefined' && typeof quality === 'undefined' && typeof opacity === 'undefined' && typeof scale === 'undefined' && typeof containWidth === 'undefined' && typeof containHeight === 'undefined' && typeof rDegs === 'undefined' && typeof bSigma === 'undefined' && typeof cropX === 'undefined' && typeof cropY === 'undefined' && typeof cropW ==='undefined' && typeof cropH === 'undefined'){
-               image.resize(parseInt(resizeWidth), parseInt(resizeHeight), function(err, processedImage){
-                promises.push(processedImage);
-              });
-          }else if(typeof resizeWidth === 'undefined' && typeof resizeHeight === 'undefined' && typeof quality === 'undefined' && typeof opacity === 'undefined' && typeof scale === 'undefined' && typeof containWidth === 'undefined' && typeof containHeight === 'undefined' && typeof rDegs === 'undefined' && typeof bSigma === 'undefined' && typeof cropX != 'undefined' && typeof cropY != 'undefined' && typeof cropW !='undefined' && typeof cropH != 'undefined'){
-              image.crop(parseInt(cropX),parseInt(cropY),parseInt(cropW),parseInt(cropH), function(err, processedImage){
-                promises.push(processedImage);
-              });
-          }else if(typeof resizeWidth === 'undefined' && typeof resizeHeight === 'undefined' && typeof quality != 'undefined' && typeof opacity === 'undefined' && typeof scale === 'undefined' && typeof containWidth === 'undefined' && typeof containHeight === 'undefined' && typeof rDegs === 'undefined' && typeof bSigma === 'undefined' && typeof cropX === 'undefined' && typeof cropY === 'undefined' && typeof cropW ==='undefined' && typeof cropH === 'undefined'){
-              image.quality(parseInt(quality), function(err, processedImage){
-                promises.push(processedImage);
-              });
-          }else if(typeof resizeWidth === 'undefined' && typeof resizeHeight === 'undefined' && typeof quality === 'undefined' && typeof opacity === 'undefined' && typeof scale != 'undefined' && typeof containWidth === 'undefined' && typeof containHeight === 'undefined' && typeof rDegs === 'undefined' && typeof bSigma === 'undefined' && typeof cropX === 'undefined' && typeof cropY === 'undefined' && typeof cropW ==='undefined' && typeof cropH === 'undefined'){
-               image.scale(parseInt(scale), function(err, processedImage){
-                promises.push(processedImage);
-              });
-          }else if(typeof resizeWidth === 'undefined' && typeof resizeHeight === 'undefined' && typeof quality === 'undefined' && typeof opacity === 'undefined' && typeof scale === 'undefined' && typeof containWidth != 'undefined' && typeof containHeight != 'undefined' && typeof rDegs === 'undefined' && typeof bSigma === 'undefined' && typeof cropX === 'undefined' && typeof cropY === 'undefined' && typeof cropW ==='undefined' && typeof cropH === 'undefined'){
-               image.contain(parseInt(containWidth), parseInt(containHeight), function(err, processedImage){
-                promises.push(processedImage);
-              });
-          }else if(typeof resizeWidth === 'undefined' && typeof resizeHeight === 'undefined' && typeof quality === 'undefined' && typeof opacity === 'undefined' && typeof scale === 'undefined' && typeof containWidth == 'undefined' && typeof containHeight == 'undefined' && typeof rDegs != 'undefined' && typeof bSigma === 'undefined' && typeof cropX === 'undefined' && typeof cropY === 'undefined' && typeof cropW ==='undefined' && typeof cropH === 'undefined'){
-              image.rotate(parseFloat(rDegs), function(err, processedImage){
-                promises.push(processedImage);
-              });
-          }else if(typeof resizeWidth === 'undefined' && typeof resizeHeight === 'undefined' && typeof quality === 'undefined' && typeof opacity != 'undefined' && typeof scale === 'undefined' && typeof containWidth == 'undefined' && typeof containHeight == 'undefined' && typeof rDegs === 'undefined' && typeof bSigma === 'undefined' && typeof cropX === 'undefined' && typeof cropY === 'undefined' && typeof cropW ==='undefined' && typeof cropH === 'undefined'){
-             image.opacity(parseFloat(opacity), function(err, processedImage){
-                promises.push(processedImage);
-              });
-          }
+        jimp.read(fileName, function(err, image) {
+            if (err)
+                deferred.reject(err);
+            if (typeof resizeWidth != 'undefined' && typeof resizeHeight != 'undefined' && typeof quality != 'undefined' && typeof opacity != 'undefined' && typeof scale != 'undefined' && typeof containWidth != 'undefined' && typeof containHeight != 'undefined' && typeof rDegs != 'undefined' && typeof bSigma != 'undefined' && typeof cropX != 'undefined' && typeof cropY != 'undefined' && typeof cropW != 'undefined' && typeof cropH != 'undefined') {
+                image.resize(resizeWidth, resizeHeight).crop(parseInt(cropX), parseInt(cropY), parseInt(cropW), parseInt(cropH)).quality(parseInt(quality)).opacity(parseFloat(opacity)).scale(parseInt(scale)).contain(parseInt(containWidth), parseInt(containHeight)).rotate(parseFloat(rDegs)).blur(parseInt(bSigma), function(err, processedImage) {
+                    promises.push(processedImage);
+                });
+            } else if (typeof resizeWidth === 'undefined' && typeof resizeHeight === 'undefined' && typeof quality === 'undefined' && typeof opacity === 'undefined' && typeof scale === 'undefined' && typeof containWidth === 'undefined' && typeof containHeight === 'undefined' && typeof rDegs === 'undefined' && typeof bSigma != 'undefined' && typeof cropX === 'undefined' && typeof cropY === 'undefined' && typeof cropW === 'undefined' && typeof cropH === 'undefined') {
+                image.blur(parseInt(bSigma), function(err, processedImage) {
+                    promises.push(processedImage);
+                });
+            } else if (typeof resizeWidth != 'undefined' && typeof resizeHeight != 'undefined' && typeof quality === 'undefined' && typeof opacity === 'undefined' && typeof scale === 'undefined' && typeof containWidth === 'undefined' && typeof containHeight === 'undefined' && typeof rDegs === 'undefined' && typeof bSigma === 'undefined' && typeof cropX === 'undefined' && typeof cropY === 'undefined' && typeof cropW === 'undefined' && typeof cropH === 'undefined') {
+                image.resize(parseInt(resizeWidth), parseInt(resizeHeight), function(err, processedImage) {
+                    promises.push(processedImage);
+                });
+            } else if (typeof resizeWidth === 'undefined' && typeof resizeHeight === 'undefined' && typeof quality === 'undefined' && typeof opacity === 'undefined' && typeof scale === 'undefined' && typeof containWidth === 'undefined' && typeof containHeight === 'undefined' && typeof rDegs === 'undefined' && typeof bSigma === 'undefined' && typeof cropX != 'undefined' && typeof cropY != 'undefined' && typeof cropW != 'undefined' && typeof cropH != 'undefined') {
+                image.crop(parseInt(cropX), parseInt(cropY), parseInt(cropW), parseInt(cropH), function(err, processedImage) {
+                    promises.push(processedImage);
+                });
+            } else if (typeof resizeWidth === 'undefined' && typeof resizeHeight === 'undefined' && typeof quality != 'undefined' && typeof opacity === 'undefined' && typeof scale === 'undefined' && typeof containWidth === 'undefined' && typeof containHeight === 'undefined' && typeof rDegs === 'undefined' && typeof bSigma === 'undefined' && typeof cropX === 'undefined' && typeof cropY === 'undefined' && typeof cropW === 'undefined' && typeof cropH === 'undefined') {
+                image.quality(parseInt(quality), function(err, processedImage) {
+                    promises.push(processedImage);
+                });
+            } else if (typeof resizeWidth === 'undefined' && typeof resizeHeight === 'undefined' && typeof quality === 'undefined' && typeof opacity === 'undefined' && typeof scale != 'undefined' && typeof containWidth === 'undefined' && typeof containHeight === 'undefined' && typeof rDegs === 'undefined' && typeof bSigma === 'undefined' && typeof cropX === 'undefined' && typeof cropY === 'undefined' && typeof cropW === 'undefined' && typeof cropH === 'undefined') {
+                image.scale(parseInt(scale), function(err, processedImage) {
+                    promises.push(processedImage);
+                });
+            } else if (typeof resizeWidth === 'undefined' && typeof resizeHeight === 'undefined' && typeof quality === 'undefined' && typeof opacity === 'undefined' && typeof scale === 'undefined' && typeof containWidth != 'undefined' && typeof containHeight != 'undefined' && typeof rDegs === 'undefined' && typeof bSigma === 'undefined' && typeof cropX === 'undefined' && typeof cropY === 'undefined' && typeof cropW === 'undefined' && typeof cropH === 'undefined') {
+                image.contain(parseInt(containWidth), parseInt(containHeight), function(err, processedImage) {
+                    promises.push(processedImage);
+                });
+            } else if (typeof resizeWidth === 'undefined' && typeof resizeHeight === 'undefined' && typeof quality === 'undefined' && typeof opacity === 'undefined' && typeof scale === 'undefined' && typeof containWidth == 'undefined' && typeof containHeight == 'undefined' && typeof rDegs != 'undefined' && typeof bSigma === 'undefined' && typeof cropX === 'undefined' && typeof cropY === 'undefined' && typeof cropW === 'undefined' && typeof cropH === 'undefined') {
+                image.rotate(parseFloat(rDegs), function(err, processedImage) {
+                    promises.push(processedImage);
+                });
+            } else if (typeof resizeWidth === 'undefined' && typeof resizeHeight === 'undefined' && typeof quality === 'undefined' && typeof opacity != 'undefined' && typeof scale === 'undefined' && typeof containWidth == 'undefined' && typeof containHeight == 'undefined' && typeof rDegs === 'undefined' && typeof bSigma === 'undefined' && typeof cropX === 'undefined' && typeof cropY === 'undefined' && typeof cropW === 'undefined' && typeof cropH === 'undefined') {
+                image.opacity(parseFloat(opacity), function(err, processedImage) {
+                    promises.push(processedImage);
+                });
+            }
         });
-        q.all(promises).then(function (image) {
-             deferred.resolve(image);
-          }, function (err) {
-             deferred.reject(err);
+        q.all(promises).then(function(image) {
+            deferred.resolve(image);
+        }, function(err) {
+            deferred.reject(err);
         });
 
-    } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+    } catch (err) {
+        global.winston.log('error', {
+            "error": String(err),
+            "stack": new Error().stack
+        });
         deferred.reject(err);
     }
 

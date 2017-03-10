@@ -83,8 +83,8 @@ function _getFile(req, res) {
 
     console.log('+++++++++ In get File Service API ++++++++');
     var appId = req.params.appId;
-
     var fileId = req.params.fileId;
+    var appKey = req.body.key;
     var sdk = req.body.sdk || "REST";
     var resizeWidth = req.query.resizeWidth;
     var resizeHeight = req.query.resizeHeight;
@@ -103,39 +103,42 @@ function _getFile(req, res) {
     if (!fileId) {
         return res.status(400).send("File ID is Required");
     }
+    global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
+        global.fileService.getFile(appId, fileId, customHelper.getAccessList(req), isMasterKey).then(function(file) {
 
-    global.fileService.getFile(appId, fileId, customHelper.getAccessList(req)).then(function(file) {
+            if (typeof resizeWidth === 'undefined' && typeof resizeHeight === 'undefined' && typeof quality === 'undefined' && typeof opacity === 'undefined' && typeof scale === 'undefined' && typeof containWidth === 'undefined' && typeof containHeight === 'undefined' && typeof rDegs === 'undefined' && typeof bSigma === 'undefined') {
 
-        if (typeof resizeWidth === 'undefined' && typeof resizeHeight === 'undefined' && typeof quality === 'undefined' && typeof opacity === 'undefined' && typeof scale === 'undefined' && typeof containWidth === 'undefined' && typeof containHeight === 'undefined' && typeof rDegs === 'undefined' && typeof bSigma === 'undefined' && typeof cropX === 'undefined' && typeof cropY === 'undefined' && typeof cropW && typeof cropH === 'undefined') {
+                var fileStream = global.mongoService.document.getFileStreamById(appId, file._id);
 
-            var fileStream = global.mongoService.document.getFileStreamById(appId, file._id);
+                res.set('Content-Type', file.contentType);
+                res.set('Content-Disposition', 'inline; filename="' + file.filename + '"');
 
-            res.set('Content-Type', file.contentType);
-            res.set('Content-Disposition', 'inline; filename="' + file.filename + '"');
+                fileStream.on("error", function(err) {
+                    res.send(500, "Got error while processing stream " + err.message);
+                    res.end();
+                });
 
-            fileStream.on("error", function(err) {
-                res.send(500, "Got error while processing stream " + err.message);
-                res.end();
-            });
+                fileStream.on('end', function() {
+                    res.end();
+                });
 
-            fileStream.on('end', function() {
-                res.end();
-            });
+                fileStream.pipe(res);
 
-            fileStream.pipe(res);
+            } else {
+                console.log('+++++ Proccesing Image ++++++++');
+                global.fileService.processImage(appId, file, resizeWidth, resizeHeight, cropX, cropY, cropW, cropH, quality, opacity, scale, containWidth, containHeight, rDegs, bSigma).then(function(file) {
+                    return res.status(200).send(file);
+                }, function(err) {
+                    return res.status(500).send(err);
+                });
+            }
 
-        } else {
-            console.log('+++++ Proccesing Image ++++++++');
-            global.fileService.processImage(appId, file, resizeWidth, resizeHeight, cropX, cropY, cropW, cropH, quality, opacity, scale, containWidth, containHeight, rDegs, bSigma).then(function(file) {
-                return res.status(200).send(file);
-            }, function(err) {
-                return res.status(500).send(err);
-            });
-        }
-
+        }, function(err) {
+            return res.status(500).send(err);
+        });
     }, function(err) {
         return res.status(500).send(err);
-    });
+    })
 
     global.apiTracker.log(appId, "File / Get", req.url, sdk);
 }
