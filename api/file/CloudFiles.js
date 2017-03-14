@@ -36,8 +36,9 @@ module.exports = function() {
             _getFileStream(req).then(function(result) {
 
                 global.keys.fileUrl = global.keys.myURL + "/file/";
-
-                return global.fileService.upload(appId, result.fileStream, result.contentType, result.fileObj);
+                global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
+                    return global.fileService.upload(appId, result.fileStream, result.contentType, result.fileObj, isMasterKey);
+                });
 
             }).then(function(file) {
                 return res.status(200).send(file);
@@ -59,16 +60,18 @@ module.exports = function() {
 
         var appId = req.params.appId;
         var fileObj = req.body.fileObj;
+        var appKey = req.body.key;
         var sdk = req.body.sdk || "REST";
         global.keys.fileUrl = global.keys.myURL + "/file/";
-
-        global.fileService.delete(appId, fileObj, customHelper.getAccessList(req)).then(function(file) {
-            console.log("File successfully deleted.");
-            return res.status(200).send(null);
-        }, function(err) {
-            console.log("Error deletig file.");
-            console.log(err);
-            return res.status(500).send(err);
+        global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
+            global.fileService.delete(appId, fileObj, customHelper.getAccessList(req), isMasterKey).then(function(file) {
+                console.log("File successfully deleted.");
+                return res.status(200).send(null);
+            }, function(err) {
+                console.log("Error deletig file.");
+                console.log(err);
+                return res.status(500).send(err);
+            });
         });
 
         global.apiTracker.log(appId, "File / Delete", req.url, sdk);
