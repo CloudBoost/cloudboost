@@ -33,17 +33,15 @@ module.exports = function() {
 
             global.apiTracker.log(appId, "File / Save", req.url, sdk);
         } else {
-            _getFileStream(req).then(function(result) {
-
-                global.keys.fileUrl = global.keys.myURL + "/file/";
-                global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
-                    return global.fileService.upload(appId, result.fileStream, result.contentType, result.fileObj, isMasterKey);
+            global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
+                _getFileStream(req).then(function(result) {
+                    global.keys.fileUrl = global.keys.myURL + "/file/";
+                    return global.fileService.upload(appId, result.fileStream, result.contentType, result.fileObj, customHelper.getAccessList(req), isMasterKey);
+                }).then(function(file) {
+                    return res.status(200).send(file);
+                }, function(err) {
+                    return res.status(500).send(err);
                 });
-
-            }).then(function(file) {
-                return res.status(200).send(file);
-            }, function(err) {
-                return res.status(500).send(err);
             });
 
             global.apiTracker.log(appId, "File / Upload", req.url, sdk);
