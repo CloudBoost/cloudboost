@@ -703,6 +703,31 @@ module.exports = function() {
             return deferred.promise;
         },
 
+        createNewTable: function(appId, tableName) {
+
+            var deferred = q.defer();
+
+            try {
+                var defaultSchema = require('./tablesData').Custom;
+
+                this.upsertTable(appId, tableName, defaultSchema).then(function(table) {
+                        deferred.resolve(table);
+                    },function(err){
+                        deferred.reject(err);
+                    }
+                );
+            }
+            catch (err) {
+                global.winston.log('error', {
+                    "error": String(err),
+                    "stack": new Error().stack
+                });
+                deferred.reject(err);
+            }
+
+            return deferred.promise;
+        },
+
         createColumn: function(appId, collectionName, column) {
 
             var deferred = global.q.defer();
