@@ -535,7 +535,7 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                                         isDeletable:true,
                                         isEditable:true,
                                         isRenamable:false,
-                                        relatedTo: (detectedDataType === "Relation") ? document[key]._tableName : null,
+                                        relatedTo: _inferRelatedToType(detectedDataType, document[key]),
                                         relationType:null,
                                         required:false,
                                         unique:false
@@ -675,19 +675,52 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
 
 //infer dataType of column from the value of the data provided
 function _inferDataType(data){
-    if(typeof data === "object"){
-        return "Relation";
-    }
-    if(/^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(data))
-        return "Email";
-    if(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/.test(data))
-        return "URL";
     if(typeof data === "boolean")
         return "Boolean";
+        
     if(!isNaN(data))
         return "Number";
+
+    if(typeof (new Date(data)).toJSON() === "string"){
+        return "DateTime";
+    }
+
+    if(typeof data === "object"){
+        if (data.constructor === Array)
+            return "List";
+        if (data._tableName)
+            return "Relation";
+        if(data._type === "point")
+            return "GeoPoint";
+        if(data._type === "file")
+            return "File";
+        return "Object"
+    }
+
+    if(/^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(data))
+        return "Email";
+    
+    if(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/.test(data))
+        return "URL";
+    
     return "Text";
 }
+
+
+function _inferRelatedToType(dataType, data){
+    if(dataType === "Relation"){
+        return data._tableName;
+    }
+    if(dataType === "List"){
+        dataTypeOfFirstElement = _inferDataType(data[0]);
+        if (dataTypeOfFirstElement === "Relation"){
+            return data[0]._tableName;
+        }
+        return dataTypeOfFirstElement;
+    }
+    return null;
+}
+
 
 function _checkBasicDataTypes(data, datatype, columnName, tableName) {
 
