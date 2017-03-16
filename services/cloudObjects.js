@@ -1270,8 +1270,8 @@ function _getSchema(appId, collectionName) {
     var deferred = global.q.defer();
 
     try {
-        global.mongoUtil.collection.getSchema(appId, collectionName).then(function(columns) {
-            deferred.resolve(columns);
+        global.mongoUtil.collection.getSchema(appId, collectionName).then(function(table) {
+            deferred.resolve(table.columns);
         }, function(error) {
             deferred.reject(error);
         });
@@ -1298,8 +1298,9 @@ function _encryptPasswordInQuery(appId, collectionName, query) {
         } else {
             _getSchema(appId, collectionName).then(function(columns) {
                 var passwordColumnNames = [];
+                var length = columns.length
 
-                for (var i = 0; i < columns.length; i++) {
+                for (var i = 0; i < length; i++) {
                     if (columns[i].dataType === 'EncryptedText') {
                         passwordColumnNames.push(columns[i].name);
                     }
