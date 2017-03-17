@@ -688,12 +688,12 @@ function _inferDataType(data){
     if(typeof data === "object"){
         if (data.constructor === Array)
             return "List";
-        if (data._tableName)
-            return "Relation";
         if(data._type === "point")
             return "GeoPoint";
         if(data._type === "file")
             return "File";
+        if (data._tableName)
+            return "Relation";
         return "Object"
     }
 
