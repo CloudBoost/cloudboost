@@ -10,7 +10,7 @@ var crypto = require("crypto");
 var uuid = require('uuid');
 var _ = require('underscore');
 var util = require('../helpers/util.js');
-var tablesData = require('./tablesData.js');
+var tablesData = require('../helpers/cloudTable');
 
 module.exports = function() {
 
@@ -708,7 +708,7 @@ module.exports = function() {
             var deferred = q.defer();
 
             try {
-                var defaultSchema = require('./tablesData').Custom;
+                var defaultSchema = tablesData.Custom;
 
                 this.upsertTable(appId, tableName, defaultSchema).then(function(table) {
                         deferred.resolve(table);

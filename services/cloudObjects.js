@@ -6,6 +6,7 @@
 
 var q = require("q");
 var util = require("../helpers/util.js");
+var type = require("../helpers/dataType");
 var _ = require('underscore');
 var crypto = require('crypto');
 var customHelper = require('../helpers/custom.js');
@@ -525,24 +526,33 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                         // if column does not exist create a new column
                         if (!col) {
                             newColumnAdditon = true;
-                            let detectedDataType = _inferDataType(document[key]);
-                            let newCol = {
-                                        name:key,
-                                        _type:"column",
-                                        dataType:detectedDataType,
-                                        defaultValue:null,
-                                        editableByMasterKey:false,
-                                        isDeletable:true,
-                                        isEditable:true,
-                                        isRenamable:false,
-                                        relatedTo: _inferRelatedToType(detectedDataType, document[key]),
-                                        relationType:null,
-                                        required:false,
-                                        unique:false
-                            };
+                            try{
+                                let detectedDataType = type.inferDataType(document[key]);
+                                let newCol = {
+                                            name:key,
+                                            _type:"column",
+                                            dataType:detectedDataType,
+                                            defaultValue:null,
+                                            editableByMasterKey:false,
+                                            isDeletable:true,
+                                            isEditable:true,
+                                            isRenamable:false,
+                                            relatedTo: type.inferRelatedToType(detectedDataType, document[key]),
+                                            relationType:null,
+                                            required:false,
+                                            unique:false
+                                };
 
-                            //push the new column to the old schema
-                            table.columns.push(newCol);
+                                //push the new column to the old schema
+                                table.columns.push(newCol);
+                            }
+                            catch (err) {
+                                global.winston.log('error', {
+                                    "error": String(err),
+                                    "stack": new Error().stack
+                                });
+                                mainPromise.reject(err);
+                            }
                         }
                         else {
                             var datatype = col.dataType;
@@ -672,54 +682,6 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
     return mainPromise.promise;
 
 };
-
-//infer dataType of column from the value of the data provided
-function _inferDataType(data){
-    if(typeof data === "boolean")
-        return "Boolean";
-        
-    if(!isNaN(data))
-        return "Number";
-
-    if(typeof (new Date(data)).toJSON() === "string"){
-        return "DateTime";
-    }
-
-    if(typeof data === "object"){
-        if (data.constructor === Array)
-            return "List";
-        if(data._type === "point")
-            return "GeoPoint";
-        if(data._type === "file")
-            return "File";
-        if (data._tableName)
-            return "Relation";
-        return "Object"
-    }
-
-    if(/^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(data))
-        return "Email";
-    
-    if(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/.test(data))
-        return "URL";
-    
-    return "Text";
-}
-
-
-function _inferRelatedToType(dataType, data){
-    if(dataType === "Relation"){
-        return data._tableName;
-    }
-    if(dataType === "List"){
-        dataTypeOfFirstElement = _inferDataType(data[0]);
-        if (dataTypeOfFirstElement === "Relation"){
-            return data[0]._tableName;
-        }
-        return dataTypeOfFirstElement;
-    }
-    return null;
-}
 
 
 function _checkBasicDataTypes(data, datatype, columnName, tableName) {
