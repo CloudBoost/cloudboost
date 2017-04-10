@@ -131,9 +131,9 @@ Once your app is ready, You can then get the latest SDK from  https://tutorials.
 
 You can then follow rest of the documentation from https://tutorials.cloudboost.io. You can also check out API Reference on https://docs.cloudboost.io
 
-## Cluster Maintanence and Updates
+## Cluster Maintanence, Scale, and Updates
 
-CloudBoost runs on MongoDB and Redis. You're responsible for managing the [uptime](https://en.wikipedia.org/wiki/Uptime), [replication](https://en.wikipedia.org/wiki/Replication_(computing)), [sharding](https://en.wikipedia.org/wiki/Shard_(database_architecture)), [backups](https://en.wikipedia.org/wiki/Backup) of your data in each of these databases. If you're running production apps, we recommend you to use the [managed service](https://www.cloudboost.io) instead where all of these are taken care by us for you saving you time and costs. 
+CloudBoost runs on MongoDB and Redis. You're responsible for managing the [uptime](https://en.wikipedia.org/wiki/Uptime), [replication](https://en.wikipedia.org/wiki/Replication_(computing)), [sharding](https://en.wikipedia.org/wiki/Shard_(database_architecture)), [backups](https://en.wikipedia.org/wiki/Backup) of your data in each of these databases. 
 
 You also need to update CloudBoost with every [new release](https://github.com/cloudboost/cloudboost/releases) and you need to [configure your server to auto-scale it](https://www.brianchristner.io/how-to-scale-a-docker-container-with-docker-compose/). If you're using Docker, the image is released at the `latest` tag and you need to check for new releases atleast once a month. 
 
