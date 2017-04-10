@@ -12,27 +12,15 @@ CloudBoost is the Complete NoSQL Database Service for your app. **Think of Cloud
  - Queues
  - More - ACL's, User Authentication, Server-less apps and more.
 
-### Install CloudBoost to your Heroku app.
 
-Use this button to connect your Heroku app with CloudBoost.
 
-[![Heroku](https://www.herokucdn.com/deploy/button.svg)](https://elements.heroku.com/addons/cloudboost)
-
-### Deploy with Docker
+## Deploy with Docker (recommended)
 
 You can install CloudBoost anywhere you like. We have a Docker Compose file that can help you get started with CloudBoost in few minutes and with just one command. You can use this compose file to install the service locally on your local dev machine, or you can install the service to Azure, AWS, DigitalOCean, Softlayer, Packet and more.
 
 [Check out our Docker Compose file here.](https://github.com/CloudBoost/docker)
 
-# CloudBoost Indexing Backends
-
-CloudBoost runs on MongoDB and Redis. You're responsible for managing the uptime, backups of your data in each of these databases. If you're running production apps. We recommend you to use the hosted service instead. Please check out CloudBoost.io
-
-# Running the server with Docker (Recommended)
-
-The easiest way to run the server is by using Docker. Check https://github.com/cloudboost/docker
-
-# Running the server without Docker
+## Running the server without Docker
 
 ### Step 1 : Git clone the project.
 
@@ -92,7 +80,7 @@ Make sure both Redis and MongoDB are running and then run the CloudBoost server
 Once the server is running. You'll see the ClusterKey and SecureKey on the console whcih means you've successfully CloudBoost. If you don't see any of these keys, please raise a GitHub issue and let us know.
 
 
-# Once the server is running, You can
+## Once the server is running, You can
 
 Once started, you'll see the CloudBoost Secure Key on the console. This is important, Please save it for future use.
 Secure Key helps you create / delete apps.
@@ -143,7 +131,11 @@ Once your app is ready, You can then get the latest SDK from  https://tutorials.
 
 You can then follow rest of the documentation from https://tutorials.cloudboost.io. You can also check out API Reference on https://docs.cloudboost.io
 
-# App Settings
+## CloudBoost Indexing Backends
+
+CloudBoost runs on MongoDB and Redis. You're responsible for managing the uptime, backups of your data in each of these databases. If you're running production apps. We recommend you to use the hosted service instead. Please check out CloudBoost.io
+
+## App Settings
 To read more about app settings, check [Click here](https://github.com/CloudBoost/cloudboost/tree/master/docs/app-settings)
 
 # Contributing
