@@ -131,7 +131,7 @@ Once your app is ready, You can then get the latest SDK from  https://tutorials.
 
 You can then follow rest of the documentation from https://tutorials.cloudboost.io. You can also check out API Reference on https://docs.cloudboost.io
 
-## Cluster Maintanence, Scale, and Updates
+## Cluster Maintenance, Scale, and Updates
 
 CloudBoost runs on MongoDB and Redis. You're responsible for managing the [uptime](https://en.wikipedia.org/wiki/Uptime), [replication](https://en.wikipedia.org/wiki/Replication_(computing)), [sharding](https://en.wikipedia.org/wiki/Shard_(database_architecture)), [backups](https://en.wikipedia.org/wiki/Backup) of your data in each of these databases. 
 
