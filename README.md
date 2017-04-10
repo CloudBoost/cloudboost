@@ -131,18 +131,22 @@ Once your app is ready, You can then get the latest SDK from  https://tutorials.
 
 You can then follow rest of the documentation from https://tutorials.cloudboost.io. You can also check out API Reference on https://docs.cloudboost.io
 
-## CloudBoost Indexing Backends
+## Cluster Maintanence and Updates
 
-CloudBoost runs on MongoDB and Redis. You're responsible for managing the uptime, backups of your data in each of these databases. If you're running production apps. We recommend you to use the hosted service instead. Please check out CloudBoost.io
+CloudBoost runs on MongoDB and Redis. You're responsible for managing the [uptime](https://en.wikipedia.org/wiki/Uptime), [replication](https://en.wikipedia.org/wiki/Replication_(computing)), [sharding](https://en.wikipedia.org/wiki/Shard_(database_architecture)), [backups](https://en.wikipedia.org/wiki/Backup) of your data in each of these databases. If you're running production apps, we recommend you to use the [managed service](https://www.cloudboost.io) instead where all of these are taken care by us for you saving you time and costs. 
+
+You also need to update CloudBoost with every [new release](https://github.com/cloudboost/cloudboost/releases) and you need to [configure your server to auto-scale it](https://www.brianchristner.io/how-to-scale-a-docker-container-with-docker-compose/). If you're using Docker, the image is released at the `latest` tag and you need to check for new releases atleast once a month. 
+
+[Using our hosted and managed service](https://www.cloudboost.io) helps you to save time, development costs, and eliminates managing your own cluster of servers which is cheaper long-term. We recommend using the hosted service if you're running production apps. 
 
 ## App Settings
 To read more about app settings, check [Click here](https://github.com/CloudBoost/cloudboost/tree/master/docs/app-settings)
 
 # Contributing
 
-Pull requests are very welcome!
+[Pull requests](https://help.github.com/articles/about-pull-requests/) are very welcome!
 
-We'd love to hear your feedback and suggestions in the issue tracker.
+We'd love to hear your feedback and suggestions in the [issue tracker](https://github.com/CloudBoost/cloudboost/issues).
 
 # Backers
 
@@ -163,7 +167,7 @@ If you're using CloudBoost Open Source and like what we've built, help us speed 
 
 # LICENSE
 
-Copyright 2016 HackerBay, Inc.
+Copyright 2016 HackerBay Software Private Limited. 
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
