@@ -16,7 +16,7 @@ CloudBoost is the Complete NoSQL Database Service for your app. **Think of Cloud
 
 ## Deploy with Docker (recommended)
 
-You can install CloudBoost anywhere you like. We have a Docker Compose file that can help you get started with CloudBoost in few minutes and with just one command. You can use this compose file to install the service locally on your local dev machine, or you can install the service to Azure, AWS, DigitalOCean, Softlayer, Packet and more.
+You can install CloudBoost anywhere you like. We have a Docker Compose file that can help you get started with CloudBoost in few minutes and with just one command. You can use this compose file to install the service locally on your local dev machine, or you can install the service to Azure, AWS, DigitalOcean, Softlayer, Packet and more.
 
 [Check out our Docker Compose file here.](https://github.com/CloudBoost/docker)
 
