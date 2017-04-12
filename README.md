@@ -144,6 +144,7 @@ To read more about app settings, check [Click here](https://github.com/CloudBoos
 
 # Support
 
+- Report bugs and feature requests on [GitHub issue tracker](https://github.com/CloudBoost/cloudboost/issues). 
 - You can reach out to us on [Slack](https://slack.cloudboost.io). All of our engineers hangout here. 
 - [StackOverflow](stackoverflow.com/questions/tagged/cloudboost) : Tag your questions with `cloudboost` tag, so that we're notified.
 - Email: [support@cloudboost.io](support@cloudboost.io)
