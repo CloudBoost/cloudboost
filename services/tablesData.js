@@ -579,5 +579,77 @@ module.exports = {
             "isRenamable": false,
             "editableByMasterKey": false
         }
+    ],
+    Custom: [ 
+        { 
+            name: 'id',
+            _type: 'column',
+            dataType: 'Id',
+            required: true,
+            unique: true,
+            relatedTo: null,
+            relationType: null,
+            isDeletable: false,
+            isEditable: false,
+            isRenamable: false,
+            editableByMasterKey: false,
+            defaultValue: null 
+        },
+        { 
+            name: 'expires',
+            _type: 'column',
+            dataType: 'DateTime',
+            required: false,
+            unique: false,
+            relatedTo: null,
+            relationType: null,
+            isDeletable: false,
+            isEditable: false,
+            isRenamable: false,
+            editableByMasterKey: false,
+            defaultValue: null 
+        },
+        {
+            name: 'updatedAt',
+            _type: 'column',
+            dataType: 'DateTime',
+            required: true,
+            unique: false,
+            relatedTo: null,
+            relationType: null,
+            isDeletable: false,
+            isEditable: false,
+            isRenamable: false,
+            editableByMasterKey: false,
+            defaultValue: null
+        },
+        {
+            name: 'createdAt',
+            _type: 'column',
+            dataType: 'DateTime',
+            required: true,
+            unique: false,
+            relatedTo: null,
+            relationType: null,
+            isDeletable: false,
+            isEditable: false,
+            isRenamable: false,
+            editableByMasterKey: false,
+            defaultValue: null 
+        },
+        {
+            name: 'ACL',
+            _type: 'column',
+            dataType: 'ACL',
+            required: true,
+            unique: false,
+            relatedTo: null,
+            relationType: null,
+            isDeletable: false,
+            isEditable: false,
+            isRenamable: false,
+            editableByMasterKey: false,
+            defaultValue: null
+        } 
     ]
 };
