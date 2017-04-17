@@ -47,7 +47,7 @@ xhttp.open("PUT",<your-server-url>/settings/<your-appId>/general, true);
 xhttp.send(data);
 ``` 
 
-##Retrieve App Settings
+## Retrieve App Settings
 Make a POST REST request to ClouBoost API to retrive your app settings
 </br>
 Request:&lt;your-server-url&gt;/settings/&lt;your-appId&gt;
@@ -71,5 +71,5 @@ xhttp.open("POST", <your-server-url>/settings/<your-appId>, true);
 xhttp.send(data);
 ```
 
-#Contribute
+# Contribute
 If you want to contribute to this repo. Please make sure you spell check everything and make sure you have tested the code with the live CloudBoost API before sending us the pull request.
