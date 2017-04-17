@@ -10,7 +10,7 @@ var crypto = require("crypto");
 var uuid = require('uuid');
 var _ = require('underscore');
 var util = require('../helpers/util.js');
-var tablesData = require('./tablesData.js');
+var tablesData = require('../helpers/cloudTable');
 
 module.exports = function() {
 
@@ -698,6 +698,31 @@ module.exports = function() {
                 console.log("FATAL : Error updating a table");
                 console.log(e);
                 deferred.reject(e);
+            }
+
+            return deferred.promise;
+        },
+
+        createNewTable: function(appId, tableName) {
+
+            var deferred = q.defer();
+
+            try {
+                var defaultSchema = tablesData.Custom;
+
+                this.upsertTable(appId, tableName, defaultSchema).then(function(table) {
+                        deferred.resolve(table);
+                    },function(err){
+                        deferred.reject(err);
+                    }
+                );
+            }
+            catch (err) {
+                global.winston.log('error', {
+                    "error": String(err),
+                    "stack": new Error().stack
+                });
+                deferred.reject(err);
             }
 
             return deferred.promise;

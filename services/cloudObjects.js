@@ -6,6 +6,7 @@
 
 var q = require("q");
 var util = require("../helpers/util.js");
+var type = require("../helpers/dataType");
 var _ = require('underscore');
 var crypto = require('crypto');
 var customHelper = require('../helpers/custom.js');
@@ -413,6 +414,7 @@ function _sendNotification(appId, res, reqType) {
 
 var _isSchemaValid = function(appId, collectionName, document, accessList, isMasterKey) {
     var mainPromise = q.defer();
+    var newColumnAdditon = false;
 
     try {
         var promises = [];
@@ -421,7 +423,8 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
             return mainPromise.promise;
         }
         var modifiedDocuments = document._modifiedColumns;
-        global.mongoUtil.collection.getSchema(appId, collectionName).then(function(columns) {
+        global.mongoUtil.collection.getSchema(appId, collectionName).then(function(table) {
+            var columns = table.columns;
             //check for required.
             if (!document['_tableName'] || !document['_type']) {
                 mainPromise.reject('Not a type of table');
@@ -434,8 +437,9 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                 if (document[columns[i].name] === undefined) {
                     document[columns[i].name] = columns[i].defaultValue;
                 }
-
-                if (columns[i].dataType === 'File' && document[columns[i].name] && document[columns[i].name]._type && document[columns[i].name]._type === 'file' && !document[columns[i].name]._id) { //if url of the file is null, which means file is not saved. Remove the whole object.
+                
+                //if url of the file is null, which means file is not saved. Remove the whole object.
+                if (columns[i].dataType === 'File' && document[columns[i].name] && document[columns[i].name]._type && document[columns[i].name]._type === 'file' && !document[columns[i].name]._id) { 
                     document[columns[i].name] = null;
                 }
 
@@ -518,65 +522,95 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                         }
                     } else {
                         var col = _.first(_.where(columns, {name: key})); //get the column of this key.
+
+                        // if column does not exist create a new column
                         if (!col) {
-                            mainPromise.reject('Invalid column ' + key + ' in ' + collectionName);
-                            return mainPromise.promise;
-                        }
-                        var datatype = col.dataType;
-                        if (_isBasicDataType(datatype)) {
-                            var res = _checkBasicDataTypes(document[key], datatype, key, collectionName); //check for basic datatypes
-                            if (res.message) {
-                                mainPromise.reject(res.message);
-                                return mainPromise.promise;
-                            } else {
-                                document[key] = res.data;
+                            newColumnAdditon = true;
+                            try{
+                                let detectedDataType = type.inferDataType(document[key]);
+                                let newCol = {
+                                            name:key,
+                                            _type:"column",
+                                            dataType:detectedDataType,
+                                            defaultValue:null,
+                                            editableByMasterKey:false,
+                                            isDeletable:true,
+                                            isEditable:true,
+                                            isRenamable:false,
+                                            relatedTo: type.inferRelatedToType(detectedDataType, document[key]),
+                                            relationType:null,
+                                            required:false,
+                                            unique:false
+                                };
+
+                                //push the new column to the old schema
+                                table.columns.push(newCol);
+                            }
+                            catch (err) {
+                                global.winston.log('error', {
+                                    "error": String(err),
+                                    "stack": new Error().stack
+                                });
+                                mainPromise.reject(err);
                             }
                         }
-                        //Relation check.
-                        if (document[key] && datatype === 'Relation' && typeof document[key] !== 'object') {
-                            mainPromise.reject('Invalid data in ' + key + ' of type ' + collectionName + '. It should be of type ' + datatype);
-                            return mainPromise.promise;
-                        }
-                        if (document[key] && datatype === 'Relation' && typeof document[key] === 'object') {
-                            if (!document[key]._tableName) {
+                        else {
+                            var datatype = col.dataType;
+                            if (_isBasicDataType(datatype)) {
+                                var res = _checkBasicDataTypes(document[key], datatype, key, collectionName); //check for basic datatypes
+                                if (res.message) {
+                                    mainPromise.reject(res.message);
+                                    return mainPromise.promise;
+                                } else {
+                                    document[key] = res.data;
+                                }
+                            }
+                            //Relation check.
+                            if (document[key] && datatype === 'Relation' && typeof document[key] !== 'object') {
                                 mainPromise.reject('Invalid data in ' + key + ' of type ' + collectionName + '. It should be of type ' + datatype);
                                 return mainPromise.promise;
                             }
-                            if (document[key]._tableName === col.relatedTo) {
-                                continue;
-                            } else {
-                                mainPromise.reject('Invalid data in ' + key + ' of type ' + collectionName + '. It should be of type ' + col.relatedTo);
+                            if (document[key] && datatype === 'Relation' && typeof document[key] === 'object') {
+                                if (!document[key]._tableName) {
+                                    mainPromise.reject('Invalid data in ' + key + ' of type ' + collectionName + '. It should be of type ' + datatype);
+                                    return mainPromise.promise;
+                                }
+                                if (document[key]._tableName === col.relatedTo) {
+                                    continue;
+                                } else {
+                                    mainPromise.reject('Invalid data in ' + key + ' of type ' + collectionName + '. It should be of type ' + col.relatedTo);
+                                    return mainPromise.promise;
+                                }
+                            }
+
+                            /// List check
+                            if (document[key] && datatype === 'List' && Object.prototype.toString.call(document[key]) !== '[object Array]') {
+                                //if it is a list.
+                                mainPromise.reject('Invalid Data in ' + key + ' of type ' + document._tableName + '. It should be of type ' + datatype);
                                 return mainPromise.promise;
                             }
-                        }
-
-                        /// List check
-                        if (document[key] && datatype === 'List' && Object.prototype.toString.call(document[key]) !== '[object Array]') {
-                            //if it is a list.
-                            mainPromise.reject('Invalid Data in ' + key + ' of type ' + document._tableName + '. It should be of type ' + datatype);
-                            return mainPromise.promise;
-                        }
-                        if (document[key] && datatype === 'List' && Object.prototype.toString.call(document[key]) === '[object Array]') {
-                            if (document[key].length !== 0) {
-                                if (_isBasicDataType(col.relatedTo)) {
-                                    var res = _checkBasicDataTypes(document[key], col.relatedTo, key, document._tableName);
-                                    if (res.message) {
-                                        //if something is wrong.
-                                        mainPromise.reject(res.message);
-                                        return mainPromise.promise;
+                            if (document[key] && datatype === 'List' && Object.prototype.toString.call(document[key]) === '[object Array]') {
+                                if (document[key].length !== 0) {
+                                    if (_isBasicDataType(col.relatedTo)) {
+                                        var res = _checkBasicDataTypes(document[key], col.relatedTo, key, document._tableName);
+                                        if (res.message) {
+                                            //if something is wrong.
+                                            mainPromise.reject(res.message);
+                                            return mainPromise.promise;
+                                        } else {
+                                            document[key] = res.data;
+                                        }
                                     } else {
-                                        document[key] = res.data;
-                                    }
-                                } else {
-                                    for (var i = 0; i < document[key].length; i++) {
-                                        if (document[key][i]._tableName) {
-                                            if (col.relatedTo !== document[key][i]._tableName)  {
+                                        for (var i = 0; i < document[key].length; i++) {
+                                            if (document[key][i]._tableName) {
+                                                if (col.relatedTo !== document[key][i]._tableName)  {
+                                                    mainPromise.reject('Invalid Data in ' + key + ' of type ' + collectionName + '. It should be list of ' + col.relatedTo);
+                                                    return mainPromise.promise;
+                                                }
+                                            } else {
                                                 mainPromise.reject('Invalid Data in ' + key + ' of type ' + collectionName + '. It should be list of ' + col.relatedTo);
                                                 return mainPromise.promise;
                                             }
-                                        } else {
-                                            mainPromise.reject('Invalid Data in ' + key + ' of type ' + collectionName + '. It should be list of ' + col.relatedTo);
-                                            return mainPromise.promise;
                                         }
                                     }
                                 }
@@ -584,6 +618,38 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                         }
                     }
                 }
+            }
+            // update the table if new columns are created above in code
+            if (newColumnAdditon){
+                var createNewColumnPromise = q.defer();
+                promises.push(createNewColumnPromise.promise);
+                var schemaCursor = global.mongoClient.db(appId).collection("_Schema");
+                schemaCursor.findOneAndUpdate(
+                    {
+                        name: document._tableName
+                    },
+                    {
+                        $set: table
+                    },
+                    {
+                        upsert: true,
+                        returnOriginal: false
+                    },
+                    function(err, response) {
+
+                        var table = null;
+
+                        if (response && response.value)
+                            table = response.value;
+
+                        if (err) {
+                            createNewColumnPromise.reject("Error : Failed to update the table with the new column. ");
+                        } else if (table) {
+                            createNewColumnPromise.resolve();
+                            console.log("Column " + key + " created.");
+                        }
+                    }
+                );
             }
             if (promises.length > 0) {
                 //you have related documents or unique queries.
@@ -616,6 +682,7 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
     return mainPromise.promise;
 
 };
+
 
 function _checkBasicDataTypes(data, datatype, columnName, tableName) {
 
@@ -1165,8 +1232,8 @@ function _getSchema(appId, collectionName) {
     var deferred = global.q.defer();
 
     try {
-        global.mongoUtil.collection.getSchema(appId, collectionName).then(function(columns) {
-            deferred.resolve(columns);
+        global.mongoUtil.collection.getSchema(appId, collectionName).then(function(table) {
+            deferred.resolve(table.columns);
         }, function(error) {
             deferred.reject(error);
         });
@@ -1193,8 +1260,9 @@ function _encryptPasswordInQuery(appId, collectionName, query) {
         } else {
             _getSchema(appId, collectionName).then(function(columns) {
                 var passwordColumnNames = [];
+                var length = columns.length
 
-                for (var i = 0; i < columns.length; i++) {
+                for (var i = 0; i < length; i++) {
                     if (columns[i].dataType === 'EncryptedText') {
                         passwordColumnNames.push(columns[i].name);
                     }
