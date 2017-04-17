@@ -170,8 +170,8 @@ Example:
   }
 }
 ```   
-##Facebook Social Authentication
-###Attributes 
+## Facebook Social Authentication
+### Attributes 
 ```
 {
   id:true,
@@ -389,12 +389,12 @@ Example:
     }
 ```
 
-##Google Social Authentication
+## Google Social Authentication
 You need to paste your CloudBoost callback URL in "Authorized redirect URIs" field in the Authentication section of the Google API console.
 </br>
 "&lt;your-server-url&gt;/auth/&lt;your-appId&gt;/google/callback
 
-###Attributes
+### Attributes
 ```
 {          
   'userinfoProfile':{
@@ -408,7 +408,7 @@ You need to paste your CloudBoost callback URL in "Authorized redirect URIs" fie
 }
 ```
 
-###Permissions
+### Permissions
 ```
 {
   'contacts':{
@@ -474,18 +474,18 @@ You need to paste your CloudBoost callback URL in "Authorized redirect URIs" fie
 }
 ```
 
-##Twitter Social Authentication
+## Twitter Social Authentication
 You need to paste your CloudBoost callback URL in "Callback URL" field in the Twitter App Settings.
 </br>
 "&lt;your-server-url&gt;/auth/&lt;your-appId&gt;/twitter/callback
 
 
-##LinkedIn Social Authentication
+## LinkedIn Social Authentication
 You need to paste your CloudBoost callback URL in "Authorized Redirect URLs" field in the Linkedin Developers App Sections..
 </br>
 "&lt;your-server-url&gt;/auth/&lt;your-appId&gt;/linkedin/callback
 
-###Permissions
+### Permissions
 ```
 {
   r_basicprofile:true,
@@ -495,12 +495,12 @@ You need to paste your CloudBoost callback URL in "Authorized Redirect URLs" fie
 }
 ```
 
-##Github Social Authentication
+## Github Social Authentication
 You need to paste your CloudBoost callback URL in "Authorization callback URL" field in Github Developers App Section.
 </br>
 "&lt;your-server-url&gt;/auth/&lt;your-appId&gt;/github/callback
 
-###Attributes
+### Attributes
 ```
 {
   user:{
@@ -514,7 +514,7 @@ You need to paste your CloudBoost callback URL in "Authorization callback URL" f
 }
 ```
 
-###Permissions
+### Permissions
 ```
 {  
   userFollow:{
@@ -743,7 +743,7 @@ xhttp.open("PUT",<your-server-url>/settings/<your-appId>/email, true);
 xhttp.send(data);
 ``` 
 
-##Retrieve App Settings
+## Retrieve App Settings
 Make a POST REST request to ClouBoost API to retrive your app settings
 </br>
 Request:&lt;your-server-url&gt;/settings/&lt;your-appId&gt;
@@ -767,5 +767,5 @@ xhttp.open("POST", <your-server-url>/settings/<your-appId>, true);
 xhttp.send(data);
 ```
 
-#Contribute
+# Contribute
 If you want to contribute to this repo. Please make sure you spell check everything and make sure you have tested the code with the live CloudBoost API before sending us the pull request.
