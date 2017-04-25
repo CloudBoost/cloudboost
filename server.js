@@ -479,10 +479,19 @@ function setUpAnalytics() {
         if (process.env["CLOUDBOOST_ANALYTICS_SERVICE_HOST"]) {
             //this is running on Kubernetes
             console.log("CloudBoost Analytics is running on Kubernetes");
-            global.keys.analyticsUrl = "http://" + process.env["CLOUDBOOST_ANALYTICS_SERVICE_HOST"];
+
+            if(process.env["IS_STAGING"]){
+                if (process.env["CLOUDBOOST_ANALYTICS_STAGING_SERVICE_HOST"]) {
+                    global.keys.analyticsUrl = "http://" + process.env["CLOUDBOOST_ANALYTICS_STAGING_SERVICE_HOST"];
+                }
+            } else {
+                global.keys.analyticsUrl = "http://" + process.env["CLOUDBOOST_ANALYTICS_SERVICE_HOST"];
+            }
             console.log(global.keys.analyticsUrl);
+            
         } else {
             console.log("Analytics URL : ");
+            global.keys.analyticsUrl = "http://localhost:5555"
             console.log(global.keys.analyticsUrl);
         }
     } catch (err) {
