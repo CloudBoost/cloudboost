@@ -192,7 +192,7 @@ global.app.use([
 
             var appId = req.params.appId;
             if (!appKey) {
-                return res.status(401).send("Error : Key not found.");
+                return res.status(401).send({status: 'error', message: 'Key not found. You need to have your Client Key or Master Key in the <> header when you make this request'});
             } else {
                 console.log("check if app is in the plan");
                 //check if app is in the plan.
