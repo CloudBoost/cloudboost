@@ -1,4 +1,4 @@
-#Current Project Team Members
+# Current Project Team Members
 
 The CloudBoost project team comprises a group of core collaborators and a sub-group that forms the Technical Steering Committee (TSC) which governs the project. For more information about the governance of the CloudBoost project, see GOVERNANCE.md.
 
