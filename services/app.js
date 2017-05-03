@@ -748,8 +748,8 @@ module.exports = function() {
                     appId: appId
                 };
 
-                var newClientkey = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), global.keys.secureKey, 100, 16).toString("base64");
-
+                // var newClientkey = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), global.keys.secureKey, 100, 16).toString("base64");
+                var newClientkey = _generateKey()
                 if (value) {
                     newClientkey = value;
                 }
@@ -800,8 +800,8 @@ module.exports = function() {
                     appId: appId
                 };
 
-                var newMasterkey = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), global.keys.secureKey, 100, 16).toString("base64");
-
+                //var newMasterkey = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), global.keys.secureKey, 100, 16).toString("base64");
+                var newMasterkey = _generateKey();
                 if (value) {
                     newMasterkey = value;
                 }
