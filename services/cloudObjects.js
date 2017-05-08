@@ -534,18 +534,39 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                         }
                         //Relation check.
                         if (document[key] && datatype === 'Relation' && typeof document[key] !== 'object') {
-                            mainPromise.reject('Invalid data in ' + key + ' of type ' + collectionName + '. It should be of type ' + datatype);
-                            return mainPromise.promise;
+                            //data passed is id of the relatedObject
+                            var objectId = document[key]
+                            if (_validateObjectId(objectId)) {
+                                document[key] = {}
+                                document[key]._id = objectId;
+                                document[key]._tableName = col.relatedTo;
+                                document[key]._type = _getTableType(col.relatedTo);
+                                continue;
+                            } else {
+                                mainPromise.reject("Invalid data in column " + key + ". It should be of type 'CloudObject' which belongs to table '" + col.relatedTo + "'");
+                                return mainPromise.promise;
+                            }
+
                         }
                         if (document[key] && datatype === 'Relation' && typeof document[key] === 'object') {
                             if (!document[key]._tableName) {
-                                mainPromise.reject('Invalid data in ' + key + ' of type ' + collectionName + '. It should be of type ' + datatype);
+                                //tableName is not pasased in the object and is set explicitly
+                                document[key]._tableName = col.relatedTo;
+                            }
+                            if (!document[key]._id && !document[key].id) {
+                                mainPromise.reject("Invalid data in column " + key + ". It should be of type 'CloudObject' which belongs to table '" + col.relatedTo + "'");
                                 return mainPromise.promise;
+                            } else {
+                                document[key]._id = document[key]._id || document[key].id
+                                delete document[key].id
+                            }
+                            if (!document[key]._type) {
+                                document[key]._type = _getTableType(col.relatedTo);
                             }
                             if (document[key]._tableName === col.relatedTo) {
                                 continue;
                             } else {
-                                mainPromise.reject('Invalid data in ' + key + ' of type ' + collectionName + '. It should be of type ' + col.relatedTo);
+                                mainPromise.reject("Invalid data in column " + key + ". It should be of type 'CloudObject' which belongs to table '" + col.relatedTo + "'");
                                 return mainPromise.promise;
                             }
                         }
@@ -553,7 +574,7 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                         /// List check
                         if (document[key] && datatype === 'List' && Object.prototype.toString.call(document[key]) !== '[object Array]') {
                             //if it is a list.
-                            mainPromise.reject('Invalid Data in ' + key + ' of type ' + document._tableName + '. It should be of type ' + datatype);
+                            mainPromise.reject("Invalid data in column " + key + ". It should be of type 'CloudObject' which belongs to table '" + col.relatedTo + "'");
                             return mainPromise.promise;
                         }
                         if (document[key] && datatype === 'List' && Object.prototype.toString.call(document[key]) === '[object Array]') {
@@ -570,12 +591,12 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                                 } else {
                                     for (var i = 0; i < document[key].length; i++) {
                                         if (document[key][i]._tableName) {
-                                            if (col.relatedTo !== document[key][i]._tableName)  {
-                                                mainPromise.reject('Invalid Data in ' + key + ' of type ' + collectionName + '. It should be list of ' + col.relatedTo);
+                                            if (col.relatedTo !== document[key][i]._tableName) {
+                                                mainPromise.reject('Invalid data in column ' + key + '. It should be Array of \'CloudObjects\' which belongs to table \'' + col.relatedTo + '\'.');
                                                 return mainPromise.promise;
                                             }
                                         } else {
-                                            mainPromise.reject('Invalid Data in ' + key + ' of type ' + collectionName + '. It should be list of ' + col.relatedTo);
+                                            mainPromise.reject('Invalid data in column ' + key + '. It should be Array of \'CloudObjects\' which belongs to table \'' + col.relatedTo + '\'.');
                                             return mainPromise.promise;
                                         }
                                     }
@@ -616,6 +637,28 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
     return mainPromise.promise;
 
 };
+
+function _validateObjectId(objectId) {
+    if (objectId.length === 8)
+        return true;
+    return false;
+}
+
+function _getTableType(tableName) {
+    var tableType = "custom";
+    if (tableName === "User") {
+        tableType = "user";
+    } else if (tableName === "Role") {
+        tableType = "role";
+    } else if (tableName === "Device") {
+        tableType = "device";
+    } else if (tableName === "_File") {
+        tableType = "file";
+    } else if (tableName === "_Event") {
+        tableType = "event";
+    }
+    return tableType;
+}
 
 function _checkBasicDataTypes(data, datatype, columnName, tableName) {
 
