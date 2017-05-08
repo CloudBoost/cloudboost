@@ -273,4 +273,33 @@ module.exports = function() {
             console.log(e);
         }
     });
+
+    //Export Table for :appID
+    global.app.post('/backup/:appId/:tableName/exporttable', function(req, res) {
+        console.log("++++ Export Table ++++++");
+        try {
+            var appKey = req.body.key;
+            var appId = req.params.appId;
+            var tableName = req.params.tableName;
+            var exportType = req.body.exportType.toLowerCase();
+
+            global.appService.isMasterKey(appId,appKey).then(function(isMasterKey) {
+                if (isMasterKey) {
+                    global.appService.exportTable(appId,tableName,exportType).then(function(data) {
+                        res.status(200).send(data);
+                    }, function(err) {
+                        console.log("Error : Exporting Table.");
+                        console.log(err);
+                        res.status(500).send("Error");
+                    })
+                } else {
+                    res.status(401).send({status: 'Unauthorized'});
+                }
+            }, function(error) {
+                return res.status(500).send('Cannot retrieve security keys.');
+            });
+        } catch (e) {
+            console.log(e);
+        }
+    });
 };

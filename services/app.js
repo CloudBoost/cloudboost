@@ -10,7 +10,8 @@ var crypto = require("crypto");
 var uuid = require('uuid');
 var _ = require('underscore');
 var util = require('../helpers/util.js');
-var tablesData = require('./tablesData.js')
+var tablesData = require('./tablesData.js');
+var jsonexport = require('jsonexport');
 
 module.exports = function() {
 
@@ -965,8 +966,28 @@ module.exports = function() {
                     deferred.resolve({username: username, password: password})
             });
             return deferred.promise;
-        }
+        },
 
+        exportTable : function(appId,tableName,exportType){
+
+            var deferred = q.defer();
+
+            var collection = global.mongoClient.db(appId).collection(tableName);
+            var findQuery = collection.find({});
+            findQuery.toArray(function(err, tables) {
+                if (err) {
+                    deferred.reject("Error : Failed to retrieve the table.");
+                }
+                if(exportType === 'csv')
+                {
+                    jsonexport(tables,function(err, csv){
+                        if(err) return console.log(err);
+                        deferred.resolve(csv);
+                    });
+                }
+                return deferred;
+            });
+        }
     };
 
 };

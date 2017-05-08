@@ -38,6 +38,7 @@
     "jimp": "^0.2.21",
     "jquery": "^2.2.0",
     "jsdom": "^8.0.4",
+    "jsonexport": "^1.5.2",
     "mandrill-api": "^1.0.45",
     "mongodb": "^2.1.11",
     "mongoose": "^4.4.10",
