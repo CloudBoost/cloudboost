@@ -275,7 +275,7 @@ module.exports = function() {
     });
 
     //Export Table for :appID
-    global.app.post('/backup/:appId/:tableName/exporttable', function(req, res) {
+    global.app.post('/backup/exporttable/:appId/:tableName', function(req, res) {
         console.log("++++ Export Table ++++++");
         try {
             var appKey = req.body.key;
@@ -283,18 +283,14 @@ module.exports = function() {
             var tableName = req.params.tableName;
             var exportType = req.body.exportType.toLowerCase();
 
-            global.appService.isMasterKey(appId,appKey).then(function(isMasterKey) {
-                if (isMasterKey) {
-                    global.appService.exportTable(appId,tableName,exportType).then(function(data) {
-                        res.status(200).send(data);
-                    }, function(err) {
+            global.appService.isMasterKey(appId,appKey).then(function(isMasterKey) {         
+                global.appService.exportTable(appId,tableName,exportType,isMasterKey).then(function(data) {
+                    res.status(200).send(data);
+                 }, function(err) {
                         console.log("Error : Exporting Table.");
                         console.log(err);
                         res.status(500).send("Error");
-                    })
-                } else {
-                    res.status(401).send({status: 'Unauthorized'});
-                }
+                });
             }, function(error) {
                 return res.status(500).send('Cannot retrieve security keys.');
             });
