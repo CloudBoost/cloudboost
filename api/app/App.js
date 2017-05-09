@@ -271,7 +271,7 @@ module.exports = function() {
     });
 
     //Export Table for :appID
-    global.app.post('/backup/exporttable/:appId/:tableName', function(req, res) {
+    global.app.post('/export/:appId/:tableName', function(req, res) {
         console.log("++++ Export Table ++++++");
         try {
             var appKey = req.body.key;

@@ -981,8 +981,8 @@ module.exports = function() {
                      deferred.resolve(result);
                 }else if(exportType === 'xlsx' || exportType === 'xls')
                 {    
-                    var date = new Date;
-                    var fileName = '/tmp/tempfile'+date.getTime()+'.xlsx';
+                    var random =  util.getId();
+                    var fileName = '/tmp/tempfile'+random+'.xlsx';
                     var converted = convertObjectToString(tables);  
                     var outputFile = jsonXlsxWriteFile.writeFile(fileName, converted);      
 
@@ -1000,7 +1000,7 @@ module.exports = function() {
                 }else if(exportType === 'json'){
                     deferred.resolve(tables);
                 } else{
-                    deferred.reject('invalid exportType ,exportType should be csv,xls,xlsx,json')
+                    deferred.reject('Invalid exportType ,exportType should be csv,xls,xlsx,json')
                 }
             },function(err){
                 deferred.reject(err);
