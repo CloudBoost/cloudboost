@@ -11,7 +11,6 @@ var uuid = require('uuid');
 var _ = require('underscore');
 var util = require('../helpers/util.js');
 var tablesData = require('./tablesData.js');
-var jsonexport = require('jsonexport');
 var json2csv = require('json2csv');
 var jsonToXlsx = require('json2xlsx');
 var jsonXlsxWriteFile = require('icg-json-to-xlsx');  
@@ -971,30 +970,37 @@ module.exports = function() {
             return deferred.promise;
         },
 
-        exportTable : function(appId,tableName,exportType,isMasterKey){
+        exportTable : function(appId,tableName,exportType,isMasterKey,accessList){
 
             var deferred = q.defer();
-            var collection = global.mongoClient.db(appId).collection(tableName);
-            var findQuery = collection.find({});
-            global.customService.find(appId, tableName, {},null, null, null, null, null, isMasterKey).then(function(tables){
+            global.customService.find(appId, tableName,{},null, null, null, null, accessList, isMasterKey).then(function(tables){
 
                 if(exportType === 'csv')
                 {   
                      var result = json2csv({ data: tables});
                      deferred.resolve(result);
-                }else if(exportType === 'xlsx' || exportType === 'xlsx')
-                {      
-                    var converted = convertObjectToString(tables[0]);        
-                    var outputFile = jsonXlsxWriteFile.writeFile('/tmp/filena.xlsx', [converted]);
-                    fs.readFile('/tmp/filena.xlsx', function read(err, data) {
+                }else if(exportType === 'xlsx' || exportType === 'xls')
+                {    
+                    var date = new Date;
+                    var fileName = '/tmp/tempfile'+date.getTime()+'.xlsx';
+                    var converted = convertObjectToString(tables);  
+                    var outputFile = jsonXlsxWriteFile.writeFile(fileName, converted);      
+
+                    fs.readFile(fileName, function read(err, data) {
                         if (err) {
                         deferred.reject("Error : Failed to convert the table.");
-                    }
-                        deferred.resolve(data);
+                        }
+                        fs.unlink(fileName,function(err){
+                            if(err){
+                                deferred.reject(err);
+                            } 
+                            deferred.resolve(data);
+                        });          
                     });
-                }else if(exportType === 'json')
-                {
+                }else if(exportType === 'json'){
                     deferred.resolve(tables);
+                } else{
+                    deferred.reject('invalid exportType ,exportType should be csv,xls,xlsx,json')
                 }
             },function(err){
                 deferred.reject(err);
@@ -1450,16 +1456,20 @@ function deleteAppFromRedis(appId) {
     return deferred.promise;
 }
 
-function convertObjectToString(data)
+function convertObjectToString(arr)
 {
-    for(let i in data)
-    {
-        if(typeof data[i] == 'object')
+    for(let j in arr)
+    {   
+        let data = arr[j];
+        for(let i in data)
         {
-           data[i] = JSON.stringify(data[i]);
+            if(typeof data[i] == 'object')
+            {
+            data[i] = JSON.stringify(data[i]);
+            }
+            
         }
-        
     }
-    return data;
+    return arr;
 
 }

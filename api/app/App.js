@@ -277,12 +277,25 @@ module.exports = function() {
             var appKey = req.body.key;
             var appId = req.params.appId;
             var tableName = req.params.tableName;
-            var exportType = req.body.exportType.toLowerCase();
-
+            var exportType = req.body.exportType;
+            var customHelper = require('../../helpers/custom.js');
+            var accessList = customHelper.getAccessList(req)
+            if(!appKey){
+                res.status(400).send("key is missing");
+            }
+            if(!appId){
+                 res.status(400).send("appId is missing");
+            }
+            if(!tableName){
+                 res.status(400).send("tableName is missing");
+            }
+            if(!exportType){
+                 res.status(400).send("exportType is missing");
+            }
             global.appService.isMasterKey(appId,appKey).then(function(isMasterKey) {         
-                global.appService.exportTable(appId,tableName,exportType,isMasterKey).then(function(data) {
+                global.appService.exportTable(appId,tableName,exportType.toLowerCase(),isMasterKey,accessList).then(function(data) {
                     res.status(200).send(data);
-                 }, function(err) {
+                }, function(err) {
                         console.log("Error : Exporting Table.");
                         console.log(err);
                         res.status(500).send("Error");
@@ -290,6 +303,7 @@ module.exports = function() {
             }, function(error) {
                 return res.status(500).send('Cannot retrieve security keys.');
             });
+    
         } catch (e) {
             console.log(e);
         }
