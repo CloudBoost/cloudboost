@@ -298,7 +298,7 @@ module.exports = function() {
                 }, function(err) {
                         console.log("Error : Exporting Table.");
                         console.log(err);
-                        res.status(500).send("Error");
+                        res.status(500).send(err);
                 });
             }, function(error) {
                 return res.status(500).send('Cannot retrieve security keys.');
