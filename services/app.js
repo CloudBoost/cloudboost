@@ -291,14 +291,12 @@ module.exports = function() {
             var deferred = q.defer();
 
             try {
-                var self = this;
-
                 var collection = global.mongoClient.db(appId).collection("_Schema");
                 var findQuery = collection.find({name: tableName});
                 findQuery.toArray(function(err, tables) {
                     if (err) {
                         deferred.reject("Error : Failed to retrieve the table.");
-                        console.log("Error : Failed to retrieve the table.")
+                        console.log("Error : Failed to retrieve the table.");
                         console.log(err);
                     }
                     if (tables && tables.length > 0) {
@@ -326,21 +324,20 @@ module.exports = function() {
             var deferred = q.defer();
 
             try {
-                var self = this;
 
                 var collection = global.mongoClient.db(appId).collection("_Schema");
                 var findQuery = collection.find({});
                 findQuery.toArray(function(err, tables) {
                     if (err) {
                         deferred.reject("Error : Failed to retrieve the table.");
-                        console.log("Error : Failed to retrieve the table.")
+                        console.log("Error : Failed to retrieve the table.");
                         console.log(err);
                     }
                     if (tables.length > 0) {
                         // filtering out private '_Tables'
-                        tables = tables.filter(function(table){
-                            return table.name[0] !== '_'
-                        })
+                        tables = tables.filter(function(table) {
+                            return table.name[0] !== '_';
+                        });
                         console.log("Tables found...");
                         deferred.resolve(tables);
                     } else {
@@ -365,8 +362,6 @@ module.exports = function() {
             var deferred = q.defer();
 
             try {
-                var self = this;
-
                 var collection = global.mongoClient.db(appId).collection("_Schema");
 
                 collection.deleteOne({
@@ -408,7 +403,7 @@ module.exports = function() {
                             }
                         });
                     } else {
-                        deferred.reject({"code": 500, "message": "Server Error"})
+                        deferred.reject({"code": 500, "message": "Server Error"});
                     }
                 });
 
@@ -534,11 +529,13 @@ module.exports = function() {
                     tableType = "device";
                 } else if (tableName === "_File") {
                     tableType = "file";
+                } else if (tableName === "_Event") {
+                    tableType = "event";
                 } else {
                     tableType = "custom";
                 }
 
-                if (tableType === 'user' || tableType === 'role' || tableType === 'device' || tableType === 'file') {
+                if (tableType === 'user' || tableType === 'role' || tableType === 'device' || tableType === 'file' || tableType === 'event') {
                     maxCount = 1;
                 } else {
                     maxCount = 99999;
@@ -552,7 +549,7 @@ module.exports = function() {
 
                 //dataType check.
                 var defaultDataType = _getDefaultColumnWithDataType(tableType);
-                var valid = _checkValidDataType(schema, defaultDataType);
+                var valid = _checkValidDataType(schema, defaultDataType, tableType);
                 if (!valid) {
                     deferred.reject("Error : Invalid DataType Found.");
                     return deferred.promise;
@@ -609,7 +606,7 @@ module.exports = function() {
 
                         isNewTable = true;
 
-                        table = {}
+                        table = {};
                         table.id = util.getId();
                         table.columns = schema;
 
@@ -740,8 +737,9 @@ module.exports = function() {
                 global.appService.upsertTable(appId, 'Role', tablesData.Role),
                 global.appService.upsertTable(appId, 'Device', tablesData.Device),
                 global.appService.upsertTable(appId, 'User', tablesData.User),
-                global.appService.upsertTable(appId, '_File', tablesData._File)
-            ])
+                global.appService.upsertTable(appId, '_File', tablesData._File),
+                global.appService.upsertTable(appId, '_Event', tablesData._Event)
+            ]);
         },
 
         changeAppClientKey: function(appId, value) {
@@ -754,8 +752,8 @@ module.exports = function() {
                     appId: appId
                 };
 
-                var newClientkey = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), global.keys.secureKey, 100, 16).toString("base64");
-
+                // var newClientkey = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), global.keys.secureKey, 100, 16).toString("base64");
+                var newClientkey = _generateKey()
                 if (value) {
                     newClientkey = value;
                 }
@@ -806,8 +804,8 @@ module.exports = function() {
                     appId: appId
                 };
 
-                var newMasterkey = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), global.keys.secureKey, 100, 16).toString("base64");
-
+                //var newMasterkey = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), global.keys.secureKey, 100, 16).toString("base64");
+                var newMasterkey = _generateKey();
                 if (value) {
                     newMasterkey = value;
                 }
@@ -850,7 +848,7 @@ module.exports = function() {
 
         exportDatabase: function(appId) {
             var deferred = q.defer();
-            var promises = []
+            var promises = [];
             global.mongoClient.db(appId).listCollections().toArray(function(err, collections) {
                 if (err) {
                     global.winston.log('error', err);
@@ -859,41 +857,40 @@ module.exports = function() {
                 for (var k in collections) {
                     (function(k) {
                         var promise = new Promise(function(resolve, reject) {
-                            collections[k].documents = []
-                            data = global.mongoClient.db(appId).collection(collections[k].name).find()
+                            collections[k].documents = [];
+                            data = global.mongoClient.db(appId).collection(collections[k].name).find();
                             data.toArray(function(err, data) {
                                 if (err) {
                                     global.winston.log('error', err);
                                     reject(err);
                                 }
-                                collections[k].documents.push(data)
-                                resolve()
-                            })
-                        })
-                        promises.push(promise)
-                    })(k)
+                                collections[k].documents.push(data);
+                                resolve();
+                            });
+                        });
+                        promises.push(promise);
+                    })(k);
                 }
                 Promise.all(promises).then(function(data) {
-                    deferred.resolve(collections)
+                    deferred.resolve(collections);
                 }, function(err) {
                     deferred.reject(err);
-                })
+                });
             });
             return deferred.promise;
         },
 
         importDatabase: function(appId, file) {
-            var fileData
+            var fileData;
             var deferred = q.defer();
-            var collectionRemovePromises = []
-            var collectionCreatePromises = []
-            var validated = false
+            var collectionRemovePromises = [];
+            var validated = false;
 
             try {
-                fileData = JSON.parse(file.toString())
+                fileData = JSON.parse(file.toString());
                 for (var k in fileData) {
                     if (fileData[k].name == '_Schema') {
-                        validated = true
+                        validated = true;
                     }
                 }
                 if (!validated) {
@@ -914,21 +911,23 @@ module.exports = function() {
                             collectionRemovePromises.push(new Promise(function(resolve, reject) {
                                 global.mongoClient.db(appId).collection(Collections[k].name).remove({}, function(err, removed) {
                                     if (err) {
-                                        reject(err)
+                                        reject(err);
                                     }
-                                    resolve(true)
+                                    resolve(true);
                                 });
-                            }))
+                            }));
                         }
-                    })(k)
+                    })(k);
                 }
                 Promise.all(collectionRemovePromises).then(function(data) {
                     for (var i in fileData) {
                         (function(i) {
                             global.mongoClient.db(appId).createCollection(fileData[i].name, function(err, col) {
-                                if(err) deferred.reject('Error creating Collections/Tables')
+                                if (err)
+                                    deferred.reject('Error creating Collections/Tables');
                                 global.mongoClient.db(appId).collection(fileData[i].name, function(err, col) {
-                                    if(err) deferred.reject('Error getting Collections/Tables')
+                                    if (err)
+                                        deferred.reject('Error getting Collections/Tables');
                                     for (var j in fileData[i].documents[0]) {
                                         (function(j) {
                                             col.insert(fileData[i].documents[0][j], function(err) {
@@ -936,15 +935,15 @@ module.exports = function() {
                                                     deferred.resolve(true);
                                                 }
                                             });
-                                        })(j)
+                                        })(j);
                                     }
                                 });
                             });
-                        })(i)
+                        })(i);
                     }
                 }, function(err) {
                     deferred.reject(err);
-                })
+                });
             });
             return deferred.promise;
         },
@@ -952,8 +951,8 @@ module.exports = function() {
         createDatabaseUser: function(appId) {
             var deferred = q.defer();
 
-            var username = util.getId()
-            var password = util.getId()
+            var username = util.getId();
+            var password = util.getId();
 
             global.mongoClient.db(appId).addUser(username, password, {
                 roles: [
@@ -964,10 +963,11 @@ module.exports = function() {
                 ]
             }, function(err, result) {
                 if (err)
-                    deferred.reject(err)
+                    deferred.reject(err);
                 else
-                    deferred.resolve({username: username, password: password})
-            });
+                    deferred.resolve({username: username, password: password});
+                }
+            );
             return deferred.promise;
         },
 
@@ -1072,6 +1072,8 @@ function _getDefaultColumnList(type) {
             defaultColumn.concat(['channels', 'deviceToken', 'deviceOS', 'timezone', 'metadata']);
         } else if (type == 'file') {
             defaultColumn.concat(['name', 'contentType', 'path', 'url', 'size']);
+        } else if (type == 'event') {
+            defaultColumn.concat(['user', 'type', 'name', 'data']);
         }
         return defaultColumn;
 
@@ -1084,7 +1086,7 @@ function _getDefaultColumnList(type) {
     }
 }
 
-function _checkValidDataType(columns, deafultDataType) {
+function _checkValidDataType(columns, deafultDataType, tableType) {
 
     try {
         var index;
@@ -1167,8 +1169,19 @@ function _checkValidDataType(columns, deafultDataType) {
                 }
 
             //name for role table
-            if (key === 'name') {
+            if (key === 'name' && tableType === 'role') {
                 if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != true || columns[index].dataType != 'Text')
+                    return false;
+                }
+
+            //name for file table
+            if (key === 'name' && tableType === 'file') {
+                if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'Text')
+                    return false;
+                }
+            //name for event table
+            if (key === 'name' && tableType === 'event') {
+                if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'Text')
                     return false;
                 }
 
@@ -1223,9 +1236,34 @@ function _checkValidDataType(columns, deafultDataType) {
                     return false;
                 }
 
+            //user for event table
+            if (key === 'user') {
+                if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'Relation')
+                    return false;
+                }
+
+            //type for event table
+            if (key === 'type') {
+                if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'Text')
+                    return false;
+                }
+
+            //type for event table
+            if (key === 'type') {
+                if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'Text')
+                    return false;
+                }
+
+            //data for event table
+            if (key === 'data') {
+                if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'Object')
+                    return false;
+                }
+
             if (columns[index].isRenamable !== false || columns[index].isEditable !== false || columns[index].isDeletable !== false) {
                 return false;
             }
+
             defaultColumns.push(key);
 
         } //end of for-loop
@@ -1267,7 +1305,7 @@ function _checkValidDataType(columns, deafultDataType) {
                     } else if (columns[i].dataType === 'Email') {
                         if (columns[i].defaultValue.match(/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/i)[0] !== columns[i].defaultValue) {
                             return
-                            false // if the set dataType is not other string Datatypes (Text, EncryptedText, DateTime) available in cloudboost;
+                            false; // if the set dataType is not other string Datatypes (Text, EncryptedText, DateTime) available in cloudboost;
                         }
                     } else if (['Text', 'EncryptedText', 'DateTime'].indexOf(columns[i].dataType) === -1) {
                         return false;
@@ -1354,7 +1392,7 @@ function _getDefaultColumnWithDataType(type) {
         if (type == 'user') {
             defaultColumn['username'] = 'Text';
             defaultColumn['email'] = 'Email';
-            defaultColumn['password'] = 'EncryptedText'
+            defaultColumn['password'] = 'EncryptedText';
             defaultColumn['roles'] = 'List';
         } else if (type == 'role') {
             defaultColumn['name'] = 'Text';
@@ -1371,6 +1409,11 @@ function _getDefaultColumnWithDataType(type) {
             defaultColumn['url'] = 'URL';
             defaultColumn['path'] = 'Text';
             defaultColumn['contentType'] = 'Text';
+        } else if (type == 'event') {
+            defaultColumn['user'] = 'Relation';
+            defaultColumn['type'] = 'Text';
+            defaultColumn['name'] = 'Text';
+            defaultColumn['data'] = 'Object';
         }
         return defaultColumn;
 

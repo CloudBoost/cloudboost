@@ -201,7 +201,7 @@ module.exports = function (){
     }
 
 
-    function _getItem(req, res, next){
+    function _getItem(req, res){
         var appId =      req.params.appId;
         var cacheName =  req.params.name;
         var key =        req.params.key;
@@ -227,7 +227,7 @@ module.exports = function (){
     };
     
     
-    function _getItemsCount(req, res, next) {
+    function _getItemsCount(req, res) {
         var appId = req.params.appId;
         var cacheName = req.params.name;
         var key = req.params.key;
@@ -252,7 +252,7 @@ module.exports = function (){
         global.apiTracker.log(appId,"Cache / Item / Count", req.url,sdk);
     };
 
-    function _getCache(req, res, next){
+    function _getCache(req, res){
         var appId =      req.params.appId;
         var cacheName =  req.params.name;
         var appKey =     req.body.key;
@@ -276,7 +276,7 @@ module.exports = function (){
         global.apiTracker.log(appId,"Cache / Get", req.url,sdk);
     };
 
-    function _getAllAppCache(req, res, next){
+    function _getAllAppCache(req, res){
         var appId =     req.params.appId;
         var appKey =    req.body.key;
         var sdk = req.body.sdk || "REST";
@@ -299,7 +299,7 @@ module.exports = function (){
         global.apiTracker.log(appId,"Cache / GetAll", req.url,sdk);
     };
 
-    function _getAllItems(req, res, next){
+    function _getAllItems(req, res){
         var appId =      req.params.appId;
         var cacheName =  req.params.name;
         var appKey    =  req.body.key;
@@ -323,7 +323,7 @@ module.exports = function (){
         global.apiTracker.log(appId,"Cache / Item/ GetAll", req.url,sdk);
     };
 
-    function _getInfo(req, res, next){
+    function _getInfo(req, res){
         var appId =      req.params.appId;
         var cacheName =  req.params.name;
         var appKey =     req.body.key;

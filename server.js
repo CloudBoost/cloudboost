@@ -15,7 +15,6 @@ var busboyBodyParser = require('busboy-body-parser');
 var q = require("q");
 var _ = require('underscore');
 var path = require('path');
-var ejs = require('ejs');
 
 global.mongoDisconnected = false;
 global.winston = require('winston');
@@ -42,7 +41,6 @@ global.keyService = require('./database-connect/keyService.js');
 global.q = require('q');
 global.uuid = require('uuid');
 var bodyParser = require('body-parser');
-var cookies = require("cookies");
 var session = require('express-session');
 global.app = global.express();
 
@@ -79,7 +77,6 @@ if (https) {
     io.attach(http);
 }
 
-var multer = require('multer');
 var Redis = require('ioredis');
 
 var ioRedisAdapter = require('socket.io-redis');
@@ -117,7 +114,7 @@ global.app.use(function(req, res, next) {
         req.text = '';
         req.setEncoding('utf8');
         req.on('data', function(chunk) {
-            req.text += chunk
+            req.text += chunk;
         });
         req.on('end', next);
     } else {
@@ -195,7 +192,7 @@ global.app.use([
 
             var appId = req.params.appId;
             if (!appKey) {
-                return res.status(401).send("Error : Key not found.");
+                return res.status(401).send({status: 'error', message: "Key not found. You need to have your Client Key or Master Key in the body or url parameter 'key' when you make this request"});
             } else {
                 console.log("check if app is in the plan");
                 //check if app is in the plan.
@@ -482,10 +479,19 @@ function setUpAnalytics() {
         if (process.env["CLOUDBOOST_ANALYTICS_SERVICE_HOST"]) {
             //this is running on Kubernetes
             console.log("CloudBoost Analytics is running on Kubernetes");
-            global.keys.analyticsUrl = "http://" + process.env["CLOUDBOOST_ANALYTICS_SERVICE_HOST"];
+
+            if(process.env["IS_STAGING"]){
+                if (process.env["CLOUDBOOST_ANALYTICS_STAGING_SERVICE_HOST"]) {
+                    global.keys.analyticsUrl = "http://" + process.env["CLOUDBOOST_ANALYTICS_STAGING_SERVICE_HOST"];
+                }
+            } else {
+                global.keys.analyticsUrl = "http://" + process.env["CLOUDBOOST_ANALYTICS_SERVICE_HOST"];
+            }
             console.log(global.keys.analyticsUrl);
+            
         } else {
             console.log("Analytics URL : ");
+            global.keys.analyticsUrl = "http://localhost:5555"
             console.log(global.keys.analyticsUrl);
         }
     } catch (err) {

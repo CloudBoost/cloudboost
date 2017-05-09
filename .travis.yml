@@ -17,20 +17,34 @@ before_install:
 - sleep 30s
 - docker exec $(docker ps -aqf "name=mongo") mongo _GLOBAL --eval "db.getCollection('_Settings').insertOne({secureKey:'1227d1c4-1385-4d5f-ae73-23e99f74b006',clusterKey:'1227d1c4-1385-4d5f-ae73-23e99f74b006',myURL:'http://localhost:4730'});"
 install:
+- npm install grunt-cli -g
 - npm install
 - docker build -t cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER .
-- docker build -t cloudboost/cloudboost:latest .
+- if [ "$TRAVIS_BRANCH" == "master" ]; then
+    docker build -t cloudboost/cloudboost:latest .;
+  fi
+- if [ "$TRAVIS_BRANCH" == "staging" ]; then
+    docker build -t cloudboost/cloudboost:staging .;
+  fi
 - docker run --name cloudboost -e  MAIL_PROVIDER=$MAIL_PROVIDER -e  MAIL_PROVIDER_API_KEY=$MAIL_PROVIDER_API_KEY -e  DOMAIN=$DOMAIN -e  FROM_EMAIL=$FROM_EMAIL -e  FROM_NAME=$FROM_NAME -p 4730:4730 -it --link redis:redis --link mongo:mongo -d cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER
 - sleep 30s
 - git clone https://github.com/cloudboost/javascriptsdk
-- npm install grunt-cli -g
 - cd javascriptsdk
 - npm install
 - grunt
 - npm test
 - cd ..
 after_success:
-- echo "OK"
+- if [ "$TRAVIS_BRANCH" == "staging" ]; then
+    docker login --username $DOCKERUSERNAME --password $DOCKERPASSWORD --email $DOCKEREMAIL;
+    docker push cloudboost/cloudboost:staging;
+    git clone https://github.com/CloudBoost/kube-cred.git;
+    cd kube-cred;
+    openssl enc -in config.enc -out config -d -aes256 -k $KUBE_ENC;
+    mkdir ~/.kube;
+    mv config ~/.kube/;
+    kubectl rolling-update cloudboost-engine-staging --image=cloudboost/cloudboost:staging --image-pull-policy=Always;
+  fi
 before_deploy:
   - git config --global user.email "builds@travis-ci.com"
   - git config --global user.name "Travis CI"
@@ -44,7 +58,7 @@ deploy:
   skip_cleanup: true
   on:
     tags: false
-    all_branches: true
+    branch: master
 after_deploy:
 # Docker Deploy.
 - if [ "$TRAVIS_BRANCH" == "master" ]; then

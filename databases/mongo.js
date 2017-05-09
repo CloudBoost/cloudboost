@@ -5,11 +5,8 @@
 */
 
 var q = require("q");
-var fs = require('fs');
 var _ = require('underscore');
-var ObjectID = require('mongodb').ObjectID; //for generating _id values
 var util = require('../helpers/util.js');
-var Stream = require('stream');
 var Grid = require('gridfs-stream');
 
 module.exports = function() {
@@ -37,7 +34,7 @@ module.exports = function() {
                     "error": String(err),
                     "stack": new Error().stack
                 });
-                deferred.reject(err);;
+                deferred.reject(err);
             }
             return deferred.promise;
         },
@@ -108,8 +105,6 @@ module.exports = function() {
                                 r_include.push(include[k]);
                             }
                         for (var k = 0; k < r_include.length; k++) {
-                            var temp = join[i];
-                            var temp1 = r_include[k];
                             r_include[k] = r_include[k].split('.').splice(1, 1).join('.');
                         }
                         for (var k = 0; k < r_include.length; k++) {
@@ -181,7 +176,7 @@ module.exports = function() {
                     "error": String(err),
                     "stack": new Error().stack
                 });
-                deferred.reject(err);;
+                deferred.reject(err);
             }
             return deferred.promise;
         },
@@ -214,7 +209,7 @@ module.exports = function() {
                     "error": String(err),
                     "stack": new Error().stack
                 });
-                includeDeferred.reject(err);;
+                includeDeferred.reject(err);
             }
             return includeDeferred.promise;
         },
@@ -285,7 +280,7 @@ module.exports = function() {
                 }
 
                 if (!select || Object.keys(select).length === 0) {
-                    select = {}
+                    select = {};
                 } else {
                     //defult columns which should be selected.
                     select["ACL"] = 1;
@@ -396,7 +391,7 @@ module.exports = function() {
                     "error": String(err),
                     "stack": new Error().stack
                 });
-                deferred.reject(err);;
+                deferred.reject(err);
             }
 
             return deferred.promise;
@@ -430,15 +425,13 @@ module.exports = function() {
                     "error": String(err),
                     "stack": new Error().stack
                 });
-                mainPromise.reject(err);;
+                mainPromise.reject(err);
             }
 
             return mainPromise.promise;
         },
 
         save: function(appId, documentArray) {
-
-            var _self = obj;
 
             var deferred = q.defer();
 
@@ -465,14 +458,12 @@ module.exports = function() {
                     "error": String(err),
                     "stack": new Error().stack
                 });
-                deferred.reject(err);;
+                deferred.reject(err);
             }
             return deferred.promise;
 
         },
         _update: function(appId, collectionName, document) {
-
-            var _self = obj;
 
             var deferred = q.defer();
 
@@ -513,13 +504,12 @@ module.exports = function() {
                     "error": String(err),
                     "stack": new Error().stack
                 });
-                deferred.reject(err);;
+                deferred.reject(err);
             }
             return deferred.promise;
         },
 
         count: function(appId, collectionName, query, limit, skip, accessList, isMasterKey) {
-            var _self = obj;
             var deferred = q.defer();
 
             try {
@@ -556,14 +546,13 @@ module.exports = function() {
                     "error": String(err),
                     "stack": new Error().stack
                 });
-                deferred.reject(err);;
+                deferred.reject(err);
             }
             return deferred.promise;
         },
 
         distinct: function(appId, collectionName, onKey, query, select, sort, limit, skip, accessList, isMasterKey) {
 
-            var _self = obj;
             var deferred = q.defer();
 
             try {
@@ -659,14 +648,13 @@ module.exports = function() {
                     "error": String(err),
                     "stack": new Error().stack
                 });
-                deferred.reject(err);;
+                deferred.reject(err);
             }
             return deferred.promise;
         },
 
         aggregate: function(appId, collectionName, pipeline, limit, skip, accessList, isMasterKey) {
 
-            var _self = obj;
             var deferred = q.defer();
 
             try {
@@ -758,14 +746,13 @@ module.exports = function() {
                     "error": String(err),
                     "stack": new Error().stack
                 });
-                deferred.reject(err);;
+                deferred.reject(err);
             }
 
             return deferred.promise;
         },
 
         _insert: function(appId, collectionName, document, accessList, isMasterKey) {
-            var _self = obj;
 
             var deferred = q.defer();
 
@@ -796,7 +783,7 @@ module.exports = function() {
                     "error": String(err),
                     "stack": new Error().stack
                 });
-                deferred.reject(err);;
+                deferred.reject(err);
             }
 
             return deferred.promise;
@@ -805,7 +792,6 @@ module.exports = function() {
         delete: function(appId, collectionName, document, accessList, isMasterKey) {
 
             var documentId = document._id;
-            var _self = obj;
             var deferred = q.defer();
 
             try {
@@ -841,7 +827,7 @@ module.exports = function() {
                         } else if (doc.result.n !== 0) {
                             deferred.resolve(doc.result);
                         } else {
-                            deferred.reject({"code": 500, "message": "Server Error"})
+                            deferred.reject({"code": 500, "message": "Server Error"});
                         }
                     });
                 }
@@ -851,7 +837,7 @@ module.exports = function() {
                     "error": String(err),
                     "stack": new Error().stack
                 });
-                deferred.reject(err);;
+                deferred.reject(err);
             }
 
             return deferred.promise;
@@ -885,7 +871,7 @@ module.exports = function() {
                     "error": String(err),
                     "stack": new Error().stack
                 });
-                deferred.reject(err);;
+                deferred.reject(err);
             }
 
             return deferred.promise;
@@ -1079,7 +1065,6 @@ module.exports = function() {
                 delete document._modifiedColumns;
             }
             document = _serialize(document);
-            var promises = [];
             //column key array to track sub documents.
             var columns = [];
             global.mongoService.document._update(appId, collectionName, document).then(function(doc) {
@@ -1096,7 +1081,7 @@ module.exports = function() {
                 "error": String(err),
                 "stack": new Error().stack
             });
-            deferred.reject(err);;
+            deferred.reject(err);
         }
         return deferredMain.promise;
     }

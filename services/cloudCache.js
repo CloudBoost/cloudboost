@@ -207,7 +207,7 @@ module.exports = function () {
                     q.all(promises).then(function (cacheItems) {
                         deferred.resolve(cacheItems);
                     }, function (err) {
-                        deferred.reject(err)
+                        deferred.reject(err);
                     });
 
                 });

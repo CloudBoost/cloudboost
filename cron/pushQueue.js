@@ -9,7 +9,6 @@
 var CronJob = require('cron').CronJob;
 var request = require('request');
 
-var apps = [];
 
 var job = new CronJob('* * * * * *', function () {
    
@@ -95,7 +94,7 @@ function _pingSubscriber(appId,queue, message) {
 
     try{
         for (var i = 0; i < queue.subscribers.length; i++) { 
-            _postMessage(appId,queue.subscribers[i], message, queue.retry)
+            _postMessage(appId,queue.subscribers[i], message, queue.retry);
         }
     } catch(err){           
         global.winston.log('error',{"error":String(err),"stack": new Error().stack});               
