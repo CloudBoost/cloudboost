@@ -10,7 +10,7 @@ var crypto = require("crypto");
 var uuid = require('uuid');
 var _ = require('underscore');
 var util = require('../helpers/util.js');
-var tablesData = require('./tablesData.js');
+var tablesData = require('../helpers/cloudTable');
 
 module.exports = function() {
 

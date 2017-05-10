@@ -9,6 +9,7 @@ var util = require("../helpers/util.js");
 var _ = require('underscore');
 var crypto = require('crypto');
 var customHelper = require('../helpers/custom.js');
+var type = require("../helpers/dataType");
 
 var databaseDriver = global.mongoService.document;
 module.exports = function() {
@@ -421,7 +422,8 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
             return mainPromise.promise;
         }
         var modifiedDocuments = document._modifiedColumns;
-        global.mongoUtil.collection.getSchema(appId, collectionName).then(function(columns) {
+        global.mongoUtil.collection.getSchema(appId, collectionName).then(function(table) {
+            columns = table.columns
             //check for required.
             if (!document['_tableName'] || !document['_type']) {
                 mainPromise.reject('Not a type of table');
@@ -518,86 +520,147 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                         }
                     } else {
                         var col = _.first(_.where(columns, {name: key})); //get the column of this key.
+
+                        // if column does not exist create a new column
                         if (!col) {
-                            mainPromise.reject('Invalid column ' + key + ' in ' + collectionName);
-                            return mainPromise.promise;
-                        }
-                        var datatype = col.dataType;
-                        if (_isBasicDataType(datatype)) {
-                            var res = _checkBasicDataTypes(document[key], datatype, key, collectionName); //check for basic datatypes
-                            if (res.message) {
-                                mainPromise.reject(res.message);
-                                return mainPromise.promise;
-                            } else {
-                                document[key] = res.data;
-                            }
-                        }
-                        //Relation check.
-                        if (document[key] && datatype === 'Relation' && typeof document[key] !== 'object') {
-                            //data passed is id of the relatedObject
-                            var objectId = document[key]
-                            if (_validateObjectId(objectId)) {
-                                document[key] = {}
-                                document[key]._id = objectId;
-                                document[key]._tableName = col.relatedTo;
-                                document[key]._type = _getTableType(col.relatedTo);
-                                continue;
-                            } else {
-                                mainPromise.reject("Invalid data in column " + key + ". It should be of type 'CloudObject' which belongs to table '" + col.relatedTo + "'");
-                                return mainPromise.promise;
-                            }
+                            
+                            try{
+                                let detectedDataType = type.inferDataType(document[key]);
+                                let newCol = {
+                                            name:key,
+                                            _type:"column",
+                                            dataType:detectedDataType,
+                                            defaultValue:null,
+                                            editableByMasterKey:false,
+                                            isDeletable:true,
+                                            isEditable:true,
+                                            isRenamable:false,
+                                            relatedTo: type.inferRelatedToType(detectedDataType, document[key]),
+                                            relationType:null,
+                                            required:false,
+                                            unique:false
+                                };
 
-                        }
-                        if (document[key] && datatype === 'Relation' && typeof document[key] === 'object') {
-                            if (!document[key]._tableName) {
-                                //tableName is not pasased in the object and is set explicitly
-                                document[key]._tableName = col.relatedTo;
-                            }
-                            if (!document[key]._id && !document[key].id) {
-                                mainPromise.reject("Invalid data in column " + key + ". It should be of type 'CloudObject' which belongs to table '" + col.relatedTo + "'");
-                                return mainPromise.promise;
-                            } else {
-                                document[key]._id = document[key]._id || document[key].id
-                                delete document[key].id
-                            }
-                            if (!document[key]._type) {
-                                document[key]._type = _getTableType(col.relatedTo);
-                            }
-                            if (document[key]._tableName === col.relatedTo) {
-                                continue;
-                            } else {
-                                mainPromise.reject("Invalid data in column " + key + ". It should be of type 'CloudObject' which belongs to table '" + col.relatedTo + "'");
-                                return mainPromise.promise;
-                            }
-                        }
+                                //push the new column to the old schema
+                                table.columns.push(newCol);
 
-                        /// List check
-                        if (document[key] && datatype === 'List' && Object.prototype.toString.call(document[key]) !== '[object Array]') {
-                            //if it is a list.
-                            mainPromise.reject("Invalid data in column " + key + ". It should be of type 'CloudObject' which belongs to table '" + col.relatedTo + "'");
-                            return mainPromise.promise;
-                        }
-                        if (document[key] && datatype === 'List' && Object.prototype.toString.call(document[key]) === '[object Array]') {
-                            if (document[key].length !== 0) {
-                                if (_isBasicDataType(col.relatedTo)) {
-                                    var res = _checkBasicDataTypes(document[key], col.relatedTo, key, document._tableName);
-                                    if (res.message) {
-                                        //if something is wrong.
-                                        mainPromise.reject(res.message);
-                                        return mainPromise.promise;
-                                    } else {
-                                        document[key] = res.data;
+                                // update the table schema
+                                var createNewColumnPromise = q.defer();
+                                var schemaCursor = global.mongoClient.db(appId).collection("_Schema");
+                                schemaCursor.findOneAndUpdate(
+                                    {
+                                        name: document._tableName
+                                    },
+                                    {
+                                        $set: table
+                                    },
+                                    {
+                                        upsert: true,
+                                        returnOriginal: false
+                                    },
+                                    function(err, response) {
+                                        var table = null;
+                                        if (response && response.value)
+                                            table = response.value;
+                                            
+                                        if (err) {
+                                            createNewColumnPromise.reject("Error : Failed to update the table with the new column. ");
+                                        } else if (table) {
+                                            createNewColumnPromise.resolve();
+                                            console.log("Column " + key + " created.");
+                                        }
                                     }
+                                )
+
+                                promises.push(createNewColumnPromise.promise)
+                            }
+                            catch (err) {
+                                global.winston.log('error', {
+                                    "error": String(err),
+                                    "stack": new Error().stack
+                                });
+                                mainPromise.reject(err);
+                            }
+
+                        } else {
+
+                            var datatype = col.dataType;
+                            if (_isBasicDataType(datatype)) {
+                                var res = _checkBasicDataTypes(document[key], datatype, key, collectionName); //check for basic datatypes
+                                if (res.message) {
+                                    mainPromise.reject(res.message);
+                                    return mainPromise.promise;
                                 } else {
-                                    for (var i = 0; i < document[key].length; i++) {
-                                        if (document[key][i]._tableName) {
-                                            if (col.relatedTo !== document[key][i]._tableName) {
+                                    document[key] = res.data;
+                                }
+                            }
+                            //Relation check.
+                            if (document[key] && datatype === 'Relation' && typeof document[key] !== 'object') {
+                                //data passed is id of the relatedObject
+                                var objectId = document[key]
+                                if (_validateObjectId(objectId)) {
+                                    document[key] = {}
+                                    document[key]._id = objectId;
+                                    document[key]._tableName = col.relatedTo;
+                                    document[key]._type = _getTableType(col.relatedTo);
+                                    continue;
+                                } else {
+                                    mainPromise.reject("Invalid data in column " + key + ". It should be of type 'CloudObject' which belongs to table '" + col.relatedTo + "'");
+                                    return mainPromise.promise;
+                                }
+
+                            }
+                            if (document[key] && datatype === 'Relation' && typeof document[key] === 'object') {
+                                if (!document[key]._tableName) {
+                                    //tableName is not pasased in the object and is set explicitly
+                                    document[key]._tableName = col.relatedTo;
+                                }
+                                if (!document[key]._id && !document[key].id) {
+                                    mainPromise.reject("Invalid data in column " + key + ". It should be of type 'CloudObject' which belongs to table '" + col.relatedTo + "'");
+                                    return mainPromise.promise;
+                                } else {
+                                    document[key]._id = document[key]._id || document[key].id
+                                    delete document[key].id
+                                }
+                                if (!document[key]._type) {
+                                    document[key]._type = _getTableType(col.relatedTo);
+                                }
+                                if (document[key]._tableName === col.relatedTo) {
+                                    continue;
+                                } else {
+                                    mainPromise.reject("Invalid data in column " + key + ". It should be of type 'CloudObject' which belongs to table '" + col.relatedTo + "'");
+                                    return mainPromise.promise;
+                                }
+                            }
+
+                            /// List check
+                            if (document[key] && datatype === 'List' && Object.prototype.toString.call(document[key]) !== '[object Array]') {
+                                //if it is a list.
+                                mainPromise.reject("Invalid data in column " + key + ". It should be of type 'CloudObject' which belongs to table '" + col.relatedTo + "'");
+                                return mainPromise.promise;
+                            }
+                            if (document[key] && datatype === 'List' && Object.prototype.toString.call(document[key]) === '[object Array]') {
+                                if (document[key].length !== 0) {
+                                    if (_isBasicDataType(col.relatedTo)) {
+                                        var res = _checkBasicDataTypes(document[key], col.relatedTo, key, document._tableName);
+                                        if (res.message) {
+                                            //if something is wrong.
+                                            mainPromise.reject(res.message);
+                                            return mainPromise.promise;
+                                        } else {
+                                            document[key] = res.data;
+                                        }
+                                    } else {
+                                        for (var i = 0; i < document[key].length; i++) {
+                                            if (document[key][i]._tableName) {
+                                                if (col.relatedTo !== document[key][i]._tableName) {
+                                                    mainPromise.reject('Invalid data in column ' + key + '. It should be Array of \'CloudObjects\' which belongs to table \'' + col.relatedTo + '\'.');
+                                                    return mainPromise.promise;
+                                                }
+                                            } else {
                                                 mainPromise.reject('Invalid data in column ' + key + '. It should be Array of \'CloudObjects\' which belongs to table \'' + col.relatedTo + '\'.');
                                                 return mainPromise.promise;
                                             }
-                                        } else {
-                                            mainPromise.reject('Invalid data in column ' + key + '. It should be Array of \'CloudObjects\' which belongs to table \'' + col.relatedTo + '\'.');
-                                            return mainPromise.promise;
                                         }
                                     }
                                 }
@@ -606,6 +669,7 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                     }
                 }
             }
+
             if (promises.length > 0) {
                 //you have related documents or unique queries.
                 q.all(promises).then(function(results) {
@@ -1208,8 +1272,8 @@ function _getSchema(appId, collectionName) {
     var deferred = global.q.defer();
 
     try {
-        global.mongoUtil.collection.getSchema(appId, collectionName).then(function(columns) {
-            deferred.resolve(columns);
+        global.mongoUtil.collection.getSchema(appId, collectionName).then(function(table) {
+            deferred.resolve(table.columns);
         }, function(error) {
             deferred.reject(error);
         });
