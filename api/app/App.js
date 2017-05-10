@@ -286,6 +286,7 @@ module.exports = function() {
             if(!appId){
                  res.status(400).send("appId is missing");
             }
+            
             if(!tableName){
                  res.status(400).send("tableName is missing");
             }
@@ -294,7 +295,9 @@ module.exports = function() {
             }
             global.appService.isMasterKey(appId,appKey).then(function(isMasterKey) {         
                 global.appService.exportTable(appId,tableName,exportType.toLowerCase(),isMasterKey,accessList).then(function(data) {
-                    res.status(200).send(data);
+                    if(exportType.toLowerCase()==='json'){
+                        res.status(200).json({data:data});
+                    }else{ res.status(200).send(data);}
                 }, function(err) {
                         console.log("Error : Exporting Table.");
                         console.log(err);
