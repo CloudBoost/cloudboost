@@ -10,7 +10,8 @@ var crypto = require("crypto");
 var uuid = require('uuid');
 var _ = require('underscore');
 var util = require('../helpers/util.js');
-var tablesData = require('./tablesData.js');
+
+var tablesData = require('../helpers/cloudTable');
 var json2csv = require('json2csv');
 var jsonToXlsx = require('json2xlsx');
 var jsonXlsxWriteFile = require('icg-json-to-xlsx');  

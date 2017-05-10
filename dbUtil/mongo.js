@@ -5,6 +5,7 @@
 */
 
 var q = require("q");
+var tablesData = require('../helpers/cloudTable');
 
 module.exports = function() {
 
@@ -553,7 +554,7 @@ module.exports = function() {
             try {
                 global.redisClient.get(global.keys.cacheSchemaPrefix + '-' + appId + ':' + collectionName, function(err, res) {
                     if (res) {
-                        deferred.resolve(JSON.parse(res).columns);
+                        deferred.resolve(JSON.parse(res));
                     } else {
                         var collection = global.mongoClient.db(appId).collection("_Schema");
                         var findQuery = collection.find({name: collectionName});
@@ -563,10 +564,20 @@ module.exports = function() {
                                 global.winston.log('error', err);
                                 deferred.reject(err);
                             } else if (!res) {
-                                deferred.reject('No Table found.');
+
+                                // No table found. Create new table
+                                var defaultSchema = tablesData.Custom;
+                                global.appService.upsertTable(appId, collectionName, defaultSchema).then(function(table) {
+                                        global.redisClient.setex(global.keys.cacheSchemaPrefix + '-' + appId + ':' + collectionName, global.keys.schemaExpirationTimeFromCache, JSON.stringify(table._doc));
+                                        deferred.resolve(table);
+                                    },function(err){
+                                        deferred.reject(err);
+                                    }
+                                );
+
                             } else {
                                 global.redisClient.setex(global.keys.cacheSchemaPrefix + '-' + appId + ':' + collectionName, global.keys.schemaExpirationTimeFromCache, JSON.stringify(res._doc));
-                                deferred.resolve(res.columns);
+                                deferred.resolve(res);
                             }
 
                         });
