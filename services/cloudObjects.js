@@ -414,6 +414,7 @@ function _sendNotification(appId, res, reqType) {
 
 var _isSchemaValid = function(appId, collectionName, document, accessList, isMasterKey) {
     var mainPromise = q.defer();
+    var columnNotFound = false
 
     try {
         var promises = [];
@@ -523,7 +524,7 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
 
                         // if column does not exist create a new column
                         if (!col) {
-                            
+                            columnNotFound = true
                             try{
                                 let detectedDataType = type.inferDataType(document[key]);
                                 let newCol = {
@@ -544,35 +545,6 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                                 //push the new column to the old schema
                                 table.columns.push(newCol);
 
-                                // update the table schema
-                                var createNewColumnPromise = q.defer();
-                                var schemaCursor = global.mongoClient.db(appId).collection("_Schema");
-                                schemaCursor.findOneAndUpdate(
-                                    {
-                                        name: document._tableName
-                                    },
-                                    {
-                                        $set: table
-                                    },
-                                    {
-                                        upsert: true,
-                                        returnOriginal: false
-                                    },
-                                    function(err, response) {
-                                        var table = null;
-                                        if (response && response.value)
-                                            table = response.value;
-                                            
-                                        if (err) {
-                                            createNewColumnPromise.reject("Error : Failed to update the table with the new column. ");
-                                        } else if (table) {
-                                            createNewColumnPromise.resolve();
-                                            console.log("Column " + key + " created.");
-                                        }
-                                    }
-                                )
-
-                                promises.push(createNewColumnPromise.promise)
                             }
                             catch (err) {
                                 global.winston.log('error', {
@@ -669,7 +641,37 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                     }
                 }
             }
+            if(columnNotFound){
+                // update the table schema
+                var createNewColumnPromise = q.defer();
+                var schemaCursor = global.mongoClient.db(appId).collection("_Schema");
+                schemaCursor.findOneAndUpdate(
+                    {
+                        name: document._tableName
+                    },
+                    {
+                        $set: table
+                    },
+                    {
+                        upsert: true,
+                        returnOriginal: false
+                    },
+                    function(err, response) {
+                        var table = null;
+                        if (response && response.value)
+                            table = response.value;
+                            
+                        if (err) {
+                            createNewColumnPromise.reject("Error : Failed to update the table with the new column. ");
+                        } else if (table) {
+                            createNewColumnPromise.resolve();
+                            console.log("Column " + key + " created.");
+                        }
+                    }
+                )
 
+                promises.push(createNewColumnPromise.promise)
+            }
             if (promises.length > 0) {
                 //you have related documents or unique queries.
                 q.all(promises).then(function(results) {
