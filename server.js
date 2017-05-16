@@ -336,20 +336,13 @@ function attachAPI() {
         require('./api/email/CloudEmail.js')();
         require('./api/pages/Page.js')();
         require('./api/auth/Auth.js')();
+
         
-        global.app.use(function(req,res,next){
-
-            res.status(404).json({status : 404,message : 'The endpoint was not found. Please check.'});
-
-        });
-        global.app.use(expressWinston.errorLogger({
-            transports: [
-            new winston.transports.Console({json: true, colorize: true}),
-            new global.winston.transports.Loggly({subdomain: global.keys.logglySubDomain, inputToken: global.keys.logToken, json: true, tags: ["cloudboost-server"]})
-            ]
-        }));
+        
 
         console.log('+++++++++++ API Status : OK ++++++++++++++++++');
+
+
 
         app.use(function(err, req, res, next) {
             if (err.status !== 500) {
@@ -421,6 +414,7 @@ app.get('/getFile/:filename', function(req, res) { //for getting any file from r
     console.log("Getting any file from resources");
     res.sendFile("resources/" + req.params.filename, {root: __dirname});
 });
+
 
 
 
@@ -802,6 +796,11 @@ function attachCronJobs() {
     try {
         console.log("attachCronJobs..");
         require('./cron/expire.js');
+        app.use(function(req,res,next){
+
+    res.status(404).json({status : 404,message : 'The endpoint was not found. Please check.'});
+
+});
     } catch (err) {
         global.winston.log('error', {
             "error": String(err),
