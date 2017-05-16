@@ -161,7 +161,7 @@ global.app.use([
     '/cache/:appId',
     '/queue/:appId',
     '/push/:appId'
-], function(req, res, next) {
+    ], function(req, res, next) {
     //This is the Middleware for authenticating the app access using appID and key
     //check if all the services are loaded first.
 
@@ -309,6 +309,8 @@ function attachServices() {
     }
 }
 
+
+
 //Attach all API's
 function attachAPI() {
 
@@ -335,14 +337,12 @@ function attachAPI() {
         require('./api/pages/Page.js')();
         require('./api/auth/Auth.js')();
 
-        global.app.use(expressWinston.errorLogger({
-            transports: [
-                new winston.transports.Console({json: true, colorize: true}),
-                new global.winston.transports.Loggly({subdomain: global.keys.logglySubDomain, inputToken: global.keys.logToken, json: true, tags: ["cloudboost-server"]})
-            ]
-        }));
+        
+        
 
         console.log('+++++++++++ API Status : OK ++++++++++++++++++');
+
+
 
         app.use(function(err, req, res, next) {
             if (err.status !== 500) {
@@ -372,14 +372,14 @@ function ignoreUrl(requestUrl) {
 
         console.log("Adding Ingnore URLS....");
         var ignoreUrl = [ //for the routes to check whether the particular service is active/not
-            "/api/userService",
-            "/api/customService",
-            "/api/roleService",
-            "/api/status",
-            "/file",
-            "/api/createIndex",
-            "/pages",
-            "/status"
+        "/api/userService",
+        "/api/customService",
+        "/api/roleService",
+        "/api/status",
+        "/file",
+        "/api/createIndex",
+        "/pages",
+        "/status"
         ];
 
         for (var i = 0; i < ignoreUrl.length; i++) {
@@ -402,7 +402,7 @@ function ignoreUrl(requestUrl) {
 
 /*
 Routes:
- */
+*/
 
 app.get('/', function(req, res) {
     console.log('INDEX PAGE RETURNED.');
@@ -414,6 +414,10 @@ app.get('/getFile/:filename', function(req, res) { //for getting any file from r
     console.log("Getting any file from resources");
     res.sendFile("resources/" + req.params.filename, {root: __dirname});
 });
+
+
+
+
 
 app.set('port', 4730); //SET THE DEFAULT PORT.
 
@@ -792,6 +796,11 @@ function attachCronJobs() {
     try {
         console.log("attachCronJobs..");
         require('./cron/expire.js');
+        app.use(function(req,res,next){
+
+    res.status(404).json({status : 404,message : 'The endpoint was not found. Please check.'});
+
+});
     } catch (err) {
         global.winston.log('error', {
             "error": String(err),
