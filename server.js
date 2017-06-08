@@ -20,6 +20,8 @@ global.mongoDisconnected = false;
 global.winston = require('winston');
 expressWinston = require('express-winston');
 require('winston-loggly');
+var slack = require('winston-bishop-slack').Slack;
+var util = require('util');
 
 global.keys = require('./database-connect/keys.js')();
 
@@ -35,6 +37,31 @@ global.winston.add(global.winston.transports.Loggly, {
     tags: ["cloudboost-server"],
     json: true
 });
+
+// add slack transport if API key found
+if(global.keys.slackWebHook){
+    var envVal = process.env["IS_STAGING"] ? 'STAGING' : 'PRODUCTION'
+    global.winston.add(slack, {
+        webhook_url: global.keys.slackWebHook,
+        icon_url: "https://cdn2.iconfinder.com/data/icons/circle-icons-1/64/caution-128.png",
+        channel: "#devlogs",
+        username: "API ERROR BOT - " + envVal,
+        level: 'error',
+        handleExceptions: true,
+        customFormatter: function(level, message, meta) {
+            return { attachments: [ {
+            fallback: "An Error occured on API POD in - " + envVal,
+            pretext: "An Error occured on API POD in - " + envVal,
+            color: '#D00000',
+            fields: [{
+                    title: util.format(":scream_cat: %s", 'Critical Error'),
+                    value: meta.error,
+                    short: false
+                }]
+            }]}
+        }
+    })
+}
 
 global.keyService = require('./database-connect/keyService.js');
 
