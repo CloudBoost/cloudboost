@@ -541,10 +541,10 @@ module.exports = function() {
             return deferred.promise;
         },
 
-        upsertTable: function(appId, tableName, tableData) {
+        upsertTable: function(appId, tableName, schema, tableProps) {
 
             var deferred = global.q.defer();
-            var schema = tableData.columns
+            tableProps = tableProps || { isEditableByClientKey : false }
             
             try {
 
@@ -647,7 +647,7 @@ module.exports = function() {
 
                         table.columns = schema;
                         // update table props
-                        table.isEditableByClientKey = !!tableData.isEditableByClientKey
+                        table.isEditableByClientKey = !!tableProps.isEditableByClientKey
 
                     } else {
 
@@ -660,7 +660,7 @@ module.exports = function() {
                         table.name = tableName;
                         table.type = tableType;
                         table._type = "table";
-                        table.isEditableByClientKey = !!tableData.isEditableByClientKey
+                        table.isEditableByClientKey = !!tableProps.isEditableByClientKey
                     }
 
                     var collection = global.mongoClient.db(appId).collection("_Schema");

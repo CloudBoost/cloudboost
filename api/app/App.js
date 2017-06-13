@@ -146,7 +146,7 @@ module.exports = function() {
                     let authorizationLevel = table ? 'table' : 'app'
                     global.appService.isClientAuthorized(appId,appKey,authorizationLevel,table).then(function(isAuthorized){
                         if(isAuthorized){
-                            global.appService.upsertTable(appId, tableName, body.data).then(function(table) {
+                            global.appService.upsertTable(appId, tableName, body.data.columns, body.data).then(function(table) {
                                 return res.status(200).send(table);
                             },function(err){
                                 return res.status(500).send(err);
