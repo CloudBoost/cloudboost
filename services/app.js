@@ -459,7 +459,7 @@ module.exports = function() {
                         if (project.keys.js === key){
                             deferred.resolve(false);
                         } else {
-                            deferred.reject("Key is neither a master key nor a client key. rejecting this request")
+                            deferred.resolve(false);
                         }
                     }
                 }, function() {});
