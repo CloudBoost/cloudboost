@@ -456,7 +456,11 @@ module.exports = function() {
                     if (project.keys.master === key) {
                         deferred.resolve(true);
                     } else {
-                        deferred.resolve(false);
+                        if (project.keys.js === key){
+                            deferred.resolve(false);
+                        } else {
+                            deferred.resolve(false);
+                        }
                     }
                 }, function() {});
 
@@ -498,10 +502,58 @@ module.exports = function() {
             return deferred.promise;
         },
 
-        upsertTable: function(appId, tableName, schema) {
+        isClientAuthorized : function(appId,appKey,level,table){
+            var deferred = q.defer();
+            var self = this
+            self.isKeyValid(appId, appKey).then(function(isValidKey){
+                if(isValidKey){
+                    self.isMasterKey(appId, appKey).then(function(isMasterKey) {
+                        // resolve if masterKey
+                        if(isMasterKey){
+                            deferred.resolve(true)
+                        } else {
+                            // else check with client keys acc to auth level
+                            // levels = table level or app level
+                            // for app level check in app settings , for table level check in table schema
+                            if(level === 'table'){
+                                if(table) {
+                                    deferred.resolve(!!table.isEditableByClientKey)
+                                } else deferred.resolve(false);
+                            } else {
+                                self.getAllSettings(appId).then(function(settings){
+                                    if(settings){
+                                        // check for clientkey flag in genral settings
+                                        let generalSetting = settings.filter((function(x){
+                                            return x.category === 'general'
+                                        }))
+                                        if(generalSetting[0]){
+                                            deferred.resolve(!!generalSetting[0].settings.isTableEditableByClientKey)
+                                        } else deferred.resolve(false); 
+                                    } else deferred.resolve(false);
+                                
+                                }, function(error) {
+                                    deferred.reject(error);
+                                });
+                            }
+                        }
+                    }, function(error) {
+                        deferred.reject(error);
+                    });
+                } else {
+                    deferred.reject('Unauthorized');
+                }
+            },function(err){
+                deferred.reject(err);
+            })
+
+            return deferred.promise;
+        },
+
+        upsertTable: function(appId, tableName, schema, tableProps) {
 
             var deferred = global.q.defer();
-
+            tableProps = tableProps || { isEditableByClientKey : false }
+            
             try {
 
                 var self = this;
@@ -602,6 +654,9 @@ module.exports = function() {
                         }
 
                         table.columns = schema;
+                        // update table props
+                        table.isEditableByClientKey = !!tableProps.isEditableByClientKey
+
                     } else {
 
                         isNewTable = true;
@@ -613,6 +668,7 @@ module.exports = function() {
                         table.name = tableName;
                         table.type = tableType;
                         table._type = "table";
+                        table.isEditableByClientKey = !!tableProps.isEditableByClientKey
                     }
 
                     var collection = global.mongoClient.db(appId).collection("_Schema");

@@ -93,9 +93,9 @@ module.exports = function() {
 
             var appKey = req.body.key || req.params.key;
 
-            global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
-                if (isMasterKey) {
-                    //delete all code here.
+            // to delete table authorize on app level
+            global.appService.isClientAuthorized(appId,appKey,'app',null).then(function(isAuthorized){
+                if(isAuthorized){
                     global.appService.deleteTable(appId, tableName).then(function(table) {
                         res.status(200).send(table);
                     }, function(error) {
@@ -103,12 +103,11 @@ module.exports = function() {
                         console.log(error);
                         res.status(500).send('Cannot delete table at this point in time. Please try again later.');
                     });
-                } else {
-                    res.status(401).send({status: 'Unauthorized'});
-                }
-            }, function(error) {
-                return res.status(500).send('Cannot retrieve security keys.');
-            });
+                } else return res.status(401).send({status: 'Unauthorized'});
+            },function(error){
+                return res.status(401).send({status: 'Unauthorized',message:error});
+            })
+
         } catch (e) {
             console.log("Delete Table Error");
             console.log(e);
@@ -137,30 +136,32 @@ module.exports = function() {
             var sdk = req.body.sdk || "REST";
             var appKey = req.body.key || req.params.key;
 
-            global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
-                if (isMasterKey) {
-                    //delete all code here.
-
-                    if (global.mongoDisconnected) {
-                        return res.status(500).send('Storage / Cache Backend are temporarily down.');
-                    }
-
-                    global.appService.upsertTable(appId, tableName, body.data.columns).then(function(table) {
-                        return res.status(200).send(table);
-
-                    },function(err){
-                        return res.status(500).send(err);
-                    });
-                } else {
-                    return res.status(401).send({status: 'Unauthorized'});
+                if (global.mongoDisconnected) {
+                    return res.status(500).send('Storage / Cache Backend are temporarily down.');
                 }
-            }, function(error) {
-                return res.status(500).send('Cannot retrieve security keys.');
-            });
+
+                // check if table already exists
+                global.appService.getTable(appId, tableName).then(function(table) {
+                    // authorize client for table level, if table found then authorize on table level else on app level for creating new table.
+                    let authorizationLevel = table ? 'table' : 'app'
+                    global.appService.isClientAuthorized(appId,appKey,authorizationLevel,table).then(function(isAuthorized){
+                        if(isAuthorized){
+                            global.appService.upsertTable(appId, tableName, body.data.columns, body.data).then(function(table) {
+                                return res.status(200).send(table);
+                            },function(err){
+                                return res.status(500).send(err);
+                            });
+                        } else return res.status(401).send({status: 'Unauthorized'});
+                    },function(error){
+                        return res.status(401).send({status: 'Unauthorized',message:error});
+                    })
+
+                }, function(err) {
+                    return res.status(500).send(err);
+                });
+
             global.apiTracker.log(appId,"App / Table / Create", req.url,sdk);
-
         }
-
     });
 
     //get a table.
@@ -175,29 +176,36 @@ module.exports = function() {
         var sdk = req.body.sdk || "REST";
         var appKey = req.body.key || req.params.key;
 
-        global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
-            if (isMasterKey) {
-                //delete all code here.
-                if (tableName === "_getAll") {
-                    global.appService.getAllTables(appId).then(function(tables) {
-                        return res.status(200).send(tables);
-                    }, function(err) {
-                        return res.status(500).send('Error');
-                    });
-                } else {
-                    global.appService.getTable(appId, tableName).then(function(table) {
-                        return res.status(200).send(table);
-                    }, function(err) {
-                        return res.status(500).send('Error');
-                    });
-                }
+            if (tableName === "_getAll") {
+                // to get all tables authorize on app level;
+                global.appService.isClientAuthorized(appId,appKey,'app',null).then(function(isAuthorized){
+                    if(isAuthorized){
+                        global.appService.getAllTables(appId).then(function(tables) {
+                            return res.status(200).send(tables);
+                        }, function(err) {
+                            return res.status(500).send('Error');
+                        });
+                    } else return res.status(401).send({status: 'Unauthorized'});
+                },function(error){
+                    return res.status(401).send({status: 'Unauthorized',message:error});
+                })
 
             } else {
-                return res.status(401).send({status: 'Unauthorized'});
+                
+                global.appService.getTable(appId, tableName).then(function(table) {
+                    // to get a tables authorize on table level;
+                    global.appService.isClientAuthorized(appId,appKey,'table',table).then(function(isAuthorized){
+                        if(isAuthorized){
+                            return res.status(200).send(table);
+                        } else return res.status(401).send({status: 'Unauthorized'});
+                    },function(error){
+                        return res.status(401).send({status: 'Unauthorized',message:error});
+                    })
+                    
+                }, function(err) {
+                    return res.status(500).send('Error');
+                });
             }
-        }, function(error) {
-            return res.status(500).send('Cannot retrieve security keys.');
-        });
 
         global.apiTracker.log(appId, "App / Table / Get", req.url, sdk);
     }
