@@ -54,8 +54,8 @@ if(global.keys.slackWebHook){
             pretext: "An Error occured on API POD in - " + envVal,
             color: '#D00000',
             fields: [{
-                    title: util.format(":scream_cat: %s", 'Critical Error'),
-                    value: meta.error,
+                    title: meta.error,
+                    value: meta.stack,
                     short: false
                 }]
             }]}
