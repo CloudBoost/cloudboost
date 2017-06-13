@@ -505,38 +505,46 @@ module.exports = function() {
         isClientAuthorized : function(appId,appKey,level,table){
             var deferred = q.defer();
             var self = this
-            self.isMasterKey(appId, appKey).then(function(isMasterKey) {
-                // resolve if masterKey
-                if(isMasterKey){
-                    deferred.resolve(true)
+            self.isKeyValid(appId, appKey).then(function(isValidKey){
+                if(isValidKey){
+                    self.isMasterKey(appId, appKey).then(function(isMasterKey) {
+                        // resolve if masterKey
+                        if(isMasterKey){
+                            deferred.resolve(true)
+                        } else {
+                            // else check with client keys acc to auth level
+                            // levels = table level or app level
+                            // for app level check in app settings , for table level check in table schema
+                            if(level === 'table'){
+                                if(table) {
+                                    deferred.resolve(!!table.isEditableByClientKey)
+                                } else deferred.resolve(false);
+                            } else {
+                                self.getAllSettings(appId).then(function(settings){
+                                    if(settings){
+                                        // check for clientkey flag in genral settings
+                                        let generalSetting = settings.filter((function(x){
+                                            return x.category === 'general'
+                                        }))
+                                        if(generalSetting[0]){
+                                            deferred.resolve(!!generalSetting[0].settings.isTableEditableByClientKey)
+                                        } else deferred.resolve(false); 
+                                    } else deferred.resolve(false);
+                                
+                                }, function(error) {
+                                    deferred.reject(error);
+                                });
+                            }
+                        }
+                    }, function(error) {
+                        deferred.reject(error);
+                    });
                 } else {
-                    // else check with client keys acc to auth level
-                    // levels = table level or app level
-                    // for app level check in app settings , for table level check in table schema
-                    if(level === 'table'){
-                        if(table) {
-                            deferred.resolve(!!table.isEditableByClientKey)
-                        } else deferred.resolve(false);
-                    } else {
-                        self.getAllSettings(appId).then(function(settings){
-                            if(settings){
-                                // check for clientkey flag in genral settings
-                                let generalSetting = settings.filter((function(x){
-                                    return x.category === 'general'
-                                }))
-                                if(generalSetting[0]){
-                                    deferred.resolve(!!generalSetting[0].settings.isTableEditableByClientKey)
-                                } else deferred.resolve(false); 
-                            } else deferred.resolve(false);
-                        
-                        }, function(error) {
-                            deferred.reject(error);
-                        });
-                    }
+                    deferred.reject('Unauthorized');
                 }
-            }, function(error) {
-                deferred.reject(error);
-            });
+            },function(err){
+                deferred.reject(err);
+            })
 
             return deferred.promise;
         },
