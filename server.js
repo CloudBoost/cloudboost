@@ -230,9 +230,10 @@ global.app.use([
                     var isAppKeyValid = result[1];
                     var isInPlan = result[0];
                     if (!isInPlan) {
-                        res.status(402).send("Reached Plan Limit. Upgrade Plan.");
                         //check if the appIsReleased.
                         global.apiTracker.log(appId, "isReleased/isReleased", "", "JavaScript", true);
+
+                        return res.status(402).send("Reached Plan Limit. Upgrade Plan.");
                     }
 
                     if (!isAppKeyValid) {
