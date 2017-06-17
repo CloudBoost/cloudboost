@@ -153,7 +153,7 @@ module.exports = function(io) {
 
     });
 
-    g.sendObjectNotification = function(appId, document, eventType) {
+    g.sendObjectNotification = function(appId, document, eventType,isMasterKey) {
         try {
             //event type can be created, updated, deleted.
             if (document && document._tableName) {
@@ -171,13 +171,13 @@ module.exports = function(io) {
                 if (typeof sockets === "object") {
                     for (var key in sockets) {
                         if (sockets[key]) {
-                            promises.push(_sendNotification(appId, document, sockets[key], eventType));
+                            promises.push(_sendNotification(appId, document, sockets[key], eventType,isMasterKey));
                         }
                     }
                 } else {
                     for (var i = 0; i < sockets.length; i++) {
                         var socket = sockets[i];
-                        promises.push(_sendNotification(appId, document, socket, eventType));
+                        promises.push(_sendNotification(appId, document, socket, eventType,isMasterKey));
                     }
                 }
 
@@ -202,14 +202,14 @@ module.exports = function(io) {
 /**
  */
 
-function _sendNotification(appId, document, socket, eventType) {
+function _sendNotification(appId, document, socket, eventType,isMasterKey) {
     var deferred = global.q.defer();
     try {
         global.socketSessionHelper.getSession(socket.id, function(err, session) {
             if (err) {
                 deferred.reject();
             }
-            if (!session || global.aclHelper.isAllowedReadAccess(session.userId, session.roles, document.ACL)) {
+            if (!session || global.aclHelper.isAllowedReadAccess(session.userId, session.roles, document.ACL)||isMasterKey) {
                 global.socketQueryHelper.getData(socket.id, eventType, function(err, socketData) {
                     var socketQueryValidate = true;
                     if (socketData && socketData.query)
@@ -219,8 +219,9 @@ function _sendNotification(appId, document, socket, eventType) {
                             socketData = {
                                 timestamp: ''
                             };
+                        console.log(appId.toLowerCase() + 'table' + document._tableName.toLowerCase() + eventType.toLowerCase() + socketData.timestamp)
                         socket.emit(appId.toLowerCase() + 'table' + document._tableName.toLowerCase() + eventType.toLowerCase() + socketData.timestamp, JSON.stringify(document));
-                        console.log("Socket Emitteddddddddddddddddddddddddddddddddddddd.", document);
+                        console.log("Socket Emited.", document);
                     } else {
                         console.log('Socket Query doesn\'t satsfies the current document');
                     }
