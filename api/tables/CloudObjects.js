@@ -88,6 +88,10 @@ function _getData(req, res) { //get document(s) object based on query and variou
     var sdk = req.body.sdk || "REST";
 
     //default sort added
+    /*
+    without sort if limit and skip are used, the records are returned out of order. To solve this default sort in ascending order of 'createdAt' is added
+    */
+
     if (Object.keys(sort).length === 0 && sort.constructor === Object)
         sort = {
             createdAt: 1

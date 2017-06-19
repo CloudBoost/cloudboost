@@ -291,7 +291,8 @@ function _save(appId, collectionName, document, accessList, isMasterKey, reqType
                     promises.push(databaseDriver.save(appId, mongoDocs));
                     global.q.allSettled(promises).then(function(array) {
                         if (array[0].state === 'fulfilled') {
-                            _sendNotification(appId, array[0], reqType,isMasterKey);
+                            //pass masterkey to access events as default ACL for event R/W is set to false
+                            _sendNotification(appId, array[0], reqType, isMasterKey);
                             unModDoc = _merge(parentId, array[0].value, unModDoc);
                             console.log('SAVED Doc');
                             console.log(unModDoc);
@@ -390,14 +391,16 @@ function _validateSchema(appId, listOfDocs, accessList, isMasterKey) {
     return deferred.promise;
 }
 
-function _sendNotification(appId, res, reqType,isMasterKey) {
+function _sendNotification(appId, res, reqType, isMasterKey) {
+    //pass masterkey to access events as default ACL for event R/W is set to false
+
     try {
         for (var i = 0; i < res.value.length; i++) {
             if (res.value[i].state === 'fulfilled') {
                 if (reqType.save.indexOf(res.value[i].value._id) >= 0) {
-                    global.realTime.sendObjectNotification(appId, res.value[i].value, 'created',isMasterKey);
+                    global.realTime.sendObjectNotification(appId, res.value[i].value, 'created', isMasterKey);
                 } else {
-                    global.realTime.sendObjectNotification(appId, res.value[i].value, 'updated',isMasterKey);
+                    global.realTime.sendObjectNotification(appId, res.value[i].value, 'updated', isMasterKey);
                 }
             }
         }
@@ -525,28 +528,27 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                         // if column does not exist create a new column
                         if (!col) {
                             columnNotFound = true
-                            try{
+                            try {
                                 let detectedDataType = type.inferDataType(document[key]);
                                 let newCol = {
-                                            name:key,
-                                            _type:"column",
-                                            dataType:detectedDataType,
-                                            defaultValue:null,
-                                            editableByMasterKey:false,
-                                            isDeletable:true,
-                                            isEditable:true,
-                                            isRenamable:false,
-                                            relatedTo: type.inferRelatedToType(detectedDataType, document[key]),
-                                            relationType:null,
-                                            required:false,
-                                            unique:false
+                                    name: key,
+                                    _type: "column",
+                                    dataType: detectedDataType,
+                                    defaultValue: null,
+                                    editableByMasterKey: false,
+                                    isDeletable: true,
+                                    isEditable: true,
+                                    isRenamable: false,
+                                    relatedTo: type.inferRelatedToType(detectedDataType, document[key]),
+                                    relationType: null,
+                                    required: false,
+                                    unique: false
                                 };
 
                                 //push the new column to the old schema
                                 table.columns.push(newCol);
 
-                            }
-                            catch (err) {
+                            } catch (err) {
                                 global.winston.log('error', {
                                     "error": String(err),
                                     "stack": new Error().stack
@@ -641,34 +643,29 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                     }
                 }
             }
-            if(columnNotFound){
+            if (columnNotFound) {
                 // update the table schema
                 var createNewColumnPromise = q.defer();
                 var schemaCursor = global.mongoClient.db(appId).collection("_Schema");
-                schemaCursor.findOneAndUpdate(
-                    {
-                        name: document._tableName
-                    },
-                    {
-                        $set: table
-                    },
-                    {
-                        upsert: true,
-                        returnOriginal: false
-                    },
-                    function(err, response) {
-                        var table = null;
-                        if (response && response.value)
-                            table = response.value;
-                            
-                        if (err) {
-                            createNewColumnPromise.reject("Error : Failed to update the table with the new column. ");
-                        } else if (table) {
-                            createNewColumnPromise.resolve();
-                            console.log("Column " + key + " created.");
-                        }
+                schemaCursor.findOneAndUpdate({
+                    name: document._tableName
+                }, {
+                    $set: table
+                }, {
+                    upsert: true,
+                    returnOriginal: false
+                }, function(err, response) {
+                    var table = null;
+                    if (response && response.value)
+                        table = response.value;
+
+                    if (err) {
+                        createNewColumnPromise.reject("Error : Failed to update the table with the new column. ");
+                    } else if (table) {
+                        createNewColumnPromise.resolve();
+                        console.log("Column " + key + " created.");
                     }
-                )
+                })
 
                 promises.push(createNewColumnPromise.promise)
             }
