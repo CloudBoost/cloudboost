@@ -1,22 +1,19 @@
-
 /*
 #     CloudBoost - Core Engine that powers Bakend as a Service
-#     (c) 2014 HackerBay, Inc. 
+#     (c) 2014 HackerBay, Inc.
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
-
 
 var customHelper = require('../../helpers/custom.js');
 
 module.exports = function() {
 
-
-    global.app.put('/data/:appId/:tableName', function (req, res) { //save a new document into <tableName> of app
-        if(req.body && req.body.method=="DELETE"){
+    global.app.put('/data/:appId/:tableName', function(req, res) { //save a new document into <tableName> of app
+        if (req.body && req.body.method == "DELETE") {
             /******************DELETE API*********************/
             _deleteApi(req, res);
             /******************DELETE API*********************/
-        }else{
+        } else {
             /******************SAVE API*********************/
             console.log("SAVE API");
             var appId = req.params.appId;
@@ -24,25 +21,24 @@ module.exports = function() {
             var collectionName = req.params.tableName;
             var appKey = req.body.key || req.params.key;
             var sdk = req.body.sdk || "REST";
-            
-            global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
+
+            global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
                 return global.customService.save(appId, collectionName, document, customHelper.getAccessList(req), isMasterKey);
-            }).then(function (result) {
+            }).then(function(result) {
                 console.log('+++ Save Success +++');
                 console.log(result);
                 res.status(200).send(result);
-            }, function (error) {
+            }, function(error) {
                 console.log('++++++ Save Error +++++++');
                 console.log(error);
                 res.status(400).send(error);
             });
 
-            global.apiTracker.log(appId,"Object / Save", req.url,sdk);
+            global.apiTracker.log(appId, "Object / Save", req.url, sdk);
             /******************SAVE API*********************/
         }
     });
-    
-	
+
     global.app.get('/data/:appId/:tableName/find', _getData);
     global.app.post('/data/:appId/:tableName/find', _getData);
 
@@ -54,8 +50,8 @@ module.exports = function() {
 
     global.app.get('/data/:appId/:tableName/findOne', _findOne);
     global.app.post('/data/:appId/:tableName/findOne', _findOne);
-   
-	global.app.delete('/data/:appId/:tableName', _deleteApi);
+
+    global.app.delete('/data/:appId/:tableName', _deleteApi);
 
     function _deleteApi(req, res) { //delete a document matching the <objectId>
         console.log("DELETE API");
@@ -65,16 +61,16 @@ module.exports = function() {
         var appKey = req.body.key || req.param('key');
         var sdk = req.body.sdk || "REST";
 
-        global.appService.isMasterKey(appId,appKey).then(function(isMasterKey){
-            return global.customService.delete(appId, collectionName, document, customHelper.getAccessList(req),isMasterKey);
+        global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
+            return global.customService.delete(appId, collectionName, document, customHelper.getAccessList(req), isMasterKey);
         }).then(function(result) {
             res.json(result);
         }, function(error) {
             res.status(400).send(error);
         });
-       
-        global.apiTracker.log(appId,"Object / Delete", req.url,sdk);
-       
+
+        global.apiTracker.log(appId, "Object / Delete", req.url, sdk);
+
     }
 
 };
@@ -90,16 +86,26 @@ function _getData(req, res) { //get document(s) object based on query and variou
     var skip = req.body.skip;
     var appKey = req.body.key || req.param('key');
     var sdk = req.body.sdk || "REST";
-    
-    global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
+
+    //default sort added
+    /*
+    without sort if limit and skip are used, the records are returned out of order. To solve this default sort in ascending order of 'createdAt' is added
+    */
+
+    if (Object.keys(sort).length === 0 && sort.constructor === Object)
+        sort = {
+            createdAt: 1
+        }
+
+    global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
         return global.customService.find(appId, collectionName, query, select, sort, limit, skip, customHelper.getAccessList(req), isMasterKey);
-    }).then(function (results) {
+    }).then(function(results) {
         res.json(results);
-    }, function (error) {
+    }, function(error) {
         res.status(400).send(error);
     });
-    
-    global.apiTracker.log(appId,"Object / Find", req.url,sdk);
+
+    global.apiTracker.log(appId, "Object / Find", req.url, sdk);
 }
 
 function _count(req, res) { //get document(s) object based on query and various parameters
@@ -111,16 +117,16 @@ function _count(req, res) { //get document(s) object based on query and various 
     var skip = req.body.skip;
     var appKey = req.body.key || req.param('key');
     var sdk = req.body.sdk || "REST";
-    
-    global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
+
+    global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
         return global.customService.count(appId, collectionName, query, limit, skip, customHelper.getAccessList(req), isMasterKey);
-    }).then(function (result) {
+    }).then(function(result) {
         res.json(result);
-    }, function (error) {
+    }, function(error) {
         res.status(400).send(error);
     });
-    
-    global.apiTracker.log(appId,"Object / Count", req.url,sdk);
+
+    global.apiTracker.log(appId, "Object / Count", req.url, sdk);
 }
 
 function _distinct(req, res, next) { //get document(s) object based on query and various parameters
@@ -135,16 +141,16 @@ function _distinct(req, res, next) { //get document(s) object based on query and
     var skip = req.body.skip;
     var appKey = req.body.key || req.param('key');
     var sdk = req.body.sdk || "REST";
-    
-    global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
+
+    global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
         return global.customService.distinct(appId, collectionName, onKey, query, select, sort, limit, skip, customHelper.getAccessList(req), isMasterKey);
-    }).then(function (results) {
+    }).then(function(results) {
         res.json(results);
-    }, function (error) {
+    }, function(error) {
         res.status(400).send(error);
     });
-    
-    global.apiTracker.log(appId,"Object / Distinct", req.url,sdk);
+
+    global.apiTracker.log(appId, "Object / Distinct", req.url, sdk);
 }
 
 function _findOne(req, res) { //get a single document matching the search query
@@ -157,14 +163,14 @@ function _findOne(req, res) { //get a single document matching the search query
     var skip = req.body.skip;
     var appKey = req.body.key || req.param('key');
     var sdk = req.body.sdk || "REST";
-    
-    global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
+
+    global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
         return global.customService.findOne(appId, collectionName, query, select, sort, skip, customHelper.getAccessList(req), isMasterKey);
-    }).then(function (result) {
+    }).then(function(result) {
         res.json(result);
-    }, function (error) {
+    }, function(error) {
         res.status(400).send(error);
     });
-    
-    global.apiTracker.log(appId,"Object / FindOne", req.url,sdk);
+
+    global.apiTracker.log(appId, "Object / FindOne", req.url, sdk);
 }
