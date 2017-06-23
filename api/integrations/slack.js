@@ -2,7 +2,7 @@ var q = require('q');
 var Slack = require('slack-node');
 
 module.exports = function () {
-    global.app.post('/slack', function (req, res) {
+    global.app.post('/integration/slack', function (req, res) {
 
         var appId = req.body.appid;
         var appkey = req.body.appkey;
@@ -13,18 +13,22 @@ module.exports = function () {
 
         var response = { appid: req.body.appid, status: "", user: user }
 
-        global.appService.isMasterKey(appId, appkey).then(function (isMasterKey) {
-            if (isMasterKey) {
+        global.appService.isKeyValid(appId, appkey).then(function (isKeyValid) {
+            if (isKeyValid) {
 
                 if (global.mongoDisconnected) {
                     return res.status(500).send('Storage Services are temporarily down');
                 }
 
-                console.log("in1");
                 var slack = new Slack();
-                global.appService.getSettings(appId, { "category": "integrations" }).then(function (settings) {
-                    console.log("in2", settings);
-                    var slackSettings = settings[0].settings.slack;
+                global.appService.getAllSettings(appId).then(function (settings) {
+                    settings
+                    var slackSettings;
+                    settings.forEach(function(element) {
+                        if(element.category == "integrations"){
+                            slackSettings = element.settings.slack;
+                        }
+                    }, this);
                     slack.setWebhook(slackSettings.webhook_url);
                     console.log(slackSettings, "Settings")
                     if (slackSettings.enabled === true) {
