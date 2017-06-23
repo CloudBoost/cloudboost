@@ -11,8 +11,6 @@ module.exports = function () {
 
         console.log(appId, appkey, event_type);
 
-        var response = { appid: req.body.appid, status: "", user: user }
-
         global.appService.isKeyValid(appId, appkey).then(function (isKeyValid) {
             if (isKeyValid) {
 
@@ -24,52 +22,58 @@ module.exports = function () {
                 global.appService.getAllSettings(appId).then(function (settings) {
                     settings
                     var slackSettings;
-                    settings.forEach(function(element) {
-                        if(element.category == "integrations"){
+                    settings.forEach(function (element) {
+                        if (element.category == "integrations") {
                             slackSettings = element.settings.slack;
                         }
                     }, this);
                     slack.setWebhook(slackSettings.webhook_url);
-                    console.log(slackSettings, "Settings")
+                    var text;
                     if (slackSettings.enabled === true) {
-                        if (event_type == "login" && slackSettings.loginNotify === true) {
-                            console.log("Login Event enabled");
+                        switch (event_type) {
+                            case "login":
+                                if (slackSettings.loginNotify === true) {
+                                    console.log("Login Event enabled");
+                                    text = "A User Logged into the System with Email-Id : " + user.email;
+                                } else {
+
+                                }
+                                break;
+                            case "signup":
+                                if (slackSettings.signUpNotify === true) {
+                                    console.log("Login Event enabled");
+                                    text = "A User SIgned into the System with Email-Id : " + user.email;
+                                }
+                                break;
+                            default:
+                                console.log(event_type + " Event enabled");
+                                text = "A User with Email-Id: " + user.email + " enabled " + event_type + " type of event";
+                        }
+                        if (text) {
                             slack.webhook({
                                 channel: "#general",
                                 username: "webhookbot",
-                                text: "A User Logged into the System with Email-Id : " + user.email
-                            }, function(err, response){
+                                text: text
+                            }, function (err, response) {
                                 console.log(response);
                             });
-                            response.status = "Login Notification Active & Sent";
-                            return res.json(response);
-                        } else if (event_type == "signup" && slackSettings.signUpNotify === true) {
-                            console.log("Sign Up Event enabled");
-                            slack.webhook({
-                                channel: "#general",
-                                username: "webhookbot",
-                                text: "A User Signed Up into the System with Email-Id : " + user.email 
-                            }, function(err, response){
-                                console.log(response);
-                            });
-                            response.status = "Sign Up Notification Active & Sent";
-                            return res.json(response);
+                            return res.status(200).send("Slack Notification Sent for " + event_type + " type of event");
+
                         } else {
-                            console.log("Events are disabled");
-                            response.status = "Desired Events are disabled";
-                            response.settings = slackSettings;
+                            return res.status(401).send("Slack Notification for " + event_type + " type of event not enabled");
+
                         }
                     } else {
                         console.log("Settings Schema not updated to work with events");
-                        response.status = "Please update Database to work with events.";
+                        var status = "Please update Database to work with events.";
                         response.settings = slackSettings;
-                        return res.json(response);
+                        return res.status(401).send(status);
                     }
                 });
             } else {
-                console.log("MasterKey not valid");
-                response.status = "Master Key Verification Failed";
-                return res.json(response);
+                console.log("Key not valid");
+                var status = "Key Verification Failed";
+                return res.status(404).json(status);
             }
         });
 
