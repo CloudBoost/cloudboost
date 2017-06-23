@@ -31,7 +31,7 @@ if (global.env === "development") {
     global.keys.logglySubDomain = "cloudboostdev";
 }
 
-global.winston.add(global.winston.transports.Loggly, {
+global.winston.add(global.winston.transports.Loggly, { // to default logs to a file
     inputToken: global.keys.logToken,
     subdomain: global.keys.logglySubDomain,
     tags: ["cloudboost-server"],
@@ -145,7 +145,7 @@ global.app.use(function(req, res, next) {
         });
         req.on('end', next);
     } else {
-        next();
+        next(); //to pass to the next middlware function
     }
 });
 
@@ -364,6 +364,7 @@ function attachAPI() {
         require('./api/email/CloudEmail.js')();
         require('./api/pages/Page.js')();
         require('./api/auth/Auth.js')();
+        require('./api/integrations/slack.js')();        
 
         
         

@@ -93,6 +93,29 @@ module.exports = function() {
             return deferred.promise;
         },
 
+        getSettings: function(appId, searchCriteria) {
+            var deferred = q.defer();
+
+            try {
+                console.log("trying")
+                //check redis cache first.
+                global.mongoService.document.find(appId, "_Settings", searchCriteria, null, null, 9999, 0, null, true).then(function(documents) {
+                    console.log(documents)
+                    deferred.resolve(documents);
+                }, function(error) {
+                    deferred.reject(error);
+                });
+
+            } catch (err) {
+                global.winston.log('error', {
+                    "error": String(err),
+                    "stack": new Error().stack
+                });
+                deferred.reject(err);
+            }
+            return deferred.promise;
+        },
+
         getApp: function(appId) {
             var deferred = q.defer();
 

@@ -22,8 +22,6 @@ You can install CloudBoost anywhere you like. We have a Docker Compose file that
 
 ## Running the server without Docker
 
-**Important:** Before you begin you need to install MongoDB 3.4 and Redis 3.0 on your machine to run this project. 
-
 ### Step 1 : Git clone the project.
 
 `git clone https://github.com/CloudBoost/cloudboost.git`
