@@ -1,8 +1,8 @@
 var q = require('q');
-var Slack = require('slack-node');
+var integrationServices = require('../../services/integrationServices')();
 
 module.exports = function () {
-    global.app.post('/integration/slack', function (req, res) {
+    global.app.post('/integration', function (req, res) {
 
         var appId = req.body.appid;
         var appkey = req.body.appkey;
@@ -10,65 +10,47 @@ module.exports = function () {
         var user = req.body.user;
 
         console.log(appId, appkey, event_type);
-
         global.appService.isKeyValid(appId, appkey).then(function (isKeyValid) {
             if (isKeyValid) {
-
                 if (global.mongoDisconnected) {
                     return res.status(500).send('Storage Services are temporarily down');
                 }
 
-                var slack = new Slack();
+                var integration_api = ["slack", "zapier"];
                 global.appService.getAllSettings(appId).then(function (settings) {
-                    settings
-                    var slackSettings;
+                    var integrationSettings;
                     settings.forEach(function (element) {
                         if (element.category == "integrations") {
-                            slackSettings = element.settings.slack;
+                            integrationSettings = element.settings;
                         }
                     }, this);
-                    slack.setWebhook(slackSettings.webhook_url);
-                    var text;
-                    if (slackSettings.enabled === true) {
-                        switch (event_type) {
-                            case "login":
-                                if (slackSettings.loginNotify === true) {
-                                    console.log("Login Event enabled");
-                                    text = "A User Logged into the System with Email-Id : " + user.email;
-                                } else {
 
+                    for (var i = 0; i < integration_api.length; i++) {
+                        switch (integration_api[i]) {
+                            case "slack":
+                                if (integrationSettings.slack.enabled) {
+                                    console.log("Slack Enabled");
+                                    integrationServices.notifyOnSlack(integrationSettings.slack, event_type, user);
+                                } else {
+                                    console.log("Slack Disabled");
                                 }
                                 break;
-                            case "signup":
-                                if (slackSettings.signUpNotify === true) {
-                                    console.log("Login Event enabled");
-                                    text = "A User SIgned into the System with Email-Id : " + user.email;
+                            case "zapier":
+                                if (integrationSettings.zapier.enabled) {
+                                    console.log("Zapier Enabled");
+                                    integrationServices.notifyOnZapier(integrationSettings.zapier, event_type, user);
+                                } else {
+                                    console.log("Zapier Disabled");
                                 }
                                 break;
                             default:
-                                console.log(event_type + " Event enabled");
-                                text = "A User with Email-Id: " + user.email + " enabled " + event_type + " type of event";
+                                console.log("Settings Schema not updated to work with event");
+                                var status = "Please update Database to work with events.";
+                                response.settings = slackSettings;
+                                return res.status(401).send(status);
                         }
-                        if (text) {
-                            slack.webhook({
-                                channel: "#general",
-                                username: "webhookbot",
-                                text: text
-                            }, function (err, response) {
-                                console.log(response);
-                            });
-                            return res.status(200).send("Slack Notification Sent for " + event_type + " type of event");
-
-                        } else {
-                            return res.status(401).send("Slack Notification for " + event_type + " type of event not enabled");
-
-                        }
-                    } else {
-                        console.log("Settings Schema not updated to work with events");
-                        var status = "Please update Database to work with events.";
-                        response.settings = slackSettings;
-                        return res.status(401).send(status);
                     }
+                    return res.status(200).send("Notifications are being sent");
                 });
             } else {
                 console.log("Key not valid");
