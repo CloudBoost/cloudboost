@@ -1290,7 +1290,7 @@ function _getSchema(appId, collectionName) {
     return deferred.promise;
 }
 
-//this function encrypts the password, if the password is passed in the Query.
+//this function modifies the fields ['password','datetime']  passed in the Query.
 function _modifyFieldsInQuery(appId, collectionName, query) {
 
     var deferred = global.q.defer();
@@ -1318,8 +1318,10 @@ function _modifyFieldsInQuery(appId, collectionName, query) {
                     deferred.resolve(query);
                 } else {
                     //or modify the query and resolve it.
-                    if(passwordColumnNames.length ) query = _recursiveModifyQuery(query, passwordColumnNames, 'encrypt');
-                    if(dateTimeColumnNames.length ) query = _recursiveModifyQuery(query, dateTimeColumnNames, 'datetime');
+                    if (passwordColumnNames.length)
+                        query = _recursiveModifyQuery(query, passwordColumnNames, 'encrypt');
+                    if (dateTimeColumnNames.length)
+                        query = _recursiveModifyQuery(query, dateTimeColumnNames, 'datetime');
 
                     deferred.resolve(query);
                 }
@@ -1362,14 +1364,14 @@ function _recursiveModifyQuery(query, columnNames, type) {
     return _.mapObject(query, function(val, key) {
         if (columnNames.indexOf(key) > -1) {
             if (typeof val !== 'object') {
-                if(type === 'encrypt'){
+                if (type === 'encrypt') {
                     return _encrypt(val);
                 }
             } else {
                 // for datetime fields convert them to a fomat which mongodb can query
-                if( type === 'datetime'){
-                    try{
-                        Object.keys(val).map(function(x){
+                if (type === 'datetime') {
+                    try {
+                        Object.keys(val).map(function(x) {
                             val[x] = new Date(val[x]);
                         })
                         return val;
