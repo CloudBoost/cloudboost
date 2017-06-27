@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/CloudBoost/cloudboost.svg?branch=master)](https://travis-ci.org/CloudBoost/cloudboost)
 [![OpenCollective](https://opencollective.com/cloudboost/backers/badge.svg)](#backers) 
 
-CloudBoost is the Complete NoSQL Database Service for your app. **Think of CloudBoost as Parse + Firebase + Algolia + Iron.io all combined into one** :
+CloudBoost is the complete serverless platform for your app. **Think of CloudBoost as Parse + Firebase + Algolia + Iron.io all combined into one** :
  - Data-Storage / JSON Storage / BLOB Storage
  - 100% data ownership
  - Realtime
