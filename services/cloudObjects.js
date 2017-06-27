@@ -719,6 +719,8 @@ function _getTableType(tableName) {
         tableType = "file";
     } else if (tableName === "_Event") {
         tableType = "event";
+    } else if (tableName === "_Funnel") {
+        tableType = "funnel";
     }
     return tableType;
 }
