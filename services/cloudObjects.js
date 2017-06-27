@@ -28,7 +28,7 @@ module.exports = function() {
                     });
                 } else {
 
-                    _encryptPasswordInQuery(appId, collectionName, query).then(function(query) {
+                    _modifyFieldsInQuery(appId, collectionName, query).then(function(query) {
                         databaseDriver.find(appId, collectionName, query, select, sort, limit, skip, accessList, isMasterKey).then(function(doc) {
                             deferred.resolve(doc);
                         }, function(err) {
@@ -54,7 +54,7 @@ module.exports = function() {
             var deferred = q.defer();
 
             try {
-                _encryptPasswordInQuery(appId, collectionName, query).then(function(query) {
+                _modifyFieldsInQuery(appId, collectionName, query).then(function(query) {
                     databaseDriver.count(appId, collectionName, query, limit, skip, accessList, isMasterKey).then(function(doc) {
                         deferred.resolve(doc);
                     }, function(err) {
@@ -77,7 +77,7 @@ module.exports = function() {
             var deferred = q.defer();
 
             try {
-                _encryptPasswordInQuery(appId, collectionName, query).then(function(query) {
+                _modifyFieldsInQuery(appId, collectionName, query).then(function(query) {
                     databaseDriver.distinct(appId, collectionName, onKey, query, select, sort, limit, skip, accessList, isMasterKey).then(function(doc) {
                         deferred.resolve(doc);
                     }, function(err) {
@@ -101,7 +101,7 @@ module.exports = function() {
             var deferred = q.defer();
 
             try {
-                _encryptPasswordInQuery(appId, collectionName, query).then(function(query) {
+                _modifyFieldsInQuery(appId, collectionName, query).then(function(query) {
                     databaseDriver.findOne(appId, collectionName, query, select, sort, skip, accessList, isMasterKey).then(function(doc) {
                         deferred.resolve(doc);
                     }, function(err) {
@@ -1291,7 +1291,7 @@ function _getSchema(appId, collectionName) {
 }
 
 //this function encrypts the password, if the password is passed in the Query.
-function _encryptPasswordInQuery(appId, collectionName, query) {
+function _modifyFieldsInQuery(appId, collectionName, query) {
 
     var deferred = global.q.defer();
 
@@ -1301,19 +1301,25 @@ function _encryptPasswordInQuery(appId, collectionName, query) {
         } else {
             _getSchema(appId, collectionName).then(function(columns) {
                 var passwordColumnNames = [];
+                var dateTimeColumnNames = [];
 
+                // push in fields to be modified / i.e DateTime and Encypted fields
                 for (var i = 0; i < columns.length; i++) {
                     if (columns[i].dataType === 'EncryptedText') {
                         passwordColumnNames.push(columns[i].name);
                     }
+                    if (columns[i].dataType === 'DateTime') {
+                        dateTimeColumnNames.push(columns[i].name);
+                    }
                 }
 
-                //resolve if there are no password fields.
-                if (passwordColumnNames.length === 0) {
+                //resolve if there are no password fields or DateTime fields
+                if (passwordColumnNames.length === 0 && dateTimeColumnNames === 0) {
                     deferred.resolve(query);
                 } else {
                     //or modify the query and resolve it.
-                    query = _recursiveEncryptQuery(query, passwordColumnNames);
+                    if(passwordColumnNames.length ) query = _recursiveModifyQuery(query, passwordColumnNames, 'encrypt');
+                    if(dateTimeColumnNames.length ) query = _recursiveModifyQuery(query, dateTimeColumnNames, 'datetime');
 
                     deferred.resolve(query);
                 }
@@ -1344,19 +1350,33 @@ function _encrypt(data) {
     }
 }
 
-function _recursiveEncryptQuery(query, passwordColumnNames) {
+function _recursiveModifyQuery(query, columnNames, type) {
 
     for (var key in query) {
         if (key === '$or') {
             for (var i = 0; i < query[key].length; i++) {
-                query[key][i] = _recursiveEncryptQuery(query[key][i], passwordColumnNames);
+                query[key][i] = _recursiveModifyQuery(query[key][i], columnNames);
             }
         }
     }
     return _.mapObject(query, function(val, key) {
-        if (passwordColumnNames.indexOf(key) > -1) {
+        if (columnNames.indexOf(key) > -1) {
             if (typeof val !== 'object') {
-                return _encrypt(val);
+                if(type === 'encrypt'){
+                    return _encrypt(val);
+                }
+            } else {
+                // for datetime fields convert them to a fomat which mongodb can query
+                if( type === 'datetime'){
+                    try{
+                        Object.keys(val).map(function(x){
+                            val[x] = new Date(val[x]);
+                        })
+                        return val;
+                    } catch (e) {
+                        return val;
+                    }
+                }
             }
         }
         return val;
