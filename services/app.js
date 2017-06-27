@@ -92,7 +92,7 @@ module.exports = function() {
             }
             return deferred.promise;
         },
-
+        
         getApp: function(appId) {
             var deferred = q.defer();
 
