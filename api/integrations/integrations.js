@@ -24,33 +24,37 @@ module.exports = function () {
                             integrationSettings = element.settings;
                         }
                     }, this);
-
-                    for (var i = 0; i < integration_api.length; i++) {
-                        switch (integration_api[i]) {
-                            case "slack":
-                                if (integrationSettings.slack.enabled) {
-                                    console.log("Slack Enabled");
-                                    integrationServices.notifyOnSlack(integrationSettings.slack, event_type, user);
-                                } else {
-                                    console.log("Slack Disabled");
-                                }
-                                break;
-                            case "zapier":
-                                if (integrationSettings.zapier.enabled) {
-                                    console.log("Zapier Enabled");
-                                    integrationServices.notifyOnZapier(integrationSettings.zapier, event_type, user);
-                                } else {
-                                    console.log("Zapier Disabled");
-                                }
-                                break;
-                            default:
-                                console.log("Settings Schema not updated to work with event");
-                                var status = "Please update Database to work with events.";
-                                response.settings = slackSettings;
-                                return res.status(401).send(status);
+                    if (integrationSettings) {
+                        for (var i = 0; i < integration_api.length; i++) {
+                            switch (integration_api[i]) {
+                                case "slack":
+                                    if (integrationSettings.slack.enabled) {
+                                        console.log("Slack Enabled");
+                                        integrationServices.notifyOnSlack(integrationSettings.slack, event_type, user);
+                                    } else {
+                                        console.log("Slack Disabled");
+                                    }
+                                    break;
+                                case "zapier":
+                                    if (integrationSettings.zapier.enabled) {
+                                        console.log("Zapier Enabled");
+                                        integrationServices.notifyOnZapier(integrationSettings.zapier, event_type, user);
+                                    } else {
+                                        console.log("Zapier Disabled");
+                                    }
+                                    break;
+                                default:
+                                    console.log("Settings Schema not updated to work with event");
+                                    var status = "Please update Database to work with events.";
+                                    response.settings = slackSettings;
+                                    return res.status(401).send(status);
+                            }
                         }
+                        return res.status(200).send("Notifications are being sent");
+                    } else {
+                        return res.status(404).send("Update Settings for Application");
                     }
-                    return res.status(200).send("Notifications are being sent");
+
                 });
             } else {
                 console.log("Key not valid");

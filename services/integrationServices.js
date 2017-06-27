@@ -30,7 +30,7 @@ module.exports = function () {
             }
             if (text) {
                 slack.webhook({
-                    channel: "#general",
+                    channel: "#test",
                     username: "webhookbot",
                     text: text
                 }, function (err, response) {
