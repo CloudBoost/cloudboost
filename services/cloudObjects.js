@@ -1353,7 +1353,7 @@ function _recursiveModifyQuery(query, columnNames, type) {
     for (var key in query) {
         if (key === '$or') {
             for (var i = 0; i < query[key].length; i++) {
-                query[key][i] = _recursiveModifyQuery(query[key][i], columnNames);
+                query[key][i] = _recursiveModifyQuery(query[key][i], columnNames, type);
             }
         }
     }
