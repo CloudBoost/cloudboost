@@ -295,6 +295,13 @@ module.exports = function() {
                 if (!sort) {
                     sort = {};
                 }
+                //default sort added
+                /*
+                    without sort if limit and skip are used, the records are returned out of order. To solve this default sort in ascending order of 'createdAt' is added
+                */
+
+                if (!sort['createdAt'])
+                    sort['createdAt'] = 1
 
                 if (!limit || limit === -1) {
                     limit = 20;
