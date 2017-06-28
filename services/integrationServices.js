@@ -68,7 +68,7 @@ module.exports = function () {
                             ],
                             "image_url": "http://my-website.com/path/to/image.jpg",
                             "thumb_url": "http://example.com/path/to/thumb.png",
-                            "footer": "Cloudboost API",
+                            "footer": "CloudBoost",
                             "footer_icon": "https://d1qb2nb5cznatu.cloudfront.net/startups/i/490103-917cc2864d0246e313e9521971422f09-medium_jpg.jpg?buster=1430997518",
                             "ts": timeStamp
                         }
