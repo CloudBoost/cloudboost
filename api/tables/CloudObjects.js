@@ -28,7 +28,6 @@ module.exports = function () {
 
 
             global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
-                console.log(collectionName);
                 if (collectionName == "_Event") {
                     integrationsNotifications(appId, document);
                 }
