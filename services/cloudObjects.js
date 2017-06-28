@@ -286,7 +286,9 @@ function _save(appId, collectionName, document, accessList, isMasterKey, reqType
                 _validateSchema(appId, listOfDocs, accessList, isMasterKey).then(function(listOfDocs) {
                     console.log("Schema checked");
 
-                    var mongoDocs = JSON.parse(JSON.stringify(listOfDocs)); //making copies of an array to avoid modification by "call by reference"
+                    var mongoDocs = listOfDocs.map(function(doc){
+                        return Object.assign({},doc)
+                    })
 
                     promises.push(databaseDriver.save(appId, mongoDocs));
                     global.q.allSettled(promises).then(function(array) {
@@ -438,6 +440,14 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                     continue; //ignore.
 
                 if (document[columns[i].name] === undefined) {
+                    //TODO :  check type for defaultValue , convert to date of type is DateTime , quick patch , fix properly later 
+                    if(columns[i].dataType === 'DateTime'){
+                        try{
+                            columns[i].defaultValue = new Date(columns[i].defaultValue)
+                        } catch(e){
+                            columns[i].defaultValue = null
+                        }
+                    }
                     document[columns[i].name] = columns[i].defaultValue;
                 }
 
@@ -517,7 +527,7 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                     if (key === '_tableName' || key === '_type' || key === '_version')
                         continue; //check id; //ignore.
                     else if (key === '_id') {
-                        //check if this is a string.
+                        //check if this is a string..
                         if (typeof document[key] !== 'string') {
                             mainPromise.reject('Invalid data in ID of type ' + collectionName + '. It should be of type string');
                             return mainPromise.promise;
