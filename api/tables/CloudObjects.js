@@ -29,7 +29,7 @@ module.exports = function () {
 
             global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
                 if (collectionName == "_Event") {
-                    integrationsNotifications(appId, document);
+                   integrationServices.integrationsNotifications(appId, document);
                 }
                 return global.customService.save(appId, collectionName, document, customHelper.getAccessList(req), isMasterKey);
             }).then(function (result) {
@@ -46,48 +46,6 @@ module.exports = function () {
             /******************SAVE API*********************/
         }
     });
-
-    function integrationsNotifications(appId, document) {
-        var integration_api = ["slack", "zapier"];
-        global.appService.getAllSettings(appId).then(function (settings) {
-            var integrationSettings;
-            settings.forEach(function (element) {
-                if (element.category == "integrations") {
-                    integrationSettings = element.settings;
-                }
-            }, this);
-            
-            if (integrationSettings) {
-                for (var i = 0; i < integration_api.length; i++) {
-                    switch (integration_api[i]) {
-                        case "slack":
-                            if (integrationSettings.slack.enabled) {
-                                console.log("Slack Enabled");
-                                integrationServices.notifyOnSlack(integrationSettings.slack, document.name, document.data.username, document.data.email);
-                            } else {
-                                console.log("Slack Disabled");
-                            }
-                            break;
-                        case "zapier":
-                            if (integrationSettings.zapier.enabled) {
-                                console.log("Zapier Enabled");
-                                integrationServices.notifyOnZapier(integrationSettings.zapier, document.name, document.data.username, document.data.email);
-                            } else {
-                                console.log("Zapier Disabled");
-                            }
-                            break;
-                        default:
-                            console.log("Settings Schema not updated to work with event");
-                            return false;
-                    }
-                }
-                return true;
-            } else {
-                return false;
-            }
-
-        });
-    }
 
 
     global.app.get('/data/:appId/:tableName/find', _getData);
