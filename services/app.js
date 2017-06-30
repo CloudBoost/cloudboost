@@ -561,6 +561,7 @@ module.exports = function() {
             tableProps = tableProps || {
                 isEditableByClientKey: false
             }
+            var updateColumnNameOfOldRecordsPromises=[]
 
             try {
 
@@ -683,6 +684,32 @@ module.exports = function() {
 
                     var collection = global.mongoClient.db(appId).collection("_Schema");
 
+                    //get previous schema object of current table if old table
+
+                    if(!isNewTable)
+                    collection.findOne({name:tableName},function(err,doc){
+                        if(err)
+                            deferred.reject("Error : Failed to get the table. ");
+                        else if(!doc)
+                            deferred.reject("Error : Failed to get the table. ");
+                        else{
+                            
+                            doc.columns.forEach(function(oldColumnObj,i){
+                                //check column id
+                                schema.forEach(function(newColumnObj,i){
+                                    //match column id of each columns
+                                    if(newColumnObj._id===oldColumnObj._id){
+                                        if(newColumnObj.name!=oldColumnObj.name){
+                                            //column name is updated update previous records.
+                                            updateColumnNameOfOldRecordsPromises.push(_updateColumnNameOfOldRecords(tableName,appId,newColumnObj.name,oldColumnObj.name));
+                                        }
+                                    }
+                                })
+                            })
+
+                        }
+                    })
+
                     console.log('Collection Object Created.');
 
                     collection.findOneAndUpdate({
@@ -744,8 +771,8 @@ module.exports = function() {
 
                                     //Index all text fields
                                     promises.push(global.mongoUtil.collection.deleteAndCreateTextIndexes(appId, tableName, cloneOldColumns, schema));
-
-                                    q.all(promises).then(function(res) {
+                                    //updateColumnNameOfOldRecordsPromises stores the promises for updating previous records.
+                                    q.all(promises.concat(updateColumnNameOfOldRecordsPromises)).then(function(res) {
                                         deferred.resolve(table);
                                     }, function(error) {
                                         //TODO : Rollback.
@@ -1075,6 +1102,39 @@ module.exports = function() {
         }
     };
 };
+
+function _updateColumnNameOfOldRecords(tableName,appId,newColumnName,oldColumnName){
+
+        var deferred = q.defer();
+
+        var collection = global.mongoClient.db(appId).collection(tableName);
+        var findQuery = collection.find({});
+        var updatedDocs=[]
+        findQuery.toArray(function(err, docs) {
+                            if (err) {
+                                global.winston.log('error', err);
+                                deferred.reject(err);
+                            } else if (!docs || docs.length == 0) {
+                                console.log('No records existed');
+                                deferred.resolve('No records existed');
+                            } else if (docs.length > 0) {
+                                docs.forEach(function(doc){
+                                    if(doc[oldColumnName])
+                                    //set new column data 
+                                    doc[newColumnName]=doc[oldColumnName];
+                                    //delete old column
+                                    delete doc[oldColumnName];
+                                    updatedDocs.push(doc);
+                                    collection.save(doc);
+                                });
+                                deferred.resolve(updatedDocs.length+"docs updated");
+                            }
+        });
+
+
+       return deferred.promise;
+
+}
 
 function _isBasicDataType(dataType) {
     try {
