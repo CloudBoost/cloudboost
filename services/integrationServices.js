@@ -60,7 +60,7 @@ function notifyOnSlack(integrationSettings, event_type, user, user_email) {
         case "Login":
             if (integrationSettings.loginNotify === true) {
                 console.log("Slack Login Event enabled");
-                text = "A User Signed into the System with Email-Id : " + user;
+                text = "A User just Logged In"
                 title = "Login";
                 color = "#36a64f"
             } else {
@@ -70,7 +70,7 @@ function notifyOnSlack(integrationSettings, event_type, user, user_email) {
         case "Signup":
             if (integrationSettings.signUpNotify === true) {
                 console.log("Slack Sign Up Event enabled");
-                text = "A User Signed into the System with Email-Id : " + user;
+                text = "A New User just Signed Up";
                 title = "Sign Up";
                 color = "#5CACEE";
             } else {
@@ -81,23 +81,23 @@ function notifyOnSlack(integrationSettings, event_type, user, user_email) {
             console.log(event_type + " Event enabled");
             title = event_type;
             color = "#9932CC";
-            text = "A User with Email-Id: " + user.email + " enabled " + event_type + " type of event";
+            text = "A User just created an Event";
     }
     if (text) {
         slack.webhook({
-            channel: "#general",
+            channel: "#test",
             username: "CloudBoost",
             attachments: [
                 {
-                    "fallback": "Required plain-text summary of the attachment.",
+                    "fallback": "Whenever a User Signs Up a notification will appear here",
                     "color": color,
                     "pretext": "Optional text that appears above the attachment block",
                     "author_name": "Event Notifications",
-                    "author_link": "http://flickr.com/bobby/",
-                    "author_icon": "http://flickr.com/icons/bobby.jpg",
-                    "title": event_type + " Slack Notification",
-                    "title_link": "https://api.slack.com/",
-                    "text": "Optional text that appears within the attachment",
+                    "author_link": "https://www.cloudboost.io/",
+                    "author_icon": "https://d1qb2nb5cznatu.cloudfront.net/startups/i/490103-917cc2864d0246e313e9521971422f09-medium_jpg.jpg?buster=1430997518",
+                    "title": "User " + event_type + " Notification",
+                    "title_link": "https://www.cloudboost.io/",
+                    "text": text,
                     "fields": [
                         {
                             "title": "User Name",
@@ -110,8 +110,6 @@ function notifyOnSlack(integrationSettings, event_type, user, user_email) {
                             "short": false
                         }
                     ],
-                    "image_url": "http://my-website.com/path/to/image.jpg",
-                    "thumb_url": "http://example.com/path/to/thumb.png",
                     "footer": "CloudBoost",
                     "footer_icon": "https://d1qb2nb5cznatu.cloudfront.net/startups/i/490103-917cc2864d0246e313e9521971422f09-medium_jpg.jpg?buster=1430997518",
                     "ts": timeStamp
@@ -160,6 +158,3 @@ function notifyOnZapier(integrationSettings, event_type, user, user_email) {
         return false;
     }
 }
-
-
-
