@@ -534,7 +534,7 @@ module.exports = {
             "name": "user",
             "_type": "column",
             "dataType": "Relation",
-            "required": true,
+            "required": false,
             "unique": false,
             "relatedTo": "User",
             "relationType": null,

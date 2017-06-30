@@ -1344,12 +1344,7 @@ function _checkValidDataType(columns, deafultDataType, tableType) {
                 if (columns[index].relationType != null || columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'Object')
                     return false;
                 }
-            // //name for file table
-            // if (key === 'fileName') {
-            //     if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'Text')
-            //         return false;
-            //     }
-            // //size for file table
+            
             if (key === 'size') {
                 if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'Number')
                     return false;
@@ -1372,7 +1367,7 @@ function _checkValidDataType(columns, deafultDataType, tableType) {
 
             //user for event table
             if (key === 'user') {
-                if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'Relation')
+                if (columns[index].relationType != null || columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'Relation')
                     return false;
                 }
 
