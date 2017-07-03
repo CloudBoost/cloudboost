@@ -685,7 +685,7 @@ module.exports = function() {
                     var collection = global.mongoClient.db(appId).collection("_Schema");
 
                     //get previous schema object of current table if old table
-
+                    var renameColumnObject={};
                     if(!isNewTable)
                     collection.findOne({name:tableName},function(err,doc){
                         if(err)
@@ -701,11 +701,12 @@ module.exports = function() {
                                     if(newColumnObj._id===oldColumnObj._id){
                                         if(newColumnObj.name!=oldColumnObj.name){
                                             //column name is updated update previous records.
-                                            updateColumnNameOfOldRecordsPromises.push(_updateColumnNameOfOldRecords(tableName,appId,newColumnObj.name,oldColumnObj.name));
+                                            renameColumnObject[oldColumnObj.name]=newColumnObj.name;
                                         }
                                     }
                                 })
                             })
+                            updateColumnNameOfOldRecordsPromises.push(_updateColumnNameOfOldRecords(tableName,appId,renameColumnObject));
 
                         }
                     })
@@ -773,8 +774,14 @@ module.exports = function() {
                                     promises.push(global.mongoUtil.collection.deleteAndCreateTextIndexes(appId, tableName, cloneOldColumns, schema));
                                     //updateColumnNameOfOldRecordsPromises stores the promises for updating previous records.
                                     q.all(promises.concat(updateColumnNameOfOldRecordsPromises)).then(function(res) {
-                                        deferred.resolve(table);
-                                    }, function(error) {
+                                        //confirm all colums are updated 
+                                        q.all(updateColumnNameOfOldRecordsPromises).then(function(res) {
+                                            deferred.resolve(table);
+                                        }, function(error) {
+                                            //TODO : Rollback.
+                                            deferred.resolve(table);
+                                    });     
+                                        }, function(error) {
                                         //TODO : Rollback.
                                         deferred.resolve(table);
                                     });
@@ -1103,34 +1110,17 @@ module.exports = function() {
     };
 };
 
-function _updateColumnNameOfOldRecords(tableName,appId,newColumnName,oldColumnName){
+function _updateColumnNameOfOldRecords(tableName,appId,renameColumnObject){
 
         var deferred = q.defer();
 
         var collection = global.mongoClient.db(appId).collection(tableName);
-        var findQuery = collection.find({});
-        var updatedDocs=[]
-        findQuery.toArray(function(err, docs) {
-                            if (err) {
-                                global.winston.log('error', err);
-                                deferred.reject(err);
-                            } else if (!docs || docs.length == 0) {
-                                console.log('No records existed');
-                                deferred.resolve('No records existed');
-                            } else if (docs.length > 0) {
-                                docs.forEach(function(doc){
-                                    if(doc[oldColumnName])
-                                    //set new column data 
-                                    doc[newColumnName]=doc[oldColumnName];
-                                    //delete old column
-                                    delete doc[oldColumnName];
-                                    updatedDocs.push(doc);
-                                    collection.save(doc);
-                                });
-                                deferred.resolve(updatedDocs.length+"docs updated");
-                            }
-        });
-
+        collection.updateMany( {}, { $rename: renameColumnObject },function(err,doc){
+            if(err)
+                deferred.reject()
+            else
+                deferred.resolve();
+        } );
 
        return deferred.promise;
 
