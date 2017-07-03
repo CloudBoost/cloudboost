@@ -286,6 +286,7 @@ function _save(appId, collectionName, document, accessList, isMasterKey, reqType
                 _validateSchema(appId, listOfDocs, accessList, isMasterKey).then(function(listOfDocs) {
                     console.log("Schema checked");
 
+
                     var mongoDocs = listOfDocs.map(function(doc){
                         return Object.assign({},doc)
                     })

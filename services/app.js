@@ -561,6 +561,7 @@ module.exports = function() {
             tableProps = tableProps || {
                 isEditableByClientKey: false
             }
+            var updateColumnNameOfOldRecordsPromises=[]
 
             try {
 
@@ -683,6 +684,33 @@ module.exports = function() {
 
                     var collection = global.mongoClient.db(appId).collection("_Schema");
 
+                    //get previous schema object of current table if old table
+                    var renameColumnObject={};
+                    if(!isNewTable)
+                    collection.findOne({name:tableName},function(err,doc){
+                        if(err)
+                            deferred.reject("Error : Failed to get the table. ");
+                        else if(!doc)
+                            deferred.reject("Error : Failed to get the table. ");
+                        else{
+                            
+                            doc.columns.forEach(function(oldColumnObj,i){
+                                //check column id
+                                schema.forEach(function(newColumnObj,i){
+                                    //match column id of each columns
+                                    if(newColumnObj._id===oldColumnObj._id){
+                                        if(newColumnObj.name!=oldColumnObj.name){
+                                            //column name is updated update previous records.
+                                            renameColumnObject[oldColumnObj.name]=newColumnObj.name;
+                                        }
+                                    }
+                                })
+                            })
+                            updateColumnNameOfOldRecordsPromises.push(_updateColumnNameOfOldRecords(tableName,appId,renameColumnObject));
+
+                        }
+                    })
+
                     console.log('Collection Object Created.');
 
                     collection.findOneAndUpdate({
@@ -744,10 +772,16 @@ module.exports = function() {
 
                                     //Index all text fields
                                     promises.push(global.mongoUtil.collection.deleteAndCreateTextIndexes(appId, tableName, cloneOldColumns, schema));
-
-                                    q.all(promises).then(function(res) {
-                                        deferred.resolve(table);
-                                    }, function(error) {
+                                    //updateColumnNameOfOldRecordsPromises stores the promises for updating previous records.
+                                    q.all(promises.concat(updateColumnNameOfOldRecordsPromises)).then(function(res) {
+                                        //confirm all colums are updated 
+                                        q.all(updateColumnNameOfOldRecordsPromises).then(function(res) {
+                                            deferred.resolve(table);
+                                        }, function(error) {
+                                            //TODO : Rollback.
+                                            deferred.resolve(table);
+                                    });     
+                                        }, function(error) {
                                         //TODO : Rollback.
                                         deferred.resolve(table);
                                     });
@@ -1076,6 +1110,22 @@ module.exports = function() {
     };
 };
 
+function _updateColumnNameOfOldRecords(tableName,appId,renameColumnObject){
+
+        var deferred = q.defer();
+
+        var collection = global.mongoClient.db(appId).collection(tableName);
+        collection.updateMany( {}, { $rename: renameColumnObject },function(err,doc){
+            if(err)
+                deferred.reject()
+            else
+                deferred.resolve();
+        } );
+
+       return deferred.promise;
+
+}
+
 function _isBasicDataType(dataType) {
     try {
         var types = global.cloudBoostHelper.getBasicDataTypes();
@@ -1284,12 +1334,7 @@ function _checkValidDataType(columns, deafultDataType, tableType) {
                 if (columns[index].relationType != null || columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'Object')
                     return false;
                 }
-            // //name for file table
-            // if (key === 'fileName') {
-            //     if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'Text')
-            //         return false;
-            //     }
-            // //size for file table
+            
             if (key === 'size') {
                 if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'Number')
                     return false;
@@ -1312,7 +1357,7 @@ function _checkValidDataType(columns, deafultDataType, tableType) {
 
             //user for event table
             if (key === 'user') {
-                if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'Relation')
+                if (columns[index].relationType != null || columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'Relation')
                     return false;
                 }
 
