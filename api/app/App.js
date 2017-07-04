@@ -329,16 +329,16 @@ module.exports = function () {
             var importType = req.body.importType;
             var accessList = customHelper.getAccessList(req)
             if (!appKey) {
-                res.status(400).send("key is missing");
+                res.status(400).send("appKey is missing. Please have either Client Key or the Master Key in request body.");
             }
             if (!appId) {
-                res.status(400).send("appId is missing");
+                res.status(400).send("AppID is missing. Please have AppID in request body.");
             }
             if (!tableName) {
                 res.status(400).send("tableName is missing");
             }
             if (!importType) {
-                res.status(400).send("exportType is missing");
+                res.status(400).send("exportType is missing.Please have export type in request body.");
             }
             global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
                 var file;
@@ -348,12 +348,12 @@ module.exports = function () {
                 if (file) {
                     global.appService.importTable(appId, file, tableName, importType.toLowerCase(), isMasterKey, accessList).then(function (data) {
                         if (data) {
-                            res.status(200).json({ Success: true });
+                            res.status(200).json({ Success: "success" });
                         } else {
-                            res.status(500).json({ success: false });
+                            res.status(500).json({ success: "failed" }); 
                         }
                     }, function (err) {
-                        console.log("Error : Exporting Database.");
+                        console.log("Error: Importing Data..");
                         console.log(err);
                         res.status(500).send("Error");
                     });

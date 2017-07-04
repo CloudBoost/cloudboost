@@ -1073,21 +1073,36 @@ module.exports = function () {
             });
             return deferred.promise;
         },
+        // This function will import file format of CSV, JSON 
         importTable: function (appId, file, tableName, importType, isMasterKey, accessList) {
             var deferred = q.defer();
             var file = file.toString();
             var data;
             var _self = this;
-            if (importType.toLowerCase() == 'csv') {
-                csvToJson(file).then(function (jsonArray) {
-                    var data = formatJson(jsonArray);
-                    save.call(_self, appId, data, tableName, isMasterKey, accessList).then(function (result, err) {
+            if (importType.toLowerCase() === 'csv') {
+                csvToJson(file).then(function (jsonArray) { // library used to convert csv to json 
+                    var formatedJson = formatJson(jsonArray); // It will format JSON that has been vonverted from csv by library 
+                    var data = getColumnsForSchemaTable(formatedJson);
+                    save(_self, appId, data, tableName, isMasterKey, accessList).then(function (result, err) { // Will save schema columns and JSON into databse
                         if (err) {
                             deferred.reject(err);
                         }
                         deferred.resolve(result);
-                    })
+                    });
                 })
+            } else if (importType.toLowerCase() === "json") {
+                file = JSON.parse(file);
+                if (file.data) {
+                    file = file.data;
+                }
+                var data = getColumnsForSchemaTable(file);
+
+                save(_self, appId, data, tableName, isMasterKey, accessList).then(function (result, err) {
+                    if (err) {
+                        deferred.reject(err);
+                    }
+                    deferred.resolve(result);
+                });
             }
             return deferred.promise;
         }
@@ -1599,10 +1614,10 @@ function repl(str, key) {
         }
     }
 }
-
+// This function will format raw Json that is converted from CSV  to Json by library used above 
+// param (JSON Array)
 function formatJson(jsonArray) {
     var fileData = [];
-    var schema = [];
     for (i = 1; i < jsonArray.length; i++) {
         JsonObject = {};
         for (j = 0; j < jsonArray[i].length; j++) {
@@ -1619,8 +1634,14 @@ function formatJson(jsonArray) {
         })
         formatedData.push(formatedObject)
     })
-    var newFileObject = formatedData.map(x => Object.assign({}, x))
-    for (let i = 0; i < newFileObject.length; i++) {
+    return formatedData;
+};
+// This function will return modified cols , schema cols and formatted data 
+// params (formated Json data)
+function getColumnsForSchemaTable(formatedData) {
+    var schema = [];
+    var newFileObject = formatedData.map(x => Object.assign({}, x)) // new object assigned 
+    for (let i = 0; i < newFileObject.length; i++) {     // will loop over new object to find data type of each  column , first it will check for array[0] elements , if any of these value  on array [0] is not null it will return the " key and data type". if  it will find all the null values till n'th  item in array but only for null values , if it doesn't find any value then it will return the key and the data type will be "text"
         if (schema.length > 0) {
             for (k in schema) {
                 var schemaKey = Object.keys(schema[k])
@@ -1649,10 +1670,10 @@ function formatJson(jsonArray) {
             }
             break;
         }
-    }
+    }                           // At the end of this loop , It will return all the key with it's dataType in schema Array 
     schemaColumn = [];
     modifiedCols = [];
-    schema.map(function (k) {
+    schema.map(function (k) {  // loop over schema array and manipulate each schema column accrodingly that will be saved directly into schema table 
         obj = {};
         var unique = false;
         var required = false;
@@ -1683,22 +1704,24 @@ function formatJson(jsonArray) {
             obj["isRenamable"] = false,
             obj["editableByMasterKey"] = false,
             obj["defaultValue"] = null
-        schemaColumn.push(obj);
+        schemaColumn.push(obj);    // here we will get schema columns that will be saved in schema table
         if (key != 'id')
-        { modifiedCols.push(key) }
+        { modifiedCols.push(key) } // modified cols to save in the db 
     });
-    return { "schemaCols": schemaColumn, "modifiedCols": modifiedCols, "formatedData": formatedData };
+    return { "schemaCols": schemaColumn, "modifiedCols": modifiedCols, "formatedData": formatedData };  // End of function. Return three objects with value in it 
 }
 
-function save(appId, data, tableName, isMasterKey, accessList) {
+// This function will save data into schema table and data into app Id ( which is database name) provided by user  
+// params (_self (which is the current object in the global scope) , appId( which is database name) ,data(which contain schema cols, modified cols and formated Json data), boolean value for master key , acesslist) 
+function save(_self, appId, data, tableName, isMasterKey, accessList) { 
     return new Promise(function (resolve, reject) {
-        this.upsertTable(appId, tableName, data.schemaCols).then(function (resp) {
+        _self.upsertTable(appId, tableName, data.schemaCols).then(function (resp) { // this upsert function will schema columns into schema table 
             data.formatedData.map(function (curr) {
                 curr._isModified = true;
                 curr._modifiedColumns = data.modifiedCols;
                 curr._tableName = tableName;
             })
-            global.customService.save(appId, tableName, data.formatedData, accessList, isMasterKey).then(function (tables) {
+            global.customService.save(appId, tableName, data.formatedData, accessList, isMasterKey).then(function (tables) { // It will save JSON data into the database , will take param appId( which is database name), Table name , formatted Json data, accesslist , boolean value for master key)
                 resolve(tables)
             }, function (err) {
                 reject(err)
@@ -1706,5 +1729,5 @@ function save(appId, data, tableName, isMasterKey, accessList) {
         }, function (error) {
             reject(error);
         })
-    }.bind(this))
+    }.bind(_self))
 }
