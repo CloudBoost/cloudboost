@@ -796,6 +796,8 @@ function servicesKickstart() {
         }, function(err) {
             console.log("Cannot connect to MongoDB.");
             console.log(err);
+            // exit server if connection to mongo was not made
+            process.exit(1)
         });
 
     } catch (err) {
