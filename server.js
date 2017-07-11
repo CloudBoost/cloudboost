@@ -826,7 +826,7 @@ function attachCronJobs() {
         require('./cron/expire.js');
         app.use(function(req,res,next){
 
-    res.status(404).json({status : 404,message : 'The endpoint was not found. Please check.'});
+    res.json({status : 404,message : 'The endpoint was not found. Please check.'});
 
 });
     } catch (err) {
