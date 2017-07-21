@@ -9,55 +9,55 @@
 var q = require("q");
 
 module.exports = function () {
-    
+
     var obj = {
 
-        dbConnect: function(appId){
-            try{
+        dbConnect: function (appId) {
+            try {
                 return global.mongoClient.db(appId);
-            }catch(e){                    
-                global.winston.log('error',{"error":String(e),"stack": new Error().stack});              
+            } catch (e) {
+                global.winston.log('error', { "error": String(e), "stack": new Error().stack });
             }
 
         },
 
-        replSet : function(){
+        replSet: function () {
 
-            try{
+            try {
 
                 var ReplSet = require('mongodb').ReplSet,
-                    Server = require('mongodb').Server;                  
+                    Server = require('mongodb').Server;
 
                 var servers = [];
 
-                if(global.config.mongo.length===0){
+                if (global.config.mongo.length === 0) {
                     return null;
                 }
 
-                if(global.config.mongo.length===1){
+                if (global.config.mongo.length === 1) {
                     return new Server(global.config.mongo[0].host, global.config.mongo[0].port);
                 }
 
-                for(var i=0;i<global.config.mongo.length; i++){                   
-                    servers.push(new Server(global.config.mongo[i].host,parseInt(global.config.mongo[i].port)));
+                for (var i = 0; i < global.config.mongo.length; i++) {
+                    servers.push(new Server(global.config.mongo[i].host, parseInt(global.config.mongo[i].port)));
                 }
 
                 var replSet = new ReplSet(servers);
 
                 return replSet;
 
-            }catch(e){                    
-                global.winston.log('error',{"error":String(e),"stack": new Error().stack});  
-                return [];            
+            } catch (e) {
+                global.winston.log('error', { "error": String(e), "stack": new Error().stack });
+                return [];
             }
         },
 
-        connect: function() {
-            
+        connect: function () {
+
             var deferred = q.defer();
-            try{
+            try {
                 var mongoClient = require('mongodb').MongoClient;
-                mongoClient.connect(global.keys.mongoConnectionString,function (err, db) {
+                mongoClient.connect(global.keys.mongoConnectionString, function (err, db) {
                     if (err) {
                         deferred.reject(err);
                     } else {
@@ -65,9 +65,9 @@ module.exports = function () {
                     }
                 });
 
-            }catch(e){                    
-                global.winston.log('error',{"error":String(e),"stack": new Error().stack}); 
-                deferred.reject(e);             
+            } catch (e) {
+                global.winston.log('error', { "error": String(e), "stack": new Error().stack });
+                deferred.reject(e);
             }
             return deferred.promise;
         }

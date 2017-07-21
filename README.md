@@ -107,6 +107,10 @@ curl -H "Content-Type: application/json" -X POST -d '{"secureKey":"xxxxxx-yyyy-x
 
 ```
 
+### Creating a table
+
+Table lets you store any structured data in your app. To create one, [check this documentation out](https://tutorials.cloudboost.io/en/schema/cloudtables).
+
 ### Delete an app
 
 To delete an app, You need to  :
