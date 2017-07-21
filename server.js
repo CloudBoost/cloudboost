@@ -243,10 +243,7 @@ global.app.use([
                     }
 
                 }, function(err) {
-                    global.winston.log('error', {
-                        "error": String(err),
-                        "stack": new Error().stack
-                    });
+                    console.log(err.message)
                     return res.status(500).send(err.message);
                 });
             }

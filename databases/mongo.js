@@ -376,7 +376,7 @@ module.exports = function() {
 
                 findQuery.toArray(function(err, docs) {
                     if (err) {
-                        global.winston.log('error', err);
+                        console.log('error', err);
                         deferred.reject(err);
                     } else {
                         if (!include || include.length === 0) {
@@ -386,7 +386,7 @@ module.exports = function() {
                             obj.document._include(appId, include, docs).then(function(docs) {
                                 deferred.resolve(docs);
                             }, function(error) {
-                                global.winston.log('error', error);
+                                console.log('error', error);
                                 deferred.reject(error);
                             });
                         }
