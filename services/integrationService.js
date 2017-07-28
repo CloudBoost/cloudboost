@@ -13,7 +13,6 @@ module.exports = function () {
                         integrationSettings = element.settings;
                     }
                 }, this);
-                console.log(integrationSettings,"11111111111111111");
                 if (integrationSettings) {
                     for (var i = 0; i < integration_api.length; i++) {
                         switch (integration_api[i]) {
@@ -67,7 +66,6 @@ function notifyOnSlack(integrationSettings, document) {
             title = event_type;
             color = "#9932CC";
     }
-    console.log(title, "title///////////////////")
     if (title) {
         slack.webhook({
             channel: "#test",
