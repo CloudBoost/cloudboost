@@ -28,7 +28,7 @@ module.exports = function() {
                     });
                 } else {
 
-                    _encryptPasswordInQuery(appId, collectionName, query).then(function(query) {
+                    _modifyFieldsInQuery(appId, collectionName, query).then(function(query) {
                         databaseDriver.find(appId, collectionName, query, select, sort, limit, skip, accessList, isMasterKey).then(function(doc) {
                             deferred.resolve(doc);
                         }, function(err) {
@@ -54,7 +54,7 @@ module.exports = function() {
             var deferred = q.defer();
 
             try {
-                _encryptPasswordInQuery(appId, collectionName, query).then(function(query) {
+                _modifyFieldsInQuery(appId, collectionName, query).then(function(query) {
                     databaseDriver.count(appId, collectionName, query, limit, skip, accessList, isMasterKey).then(function(doc) {
                         deferred.resolve(doc);
                     }, function(err) {
@@ -77,7 +77,7 @@ module.exports = function() {
             var deferred = q.defer();
 
             try {
-                _encryptPasswordInQuery(appId, collectionName, query).then(function(query) {
+                _modifyFieldsInQuery(appId, collectionName, query).then(function(query) {
                     databaseDriver.distinct(appId, collectionName, onKey, query, select, sort, limit, skip, accessList, isMasterKey).then(function(doc) {
                         deferred.resolve(doc);
                     }, function(err) {
@@ -101,7 +101,7 @@ module.exports = function() {
             var deferred = q.defer();
 
             try {
-                _encryptPasswordInQuery(appId, collectionName, query).then(function(query) {
+                _modifyFieldsInQuery(appId, collectionName, query).then(function(query) {
                     databaseDriver.findOne(appId, collectionName, query, select, sort, skip, accessList, isMasterKey).then(function(doc) {
                         deferred.resolve(doc);
                     }, function(err) {
@@ -286,12 +286,16 @@ function _save(appId, collectionName, document, accessList, isMasterKey, reqType
                 _validateSchema(appId, listOfDocs, accessList, isMasterKey).then(function(listOfDocs) {
                     console.log("Schema checked");
 
-                    var mongoDocs = JSON.parse(JSON.stringify(listOfDocs)); //making copies of an array to avoid modification by "call by reference"
+
+                    var mongoDocs = listOfDocs.map(function(doc){
+                        return Object.assign({},doc)
+                    })
 
                     promises.push(databaseDriver.save(appId, mongoDocs));
                     global.q.allSettled(promises).then(function(array) {
                         if (array[0].state === 'fulfilled') {
-                            _sendNotification(appId, array[0], reqType);
+                            //pass masterkey to access events as default ACL for event R/W is set to false
+                            _sendNotification(appId, array[0], reqType, isMasterKey);
                             unModDoc = _merge(parentId, array[0].value, unModDoc);
                             console.log('SAVED Doc');
                             console.log(unModDoc);
@@ -390,14 +394,16 @@ function _validateSchema(appId, listOfDocs, accessList, isMasterKey) {
     return deferred.promise;
 }
 
-function _sendNotification(appId, res, reqType) {
+function _sendNotification(appId, res, reqType, isMasterKey) {
+    //pass masterkey to access events as default ACL for event R/W is set to false
+
     try {
         for (var i = 0; i < res.value.length; i++) {
             if (res.value[i].state === 'fulfilled') {
                 if (reqType.save.indexOf(res.value[i].value._id) >= 0) {
-                    global.realTime.sendObjectNotification(appId, res.value[i].value, 'created');
+                    global.realTime.sendObjectNotification(appId, res.value[i].value, 'created', isMasterKey);
                 } else {
-                    global.realTime.sendObjectNotification(appId, res.value[i].value, 'updated');
+                    global.realTime.sendObjectNotification(appId, res.value[i].value, 'updated', isMasterKey);
                 }
             }
         }
@@ -435,6 +441,14 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                     continue; //ignore.
 
                 if (document[columns[i].name] === undefined) {
+                    //TODO :  check type for defaultValue , convert to date of type is DateTime , quick patch , fix properly later 
+                    if(columns[i].dataType === 'DateTime'){
+                        try{
+                            columns[i].defaultValue = new Date(columns[i].defaultValue)
+                        } catch(e){
+                            columns[i].defaultValue = null
+                        }
+                    }
                     document[columns[i].name] = columns[i].defaultValue;
                 }
 
@@ -514,7 +528,7 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                     if (key === '_tableName' || key === '_type' || key === '_version')
                         continue; //check id; //ignore.
                     else if (key === '_id') {
-                        //check if this is a string.
+                        //check if this is a string..
                         if (typeof document[key] !== 'string') {
                             mainPromise.reject('Invalid data in ID of type ' + collectionName + '. It should be of type string');
                             return mainPromise.promise;
@@ -525,28 +539,27 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                         // if column does not exist create a new column
                         if (!col) {
                             columnNotFound = true
-                            try{
+                            try {
                                 let detectedDataType = type.inferDataType(document[key]);
                                 let newCol = {
-                                            name:key,
-                                            _type:"column",
-                                            dataType:detectedDataType,
-                                            defaultValue:null,
-                                            editableByMasterKey:false,
-                                            isDeletable:true,
-                                            isEditable:true,
-                                            isRenamable:false,
-                                            relatedTo: type.inferRelatedToType(detectedDataType, document[key]),
-                                            relationType:null,
-                                            required:false,
-                                            unique:false
+                                    name: key,
+                                    _type: "column",
+                                    dataType: detectedDataType,
+                                    defaultValue: null,
+                                    editableByMasterKey: false,
+                                    isDeletable: true,
+                                    isEditable: true,
+                                    isRenamable: false,
+                                    relatedTo: type.inferRelatedToType(detectedDataType, document[key]),
+                                    relationType: null,
+                                    required: false,
+                                    unique: false
                                 };
 
                                 //push the new column to the old schema
                                 table.columns.push(newCol);
 
-                            }
-                            catch (err) {
+                            } catch (err) {
                                 global.winston.log('error', {
                                     "error": String(err),
                                     "stack": new Error().stack
@@ -641,34 +654,29 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                     }
                 }
             }
-            if(columnNotFound){
+            if (columnNotFound) {
                 // update the table schema
                 var createNewColumnPromise = q.defer();
                 var schemaCursor = global.mongoClient.db(appId).collection("_Schema");
-                schemaCursor.findOneAndUpdate(
-                    {
-                        name: document._tableName
-                    },
-                    {
-                        $set: table
-                    },
-                    {
-                        upsert: true,
-                        returnOriginal: false
-                    },
-                    function(err, response) {
-                        var table = null;
-                        if (response && response.value)
-                            table = response.value;
-                            
-                        if (err) {
-                            createNewColumnPromise.reject("Error : Failed to update the table with the new column. ");
-                        } else if (table) {
-                            createNewColumnPromise.resolve();
-                            console.log("Column " + key + " created.");
-                        }
+                schemaCursor.findOneAndUpdate({
+                    name: document._tableName
+                }, {
+                    $set: table
+                }, {
+                    upsert: true,
+                    returnOriginal: false
+                }, function(err, response) {
+                    var table = null;
+                    if (response && response.value)
+                        table = response.value;
+
+                    if (err) {
+                        createNewColumnPromise.reject("Error : Failed to update the table with the new column. ");
+                    } else if (table) {
+                        createNewColumnPromise.resolve();
+                        console.log("Column " + key + " created.");
                     }
-                )
+                })
 
                 promises.push(createNewColumnPromise.promise)
             }
@@ -722,6 +730,8 @@ function _getTableType(tableName) {
         tableType = "file";
     } else if (tableName === "_Event") {
         tableType = "event";
+    } else if (tableName === "_Funnel") {
+        tableType = "funnel";
     }
     return tableType;
 }
@@ -1291,8 +1301,8 @@ function _getSchema(appId, collectionName) {
     return deferred.promise;
 }
 
-//this function encrypts the password, if the password is passed in the Query.
-function _encryptPasswordInQuery(appId, collectionName, query) {
+//this function modifies the fields ['password','datetime']  passed in the Query.
+function _modifyFieldsInQuery(appId, collectionName, query) {
 
     var deferred = global.q.defer();
 
@@ -1302,19 +1312,27 @@ function _encryptPasswordInQuery(appId, collectionName, query) {
         } else {
             _getSchema(appId, collectionName).then(function(columns) {
                 var passwordColumnNames = [];
+                var dateTimeColumnNames = [];
 
+                // push in fields to be modified / i.e DateTime and Encypted fields
                 for (var i = 0; i < columns.length; i++) {
                     if (columns[i].dataType === 'EncryptedText') {
                         passwordColumnNames.push(columns[i].name);
                     }
+                    if (columns[i].dataType === 'DateTime') {
+                        dateTimeColumnNames.push(columns[i].name);
+                    }
                 }
 
-                //resolve if there are no password fields.
-                if (passwordColumnNames.length === 0) {
+                //resolve if there are no password fields or DateTime fields
+                if (passwordColumnNames.length === 0 && dateTimeColumnNames === 0) {
                     deferred.resolve(query);
                 } else {
                     //or modify the query and resolve it.
-                    query = _recursiveEncryptQuery(query, passwordColumnNames);
+                    if (passwordColumnNames.length)
+                        query = _recursiveModifyQuery(query, passwordColumnNames, 'encrypt');
+                    if (dateTimeColumnNames.length)
+                        query = _recursiveModifyQuery(query, dateTimeColumnNames, 'datetime');
 
                     deferred.resolve(query);
                 }
@@ -1345,19 +1363,33 @@ function _encrypt(data) {
     }
 }
 
-function _recursiveEncryptQuery(query, passwordColumnNames) {
+function _recursiveModifyQuery(query, columnNames, type) {
 
     for (var key in query) {
         if (key === '$or') {
             for (var i = 0; i < query[key].length; i++) {
-                query[key][i] = _recursiveEncryptQuery(query[key][i], passwordColumnNames);
+                query[key][i] = _recursiveModifyQuery(query[key][i], columnNames, type);
             }
         }
     }
     return _.mapObject(query, function(val, key) {
-        if (passwordColumnNames.indexOf(key) > -1) {
+        if (columnNames.indexOf(key) > -1) {
             if (typeof val !== 'object') {
-                return _encrypt(val);
+                if (type === 'encrypt') {
+                    return _encrypt(val);
+                }
+            } else {
+                // for datetime fields convert them to a fomat which mongodb can query
+                if (type === 'datetime') {
+                    try {
+                        Object.keys(val).map(function(x) {
+                            val[x] = new Date(val[x]);
+                        })
+                        return val;
+                    } catch (e) {
+                        return val;
+                    }
+                }
             }
         }
         return val;

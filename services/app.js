@@ -14,7 +14,7 @@ var util = require('../helpers/util.js');
 var tablesData = require('../helpers/cloudTable');
 var json2csv = require('json2csv');
 var jsonToXlsx = require('json2xlsx');
-var jsonXlsxWriteFile = require('icg-json-to-xlsx');  
+var jsonXlsxWriteFile = require('icg-json-to-xlsx');
 var fs = require('fs');
 
 module.exports = function() {
@@ -456,7 +456,7 @@ module.exports = function() {
                     if (project.keys.master === key) {
                         deferred.resolve(true);
                     } else {
-                        if (project.keys.js === key){
+                        if (project.keys.js === key) {
                             deferred.resolve(false);
                         } else {
                             deferred.resolve(false);
@@ -502,36 +502,42 @@ module.exports = function() {
             return deferred.promise;
         },
 
-        isClientAuthorized : function(appId,appKey,level,table){
+        isClientAuthorized: function(appId, appKey, level, table) {
             var deferred = q.defer();
             var self = this
-            self.isKeyValid(appId, appKey).then(function(isValidKey){
-                if(isValidKey){
+            self.isKeyValid(appId, appKey).then(function(isValidKey) {
+                if (isValidKey) {
                     self.isMasterKey(appId, appKey).then(function(isMasterKey) {
                         // resolve if masterKey
-                        if(isMasterKey){
+                        if (isMasterKey) {
                             deferred.resolve(true)
                         } else {
                             // else check with client keys acc to auth level
                             // levels = table level or app level
                             // for app level check in app settings , for table level check in table schema
-                            if(level === 'table'){
-                                if(table) {
+                            if (level === 'table') {
+                                if (table) {
                                     deferred.resolve(!!table.isEditableByClientKey)
-                                } else deferred.resolve(false);
-                            } else {
-                                self.getAllSettings(appId).then(function(settings){
-                                    if(settings){
+                                } else
+                                    deferred.resolve(false);
+                                }
+                            else {
+                                self.getAllSettings(appId).then(function(settings) {
+                                    if (settings) {
                                         // check for clientkey flag in genral settings
-                                        let generalSetting = settings.filter((function(x){
+                                        let generalSetting = settings.filter((function(x) {
                                             return x.category === 'general'
                                         }))
-                                        if(generalSetting[0]){
+                                        if (generalSetting[0]) {
                                             deferred.resolve(!!generalSetting[0].settings.isTableEditableByClientKey)
-                                        } else deferred.resolve(false); 
-                                    } else deferred.resolve(false);
-                                
-                                }, function(error) {
+                                        } else
+                                            deferred.resolve(false);
+                                        }
+                                    else
+                                        deferred.resolve(false);
+
+                                    }
+                                , function(error) {
                                     deferred.reject(error);
                                 });
                             }
@@ -542,7 +548,7 @@ module.exports = function() {
                 } else {
                     deferred.reject('Unauthorized');
                 }
-            },function(err){
+            }, function(err) {
                 deferred.reject(err);
             })
 
@@ -552,8 +558,11 @@ module.exports = function() {
         upsertTable: function(appId, tableName, schema, tableProps) {
 
             var deferred = global.q.defer();
-            tableProps = tableProps || { isEditableByClientKey : false }
-            
+            tableProps = tableProps || {
+                isEditableByClientKey: false
+            }
+            var updateColumnNameOfOldRecordsPromises=[]
+
             try {
 
                 var self = this;
@@ -583,11 +592,13 @@ module.exports = function() {
                     tableType = "file";
                 } else if (tableName === "_Event") {
                     tableType = "event";
+                } else if (tableName === "_Funnel") {
+                    tableType = "funnel";
                 } else {
                     tableType = "custom";
                 }
 
-                if (tableType === 'user' || tableType === 'role' || tableType === 'device' || tableType === 'file' || tableType === 'event') {
+                if (tableType === 'user' || tableType === 'role' || tableType === 'device' || tableType === 'file' || tableType === 'event' || tableType === 'funnel') {
                     maxCount = 1;
                 } else {
                     maxCount = 99999;
@@ -673,6 +684,33 @@ module.exports = function() {
 
                     var collection = global.mongoClient.db(appId).collection("_Schema");
 
+                    //get previous schema object of current table if old table
+                    var renameColumnObject={};
+                    if(!isNewTable)
+                    collection.findOne({name:tableName},function(err,doc){
+                        if(err)
+                            deferred.reject("Error : Failed to get the table. ");
+                        else if(!doc)
+                            deferred.reject("Error : Failed to get the table. ");
+                        else{
+                            
+                            doc.columns.forEach(function(oldColumnObj,i){
+                                //check column id
+                                schema.forEach(function(newColumnObj,i){
+                                    //match column id of each columns
+                                    if(newColumnObj._id===oldColumnObj._id){
+                                        if(newColumnObj.name!=oldColumnObj.name){
+                                            //column name is updated update previous records.
+                                            renameColumnObject[oldColumnObj.name]=newColumnObj.name;
+                                        }
+                                    }
+                                })
+                            })
+                            updateColumnNameOfOldRecordsPromises.push(_updateColumnNameOfOldRecords(tableName,appId,renameColumnObject));
+
+                        }
+                    })
+
                     console.log('Collection Object Created.');
 
                     collection.findOneAndUpdate({
@@ -734,10 +772,16 @@ module.exports = function() {
 
                                     //Index all text fields
                                     promises.push(global.mongoUtil.collection.deleteAndCreateTextIndexes(appId, tableName, cloneOldColumns, schema));
-
-                                    q.all(promises).then(function(res) {
-                                        deferred.resolve(table);
-                                    }, function(error) {
+                                    //updateColumnNameOfOldRecordsPromises stores the promises for updating previous records.
+                                    q.all(promises.concat(updateColumnNameOfOldRecordsPromises)).then(function(res) {
+                                        //confirm all colums are updated 
+                                        q.all(updateColumnNameOfOldRecordsPromises).then(function(res) {
+                                            deferred.resolve(table);
+                                        }, function(error) {
+                                            //TODO : Rollback.
+                                            deferred.resolve(table);
+                                    });     
+                                        }, function(error) {
                                         //TODO : Rollback.
                                         deferred.resolve(table);
                                     });
@@ -794,7 +838,8 @@ module.exports = function() {
                 global.appService.upsertTable(appId, 'Device', tablesData.Device),
                 global.appService.upsertTable(appId, 'User', tablesData.User),
                 global.appService.upsertTable(appId, '_File', tablesData._File),
-                global.appService.upsertTable(appId, '_Event', tablesData._Event)
+                global.appService.upsertTable(appId, '_Event', tablesData._Event),
+                global.appService.upsertTable(appId, '_Funnel', tablesData._Funnel)
             ]);
         },
 
@@ -1027,45 +1072,59 @@ module.exports = function() {
             return deferred.promise;
         },
 
-        exportTable : function(appId,tableName,exportType,isMasterKey,accessList){
+        exportTable: function(appId, tableName, exportType, isMasterKey, accessList) {
 
             var deferred = q.defer();
-            global.customService.find(appId, tableName,{},null, null, null, null, accessList, isMasterKey).then(function(tables){
+            global.customService.find(appId, tableName, {}, null, null, null, null, accessList, isMasterKey).then(function(tables) {
 
-                if(exportType === 'csv')
-                {   
-                     var result = json2csv({ data: tables});
-                     deferred.resolve(result);
-                }else if(exportType === 'xlsx' || exportType === 'xls')
-                {    
-                    var random =  util.getId();
-                    var fileName = '/tmp/tempfile'+random+'.xlsx';
-                    var converted = convertObjectToString(tables);  
-                    var outputFile = jsonXlsxWriteFile.writeFile(fileName, converted);      
+                if (exportType === 'csv') {
+                    var result = json2csv({data: tables});
+                    deferred.resolve(result);
+                } else if (exportType === 'xlsx' || exportType === 'xls') {
+                    var random = util.getId();
+                    var fileName = '/tmp/tempfile' + random + '.xlsx';
+                    var converted = convertObjectToString(tables);
+                    var outputFile = jsonXlsxWriteFile.writeFile(fileName, converted);
 
                     fs.readFile(fileName, function read(err, data) {
                         if (err) {
-                        deferred.reject("Error : Failed to convert the table.");
+                            deferred.reject("Error : Failed to convert the table.");
                         }
-                        fs.unlink(fileName,function(err){
-                            if(err){
+                        fs.unlink(fileName, function(err) {
+                            if (err) {
                                 deferred.reject(err);
-                            } 
+                            }
                             deferred.resolve(data);
-                        });          
+                        });
                     });
-                }else if(exportType === 'json'){
+                } else if (exportType === 'json') {
                     deferred.resolve(tables);
-                } else{
+                } else {
                     deferred.reject('Invalid exportType ,exportType should be csv,xls,xlsx,json')
                 }
-            },function(err){
+            }, function(err) {
                 deferred.reject(err);
             });
-             return deferred.promise;     
+            return deferred.promise;
         }
     };
 };
+
+function _updateColumnNameOfOldRecords(tableName,appId,renameColumnObject){
+
+        var deferred = q.defer();
+
+        var collection = global.mongoClient.db(appId).collection(tableName);
+        collection.updateMany( {}, { $rename: renameColumnObject },function(err,doc){
+            if(err)
+                deferred.reject()
+            else
+                deferred.resolve();
+        } );
+
+       return deferred.promise;
+
+}
 
 function _isBasicDataType(dataType) {
     try {
@@ -1137,6 +1196,8 @@ function _getDefaultColumnList(type) {
             defaultColumn.concat(['name', 'contentType', 'path', 'url', 'size']);
         } else if (type == 'event') {
             defaultColumn.concat(['user', 'type', 'name', 'data']);
+        } else if (type == 'funnel') {
+            defaultColumn.concat(['name', 'data']);
         }
         return defaultColumn;
 
@@ -1243,7 +1304,7 @@ function _checkValidDataType(columns, deafultDataType, tableType) {
                     return false;
                 }
             //name for event table
-            if (key === 'name' && tableType === 'event') {
+            if (key === 'name' && (tableType === 'event' || tableType === 'funnel')) {
                 if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'Text')
                     return false;
                 }
@@ -1273,12 +1334,7 @@ function _checkValidDataType(columns, deafultDataType, tableType) {
                 if (columns[index].relationType != null || columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'Object')
                     return false;
                 }
-            // //name for file table
-            // if (key === 'fileName') {
-            //     if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'Text')
-            //         return false;
-            //     }
-            // //size for file table
+            
             if (key === 'size') {
                 if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'Number')
                     return false;
@@ -1301,7 +1357,7 @@ function _checkValidDataType(columns, deafultDataType, tableType) {
 
             //user for event table
             if (key === 'user') {
-                if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'Relation')
+                if (columns[index].relationType != null || columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'Relation')
                     return false;
                 }
 
@@ -1367,8 +1423,7 @@ function _checkValidDataType(columns, deafultDataType, tableType) {
                         }
                     } else if (columns[i].dataType === 'Email') {
                         if (columns[i].defaultValue.match(/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/i)[0] !== columns[i].defaultValue) {
-                            return
-                            false; // if the set dataType is not other string Datatypes (Text, EncryptedText, DateTime) available in cloudboost;
+                            return false; // if the set dataType is not other string Datatypes (Text, EncryptedText, DateTime) available in cloudboost;
                         }
                     } else if (['Text', 'EncryptedText', 'DateTime'].indexOf(columns[i].dataType) === -1) {
                         return false;
@@ -1477,6 +1532,9 @@ function _getDefaultColumnWithDataType(type) {
             defaultColumn['type'] = 'Text';
             defaultColumn['name'] = 'Text';
             defaultColumn['data'] = 'Object';
+        } else if (type == 'funnel') {
+            defaultColumn['name'] = 'Text';
+            defaultColumn['data'] = 'Object';
         }
         return defaultColumn;
 
@@ -1513,18 +1571,14 @@ function deleteAppFromRedis(appId) {
     return deferred.promise;
 }
 
-function convertObjectToString(arr)
-{
-    for(let j in arr)
-    {   
+function convertObjectToString(arr) {
+    for (let j in arr) {
         let data = arr[j];
-        for(let i in data)
-        {
-            if(typeof data[i] == 'object')
-            {
-            data[i] = JSON.stringify(data[i]);
+        for (let i in data) {
+            if (typeof data[i] == 'object') {
+                data[i] = JSON.stringify(data[i]);
             }
-            
+
         }
     }
     return arr;

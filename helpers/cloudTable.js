@@ -534,7 +534,7 @@ module.exports = {
             "name": "user",
             "_type": "column",
             "dataType": "Relation",
-            "required": true,
+            "required": false,
             "unique": false,
             "relatedTo": "User",
             "relationType": null,
@@ -580,8 +580,97 @@ module.exports = {
             "editableByMasterKey": false
         }
     ],
-    Custom: [ 
-        { 
+    _Funnel: [
+        {
+            "name": "id",
+            "_type": "column",
+            "dataType": "Id",
+            "required": true,
+            "unique": true,
+            "relatedTo": null,
+            "relationType": null,
+            "isDeletable": false,
+            "isEditable": false,
+            "isRenamable": false,
+            "editableByMasterKey": false,
+            "defaultValue": null
+        }, {
+            "name": "updatedAt",
+            "_type": "column",
+            "dataType": "DateTime",
+            "required": true,
+            "unique": false,
+            "relatedTo": null,
+            "relationType": null,
+            "isDeletable": false,
+            "isEditable": false,
+            "isRenamable": false,
+            "editableByMasterKey": false
+        }, {
+            "name": "createdAt",
+            "_type": "column",
+            "dataType": "DateTime",
+            "required": true,
+            "unique": false,
+            "relatedTo": null,
+            "relationType": null,
+            "isDeletable": false,
+            "isEditable": false,
+            "isRenamable": false,
+            "editableByMasterKey": false
+        }, {
+            "name": "expires",
+            "_type": "column",
+            "dataType": "DateTime",
+            "required": false,
+            "unique": false,
+            "relatedTo": null,
+            "relationType": null,
+            "isDeletable": false,
+            "isEditable": false,
+            "isRenamable": false,
+            "editableByMasterKey": false
+        }, {
+            "name": "ACL",
+            "_type": "column",
+            "dataType": "ACL",
+            "required": true,
+            "unique": false,
+            "relatedTo": null,
+            "relationType": null,
+            "isDeletable": false,
+            "isEditable": false,
+            "isRenamable": false,
+            "editableByMasterKey": false
+        }, {
+            "name": "name",
+            "_type": "column",
+            "dataType": "Text",
+            "required": true,
+            "unique": false,
+            "relatedTo": "Text",
+            "relationType": null,
+            "isDeletable": false,
+            "isEditable": false,
+            "isRenamable": false,
+            "editableByMasterKey": false,
+            "defaultValue": null
+        }, {
+            "name": "data",
+            "_type": "column",
+            "dataType": "Object",
+            "required": true,
+            "unique": false,
+            "relatedTo": null,
+            "relationType": null,
+            "isDeletable": false,
+            "isEditable": false,
+            "isRenamable": false,
+            "editableByMasterKey": false
+        }
+    ],
+    Custom: [
+        {
             name: 'id',
             _type: 'column',
             dataType: 'Id',
@@ -593,9 +682,8 @@ module.exports = {
             isEditable: false,
             isRenamable: false,
             editableByMasterKey: false,
-            defaultValue: null 
-        },
-        { 
+            defaultValue: null
+        }, {
             name: 'expires',
             _type: 'column',
             dataType: 'DateTime',
@@ -607,9 +695,8 @@ module.exports = {
             isEditable: false,
             isRenamable: false,
             editableByMasterKey: false,
-            defaultValue: null 
-        },
-        {
+            defaultValue: null
+        }, {
             name: 'updatedAt',
             _type: 'column',
             dataType: 'DateTime',
@@ -622,8 +709,7 @@ module.exports = {
             isRenamable: false,
             editableByMasterKey: false,
             defaultValue: null
-        },
-        {
+        }, {
             name: 'createdAt',
             _type: 'column',
             dataType: 'DateTime',
@@ -635,9 +721,8 @@ module.exports = {
             isEditable: false,
             isRenamable: false,
             editableByMasterKey: false,
-            defaultValue: null 
-        },
-        {
+            defaultValue: null
+        }, {
             name: 'ACL',
             _type: 'column',
             dataType: 'ACL',
@@ -650,6 +735,6 @@ module.exports = {
             isRenamable: false,
             editableByMasterKey: false,
             defaultValue: null
-        } 
+        }
     ]
 };

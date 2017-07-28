@@ -30,6 +30,7 @@ module.exports = {
      */
     setData: function(socketId, data, callback) {
         try {
+            data = data || {}
             global.redisClient.set('cb-socket-' + socketId + '-data' + data.eventType, JSON.stringify(data), function(err, reply) {
                 if (callback)
                     callback(err, reply);

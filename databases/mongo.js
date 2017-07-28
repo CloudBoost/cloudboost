@@ -295,6 +295,13 @@ module.exports = function() {
                 if (!sort) {
                     sort = {};
                 }
+                //default sort added
+                /*
+                    without sort if limit and skip are used, the records are returned out of order. To solve this default sort in ascending order of 'createdAt' is added
+                */
+
+                if (!sort['createdAt'])
+                    sort['createdAt'] = 1
 
                 if (!limit || limit === -1) {
                     limit = 20;
@@ -369,7 +376,7 @@ module.exports = function() {
 
                 findQuery.toArray(function(err, docs) {
                     if (err) {
-                        global.winston.log('error', err);
+                        console.log('error', err);
                         deferred.reject(err);
                     } else {
                         if (!include || include.length === 0) {
@@ -379,7 +386,7 @@ module.exports = function() {
                             obj.document._include(appId, include, docs).then(function(docs) {
                                 deferred.resolve(docs);
                             }, function(error) {
-                                global.winston.log('error', error);
+                                console.log('error', error);
                                 deferred.reject(error);
                             });
                         }

@@ -243,25 +243,29 @@ module.exports = function() {
                     Creating a wild card index , instaed of creating individual $text index on each column seperately
                 **/
                 var obj = {};
+
+                if(columnType === 'Text'){
+                    obj["$**"] = "text";
+                }
                 if (columnType === 'GeoPoint') {
                     obj[columnName] = "2dsphere";
                 }
-                var collection = global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));
-                collection.createIndex({
-                    "$**": "text"
-                }, function(err, res) {
-                    if (err) {
-                        global.winston.log('error', err);
-                        console.log("Could not create index");
-                        deferred.reject(err);
-                    } else {
-                        // create geopoint indexing explicitly
-                        collection.createIndex(obj);
-                        console.log(res);
-                        deferred.resolve(res);
-                    }
 
-                });
+                if(Object.keys(obj).length > 0){
+                    var collection = global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));
+                    collection.createIndex(obj, function(err, res) {
+                        if (err) {
+                            console.log("Could not create index", err);
+                            deferred.reject(err);
+                        } else {
+                            console.log(res);
+                            deferred.resolve(res);
+                        }
+
+                    });
+                } else {
+                    deferred.resolve('NO index');
+                }
 
             } catch (err) {
                 global.winston.log('error', {

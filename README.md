@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.org/CloudBoost/cloudboost.svg?branch=master)](https://travis-ci.org/CloudBoost/cloudboost)
 [![OpenCollective](https://opencollective.com/cloudboost/backers/badge.svg)](#backers) 
 
-CloudBoost is the Complete NoSQL Database Service for your app. **Think of CloudBoost as Parse + Firebase + Algolia + Iron.io all combined into one** :
+CloudBoost is the complete serverless platform for your app. **Think of CloudBoost as Parse + Firebase + Algolia + Iron.io all combined into one** :
  - Data-Storage / JSON Storage / BLOB Storage
  - 100% data ownership
  - Realtime
@@ -106,6 +106,10 @@ For Example (in curl)  :
 curl -H "Content-Type: application/json" -X POST -d '{"secureKey":"xxxxxx-yyyy-xxxx-yyyyy-xxx"}' http://localhost:4730/app/app1
 
 ```
+
+### Creating a table
+
+Table lets you store any structured data in your app. To create one, [check this documentation out](https://tutorials.cloudboost.io/en/schema/cloudtables).
 
 ### Delete an app
 

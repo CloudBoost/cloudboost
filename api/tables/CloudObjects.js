@@ -1,10 +1,8 @@
-
 /*
 #     CloudBoost - Core Engine that powers Bakend as a Service
-#     (c) 2014 HackerBay, Inc. 
+#     (c) 2014 HackerBay, Inc.
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
-
 
 var customHelper = require('../../helpers/custom.js');
 var integrationServices = require('../../services/integrationServices')();
@@ -28,15 +26,15 @@ module.exports = function () {
 
 
             global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
+                return global.customService.save(appId, collectionName, document, customHelper.getAccessList(req), isMasterKey);
+            }).then(function(result) {
+                console.log('+++ Save Success +++');
+                console.log(result);
                 if (collectionName == "_Event") {
                    integrationServices.integrationsNotifications(appId, document);
                 }
-                return global.customService.save(appId, collectionName, document, customHelper.getAccessList(req), isMasterKey);
-            }).then(function (result) {
-                console.log('+++ Save Success +++');
-                console.log(result);
                 res.status(200).send(result);
-            }, function (error) {
+            }, function(error) {
                 console.log('++++++ Save Error +++++++');
                 console.log(error);
                 res.status(400).send(error);
@@ -46,7 +44,6 @@ module.exports = function () {
             /******************SAVE API*********************/
         }
     });
-
 
     global.app.get('/data/:appId/:tableName/find', _getData);
     global.app.post('/data/:appId/:tableName/find', _getData);
@@ -98,9 +95,9 @@ function _getData(req, res) { //get document(s) object based on query and variou
 
     global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
         return global.customService.find(appId, collectionName, query, select, sort, limit, skip, customHelper.getAccessList(req), isMasterKey);
-    }).then(function (results) {
+    }).then(function(results) {
         res.json(results);
-    }, function (error) {
+    }, function(error) {
         res.status(400).send(error);
     });
 
@@ -119,9 +116,9 @@ function _count(req, res) { //get document(s) object based on query and various 
 
     global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
         return global.customService.count(appId, collectionName, query, limit, skip, customHelper.getAccessList(req), isMasterKey);
-    }).then(function (result) {
+    }).then(function(result) {
         res.json(result);
-    }, function (error) {
+    }, function(error) {
         res.status(400).send(error);
     });
 
@@ -143,9 +140,9 @@ function _distinct(req, res, next) { //get document(s) object based on query and
 
     global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
         return global.customService.distinct(appId, collectionName, onKey, query, select, sort, limit, skip, customHelper.getAccessList(req), isMasterKey);
-    }).then(function (results) {
+    }).then(function(results) {
         res.json(results);
-    }, function (error) {
+    }, function(error) {
         res.status(400).send(error);
     });
 
@@ -165,9 +162,9 @@ function _findOne(req, res) { //get a single document matching the search query
 
     global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
         return global.customService.findOne(appId, collectionName, query, select, sort, skip, customHelper.getAccessList(req), isMasterKey);
-    }).then(function (result) {
+    }).then(function(result) {
         res.json(result);
-    }, function (error) {
+    }, function(error) {
         res.status(400).send(error);
     });
 

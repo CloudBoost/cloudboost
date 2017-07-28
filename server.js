@@ -243,10 +243,7 @@ global.app.use([
                     }
 
                 }, function(err) {
-                    global.winston.log('error', {
-                        "error": String(err),
-                        "stack": new Error().stack
-                    });
+                    console.log(err.message)
                     return res.status(500).send(err.message);
                 });
             }
@@ -796,6 +793,8 @@ function servicesKickstart() {
         }, function(err) {
             console.log("Cannot connect to MongoDB.");
             console.log(err);
+            // exit server if connection to mongo was not made
+            process.exit(1)
         });
 
     } catch (err) {
@@ -824,7 +823,7 @@ function attachCronJobs() {
         require('./cron/expire.js');
         app.use(function(req,res,next){
 
-    res.status(404).json({status : 404,message : 'The endpoint was not found. Please check.'});
+    res.json({status : 404,message : 'The endpoint was not found. Please check.'});
 
 });
     } catch (err) {
