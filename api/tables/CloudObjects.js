@@ -5,10 +5,11 @@
 */
 
 var customHelper = require('../../helpers/custom.js');
+var integrationService = require('../../services/integrationService')();
 
-module.exports = function() {
+module.exports = function () {
 
-    global.app.put('/data/:appId/:tableName', function(req, res) { //save a new document into <tableName> of app
+    global.app.put('/data/:appId/:tableName', function (req, res) { //save a new document into <tableName> of app
         if (req.body && req.body.method == "DELETE") {
             /******************DELETE API*********************/
             _deleteApi(req, res);
@@ -22,13 +23,16 @@ module.exports = function() {
             var appKey = req.body.key || req.params.key;
             var sdk = req.body.sdk || "REST";
 
-            global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
+            global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
                 return global.customService.save(appId, collectionName, document, customHelper.getAccessList(req), isMasterKey);
-            }).then(function(result) {
+            }).then(function (result) {
                 console.log('+++ Save Success +++');
                 console.log(result);
+                if (collectionName == "_Event") {
+                    integrationService.integrationNotification(appId, document);
+                }
                 res.status(200).send(result);
-            }, function(error) {
+            }, function (error) {
                 console.log('++++++ Save Error +++++++');
                 console.log(error);
                 res.status(400).send(error);
@@ -61,11 +65,11 @@ module.exports = function() {
         var appKey = req.body.key || req.param('key');
         var sdk = req.body.sdk || "REST";
 
-        global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
+        global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
             return global.customService.delete(appId, collectionName, document, customHelper.getAccessList(req), isMasterKey);
-        }).then(function(result) {
+        }).then(function (result) {
             res.json(result);
-        }, function(error) {
+        }, function (error) {
             res.status(400).send(error);
         });
 
@@ -87,11 +91,11 @@ function _getData(req, res) { //get document(s) object based on query and variou
     var appKey = req.body.key || req.param('key');
     var sdk = req.body.sdk || "REST";
 
-    global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
+    global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
         return global.customService.find(appId, collectionName, query, select, sort, limit, skip, customHelper.getAccessList(req), isMasterKey);
-    }).then(function(results) {
+    }).then(function (results) {
         res.json(results);
-    }, function(error) {
+    }, function (error) {
         res.status(400).send(error);
     });
 
@@ -108,11 +112,11 @@ function _count(req, res) { //get document(s) object based on query and various 
     var appKey = req.body.key || req.param('key');
     var sdk = req.body.sdk || "REST";
 
-    global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
+    global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
         return global.customService.count(appId, collectionName, query, limit, skip, customHelper.getAccessList(req), isMasterKey);
-    }).then(function(result) {
+    }).then(function (result) {
         res.json(result);
-    }, function(error) {
+    }, function (error) {
         res.status(400).send(error);
     });
 
@@ -132,11 +136,11 @@ function _distinct(req, res, next) { //get document(s) object based on query and
     var appKey = req.body.key || req.param('key');
     var sdk = req.body.sdk || "REST";
 
-    global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
+    global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
         return global.customService.distinct(appId, collectionName, onKey, query, select, sort, limit, skip, customHelper.getAccessList(req), isMasterKey);
-    }).then(function(results) {
+    }).then(function (results) {
         res.json(results);
-    }, function(error) {
+    }, function (error) {
         res.status(400).send(error);
     });
 
@@ -154,11 +158,11 @@ function _findOne(req, res) { //get a single document matching the search query
     var appKey = req.body.key || req.param('key');
     var sdk = req.body.sdk || "REST";
 
-    global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
+    global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
         return global.customService.findOne(appId, collectionName, query, select, sort, skip, customHelper.getAccessList(req), isMasterKey);
-    }).then(function(result) {
+    }).then(function (result) {
         res.json(result);
-    }, function(error) {
+    }, function (error) {
         res.status(400).send(error);
     });
 
