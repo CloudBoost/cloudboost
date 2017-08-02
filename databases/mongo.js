@@ -225,7 +225,7 @@ module.exports = function() {
                     return deferred.promise;
                 }
 
-                console.log(query);
+                console.log(query, "[[[[[[[[[[[[[[[[}}}}}}}}]");
                 var collection = global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));
                 var include = [];
                 /*query for expires*/
