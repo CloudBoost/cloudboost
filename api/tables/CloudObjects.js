@@ -19,6 +19,7 @@ module.exports = function () {
             console.log("SAVE API");
             var appId = req.params.appId;
             var document = req.body.document;
+            console.log(document, "\\\\\\\\\}}}}}}}}}}}}}}}}}}{{{{{{{");
             var collectionName = req.params.tableName;
             var appKey = req.body.key || req.params.key;
             var sdk = req.body.sdk || "REST";

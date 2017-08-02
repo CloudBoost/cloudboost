@@ -504,8 +504,10 @@ module.exports = function () {
         },
 
         isClientAuthorized: function (appId, appKey, level, table) {
+            console.log("calling");
             var deferred = q.defer();
-            var self = this
+            var self = this;
+            console.log(appId, appKey, level, "{{{{{{{{{{{{{{{{{{")
             self.isKeyValid(appId, appKey).then(function (isValidKey) {
                 if (isValidKey) {
                     self.isMasterKey(appId, appKey).then(function (isMasterKey) {
@@ -1107,6 +1109,31 @@ module.exports = function () {
                 deferred.reject(err);
             });
             return deferred.promise;
+        },
+
+        getAllProjects: function () {
+            var deffered = q.defer();
+            try {
+                var collection = global.mongoClient.db(global.keys.globalDb).collection("projects");
+                var findQuery = collection.find({});
+                findQuery.toArray(function (err, docs) {
+                    if (err) {
+                        global.winston.log('error', err);
+                        deffered.reject(err);
+                    } else if (!docs || docs.length == 0) {
+                        deffered.reject('No Projects');
+                    } else if (docs.length > 0) {
+                        deffered.resolve(docs);
+                    }
+                })
+            } catch (err) {
+                global.winston.log('error', {
+                    "error": String(err),
+                    "stack": new Error().stack
+                });
+                deferred.reject(err);
+            }
+            return deffered.promise;
         }
     };
 };

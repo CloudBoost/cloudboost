@@ -5,7 +5,7 @@ module.exports = function () {
 
     return {
         integrationNotification: function (appId, document) {
-            var integration_api = ["slack", "zapier"];
+            var integration_api = ["slack"];
             global.appService.getAllSettings(appId).then(function (settings) {
                 var integrationSettings;
                 settings.forEach(function (element) {
@@ -21,11 +21,6 @@ module.exports = function () {
                                     notifyOnSlack(integrationSettings.slack, document);
                                 }
                                 break;
-                            // case "zapier":
-                            //     if (integrationSettings.zapier.enabled) {
-                            //         notifyOnZapier(integrationSettings.zapier, document);
-                            //     }
-                            //     break;
                         }
                     }
                 }
