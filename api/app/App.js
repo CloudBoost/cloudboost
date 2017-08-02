@@ -10,6 +10,7 @@ module.exports = function() {
     global.app.post('/app/:appId', function(req, res) {
 
         console.log("++++ Create App API ++++++");
+        console.log("testing");
 
         try {
             console.log("SecureKey to create app:" + req.body.secureKey);
