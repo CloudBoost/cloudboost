@@ -213,7 +213,6 @@ global.app.use([
         }
 
         var requestRecvd = req.originalUrl; //this is the relative url.
-        console.log(requestRecvd, "\\\\\\\\\\\\\\\\]]]]]]]]]]")
         if (ignoreUrl(requestRecvd)) {
             next();
         } else {
@@ -221,7 +220,6 @@ global.app.use([
             var appKey = req.body.key || req.params.key; //key is extracted from body/url parameters
 
             var appId = req.params.appId;
-            console.log(appKey, appId, "[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[");
             if (!appKey) {
                 return res.status(401).send({ status: 'error', message: "Key not found. You need to have your Client Key or Master Key in the body or url parameter 'key' when you make this request" });
             } else {
