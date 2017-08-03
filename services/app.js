@@ -1111,11 +1111,11 @@ module.exports = function () {
             return deferred.promise;
         },
 
-        getAllProjects: function () {
+        getProject: function (appId, apiKey) {
             var deffered = q.defer();
             try {
                 var collection = global.mongoClient.db(global.keys.globalDb).collection("projects");
-                var findQuery = collection.find({});
+                var findQuery = collection.find({ appId:appId });
                 findQuery.toArray(function (err, docs) {
                     if (err) {
                         global.winston.log('error', err);
@@ -1123,7 +1123,11 @@ module.exports = function () {
                     } else if (!docs || docs.length == 0) {
                         deffered.reject('No Projects');
                     } else if (docs.length > 0) {
-                        deffered.resolve(docs);
+                        if (apiKey == docs[0].keys.master) {
+                            deffered.resolve(docs);
+                        } else {
+                            deffered.reject("API Key is invalid");
+                        }
                     }
                 })
             } catch (err) {

@@ -326,20 +326,15 @@ module.exports = function() {
         var appId = req.params.appId;
         var apiKey = req.params.apiKey;
         var project = null;
-        global.appService.getAllProjects().then(function (projects) {
-            projects.forEach(function (element) {
-                if (apiKey == element.keys.master) {
-                    project = element;
-                }
-            }, this);
+        global.appService.getProject(appId, apiKey).then(function (project) {
             if (project) {
                 res.status(200).json({
                     status: true,
-                    app_name: project.name
+                    app_name: project[0].name
                 });
-            } else {
-                res.status(404).send("Api Key Not Found");
-            }
+            } 
+        }, function(err){
+            res.status(400).send("API-Key and AppId not valid")
         });
     });
 };

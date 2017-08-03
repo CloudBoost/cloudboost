@@ -46,14 +46,14 @@ function notifyOnSlack(integrationSettings, document) {
         case "Login":
             if (integrationSettings.loginNotify === true) {
                 title = "Login";
-                text = "A user just logged in to " + global.appName + " application"
-                color = "#36a64f"
+                text = "A user just logged in to " + global.appName + " application";
+                color = "#36a64f";
             }
             break;
         case "Signup":
             if (integrationSettings.signUpNotify === true) {
                 title = "Sign Up";
-                text = "A new user just signed up for your " + global.appName + " application"
+                text = "A new user just signed up for your " + global.appName + " application";
                 color = "#5CACEE";
             }
             break;
