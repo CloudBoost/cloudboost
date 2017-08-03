@@ -164,7 +164,7 @@ module.exports = function() {
         }
     });
 
-    //get a table.
+    //get a table. _getAll
     global.app.post('/app/:appId/:tableName', _getTable);
     global.app.get('/app/:appId/:tableName', _getTable);
 
@@ -179,6 +179,7 @@ module.exports = function() {
             if (tableName === "_getAll") {
                 // to get all tables authorize on app level;
                 global.appService.isClientAuthorized(appId,appKey,'app',null).then(function(isAuthorized){
+                    console.log(isAuthorized,"ho jana chahit");
                     if(isAuthorized){
                         global.appService.getAllTables(appId).then(function(tables) {
                             return res.status(200).send(tables);
@@ -318,5 +319,22 @@ module.exports = function() {
         } catch (e) {
             console.log(e);
         }
+    });
+
+    //zapier authentication
+    global.app.get('/zapier/app/:appId/:apiKey', function (req, res) {
+        var appId = req.params.appId;
+        var apiKey = req.params.apiKey;
+        var project = null;
+        global.appService.getProject(appId, apiKey).then(function (project) {
+            if (project) {
+                res.status(200).json({
+                    status: true,
+                    app_name: project[0].name
+                });
+            } 
+        }, function(err){
+            res.status(400).send("API-Key and AppId not valid")
+        });
     });
 };
