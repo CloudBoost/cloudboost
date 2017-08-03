@@ -319,4 +319,21 @@ module.exports = function() {
             console.log(e);
         }
     });
+
+     //zapier authentication
+    global.app.get('/zapier/app/:appId/:apiKey', function (req, res) {
+        var appId = req.params.appId;
+        var apiKey = req.params.apiKey;
+        var project = null;
+        global.appService.getProject(appId, apiKey).then(function (project) {
+            if (project) {
+                res.status(200).json({
+                    status: true,
+                    app_name: project[0].name
+                });
+            }
+        }, function (err) {
+            res.status(400).send("API-Key and AppId not valid")
+        });
+    });
 };
