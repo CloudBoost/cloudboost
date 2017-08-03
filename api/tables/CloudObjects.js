@@ -5,6 +5,7 @@
 */
 
 var customHelper = require('../../helpers/custom.js');
+var integrationService = require('../../services/integrationService')();
 
 module.exports = function() {
 
@@ -27,6 +28,9 @@ module.exports = function() {
             }).then(function(result) {
                 console.log('+++ Save Success +++');
                 console.log(result);
+                if (collectionName == "_Event") {
+                    integrationService.integrationNotification(appId, document);
+                }
                 res.status(200).send(result);
             }, function(error) {
                 console.log('++++++ Save Error +++++++');
