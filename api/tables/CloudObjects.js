@@ -8,8 +8,9 @@ var customHelper = require('../../helpers/custom.js');
 var integrationService = require('../../services/integrationService')();
 
 module.exports = function () {
-
+    global.app.post('/data', function(req,res){res.json({status: true})});
     global.app.put('/data/:appId/:tableName', function (req, res) { //save a new document into <tableName> of app
+        console.log("in")
         if (req.body && req.body.method == "DELETE") {
             /******************DELETE API*********************/
             _deleteApi(req, res);
@@ -24,6 +25,7 @@ module.exports = function () {
             var sdk = req.body.sdk || "REST";
 
             global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
+                console.log(appId, appKey, "{{{{{{{{{{{{");
                 return global.customService.save(appId, collectionName, document, customHelper.getAccessList(req), isMasterKey);
             }).then(function (result) {
                 console.log('+++ Save Success +++');

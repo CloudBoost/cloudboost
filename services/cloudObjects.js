@@ -123,7 +123,7 @@ module.exports = function () {
 
         save: function (appId, collectionName, document, accessList, isMasterKey, opts) {
 
-            console.log("In Custom Save function");
+            console.log("In Custom Save function", document);
 
             var deferred = global.q.defer();
 
@@ -153,7 +153,7 @@ module.exports = function () {
                                 error.push(res[i].value);
                             }
                         }
-
+                        console.log(status, success, "////////{{{{{{{{{{{{");
                         if (status === true) {
                             deferred.resolve(success);
                         } else {

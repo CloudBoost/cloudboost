@@ -1115,7 +1115,7 @@ module.exports = function () {
             var deffered = q.defer();
             try {
                 var collection = global.mongoClient.db(global.keys.globalDb).collection("projects");
-                var findQuery = collection.find({ appId:appId });
+                var findQuery = collection.find({ appId: appId });
                 findQuery.toArray(function (err, docs) {
                     if (err) {
                         global.winston.log('error', err);
@@ -1126,7 +1126,7 @@ module.exports = function () {
                         if (apiKey == docs[0].keys.master) {
                             deffered.resolve(docs);
                         } else {
-                            deffered.reject("API Key is invalid");
+                            deffered.resolve(null);
                         }
                     }
                 })
