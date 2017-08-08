@@ -70,7 +70,7 @@ function notifyOnSlack(integrationSettings, document) {
     console.log(title, "title///////////////////")
     if (title) {
         slack.webhook({
-            channel: "#test",
+            channel: "#general",
             username: "CloudBoost",
             attachments: [
                 {

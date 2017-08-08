@@ -454,6 +454,7 @@ module.exports = function() {
 
                 _self.getApp(appId).then(function(project) {
                     if (project.keys.master === key) {
+                        global.appName = project.name;
                         deferred.resolve(true);
                     } else {
                         if (project.keys.js === key) {
