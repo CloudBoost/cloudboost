@@ -27,9 +27,9 @@ module.exports = function() {
             }).then(function(result) {
                 console.log('+++ Save Success +++');
                 console.log(result);
-                if (collectionName == "_Event") {
-                   integrationService.integrationNotification(appId, document);
-                }
+                // if (collectionName == "_Event") {
+                //    integrationService.integrationNotification(appId, document);
+                // }
                 res.status(200).send(result);
             }, function(error) {
                 console.log('++++++ Save Error +++++++');
@@ -156,7 +156,7 @@ function _findOne(req, res) { //get a single document matching the search query
     var skip = req.body.skip;
     var appKey = req.body.key || req.param('key');
     var sdk = req.body.sdk || "REST";
-
+    
     global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
         return global.customService.findOne(appId, collectionName, query, select, sort, skip, customHelper.getAccessList(req), isMasterKey);
     }).then(function(result) {
