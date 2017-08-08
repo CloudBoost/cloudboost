@@ -9,7 +9,6 @@ module.exports = function () {
             var appName;
             global.appService.getApp(appId).then(function (application) {
                 if (application) {
-                    console.log(application, "}}}}}}}}}}}}}}}}}")
                     appName = application.name;
                     global.appService.getAllSettings(appId).then(function (settings) {
                         var integrationSettings;
@@ -18,7 +17,6 @@ module.exports = function () {
                                 integrationSettings = element.settings;
                             }
                         }, this);
-                        console.log(settings, ":;;;;;;;;;;;;")
                         if (integrationSettings) {
                             for (var i = 0; i < integration_api.length; i++) {
                                 switch (integration_api[i]) {
@@ -46,7 +44,6 @@ module.exports = function () {
 }
 
 function notifyOnSlack(integrationSettings, document, appName) {
-    console.log(appName, "{{{{{{{{{{{{{{{{{{{{{")
     var slack = new Slack();
     var timeStamp = Math.floor(Date.now() / 1000);
 
