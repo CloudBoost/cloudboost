@@ -6,6 +6,12 @@ module.exports = function () {
     return {
         integrationNotification: function (appId, document) {
             var integration_api = ["slack", "zapier"];
+            var appName;
+            global.appService.getApp(appId).then(function(application){
+                if(application){
+                    appName = application.name
+                }
+            });
             global.appService.getAllSettings(appId).then(function (settings) {
                 var integrationSettings;
                 settings.forEach(function (element) {
@@ -18,7 +24,7 @@ module.exports = function () {
                         switch (integration_api[i]) {
                             case "slack":
                                 if (integrationSettings.slack.enabled) {
-                                    notifyOnSlack(integrationSettings.slack, document);
+                                    notifyOnSlack(integrationSettings.slack, document, appName);
                                 }
                                 break;
                             // case "zapier":
@@ -36,7 +42,7 @@ module.exports = function () {
 
 }
 
-function notifyOnSlack(integrationSettings, document) {
+function notifyOnSlack(integrationSettings, document, appName) {
     var slack = new Slack();
     var timeStamp = Math.floor(Date.now() / 1000);
 
@@ -51,14 +57,14 @@ function notifyOnSlack(integrationSettings, document) {
         case "Login":
             if (integrationSettings.loginNotify === true) {
                 title = "Login";
-                text = "A user just logged in to " + global.appName + " application"
+                text = "A user just logged in to " + appName + " application"
                 color = "#36a64f"
             }
             break;
         case "Signup":
             if (integrationSettings.signUpNotify === true) {
                 title = "Sign Up";
-                text = "A new user just signed up for your " + global.appName + " application"
+                text = "A new user just signed up for your " + appName + " application"
                 color = "#5CACEE";
             }
             break;
