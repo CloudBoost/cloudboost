@@ -7,42 +7,46 @@ module.exports = function () {
         integrationNotification: function (appId, document) {
             var integration_api = ["slack", "zapier"];
             var appName;
-            global.appService.getApp(appId).then(function(application){
-                if(application){
-                    appName = application.name
-                }
-            });
-            global.appService.getAllSettings(appId).then(function (settings) {
-                var integrationSettings;
-                settings.forEach(function (element) {
-                    if (element.category == "integrations") {
-                        integrationSettings = element.settings;
-                    }
-                }, this);
-                if (integrationSettings) {
-                    for (var i = 0; i < integration_api.length; i++) {
-                        switch (integration_api[i]) {
-                            case "slack":
-                                if (integrationSettings.slack.enabled) {
-                                    notifyOnSlack(integrationSettings.slack, document, appName);
+            global.appService.getApp(appId).then(function (application) {
+                if (application) {
+                    console.log(application, "}}}}}}}}}}}}}}}}}")
+                    appName = application.name;
+                    global.appService.getAllSettings(appId).then(function (settings) {
+                        var integrationSettings;
+                        settings.forEach(function (element) {
+                            if (element.category == "integrations") {
+                                integrationSettings = element.settings;
+                            }
+                        }, this);
+                        console.log(settings, ":;;;;;;;;;;;;")
+                        if (integrationSettings) {
+                            for (var i = 0; i < integration_api.length; i++) {
+                                switch (integration_api[i]) {
+                                    case "slack":
+                                        if (integrationSettings.slack.enabled) {
+                                            notifyOnSlack(integrationSettings.slack, document, appName);
+                                        }
+                                        break;
+                                    // case "zapier":
+                                    //     if (integrationSettings.zapier.enabled) {
+                                    //         notifyOnZapier(integrationSettings.zapier, document);
+                                    //     }
+                                    //     break;
                                 }
-                                break;
-                            // case "zapier":
-                            //     if (integrationSettings.zapier.enabled) {
-                            //         notifyOnZapier(integrationSettings.zapier, document);
-                            //     }
-                            //     break;
+                            }
                         }
-                    }
-                }
 
+                    });
+                }
             });
+
         }
     }
 
 }
 
 function notifyOnSlack(integrationSettings, document, appName) {
+    console.log(appName, "{{{{{{{{{{{{{{{{{{{{{")
     var slack = new Slack();
     var timeStamp = Math.floor(Date.now() / 1000);
 
