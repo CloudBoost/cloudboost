@@ -69,7 +69,7 @@ module.exports = function() {
 
         var isMasterKey = false;
         var sessionLength = 30; //Default
-
+        
         var promises = [];
         promises.push(global.appService.getAllSettings(appId));
         promises.push(global.appService.isMasterKey(appId, appKey));
