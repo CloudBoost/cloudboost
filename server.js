@@ -514,10 +514,10 @@ function setUpAnalytics() {
 
             if(process.env["IS_STAGING"]){
                 if (process.env["CLOUDBOOST_ANALYTICS_STAGING_SERVICE_HOST"]) {
-                    global.keys.analyticsUrl = "http://" + process.env["CLOUDBOOST_ANALYTICS_STAGING_SERVICE_HOST"];
+                    global.keys.analyticsUrl = "https://" + process.env["CLOUDBOOST_ANALYTICS_STAGING_SERVICE_HOST"];
                 }
             } else {
-                global.keys.analyticsUrl = "http://" + process.env["CLOUDBOOST_ANALYTICS_SERVICE_HOST"];
+                global.keys.analyticsUrl = "https://" + process.env["CLOUDBOOST_ANALYTICS_SERVICE_HOST"];
             }
             console.log(global.keys.analyticsUrl);
             
