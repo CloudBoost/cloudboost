@@ -1,6 +1,7 @@
 var Slack = require('slack-node');
 var http = require("https");
 var querystring = require('querystring');
+var request = require('request');
 
 module.exports = function () {
 
@@ -25,6 +26,11 @@ module.exports = function () {
                                         notifyOnSlack(integrationSettings.slack, document, appName);
                                     }
                                     break;
+                                case "zapier":
+                                    if (integrationSettings.zapier.enabled) {
+                                        notifyOnZapier(integrationSettings.zapier, document, collection_name, table_event, appName);
+                                    }
+                                    break;
                             }
                         }
                     }
@@ -38,9 +44,9 @@ module.exports = function () {
 
 function notifyOnSlack(integrationSettings, document, appName) {
     var apiToken;
-    if(integrationSettings.oauth_response){
+    if (integrationSettings.oauth_response) {
         apiToken = integrationSettings.oauth_response.data.access_token;
-    } else{
+    } else {
         return;
     }
     var slack = new Slack(apiToken);
@@ -113,6 +119,34 @@ function notifyOnSlack(integrationSettings, document, appName) {
     return false;
 }
 
+function notifyOnZapier(integrationSettings, document, collection_name, table_event, appName) {
+    var zapier_events = integrationSettings.zapier_events;
+    var zapier_webhook = integrationSettings.webhook_url || null;
+    var eventObject = null;
+    for (var i = 0; i < zapier_events.length; i++) {
+        if (collection_name === zapier_events[i].tableName) {
+            eventObject = zapier_events[i];
+        }
+    }
+    if (eventObject && eventObject[table_event] && zapier_webhook) {
+        var headers = {
+            'User-Agent':       'Super Agent/0.0.1',
+            'Content-Type':     'application/json'
+        }
 
+        var options = {
+            url: zapier_webhook,
+            method: 'POST',
+            headers: headers,
+            json: document
+        }
+
+        request(options, function (error, response, body) {
+            if (!error && response.statusCode == 200) {
+                console.log(body);
+            }
+        })
+    }
+}
 
 

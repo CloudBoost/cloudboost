@@ -71,6 +71,7 @@ module.exports = function() {
         global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
             return global.customService.delete(appId, collectionName, document, customHelper.getAccessList(req), isMasterKey);
         }).then(function(result) {
+            integrationService.integrationNotification(appId, document, collectionName, "Delete");
             res.json(result);
         }, function(error) {
             res.status(400).send(error);
