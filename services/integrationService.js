@@ -25,6 +25,11 @@ module.exports = function () {
                                         notifyOnSlack(integrationSettings.slack, document, appName);
                                     }
                                     break;
+                                case "zapier":
+                                    if (integrationSettings.zapier.enabled) {
+                                        notifyOnZapier(integrationSettings.zapier, document, collection_name, table_event);
+                                    }
+                                    break;
                             }
                         }
                     }
@@ -113,6 +118,34 @@ function notifyOnSlack(integrationSettings, document, appName) {
     return false;
 }
 
+function notifyOnZapier(integrationSettings, document, collection_name, table_event) {
 
+    //req data
+    var trigger_event = integrationSettings.event_names;
+    var tigger_tables = integrationSettings.table_names;
+
+    var event_name = null;
+    switch (table_event) {
+        case "Create":
+            if (tigger_tables[collection_name] == true && trigger_event["Created"] == true) {
+                event_name = "create";
+            }
+            break;
+        case "Update":
+            if (tigger_tables[collection_name] == true && trigger_event["Updated"] == true) {
+                event_name = "update";
+            }
+            break;
+        case "Delete":
+            if (tigger_tables[collection_name] == true && trigger_event["Deleted"] == true) {
+                event_name = "delete";
+            }
+            break;
+    }
+    if (event_name) {
+
+    }
+    return false;
+}
 
 
