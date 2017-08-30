@@ -7,8 +7,7 @@ module.exports = function () {
 
 
     return {
-        integrationNotification: function (appId, document, collection_name, method) {
-            var table_event;
+        integrationNotification: function (appId, document, collection_name, table_event) {
             var integration_api = ["slack", "zapier"];
             global.appService.getApp(appId).then(function (application) {
                 var appName = application.name;
@@ -131,8 +130,8 @@ function notifyOnZapier(integrationSettings, document, collection_name, table_ev
     }
     if (eventObject && eventObject[table_event] && zapier_webhook) {
         var headers = {
-            'User-Agent': 'Super Agent/0.0.1',
-            'Content-Type': 'application/json'
+            'User-Agent':       'Super Agent/0.0.1',
+            'Content-Type':     'application/json'
         }
 
         var options = {

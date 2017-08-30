@@ -78,12 +78,3 @@ branches:
 #Notify Team on Slack
 notifications:
   slack: cloudboost:gm7nWJDLDtBRyF75VKLKOoMW
-after_deploy:
-  - |
-   curl -u 2v9kLNu9U1PQwiVc: "https://assertible.com/deployments" -d'{
-    "service": "b8ab20d4-c9fd-4e81-975f-1f6ace5902a8",
-    "environmentName": "production",
-    "version": "v1",
-    "ref": "v1",
-    "github": true
-}'
