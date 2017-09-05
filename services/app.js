@@ -3,6 +3,7 @@
 #     (c) 2014 HackerBay, Inc.
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
+//services/app.js
 
 var Collections = require('../database-connect/collections.js');
 var q = require('q');
@@ -693,7 +694,7 @@ module.exports = function() {
                         else if(!doc)
                             deferred.reject("Error : Failed to get the table. ");
                         else{
-                            
+
                             doc.columns.forEach(function(oldColumnObj,i){
                                 //check column id
                                 schema.forEach(function(newColumnObj,i){
@@ -774,13 +775,13 @@ module.exports = function() {
                                     promises.push(global.mongoUtil.collection.deleteAndCreateTextIndexes(appId, tableName, cloneOldColumns, schema));
                                     //updateColumnNameOfOldRecordsPromises stores the promises for updating previous records.
                                     q.all(promises.concat(updateColumnNameOfOldRecordsPromises)).then(function(res) {
-                                        //confirm all colums are updated 
+                                        //confirm all colums are updated
                                         q.all(updateColumnNameOfOldRecordsPromises).then(function(res) {
                                             deferred.resolve(table);
                                         }, function(error) {
                                             //TODO : Rollback.
                                             deferred.resolve(table);
-                                    });     
+                                    });
                                         }, function(error) {
                                         //TODO : Rollback.
                                         deferred.resolve(table);
@@ -839,7 +840,8 @@ module.exports = function() {
                 global.appService.upsertTable(appId, 'User', tablesData.User),
                 global.appService.upsertTable(appId, '_File', tablesData._File),
                 global.appService.upsertTable(appId, '_Event', tablesData._Event),
-                global.appService.upsertTable(appId, '_Funnel', tablesData._Funnel)
+                global.appService.upsertTable(appId, '_Funnel', tablesData._Funnel),
+                global.appService.upsertTable(appId, '_Connections', tablesData._Connections),
             ]);
         },
 
@@ -1106,6 +1108,25 @@ module.exports = function() {
                 deferred.reject(err);
             });
             return deferred.promise;
+        },
+        saveRecords:function(appId,obj,tableName){
+          var deferred = q.defer();
+          var collection = global.mongoClient.db(appId).collection(tableName);
+          console.log('reached')
+          console.log(obj.data.records)
+          collection.insertOne(obj.data.records,function(err,res){
+            if(err)
+            {
+              console.log('erorrrr')
+              deferred.reject(err)
+            }
+            else{
+              console.log('table saved');
+              deferred.resolve(res);
+            }
+            return deferred.promise;
+          });
+
         }
     };
 };
@@ -1334,7 +1355,7 @@ function _checkValidDataType(columns, deafultDataType, tableType) {
                 if (columns[index].relationType != null || columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'Object')
                     return false;
                 }
-            
+
             if (key === 'size') {
                 if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'Number')
                     return false;
