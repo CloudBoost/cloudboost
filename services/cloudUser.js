@@ -29,7 +29,7 @@ module.exports = function() {
 	                }
 
 	                var isAuthenticatedUser=false;
-	                var encryptedPassword = crypto.pbkdf2Sync(password, global.keys.secureKey, 10000, 64, 'sha512').toString('base64');
+	                var encryptedPassword = crypto.pbkdf2Sync(password, global.keys.secureKey, 10000, 64, 'sha1').toString('base64');
 					if (encryptedPassword === user.password) { //authenticate user.
 						isAuthenticatedUser=true;
 					} 
@@ -90,9 +90,9 @@ module.exports = function() {
 						return;
 	                }
 
-					var encryptedPassword = crypto.pbkdf2Sync(oldPassword, global.keys.secureKey, 10000, 64, 'sha512').toString('base64');
+					var encryptedPassword = crypto.pbkdf2Sync(oldPassword, global.keys.secureKey, 10000, 64, 'sha1').toString('base64');
 					if (encryptedPassword === user.password) { //authenticate user.
-						 user.password = crypto.pbkdf2Sync(newPassword, global.keys.secureKey, 10000, 64, 'sha512').toString('base64');
+						 user.password = crypto.pbkdf2Sync(newPassword, global.keys.secureKey, 10000, 64, 'sha1').toString('base64');
 					     global.mongoService.document.save(appId,  [{document:user}]).then(function(document) {
 	                        deferred.resolve(user); //returns no. of items matched
 	                     }, function(error) {
@@ -173,7 +173,7 @@ module.exports = function() {
 	                   .digest('hex');
 	                
 	                if(passwordResetKey === resetKey){
-	                    user.password = crypto.pbkdf2Sync(newPassword, global.keys.secureKey, 10000, 64, 'sha512').toString('base64');
+	                    user.password = crypto.pbkdf2Sync(newPassword, global.keys.secureKey, 10000, 64, 'sha1').toString('base64');
 	                    global.mongoService.document.save(appId,  [{document:user}]).then(function(user) {
 	                        deferred.resolve(); //returns no. of items matched
 	                    }, function(error) {

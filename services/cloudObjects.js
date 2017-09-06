@@ -1351,7 +1351,7 @@ function _modifyFieldsInQuery(appId, collectionName, query) {
 
 function _encrypt(data) {
     try {
-        return crypto.pbkdf2Sync(data, global.keys.secureKey, 10000, 64, 'sha512').toString('base64');
+        return crypto.pbkdf2Sync(data, global.keys.secureKey, 10000, 64, 'sha1').toString('base64');
     } catch (err) {
         global.winston.log('error', {
             "error": String(err),
