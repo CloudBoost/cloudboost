@@ -813,6 +813,19 @@ module.exports = {
                     "editableByMasterKey": false
                 },
                 {
+                    "name": "port",
+                    "_type": "column",
+                    "dataType": "Text",
+                    "required": true,
+                    "unique": false,
+                    "relatedTo": null,
+                    "relationType": null,
+                    "isDeletable": false,
+                    "isEditable": false,
+                    "isRenamable": false,
+                    "editableByMasterKey": false
+                },
+                {
                     "name": "user",
                     "_type": "column",
                     "dataType": "Text",

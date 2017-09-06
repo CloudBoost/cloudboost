@@ -32,8 +32,9 @@ module.exports = function() {
                 return global.customService.save(appId, collectionName, document, customHelper.getAccessList(req), isMasterKey);
             }).then(function(result) {
                 console.log('+++ Save Success +++');
-                console.log(result);
+
                 integrationService.integrationNotification(appId, document, collectionName, table_event);
+
                 res.status(200).send(result);
             }, function(error) {
                 console.log('++++++ Save Error +++++++');
@@ -59,6 +60,7 @@ module.exports = function() {
     global.app.post('/data/:appId/:tableName/findOne', _findOne);
 
     global.app.delete('/data/:appId/:tableName', _deleteApi);
+    global.app.put('/dataConnect/:appId/dataConnect', _dataConnectivity);
 
     function _deleteApi(req, res) { //delete a document matching the <objectId>
         console.log("DELETE API");
@@ -171,4 +173,28 @@ function _findOne(req, res) { //get a single document matching the search query
     });
 
     global.apiTracker.log(appId, "Object / FindOne", req.url, sdk);
+}
+function _dataConnectivity(req,res)
+{
+  console.log('CHECKING DATA CONNECTIVITY');
+  var appId = req.params.appId;
+  var host = req.body.host;
+  var port = req.body.port;
+  var user = req.body.user;
+  var password = req.body.password;
+  var database = req.body.database;
+
+
+  var appKey = req.body.key || req.param('key');
+  var sdk = req.body.sdk || "REST";
+
+  global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
+      return global.customService.dataConnectivity(appId, host,port, user,password, database,isMasterKey);
+  }).then(function(results) {
+      res.json(results);
+  }, function(error) {
+      res.status(400).send(error);
+  });
+
+  global.apiTracker.log(appId, "Object / Distinct", req.url, sdk);
 }
