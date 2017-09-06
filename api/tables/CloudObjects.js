@@ -5,7 +5,7 @@
 */
 
 var customHelper = require('../../helpers/custom.js');
-
+var integrationService = require('../../services/integrationService')();
 module.exports = function() {
 
     global.app.put('/data/:appId/:tableName', function(req, res) { //save a new document into <tableName> of app
@@ -21,12 +21,19 @@ module.exports = function() {
             var collectionName = req.params.tableName;
             var appKey = req.body.key || req.params.key;
             var sdk = req.body.sdk || "REST";
+            var table_event = "";
 
+            if(document._id){
+                table_event = "Update";
+            } else {
+                table_event = "Create"
+            }
             global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
                 return global.customService.save(appId, collectionName, document, customHelper.getAccessList(req), isMasterKey);
             }).then(function(result) {
                 console.log('+++ Save Success +++');
                 console.log(result);
+                integrationService.integrationNotification(appId, document, collectionName, table_event);
                 res.status(200).send(result);
             }, function(error) {
                 console.log('++++++ Save Error +++++++');
@@ -64,6 +71,7 @@ module.exports = function() {
         global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
             return global.customService.delete(appId, collectionName, document, customHelper.getAccessList(req), isMasterKey);
         }).then(function(result) {
+            integrationService.integrationNotification(appId, document, collectionName, "Delete");
             res.json(result);
         }, function(error) {
             res.status(400).send(error);
