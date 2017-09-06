@@ -394,16 +394,14 @@ function _validateSchema(appId, listOfDocs, accessList, isMasterKey) {
     return deferred.promise;
 }
 
-function _sendNotification(appId, res, reqType, isMasterKey) {
-    //pass masterkey to access events as default ACL for event R/W is set to false
-
+function _sendNotification(appId, res, reqType, ) {
     try {
         for (var i = 0; i < res.value.length; i++) {
             if (res.value[i].state === 'fulfilled') {
                 if (reqType.save.indexOf(res.value[i].value._id) >= 0) {
-                    global.realTime.sendObjectNotification(appId, res.value[i].value, 'created', isMasterKey);
+                    global.realTime.sendObjectNotification(appId, res.value[i].value, 'created');
                 } else {
-                    global.realTime.sendObjectNotification(appId, res.value[i].value, 'updated', isMasterKey);
+                    global.realTime.sendObjectNotification(appId, res.value[i].value, 'updated');
                 }
             }
         }

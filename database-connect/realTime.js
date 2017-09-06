@@ -153,8 +153,7 @@ module.exports = function(io) {
 
     });
 
-    g.sendObjectNotification = function(appId, document, eventType, isMasterKey) {
-        //pass masterkey to access events as default ACL for event R/W is set to false
+    g.sendObjectNotification = function(appId, document, eventType) {
         try {
             //event type can be created, updated, deleted.
             if (document && document._tableName) {
@@ -172,13 +171,13 @@ module.exports = function(io) {
                 if (typeof sockets === "object") {
                     for (var key in sockets) {
                         if (sockets[key]) {
-                            promises.push(_sendNotification(appId, document, sockets[key], eventType, isMasterKey));
+                            promises.push(_sendNotification(appId, document, sockets[key], eventType));
                         }
                     }
                 } else {
                     for (var i = 0; i < sockets.length; i++) {
                         var socket = sockets[i];
-                        promises.push(_sendNotification(appId, document, socket, eventType, isMasterKey));
+                        promises.push(_sendNotification(appId, document, socket, eventType));
                     }
                 }
 
@@ -203,15 +202,14 @@ module.exports = function(io) {
 /**
  */
 
-function _sendNotification(appId, document, socket, eventType, isMasterKey) {
-    //pass masterkey to access events as default ACL for event R/W is set to false
+function _sendNotification(appId, document, socket, eventType) {
     var deferred = global.q.defer();
     try {
         global.socketSessionHelper.getSession(socket.id, function(err, session) {
             if (err) {
                 deferred.reject();
             }
-            if (!session || global.aclHelper.isAllowedReadAccess(session.userId, session.roles, document.ACL) || isMasterKey) {
+            if (!session || global.aclHelper.isAllowedReadAccess(session.userId, session.roles, document.ACL)) {
                 global.socketQueryHelper.getData(socket.id, eventType, function(err, socketData) {
                     var socketQueryValidate = true;
                     if (socketData && socketData.query)
