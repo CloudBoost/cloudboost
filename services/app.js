@@ -1108,25 +1108,6 @@ module.exports = function() {
                 deferred.reject(err);
             });
             return deferred.promise;
-        },
-        saveRecords:function(appId,obj,tableName){
-          var deferred = q.defer();
-          var collection = global.mongoClient.db(appId).collection(tableName);
-          console.log('reached')
-          console.log(obj.data.records)
-          collection.insertOne(obj.data.records,function(err,res){
-            if(err)
-            {
-              console.log('erorrrr')
-              deferred.reject(err)
-            }
-            else{
-              console.log('table saved');
-              deferred.resolve(res);
-            }
-            return deferred.promise;
-          });
-
         }
     };
 };
