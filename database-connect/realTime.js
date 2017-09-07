@@ -230,13 +230,12 @@ function _sendNotification(appId, document, socket, eventType) {
                     } else {
                         // if no access then only emit if listen is using master key
                         if (socketData.appKey) {
-                            global.appService.isMasterKey(appId, socketData.appKey).then(() => {
-                                console.log(appId.toLowerCase() + 'table' + document._tableName.toLowerCase() + eventType.toLowerCase() + socketData.timestamp)
-                                socket.emit(appId.toLowerCase() + 'table' + document._tableName.toLowerCase() + eventType.toLowerCase() + socketData.timestamp, JSON.stringify(document));
-                                console.log("Socket Emited.", document);
-                                deferred.resolve();
-                            }, (err) => {
-                                console.log('Socket doesnt have access to the emitted data');
+                            global.appService.isMasterKey(appId, socketData.appKey).then(( isMaster ) => {
+                                if(isMaster){
+                                    console.log(appId.toLowerCase() + 'table' + document._tableName.toLowerCase() + eventType.toLowerCase() + socketData.timestamp)
+                                    socket.emit(appId.toLowerCase() + 'table' + document._tableName.toLowerCase() + eventType.toLowerCase() + socketData.timestamp, JSON.stringify(document));
+                                    console.log("Socket Emited.", document);
+                                }
                                 deferred.resolve();
                             })
                         } else {
