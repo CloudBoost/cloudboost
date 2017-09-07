@@ -324,16 +324,3 @@ module.exports = function() {
         }
     });
 };
-global.app.put('/app/:appId/savetable/:tableName', function(req, res) {
-  var appId = req.params.appId;
-  var tableName = req.params.tableName;
-  var body = req.body || {};
-  var sdk = req.body.sdk || "REST";
-  var appKey = req.body.key || req.params.key;
-  global.appService.saveRecords(appId,body,tableName).then(function(res){
-    res.status(200).send(res);
-  },function(err){
-      res.status(500).send(err)
-  }
-)
-});
