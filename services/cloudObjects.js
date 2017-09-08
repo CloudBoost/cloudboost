@@ -294,8 +294,7 @@ function _save(appId, collectionName, document, accessList, isMasterKey, reqType
                     promises.push(databaseDriver.save(appId, mongoDocs));
                     global.q.allSettled(promises).then(function(array) {
                         if (array[0].state === 'fulfilled') {
-                            //pass masterkey to access events as default ACL for event R/W is set to false
-                            _sendNotification(appId, array[0], reqType, isMasterKey);
+                            _sendNotification(appId, array[0], reqType);
                             unModDoc = _merge(parentId, array[0].value, unModDoc);
                             console.log('SAVED Doc');
                             console.log(unModDoc);
@@ -394,7 +393,7 @@ function _validateSchema(appId, listOfDocs, accessList, isMasterKey) {
     return deferred.promise;
 }
 
-function _sendNotification(appId, res, reqType, ) {
+function _sendNotification(appId, res, reqType) {
     try {
         for (var i = 0; i < res.value.length; i++) {
             if (res.value[i].state === 'fulfilled') {
