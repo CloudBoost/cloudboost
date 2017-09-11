@@ -185,6 +185,7 @@ module.exports = function() {
                 global.appService.isClientAuthorized(appId,appKey,'app',null).then(function(isAuthorized){
                     if(isAuthorized){
                         global.appService.getAllTables(appId).then(function(tables) {
+                          console.log(tables)
                             return res.status(200).send(tables);
                         }, function(err) {
                             return res.status(500).send('Error');
@@ -194,7 +195,25 @@ module.exports = function() {
                     return res.status(401).send({status: 'Unauthorized',message:error});
                 })
 
-            } else {
+            }
+            else if(tableName == "_getConnected")
+            {
+              console.log('get Connected')
+              global.appService.isClientAuthorized(appId,appKey,'app',null).then(function(isAuthorized){
+                  if(isAuthorized){
+                      global.appService.getConnectedTables(appId).then(function(tables) {
+                          console.log('TTTTTT')
+                          console.log(tables)
+                          return res.status(200).send(tables);
+                      }, function(err) {
+                          return res.status(500).send('Error');
+                      });
+                  } else return res.status(401).send({status: 'Unauthorized'});
+              },function(error){
+                  return res.status(401).send({status: 'Unauthorized',message:error});
+              })
+            }
+             else {
 
                 global.appService.getTable(appId, tableName).then(function(table) {
                     // to get a tables authorize on table level;

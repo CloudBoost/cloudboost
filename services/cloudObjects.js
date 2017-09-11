@@ -276,7 +276,58 @@ module.exports = function() {
             }
             return deferred.promise;
 
-    }
+    },
+    getTablefromConnection: function(appId, arr) {
+        var deferred = q.defer();
+        console.log('array values');
+        console.log(arr)
+
+        try {
+          var pg= require('pg');
+
+          var con = 'postgres://'+arr[0].user+':'+arr[0].password+'@'+arr[0].host+':'+arr[0].port+'/'+arr[0].database;
+          console.log(con);
+          var client = new pg.Client(con);
+
+          console.log('before connecting');
+        client.connect().then(function(res){
+          console.log('success');
+          client.query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'",function(err,res){
+            if(err)
+            {
+              console.log(err);
+              console.log('errorrrrrrrrrrrrrrrr')
+              deferred.reject(err);
+            }
+            else{
+              console.log(res.rows);
+              var tables=[];
+              for(i in res.rows)
+              {
+                tables.push({name:res.rows[i].table_name})
+              }
+              client.end();
+              deferred.resolve(tables)
+
+            }
+
+          })
+
+        }).catch(function(e){
+          console.log(e.stack);
+          deferred.reject(e);
+        });
+
+        } catch (err) {
+            global.winston.log('error', {
+                "error": String(err),
+                "stack": new Error().stack
+            });
+            deferred.reject(err);
+        }
+        return deferred.promise;
+
+}
 };
 }
 

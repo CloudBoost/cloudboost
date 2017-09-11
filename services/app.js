@@ -1108,7 +1108,60 @@ module.exports = function() {
                 deferred.reject(err);
             });
             return deferred.promise;
+        },
+        getConnectedTables : function(appId) {
+
+            console.log("Get Connected Tables...");
+
+            var deferred = q.defer();
+
+            try {
+
+                var collection = global.mongoClient.db(appId).collection("_Connections");
+                var findQuery = collection.find({});
+                findQuery.toArray(function(err, rows) {
+                    if (err) {
+                        deferred.reject("Error : Failed to retrieve the table.");
+                        console.log("Error : Failed to retrieve the table.");
+                        console.log(err);
+                    }
+                    if (rows.length > 0) {
+                        // filtering out private '_Tables'
+                        postgresql = rows.filter(function(row) {
+                            return row.database_type == 'postgresql';
+                        });
+                        console.log(postgresql);
+                        
+                        global.customService.getTablefromConnection(appId,postgresql).then(function(tables){
+                          if(tables.length > 0)
+                          {
+                            console.log("Tables found...");
+                            deferred.resolve(tables);
+                          }
+                          else{
+                            console.log("No Tables found");
+                            deferred.resolve([]);
+                          }
+
+
+                        });
+                    } else {
+                        console.log("No Rows found");
+                        deferred.resolve([]);
+                    }
+                });
+
+            } catch (err) {
+                global.winston.log('error', {
+                    "error": String(err),
+                    "stack": new Error().stack
+                });
+                deferred.reject(err);
+            }
+
+            return deferred.promise;
         }
+
     };
 };
 
