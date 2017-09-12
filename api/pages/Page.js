@@ -46,11 +46,6 @@ module.exports = function() {
                 authSettings=auth.settings;
             }
 
-            //avoiding error in console unterminated string literal
-            //empty the string for reset and signup field.
-            authSettings.resetPasswordEmail.template ="";
-            authSettings.signupEmail.template ="";
-
             res.render(global.rootPath+'/page-templates/user/password-reset',{
                 appKeys:appKeys,
                 generalSettings: generalSettings,
@@ -129,6 +124,9 @@ module.exports = function() {
             if(auth){
                 authSettings=auth.settings;
             }
+
+            delete authSettings.resetPasswordEmail.template;
+            delete authSettings.signupEmail.template;
 
             res.render(global.rootPath+'/page-templates/user/login',{
                 appKeys:appKeys,
