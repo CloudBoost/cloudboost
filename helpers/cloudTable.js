@@ -736,5 +736,146 @@ module.exports = {
             editableByMasterKey: false,
             defaultValue: null
         }
-    ]
+    ],
+    _Connections: [
+                {
+                    "name": "id",
+                    "_type": "column",
+                    "dataType": "Id",
+                    "required": true,
+                    "unique": true,
+                    "relatedTo": null,
+                    "relationType": null,
+                    "isDeletable": false,
+                    "isEditable": false,
+                    "isRenamable": false,
+                    "editableByMasterKey": false
+                }, {
+                    "name": "expires",
+                    "_type": "column",
+                    "dataType": "DateTime",
+                    "required": false,
+                    "unique": false,
+                    "relatedTo": null,
+                    "relationType": null,
+                    "isDeletable": false,
+                    "isEditable": false,
+                    "isRenamable": false,
+                    "editableByMasterKey": false
+                }, {
+                    "name": "updatedAt",
+                    "_type": "column",
+                    "dataType": "DateTime",
+                    "required": true,
+                    "unique": false,
+                    "relatedTo": null,
+                    "relationType": null,
+                    "isDeletable": false,
+                    "isEditable": false,
+                    "isRenamable": false,
+                    "editableByMasterKey": false
+                }, {
+                    "name": "createdAt",
+                    "_type": "column",
+                    "dataType": "DateTime",
+                    "required": true,
+                    "unique": false,
+                    "relatedTo": null,
+                    "relationType": null,
+                    "isDeletable": false,
+                    "isEditable": false,
+                    "isRenamable": false,
+                    "editableByMasterKey": false
+                }, {
+                    "name": "ACL",
+                    "_type": "column",
+                    "dataType": "ACL",
+                    "required": true,
+                    "unique": false,
+                    "relatedTo": null,
+                    "relationType": null,
+                    "isDeletable": false,
+                    "isEditable": false,
+                    "isRenamable": false,
+                    "editableByMasterKey": false
+                },
+                {
+                    "name": "host",
+                    "_type": "column",
+                    "dataType": "Text",
+                    "required": true,
+                    "unique": false,
+                    "relatedTo": null,
+                    "relationType": null,
+                    "isDeletable": false,
+                    "isEditable": false,
+                    "isRenamable": false,
+                    "editableByMasterKey": false
+                },
+                {
+                    "name": "port",
+                    "_type": "column",
+                    "dataType": "Text",
+                    "required": true,
+                    "unique": false,
+                    "relatedTo": null,
+                    "relationType": null,
+                    "isDeletable": false,
+                    "isEditable": false,
+                    "isRenamable": false,
+                    "editableByMasterKey": false
+                },
+                {
+                    "name": "user",
+                    "_type": "column",
+                    "dataType": "Text",
+                    "required": true,
+                    "unique": false,
+                    "relatedTo": null,
+                    "relationType": null,
+                    "isDeletable": false,
+                    "isEditable": false,
+                    "isRenamable": false,
+                    "editableByMasterKey": false
+                },
+                {
+                    "name": "password",
+                    "_type": "column",
+                    "dataType": "Text",
+                    "required": true,
+                    "unique": false,
+                    "relatedTo": null,
+                    "relationType": null,
+                    "isDeletable": false,
+                    "isEditable": false,
+                    "isRenamable": false,
+                    "editableByMasterKey": false
+                },
+                {
+                    "name": "database",
+                    "_type": "column",
+                    "dataType": "Text",
+                    "required": true,
+                    "unique": false,
+                    "relatedTo": null,
+                    "relationType": null,
+                    "isDeletable": false,
+                    "isEditable": false,
+                    "isRenamable": false,
+                    "editableByMasterKey": false
+                },
+                {
+                    "name": "database_type",
+                    "_type": "column",
+                    "dataType": "Text",
+                    "required": true,
+                    "unique": false,
+                    "relatedTo": null,
+                    "relationType": null,
+                    "isDeletable": false,
+                    "isEditable": false,
+                    "isRenamable": false,
+                    "editableByMasterKey": false
+                }
+            ]
 };

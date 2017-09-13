@@ -162,6 +162,7 @@ module.exports = function() {
                     });
                 } else {
                     console.log('Saving document...');
+                    console.log('second place')
                     _save(appId, collectionName, document, accessList, isMasterKey, opts).then(function(res) {
                         deferred.resolve(res);
                     }, function(err) {
@@ -245,9 +246,90 @@ module.exports = function() {
                 deferred.reject(err);
             }
             return deferred.promise;
+        },
+        dataConnectivity: function(appId, host,port, user,password, database, isMasterKey) {
+            var deferred = q.defer();
+
+            try {
+              var pg= require('pg');
+
+              var con = 'postgres://'+user+':'+password+'@'+host+':'+port+'/'+database;
+              console.log(con);
+              var client = new pg.Client(con);
+
+              console.log('before connecting');
+            client.connect().then(function(res){
+              console.log('success');
+              deferred.resolve({result:'success'});
+
+            }).catch(function(e){
+              console.log(e.stack);
+              deferred.reject(e);
+            });
+
+            } catch (err) {
+                global.winston.log('error', {
+                    "error": String(err),
+                    "stack": new Error().stack
+                });
+                deferred.reject(err);
+            }
+            return deferred.promise;
+
+    },
+    getTablefromConnection: function(appId, arr) {
+        var deferred = q.defer();
+        console.log('array values');
+        console.log(arr)
+
+        try {
+          var pg= require('pg');
+
+          var con = 'postgres://'+arr[0].user+':'+arr[0].password+'@'+arr[0].host+':'+arr[0].port+'/'+arr[0].database;
+          console.log(con);
+          var client = new pg.Client(con);
+
+          console.log('before connecting');
+        client.connect().then(function(res){
+          console.log('success');
+          client.query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'",function(err,res){
+            if(err)
+            {
+              console.log(err);
+              console.log('errorrrrrrrrrrrrrrrr')
+              deferred.reject(err);
+            }
+            else{
+              console.log(res.rows);
+              var tables=[];
+              for(i in res.rows)
+              {
+                tables.push({name:res.rows[i].table_name})
+              }
+              client.end();
+              deferred.resolve(tables)
+
+            }
+
+          })
+
+        }).catch(function(e){
+          console.log(e.stack);
+          deferred.reject(e);
+        });
+
+        } catch (err) {
+            global.winston.log('error', {
+                "error": String(err),
+                "stack": new Error().stack
+            });
+            deferred.reject(err);
         }
-    };
+        return deferred.promise;
+
+}
 };
+}
 
 function _save(appId, collectionName, document, accessList, isMasterKey, reqType, opts) {
 
@@ -277,6 +359,7 @@ function _save(appId, collectionName, document, accessList, isMasterKey, reqType
         var parentId = document._id;
         console.log("Id Generated");
         document = _getModifiedDocs(document, unModDoc);
+
         if (document && Object.keys(document).length > 0) {
             customHelper.checkWriteAclAndUpdateVersion(appId, document, accessList, isMasterKey).then(function(listOfDocs) {
                 var obj = _seperateDocs(listOfDocs);
@@ -438,7 +521,7 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                     continue; //ignore.
 
                 if (document[columns[i].name] === undefined) {
-                    //TODO :  check type for defaultValue , convert to date of type is DateTime , quick patch , fix properly later 
+                    //TODO :  check type for defaultValue , convert to date of type is DateTime , quick patch , fix properly later
                     if(columns[i].dataType === 'DateTime'){
                         try{
                             columns[i].defaultValue = new Date(columns[i].defaultValue)

@@ -4,6 +4,8 @@
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
+//api/app/App.js
+
 module.exports = function() {
 
     //create a new app.
@@ -149,6 +151,8 @@ module.exports = function() {
                             global.appService.upsertTable(appId, tableName, body.data.columns, body.data).then(function(table) {
                                 return res.status(200).send(table);
                             },function(err){
+                              console.log('errrrr');
+                              console.log(err);
                                 return res.status(500).send(err);
                             });
                         } else return res.status(401).send({status: 'Unauthorized'});
@@ -181,6 +185,7 @@ module.exports = function() {
                 global.appService.isClientAuthorized(appId,appKey,'app',null).then(function(isAuthorized){
                     if(isAuthorized){
                         global.appService.getAllTables(appId).then(function(tables) {
+                          console.log(tables)
                             return res.status(200).send(tables);
                         }, function(err) {
                             return res.status(500).send('Error');
@@ -190,8 +195,26 @@ module.exports = function() {
                     return res.status(401).send({status: 'Unauthorized',message:error});
                 })
 
-            } else {
-                
+            }
+            else if(tableName == "_getConnected")
+            {
+              console.log('get Connected')
+              global.appService.isClientAuthorized(appId,appKey,'app',null).then(function(isAuthorized){
+                  if(isAuthorized){
+                      global.appService.getConnectedTables(appId).then(function(tables) {
+                          console.log('TTTTTT')
+                          console.log(tables)
+                          return res.status(200).send(tables);
+                      }, function(err) {
+                          return res.status(500).send('Error');
+                      });
+                  } else return res.status(401).send({status: 'Unauthorized'});
+              },function(error){
+                  return res.status(401).send({status: 'Unauthorized',message:error});
+              })
+            }
+             else {
+
                 global.appService.getTable(appId, tableName).then(function(table) {
                     // to get a tables authorize on table level;
                     global.appService.isClientAuthorized(appId,appKey,'table',table).then(function(isAuthorized){
@@ -201,7 +224,7 @@ module.exports = function() {
                     },function(error){
                         return res.status(401).send({status: 'Unauthorized',message:error});
                     })
-                    
+
                 }, function(err) {
                     return res.status(500).send('Error');
                 });
@@ -251,7 +274,7 @@ module.exports = function() {
             global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
                 if (isMasterKey) {
                     var file;
-                    if(req.files && req.files.file){                       
+                    if(req.files && req.files.file){
                       file = req.files.file.data;
                     }
                     if (file) {
@@ -294,14 +317,14 @@ module.exports = function() {
             if(!appId){
                  res.status(400).send("appId is missing");
             }
-            
+
             if(!tableName){
                  res.status(400).send("tableName is missing");
             }
             if(!exportType){
                  res.status(400).send("exportType is missing");
             }
-            global.appService.isMasterKey(appId,appKey).then(function(isMasterKey) {         
+            global.appService.isMasterKey(appId,appKey).then(function(isMasterKey) {
                 global.appService.exportTable(appId,tableName,exportType.toLowerCase(),isMasterKey,accessList).then(function(data) {
                     if(exportType.toLowerCase()==='json'){
                         res.status(200).json({data});
@@ -314,7 +337,7 @@ module.exports = function() {
             }, function(error) {
                 return res.status(500).send('Cannot retrieve security keys.');
             });
-    
+
         } catch (e) {
             console.log(e);
         }
