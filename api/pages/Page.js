@@ -1,6 +1,6 @@
 
 /*
-#     CloudBoost - Core Engine that powers Bakend as a Service
+#     CloudBoost - Core Engine that powers Backend as a Service
 #     (c) 2014 HackerBay, Inc. 
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
@@ -98,7 +98,7 @@ module.exports = function() {
 
         var appId = req.params.appId || null;      
         var sdk = req.body.sdk || "REST";     
-        
+
         var promises=[];
         promises.push(global.appService.getApp(appId));
         promises.push(global.appService.getAllSettings(appId));        
@@ -125,10 +125,13 @@ module.exports = function() {
                 authSettings=auth.settings;
             }
 
+            delete authSettings.resetPasswordEmail.template;
+            delete authSettings.signupEmail.template;
+
             res.render(global.rootPath+'/page-templates/user/login',{
                 appKeys:appKeys,
                 generalSettings: generalSettings,
-                authSettings: authSettings,                       
+                authSettings: authSettings                    
             });
 
         },function(error){
