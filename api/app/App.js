@@ -3,7 +3,7 @@
 #     (c) 2014 HackerBay, Inc.
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
-
+var customHelper = require('../../helpers/custom.js');
 module.exports = function() {
 
     //create a new app.
@@ -319,4 +319,50 @@ module.exports = function() {
             console.log(e);
         }
     });
+    global.app.post('/import/:appId/:tableName', function (req, res) {
+        console.log("++++ Import Database ++++++");
+        try {
+            var appKey = req.body.key;
+            var appId = req.params.appId;
+            var tableName = req.params.tableName;
+            var importType = req.body.importType;
+            var accessList = customHelper.getAccessList(req)
+            if (!appKey) {
+                res.status(400).send("appKey is missing. Please have either Client Key or the Master Key in request body.");
+            }
+            if (!appId) {
+                res.status(400).send("appID is missing. Please have AppID in request body.");
+            }
+            if (!tableName) {
+                res.status(400).send("tableName is missing");
+            }
+            if (!importType) {
+                res.status(400).send("exportType is missing.Please have export type in request body.");
+            }
+            global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
+                var file;
+                if (req.files && req.files.file) {
+                    file = req.files.file.data;
+                }
+                if (file) {
+                    global.appService.importTable(appId, file, tableName, importType.toLowerCase(), isMasterKey, accessList).then(function (data) {
+                        if (data) {
+                            res.status(200).json({ Success: "success" });
+                        } else {
+                            res.status(500).json({ success: "failed" }); 
+                        }
+                    }, function (err) {
+                        console.log("Error: Importing Data..");
+                        console.log(err);
+                        res.status(500).send("Error");
+                    });
+                }
+            }, function (error) {
+                return res.status(500).send('Cannot retrieve security keys.');
+            });
+        } catch (e) {
+            console.log(e);
+        }
+    });
 };
+
