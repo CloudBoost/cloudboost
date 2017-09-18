@@ -74,6 +74,8 @@ global.app = global.express();
 //For pages in cloudboost
 global.app.set('view engine', 'ejs');
 global.app.use(global.express.static(path.join(__dirname, 'page-templates/assets')));
+global.app.use(bodyParser.json({limit: '5mb'}));
+global.app.use(bodyParser.urlencoded({limit: '5mb'}));
 
 var http = null;
 var https = null;
