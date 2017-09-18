@@ -2,11 +2,13 @@
 <html>
 <head>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
-
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
     <link rel="stylesheet" href="/css/login.css">   
-    
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+    <script src="https://cloudboost.io/js-sdk/cloudboost.js"></script>
+
 </head>
 <body>
 
@@ -59,7 +61,7 @@
                 <div id="authenticate-mainbody" style="">
                     <!--Error Block-->
                     <div id="authenticate-error" style="background-color: #f04848;padding: 10px;" class="solo-horizontal-center">
-                        <span style="color:white;">Unknow Error</span>
+                        <span style="color:white;">Unknown Error</span>
                     </div>
                     <!--Error Block-->
 
@@ -269,7 +271,7 @@
 
                     <!--Error Block-->
                     <div id="forgetpassword-error" style="background-color: #f04848;padding: 10px;" class="solo-horizontal-center">
-                        <span style="color:white;">Unknow Error</span>
+                        <span style="color:white;">Unknown Error</span>
                     </div>
                     <!--Error Block-->
 
@@ -334,17 +336,6 @@
 </div>
 
 </body>
-
-<!--IMPORTANT:Bind data from server to javascript variables-->
-<script type="text/javascript">  
-    var _appKeys=<%- JSON.stringify(appKeys) %>;       
-    var _generalSettings=<%- JSON.stringify(generalSettings) %>; 
-    var _authSettings=<%- JSON.stringify(authSettings) %>;           
-</script>
-
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
-<script src="https://cloudboost.io/js-sdk/cloudboost.js"></script>
-
 <script>  
     var serverURL="https://api.cloudboost.io";  
     var __isDevelopment = false;
@@ -356,7 +347,7 @@
 
 
 
-    //This is the fucntion to get querysting, 
+    //This is the fucntion to get querystring, 
     function getParameterByName(name) {
         name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
         var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
@@ -426,10 +417,15 @@
     }
 
     var isLoginFields=true;
-    $(document).ready(function(){         
 
+    // Binding the server variables
+    var _appKeys =<%-JSON.stringify(appKeys)%>;       
+    var _generalSettings =<%-JSON.stringify(generalSettings)%>; 
+    var _authSettings =<%-JSON.stringify(authSettings)%>; 
+
+    $(document).ready(function(){
         //Init CloudBoost
-        CB.CloudApp.init(serverURL,_appKeys.appId, _appKeys.masterKey);      
+        CB.CloudApp.init(serverURL,_appKeys.appId, _appKeys.masterKey);    
 
         $("#forgetpassword-card").hide();
         $("#forgetpassword-error").hide();
