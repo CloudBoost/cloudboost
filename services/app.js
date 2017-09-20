@@ -17,6 +17,9 @@ var jsonToXlsx = require('json2xlsx');
 var jsonXlsxWriteFile = require('icg-json-to-xlsx');
 var fs = require('fs');
 
+const csv = require('csvtojson');
+var xlsx = require('node-xlsx');
+
 module.exports = function() {
 
     return {
@@ -1106,8 +1109,343 @@ module.exports = function() {
                 deferred.reject(err);
             });
             return deferred.promise;
+        },
+
+        importCSVFile: function(fileStream, table){
+            var deferred = q.defer();
+            var tableName = table.replace(/\s/g, '')
+            var csvJson = [];
+            csv()
+            .fromStream(fileStream)
+            .on('json', (json) => {
+                json.expires ? json.expires : json.expires = null;
+                (json._id || json.id) ? json._id = (json._id || json.id) : json._id = util.getId();
+                json.updatedAt ? json.updatedAt : json.updatedAt = "";
+                json._version ? json._version : json._version = "1";
+                json._type ? json._type : json._type = "custom";
+                json.createdAt ? json.createdAt : json.createdAt = "";
+                json.ACL ? json.ACL = JSON.parse(json.ACL)
+                    : json.ACL = {
+                        "read": {
+                            "allow": {
+                                "user": [
+                                    "all"
+                                ],
+                                "role": []
+                            },
+                            "deny": {
+                                "user": [],
+                                "role": []
+                            }
+                        },
+                        "write": {
+                            "allow": {
+                                "user": [
+                                    "all"
+                                ],
+                                "role": []
+                            },
+                            "deny": {
+                                "user": [],
+                                "role": []
+                            }
+                        }
+                    };
+                json._modifiedColumns = Object.keys(json);
+                json._isModified = true;
+                json._tableName = tableName;
+                csvJson.push(json);
+            })
+            .on('done', (error) => {
+                if(error){
+                    deferred.reject(error);
+                } else{
+                    deferred.resolve(csvJson);
+                }
+            });
+            return deferred.promise;
+        },
+
+        importXLSFile: function(fileStream, table){
+            var deferred = q.defer();
+            var csvJson = [];
+            var tableName = table.replace(/\s/g, '');
+            var xslJsonObj = [];
+            var workSheetsFromBuffer;
+            fileStream.on('data', function (chunk) {
+                workSheetsFromBuffer = xlsx.parse(chunk);
+            });
+
+            fileStream.on('end', function () {
+                workSheetsFromBuffer.forEach(function (element) {
+                    var h = element.data[0];
+                    var headers = [];
+                    h.map(function (x) {
+                        if (x !== "A CL" && x !== "ACL" && x !== "A C L") {
+                            x = x.charAt(0).toLowerCase() + x.slice(1);
+                        }
+                        headers.push(x.replace(/\s/g, ''))
+                    });
+                    for (var i = 1; i < element.data.length; i++) {
+                        var obj = {};
+                        if (element.data[i].length != 0) {
+                            for (var j = 0; j < element.data[i].length; j++) {
+                                if (typeof element.data[i][j] != 'undefined' && typeof headers[j] != 'undefined') {
+                                    if (headers[j] == "A CL" || headers[j] == "ACL" || headers[j] == "A C L") {
+                                        obj[headers[j]] = JSON.parse(element.data[i][j]);
+                                        continue;
+                                    }
+                                    if(headers[j] == "createdAt" || headers[j] == "updatedAt"){
+                                        obj[headers[j]] = "";
+                                        continue;
+                                    }
+                                    obj[headers[j]] = element.data[i][j] == 'null' ?  null : element.data[i][j];
+                                }
+                            }
+                            obj.ACL ? obj.ACL : obj.ACL = {
+                                "read": {
+                                    "allow": {
+                                        "user": [
+                                            "all"
+                                        ],
+                                        "role": []
+                                    },
+                                    "deny": {
+                                        "user": [],
+                                        "role": []
+                                    }
+                                },
+                                "write": {
+                                    "allow": {
+                                        "user": [
+                                            "all"
+                                        ],
+                                        "role": []
+                                    },
+                                    "deny": {
+                                        "user": [],
+                                        "role": []
+                                    }
+                                }
+                            };
+                            obj.expires ? obj.expires : obj.expires = null;
+                            (obj._id || obj.id) ? obj._id = (obj._id || obj.id) : obj._id = util.getId();
+                            obj.updatedAt ? obj.updatedAt : obj.updatedAt = "";
+                            obj._version ? obj._version : obj._version = "1";
+                            obj._type ? obj._type : obj._type = "custom";
+                            obj.createdAt ? obj.createdAt : obj.createdAt = "";
+                            obj._modifiedColumns = Object.keys(obj);
+                            obj._isModified = true;
+                            obj._tableName = tableName;
+                            xslJsonObj.push(obj);
+                        } else {
+                            continue;
+                        }
+                    }
+                });
+                deferred.resolve(xslJsonObj);
+            });
+
+            fileStream.on('error', function(error){
+                deferred.reject(error);
+            });
+            return deferred.promise;
+        },
+
+        importJSONFile: function(fileStream, table){
+            var deferred = q.defer();
+            var tableName = table.replace(/\s/g, '');
+            var data = '';
+            fileStream.on('data', function (chunk) {
+                data += chunk;
+            });
+
+            fileStream.on('end', function () {
+                var jSON = JSON.parse(data);
+                for (var i = 0; i < jSON.data.length; i++) {
+                    jSON.data[i].expires ? jSON.data[i].expires : jSON.data[i].expires = null;
+                    (jSON.data[i]._id || jSON.data[i].id) ? jSON.data[i]._id = (jSON.data[i]._id || jSON.data[i].id) : jSON.data[i]._id = util.getId();
+                    jSON.data[i].updatedAt ? jSON.data[i].updatedAt : jSON.data[i].updatedAt = "";
+                    jSON.data[i]._version ? jSON.data[i]._version : jSON.data[i]._version = "1";
+                    jSON.data[i]._type ? jSON.data[i]._type : jSON.data[i]._type = "custom";
+                    jSON.data[i].createdAt ? jSON.data[i].createdAt : jSON.data[i].createdAt = "";
+                    jSON.data[i].ACL ? jSON.data[i].ACL :
+                        jSON.data[i].ACL = {
+                            "read": {
+                                "allow": {
+                                    "user": [
+                                        "all"
+                                    ],
+                                    "role": []
+                                },
+                                "deny": {
+                                    "user": [],
+                                    "role": []
+                                }
+                            },
+                            "write": {
+                                "allow": {
+                                    "user": [
+                                        "all"
+                                    ],
+                                    "role": []
+                                },
+                                "deny": {
+                                    "user": [],
+                                    "role": []
+                                }
+                            }
+                        };
+                    jSON.data[i]._modifiedColumns = Object.keys(jSON.data[i]);
+                    jSON.data[i]._isModified = true;
+                    jSON.data[i]._tableName = tableName;
+                }
+                deferred.resolve(jSON.data);
+            });
+
+            fileStream.on('error', function(error){
+                deferred.reject(error);
+            });
+            return deferred.promise;
+        },
+
+        generateSchema: function(req, document, isMasterKey){
+            var deferred = q.defer();
+            var appKey = req.body.key;
+            var appId = req.params.appId;
+            var table = req.body.tableName;
+            var tableName = table.replace(/\s/g, '')
+            var body = {
+                data: {
+                    columns: [
+                        {
+                            "name": "id",
+                            "_type": "column",
+                            "dataType": "Id",
+                            "required": true,
+                            "unique": true,
+                            "relatedTo": null,
+                            "relationType": null,
+                            "isDeletable": false,
+                            "isEditable": false,
+                            "isRenamable": false,
+                            "editableByMasterKey": false
+                        },
+                        {
+                            "name": "expires",
+                            "_type": "column",
+                            "dataType": "DateTime",
+                            "required": false,
+                            "unique": false,
+                            "relatedTo": null,
+                            "relationType": null,
+                            "isDeletable": false,
+                            "isEditable": false,
+                            "isRenamable": false,
+                            "editableByMasterKey": false
+                        },
+                        {
+                            "name": "updatedAt",
+                            "_type": "column",
+                            "dataType": "DateTime",
+                            "required": true,
+                            "unique": false,
+                            "relatedTo": null,
+                            "relationType": null,
+                            "isDeletable": false,
+                            "isEditable": false,
+                            "isRenamable": false,
+                            "editableByMasterKey": false
+                        },
+                        {
+                            "name": "createdAt",
+                            "_type": "column",
+                            "dataType": "DateTime",
+                            "required": true,
+                            "unique": false,
+                            "relatedTo": null,
+                            "relationType": null,
+                            "isDeletable": false,
+                            "isEditable": false,
+                            "isRenamable": false,
+                            "editableByMasterKey": false,
+                            "defaultValue": "1970-01-01T00:00:00.000Z"
+                        },
+                        {
+                            "name": "ACL",
+                            "_type": "column",
+                            "dataType": "ACL",
+                            "required": true,
+                            "unique": false,
+                            "relatedTo": null,
+                            "relationType": null,
+                            "isDeletable": false,
+                            "isEditable": false,
+                            "isRenamable": false,
+                            "editableByMasterKey": false
+                        }
+                    ]
+                }
+            };
+            var customHelper = require('../helpers/custom.js');
+            var headers = Object.keys(document[0]);
+            headers.map(function (x) {
+                if (x == "_type" || x == "_version" || x == "_tableName" || x == "_isModified" || x == "_modifiedColumns" || x == "" || x == "_id" || x == "ACL" || x == "createdAt" || x == "updatedAt" || x == "expires") {
+                    return;
+                }
+                var obj = {};
+                obj["name"] = x;
+                obj["_type"] = "column";
+                var type = typeof document[0][x];
+                if (type == "string") {
+                    obj["dataType"] = "Text";
+                } else {
+                    obj["dataType"] = type.charAt(0).toUpperCase() + type.slice(1);
+                }
+                obj["unique"] = false;
+                obj["defaultValue"] = null;
+                obj["required"] = false;
+                obj["relatedTo"] = null;
+                obj["relationType"] = null;
+                obj["isDeletable"] = true;
+                obj["isEditable"] = true;
+                obj["isRenamable"] = false;
+                obj["editableByMasterKey"] = false;
+                body.data.columns.push(obj);
+            });
+            global.appService.getTable(appId, tableName).then(function (table) {
+                if(table == null){
+                    let authorizationLevel = table ? 'table' : 'app'
+                    global.appService.isClientAuthorized(appId, appKey, authorizationLevel, table).then(function (isAuthorized) {
+                        if (isAuthorized) {
+                            global.appService.upsertTable(appId, tableName, body.data.columns, body.data).then(function (table) {
+                                global.customService.save(appId, tableName, document, customHelper.getAccessList(req), isMasterKey).then(function (result) {
+                                    console.log('+++ Save Success +++', table.name);
+                                    console.log(result);
+                                    deferred.resolve(result);
+                                }, function (error) {
+                                    console.log('++++++ Save Error +++++++');
+                                    console.log(error);
+                                    deferred.reject(error);
+                                });
+                            }, function (err) {
+                                deferred.reject(err);
+                            });
+                        } else deferred.reject("status: unauthorised");
+                    }, function (error) {
+                        deferred.reject(error);
+                    });
+                } else {
+                    deferred.reject("Table already exists");
+                }
+                
+
+            }, function (err) {
+                deferred.reject(err);
+            });
+            return deferred.promise;
         }
-    };
+    }
 };
 
 function _updateColumnNameOfOldRecords(tableName,appId,renameColumnObject){

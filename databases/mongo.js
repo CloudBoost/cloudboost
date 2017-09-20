@@ -1064,7 +1064,7 @@ module.exports = function() {
     function _save(appId, collectionName, document) {
         var deferredMain = q.defer();
         try {
-            console.log('In MongoDB provate save function.');
+            console.log('In MongoDB provate save function.', appId, collectionName, document);
             if (document._isModified) {
                 delete document._isModified;
             }
