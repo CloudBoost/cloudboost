@@ -133,7 +133,6 @@ module.exports = function() {
                 reqType.save = [];
                 reqType.update = [];
                 if (document.constructor === Array) {
-                    console.log(document.length)
                     for (var i = 0; i < document.length; i++) {
                         document[i] = _checkIdList(document[i], reqType);
                         _generateId(document[i], reqType);
@@ -162,7 +161,7 @@ module.exports = function() {
                         }
                     });
                 } else {
-                    console.log('Saving document...11');
+                    console.log('Saving document...');
                     _save(appId, collectionName, document, accessList, isMasterKey, opts).then(function(res) {
                         deferred.resolve(res);
                     }, function(err) {
@@ -266,20 +265,17 @@ function _save(appId, collectionName, document, accessList, isMasterKey, reqType
         var unModDoc = [];
         /* reqType keeps track of the collections which are for save and which are for update.
          * It stores the id of collections for save in save array and update in update array*/
-        console.log(reqType, "reqType111111111")
          if (!reqType) {
 
             reqType = {
                 save: [],
                 update: []
             };
-            console.log("in")
             document = _generateId(document, reqType);
         }
         var parentId = document._id;
-        console.log("Id Generated", parentId, Object.keys(document).length);
+        console.log("Id Generated");
         document = _getModifiedDocs(document, unModDoc);
-        console.log(document, Object.keys(document).length, ";;;;;;;;;;")
         if (document && Object.keys(document).length > 0) {
             customHelper.checkWriteAclAndUpdateVersion(appId, document, accessList, isMasterKey).then(function(listOfDocs) {
                 var obj = _seperateDocs(listOfDocs);

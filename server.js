@@ -15,8 +15,6 @@ var busboyBodyParser = require('busboy-body-parser');
 var q = require("q");
 var _ = require('underscore');
 var path = require('path');
-const fileUpload = require('express-fileupload');
-global.busboy = require('connect-busboy');
 
 global.mongoDisconnected = false;
 global.winston = require('winston');
@@ -75,8 +73,6 @@ global.app = global.express();
 
 //For pages in cloudboost
 global.app.set('view engine', 'ejs');
-global.app.use(global.busboy());
-global.app.use(fileUpload());
 global.app.use(global.express.static(path.join(__dirname, 'page-templates/assets')));
 
 var http = null;

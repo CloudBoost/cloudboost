@@ -120,7 +120,6 @@ function notifyOnSlack(integrationSettings, document, appName) {
 }
 
 function notifyOnZapier(integrationSettings, document, collection_name, table_event, appName) {
-    // console.log(table_event, collection_name, "in   }}}}}}}}}}}}}12");
     var zapier_events = integrationSettings.zapier_events;
     var zapier_webhook = integrationSettings.webhook_url || null;
     var eventObject = null;
@@ -129,7 +128,6 @@ function notifyOnZapier(integrationSettings, document, collection_name, table_ev
             eventObject = zapier_events[i];
         }
     }
-    // console.log(eventObject , eventObject[table_event], zapier_webhook, "}}}11")
     if (eventObject && eventObject[table_event] && zapier_webhook) {
         var headers = {
             'User-Agent':       'Super Agent/0.0.1',
