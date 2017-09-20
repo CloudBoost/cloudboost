@@ -73,7 +73,9 @@ global.app = global.express();
 
 //For pages in cloudboost
 global.app.set('view engine', 'ejs');
-global.app.use(global.express.static(path.join(__dirname, 'page-templates/assets')));
+global.app.use('*/assets',global.express.static(path.join(__dirname, 'page-templates/assets')));
+global.app.use(bodyParser.json({limit: '5mb'}));
+global.app.use(bodyParser.urlencoded({limit: '5mb'}));
 
 var http = null;
 var https = null;
@@ -505,7 +507,7 @@ function addConnections() {
 function setUpAnalytics() {
     try {
         console.log("Setting up Analytics...");
-        if (process.env["CLOUDBOOST_ANALYTICS_SERVICE_HOST"]) {
+        if (process.env["CLOUDBOOST_ANALYTICS_SERVICE_HOST"] || process.env["CLOUDBOOST_ANALYTICS_STAGING_SERVICE_HOST"]) {
             //this is running on Kubernetes
             console.log("CloudBoost Analytics is running on Kubernetes");
 
