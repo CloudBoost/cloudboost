@@ -293,8 +293,7 @@ function _save(appId, collectionName, document, accessList, isMasterKey, reqType
                     promises.push(databaseDriver.save(appId, mongoDocs));
                     global.q.allSettled(promises).then(function(array) {
                         if (array[0].state === 'fulfilled') {
-                            //pass masterkey to access events as default ACL for event R/W is set to false
-                            _sendNotification(appId, array[0], reqType, isMasterKey);
+                            _sendNotification(appId, array[0], reqType);
                             unModDoc = _merge(parentId, array[0].value, unModDoc);
                             console.log('SAVED Doc');
                             console.log(unModDoc);
@@ -393,16 +392,14 @@ function _validateSchema(appId, listOfDocs, accessList, isMasterKey) {
     return deferred.promise;
 }
 
-function _sendNotification(appId, res, reqType, isMasterKey) {
-    //pass masterkey to access events as default ACL for event R/W is set to false
-
+function _sendNotification(appId, res, reqType) {
     try {
         for (var i = 0; i < res.value.length; i++) {
             if (res.value[i].state === 'fulfilled') {
                 if (reqType.save.indexOf(res.value[i].value._id) >= 0) {
-                    global.realTime.sendObjectNotification(appId, res.value[i].value, 'created', isMasterKey);
+                    global.realTime.sendObjectNotification(appId, res.value[i].value, 'created');
                 } else {
-                    global.realTime.sendObjectNotification(appId, res.value[i].value, 'updated', isMasterKey);
+                    global.realTime.sendObjectNotification(appId, res.value[i].value, 'updated');
                 }
             }
         }
@@ -1352,7 +1349,7 @@ function _modifyFieldsInQuery(appId, collectionName, query) {
 
 function _encrypt(data) {
     try {
-        return crypto.pbkdf2Sync(data, global.keys.secureKey, 10000, 64, 'sha512').toString('base64');
+        return crypto.pbkdf2Sync(data, global.keys.secureKey, 10000, 64, 'sha1').toString('base64');
     } catch (err) {
         global.winston.log('error', {
             "error": String(err),

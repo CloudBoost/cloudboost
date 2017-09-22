@@ -4,16 +4,16 @@
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
-module.exports = function(io) {
+module.exports = function (io) {
 
     var g = {};
-    io.use(function(socket, next) {
+    io.use(function (socket, next) {
         next();
     });
-    io.on('connection', function(socket) {
+    io.on('connection', function (socket) {
 
         try {
-            socket.on('app-init', function(data) {
+            socket.on('app-init', function (data) {
                 try {
                     socket.join(data);
                 } catch (e) {
@@ -26,7 +26,7 @@ module.exports = function(io) {
 
             /* Custom Channel Listeners. */
 
-            socket.on('join-custom-channel', function(data) {
+            socket.on('join-custom-channel', function (data) {
                 try {
                     console.log('++++++++ Joined Realtime Channel+++++');
                     console.log(data);
@@ -40,7 +40,7 @@ module.exports = function(io) {
                 }
             });
 
-            socket.on('socket-disconnect', function(data) {
+            socket.on('socket-disconnect', function (data) {
                 try {
                     socket.disconnect();
                 } catch (e) {
@@ -51,7 +51,7 @@ module.exports = function(io) {
                 }
             });
 
-            socket.on('leave-custom-channel', function(data) {
+            socket.on('leave-custom-channel', function (data) {
                 try {
                     console.log('++++++++ Left Realtime Channel+++++');
                     console.log(data);
@@ -64,7 +64,7 @@ module.exports = function(io) {
                 }
             });
 
-            socket.on('publish-custom-channel', function(data) {
+            socket.on('publish-custom-channel', function (data) {
                 try {
                     console.log('++++++++ Publish Realtime Channel+++++');
                     console.log(data);
@@ -91,7 +91,7 @@ module.exports = function(io) {
             });
 
             /* CloudObject Channel Listeners. */
-            socket.on('join-object-channel', function(data) {
+            socket.on('join-object-channel', function (data) {
                 try {
                     console.log('++++++++ Joined Object Realtime Channel+++++');
                     console.log(data);
@@ -112,11 +112,11 @@ module.exports = function(io) {
                 }
             });
 
-            socket.on('leave-object-channel', function(data) {
+            socket.on('leave-object-channel', function (data) {
                 try {
                     console.log('++++++++ Leave Object Realtime Channel+++++');
                     console.log(data);
-                    global.socketQueryHelper.getData(socket.id, data.eventType, function(err, socketData) {
+                    global.socketQueryHelper.getData(socket.id, data.eventType, function (err, socketData) {
                         if (err)
                             throw err;
                         else {
@@ -133,7 +133,7 @@ module.exports = function(io) {
                 }
             });
 
-            socket.on('disconnect', function() {
+            socket.on('disconnect', function () {
                 try {
                     global.socketSessionHelper.deleteSession(socket.id); //deletes the lnk between this socket and session.
                 } catch (e) {
@@ -153,8 +153,7 @@ module.exports = function(io) {
 
     });
 
-    g.sendObjectNotification = function(appId, document, eventType, isMasterKey) {
-        //pass masterkey to access events as default ACL for event R/W is set to false
+    g.sendObjectNotification = function (appId, document, eventType) {
         try {
             //event type can be created, updated, deleted.
             if (document && document._tableName) {
@@ -172,19 +171,19 @@ module.exports = function(io) {
                 if (typeof sockets === "object") {
                     for (var key in sockets) {
                         if (sockets[key]) {
-                            promises.push(_sendNotification(appId, document, sockets[key], eventType, isMasterKey));
+                            promises.push(_sendNotification(appId, document, sockets[key], eventType));
                         }
                     }
                 } else {
                     for (var i = 0; i < sockets.length; i++) {
                         var socket = sockets[i];
-                        promises.push(_sendNotification(appId, document, socket, eventType, isMasterKey));
+                        promises.push(_sendNotification(appId, document, socket, eventType));
                     }
                 }
 
-                global.q.all(promises).then(function() {
+                global.q.all(promises).then(function () {
                     console.log("Notifications Sent");
-                }, function() {
+                }, function () {
                     console.log("Error on sending Notifications");
                 });
             }
@@ -203,36 +202,54 @@ module.exports = function(io) {
 /**
  */
 
-function _sendNotification(appId, document, socket, eventType, isMasterKey) {
-    //pass masterkey to access events as default ACL for event R/W is set to false
+function _sendNotification(appId, document, socket, eventType) {
     var deferred = global.q.defer();
     try {
-        global.socketSessionHelper.getSession(socket.id, function(err, session) {
+        global.socketSessionHelper.getSession(socket.id, function (err, session) {
             if (err) {
                 deferred.reject();
             }
-            if (!session || global.aclHelper.isAllowedReadAccess(session.userId, session.roles, document.ACL) || isMasterKey) {
-                global.socketQueryHelper.getData(socket.id, eventType, function(err, socketData) {
-                    var socketQueryValidate = true;
-                    if (socketData && socketData.query)
-                        socketQueryValidate = global.socketQueryHelper.validateSocketQuery(document, socketData.query.query);
-                    if (socketQueryValidate) {
-                        if (!socketData)
-                            socketData = {
-                                timestamp: ''
-                            };
+
+            session = session || {}
+
+            global.socketQueryHelper.getData(socket.id, eventType, function (err, socketData) {
+
+                socketData = socketData || { timestamp: '' };
+                var socketQueryValidate = true;
+                if (socketData.query) {
+                    socketQueryValidate = global.socketQueryHelper.validateSocketQuery(document, socketData.query.query);
+                }
+
+                if (socketQueryValidate) {
+                    // check if public access is enabled or the current session user is allowed
+                    if (global.aclHelper.isAllowedReadAccess(session.userId, session.roles, document.ACL)) {
                         console.log(appId.toLowerCase() + 'table' + document._tableName.toLowerCase() + eventType.toLowerCase() + socketData.timestamp)
                         socket.emit(appId.toLowerCase() + 'table' + document._tableName.toLowerCase() + eventType.toLowerCase() + socketData.timestamp, JSON.stringify(document));
                         console.log("Socket Emited.", document);
+                        deferred.resolve();
                     } else {
-                        console.log('Socket Query doesn\'t satsfies the current document');
+                        // if no access then only emit if listen is using master key
+                        if (socketData.appKey) {
+                            global.appService.isMasterKey(appId, socketData.appKey).then(( isMaster ) => {
+                                if(isMaster){
+                                    console.log(appId.toLowerCase() + 'table' + document._tableName.toLowerCase() + eventType.toLowerCase() + socketData.timestamp)
+                                    socket.emit(appId.toLowerCase() + 'table' + document._tableName.toLowerCase() + eventType.toLowerCase() + socketData.timestamp, JSON.stringify(document));
+                                    console.log("Socket Emited.", document);
+                                }
+                                deferred.resolve();
+                            })
+                        } else {
+                            console.log('Socket doesnt have access to the emitted data');
+                            deferred.resolve();
+                        }
                     }
+
+                } else {
+                    console.log('Socket Query doesn\'t satsfies the current document');
                     deferred.resolve();
-                });
-            } else {
-                console.log("JUST RESOLVED");
-                deferred.resolve();
-            }
+                }
+
+            });
         });
     } catch (e) {
         global.winston.log('error', {

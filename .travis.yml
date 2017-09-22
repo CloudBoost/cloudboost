@@ -28,6 +28,7 @@ install:
   fi
 - docker run --name cloudboost -e  MAIL_PROVIDER=$MAIL_PROVIDER -e  MAIL_PROVIDER_API_KEY=$MAIL_PROVIDER_API_KEY -e  DOMAIN=$DOMAIN -e  FROM_EMAIL=$FROM_EMAIL -e  FROM_NAME=$FROM_NAME -p 4730:4730 -it --link redis:redis --link mongo:mongo -d cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER
 - sleep 30s
+- docker logs cloudboost
 - git clone https://github.com/cloudboost/javascriptsdk
 - cd javascriptsdk
 - npm install
@@ -40,7 +41,7 @@ after_success:
     docker push cloudboost/cloudboost:staging;
     git clone https://github.com/CloudBoost/kube-cred.git;
     cd kube-cred;
-    openssl enc -in config.enc -out config -d -aes256 -k $KUBE_ENC;
+    openssl enc -in config_staging.enc -out config -d -aes256 -k $KUBE_ENC;
     mkdir ~/.kube;
     mv config ~/.kube/;
     kubectl rolling-update cloudboost-engine-staging --image=cloudboost/cloudboost:staging --image-pull-policy=Always;

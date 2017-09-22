@@ -1,5 +1,5 @@
 .git/
-#node_modules/
+node_modules/
 config/cloudboost.json
 .vscode/
 *.suo

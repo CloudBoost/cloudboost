@@ -582,8 +582,21 @@ module.exports = function() {
                 query = _sanitizeQuery(query);
 
                 var keys = {};
+                var indexForDot = onKey.indexOf('.');
 
-                keys[onKey] = "$" + onKey;
+                // if DOT in onKey
+                //  keys = { beforeDot: { afterDot : "$beforeDot.afterDot"} }
+                // else
+                //  keys = { onKey : "$"+onKey }
+                if (indexForDot !== -1) {
+
+                    //not using computed properties as it may not be available in server's nodejs version
+                    keys[ onKey.slice(0, indexForDot) ] = { };
+                    keys[ onKey.slice(0, indexForDot) ][ onKey.slice(indexForDot + 1) ] = "$" + onKey;
+                }
+                else
+                    keys[onKey] = "$" + onKey;
+
                 if (!sort || Object.keys(sort).length === 0) {
                     sort = {
                         "createdAt": 1
