@@ -1199,7 +1199,6 @@ module.exports = function () {
                 obj["name"] = x;
                 obj["_type"] = "column";
                 var type = typeof document[0][x];
-                console.log(typeof document[0]["createdAt"], typeof document[0]["updatedAt"], "{{{{{}}}}}}}}")
                 if (type == "string") {
                     obj["dataType"] = "Text";
                 } else {
