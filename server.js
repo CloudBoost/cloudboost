@@ -123,6 +123,7 @@ global.fileService = null;
 global.queueService = null;
 global.serverService = null;
 global.mailService = null;
+global.helperService = null;
 
 global.mongoUtil = null;
 
@@ -322,6 +323,7 @@ function attachServices() {
         global.pushService = require('./services/cloudPush.js')();
         global.emailService = require('./services/cloudEmail.js')();
         global.authService = require('./services/auth.js')();
+        global.helperService = require('./services/customHelpers.js')();
 
         console.log('+++++++++++ Services Status : OK. ++++++++++++++++++');
     } catch (e) {

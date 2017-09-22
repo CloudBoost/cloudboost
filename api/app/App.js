@@ -322,7 +322,7 @@ module.exports = function () {
     });
 
     //Import Table for :appID
-    global.app.post('/import/:appId/:tableName', function (req, res, next) {
+    global.app.post('/import/:appId', function (req, res, next) {
         console.log("++++ Import Table ++++++");
         try {
             var appKey = req.body.key;
@@ -352,17 +352,24 @@ module.exports = function () {
                     var fileStream = global.mongoService.document.getFileStreamById(appId, file._id);
                     var parseFile = null;
                     if (fileExt == ".csv") {
-                        parseFile = global.appService.importCSVFile;
+                        parseFile = global.helperService.importCSVFile;
                     } else if (fileExt == '.xls' || fileExt == '.xlsx') {
-                        parseFile = global.appService.importXLSFile;
+                        parseFile = global.helperService.importXLSFile;
                     } else {
-                        parseFile = global.appService.importJSONFile;
+                        parseFile = global.helperService.importJSONFile;
                     }
                     if(parseFile){
                         parseFile(fileStream, tableName).then(function(document){
-                            global.appService.generateSchema(req, document, isMasterKey).then(function(result){
-                                console.log(result, "Schema Generated and Data Saved!!");
-                                res.status(200).send(result);
+                            global.appService.generateSchema(req, document, isMasterKey).then(function(table){
+                                global.customService.save(appId, tableName, document, customHelper.getAccessList(req), isMasterKey).then(function (result) {
+                                    console.log('+++ Save Success +++', table.name);
+                                    console.log(result);
+                                    res.status(200).send(result);
+                                }, function (error) {
+                                    console.log('++++++ Save Error +++++++');
+                                    console.log(error);
+                                    res.status(500).send(error);
+                                });
                             }, function(error){
                                 res.status(500).send(error);
                             });
