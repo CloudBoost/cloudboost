@@ -325,7 +325,7 @@ function attachServices() {
         global.pushService = require('./services/cloudPush.js')();
         global.emailService = require('./services/cloudEmail.js')();
         global.authService = require('./services/auth.js')();
-        global.helperService = require('./services/customHelpers.js')();
+        global.importHelpers = require('./services/importHelpers.js')();
 
         console.log('+++++++++++ Services Status : OK. ++++++++++++++++++');
     } catch (e) {

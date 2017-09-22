@@ -1111,6 +1111,7 @@ module.exports = function () {
             return deferred.promise;
         },
 
+        //generate schema to import data
         generateSchema: function (req, document, isMasterKey) {
             var deferred = q.defer();
             var appKey = req.body.key;

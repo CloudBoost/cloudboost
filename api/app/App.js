@@ -352,11 +352,11 @@ module.exports = function () {
                     var fileStream = global.mongoService.document.getFileStreamById(appId, file._id);
                     var parseFile = null;
                     if (fileExt == ".csv") {
-                        parseFile = global.helperService.importCSVFile;
+                        parseFile = global.importHelpers.importCSVFile;
                     } else if (fileExt == '.xls' || fileExt == '.xlsx') {
-                        parseFile = global.helperService.importXLSFile;
+                        parseFile = global.importHelpers.importXLSFile;
                     } else {
-                        parseFile = global.helperService.importJSONFile;
+                        parseFile = global.importHelpers.importJSONFile;
                     }
                     if(parseFile){
                         parseFile(fileStream, tableName).then(function(document){
