@@ -1,4 +1,4 @@
-<img src="https://www.dropbox.com/s/7ghf1kl7crp5bvy/CbLogoIcon.png?raw=1" height="80" />
+<img src="https://www.dropbox.com/s/gpdhpr3c63dquby/CLoudBoostLogo-Circle-250.png?dl=0&raw=1" height="150" />
 
 [![Build Status](https://travis-ci.org/CloudBoost/cloudboost.svg?branch=master)](https://travis-ci.org/CloudBoost/cloudboost)
 [![OpenCollective](https://opencollective.com/cloudboost/backers/badge.svg)](#backers) 
