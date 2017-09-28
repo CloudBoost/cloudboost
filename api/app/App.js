@@ -331,7 +331,7 @@ module.exports = function () {
             var tableName = req.body.tableName;
             var fileName = req.body.fileName;
             var fileExt = path.extname(fileName);
-            var customHelper = require('../../helpers/custom.js');
+            
             if (!appKey) {
                 return res.status(400).send("key is missing");
             }
@@ -348,35 +348,11 @@ module.exports = function () {
                 return res.status(400).send(fileExt + " is not allowed");
             }
             global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
-                global.fileService.getFile(appId, fileId, customHelper.getAccessList(req), isMasterKey).then(function (file) {
-                    var fileStream = global.mongoService.document.getFileStreamById(appId, file._id);
-                    var parseFile = null;
-                    if (fileExt == ".csv") {
-                        parseFile = global.importHelpers.importCSVFile;
-                    } else if (fileExt == '.xls' || fileExt == '.xlsx') {
-                        parseFile = global.importHelpers.importXLSFile;
-                    } else {
-                        parseFile = global.importHelpers.importJSONFile;
-                    }
-                    if(parseFile){
-                        parseFile(fileStream, tableName).then(function(document){
-                            global.appService.generateSchema(req, document, isMasterKey).then(function(table){
-                                global.customService.save(appId, tableName, document, customHelper.getAccessList(req), isMasterKey).then(function (result) {
-                                    console.log('+++ Save Success +++', table.name);
-                                    console.log(result);
-                                    res.status(200).send(result);
-                                }, function (error) {
-                                    console.log('++++++ Save Error +++++++');
-                                    console.log(error);
-                                    res.status(500).send(error);
-                                });
-                            }, function(error){
-                                res.status(500).send(error);
-                            });
-                        });
-                    }
-                });
-
+                global.appService.importTable(req, isMasterKey).then(function(result){
+                    return res.status(200).json(result);
+                }, function(error){
+                    return res.status(500).send(error);
+                })
             }, function (error) {
                 return res.status(500).send('Cannot retrieve security keys.');
             });
