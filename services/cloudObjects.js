@@ -265,13 +265,13 @@ function _save(appId, collectionName, document, accessList, isMasterKey, reqType
         var unModDoc = [];
         /* reqType keeps track of the collections which are for save and which are for update.
          * It stores the id of collections for save in save array and update in update array*/
-         if (!reqType){
+        if (!reqType) {
 
             reqType = {
                 save: [],
                 update: []
             };
-            
+
             document = _generateId(document, reqType);
         }
         var parentId = document._id;
