@@ -2,6 +2,7 @@
 var util = require('../helpers/util.js');
 const csv = require('csvtojson');
 var xlsx = require('node-xlsx');
+var tablesData = require('../helpers/cloudTable');
 
 module.exports = function () {
 
@@ -17,16 +18,16 @@ module.exports = function () {
                     (json._id || json.id) ? json._id = (json._id || json.id) : json._id = util.getId();
                     json._version ? json._version : json._version = "1";
                     json._type ? json._type : json._type = "custom";
-                    if(json.createdAt){
-                        if(new Date(json.createdAt) == "Invalid Date"){
+                    if (json.createdAt) {
+                        if (new Date(json.createdAt) == "Invalid Date") {
                             json.created = json.createdAt;
                             json.createdAt = "";
                         }
                     } else {
                         json.createdAt = "";
                     }
-                    if(json.updatedAt){
-                        if(new Date(json.updatedAt) == "Invalid Date"){
+                    if (json.updatedAt) {
+                        if (new Date(json.updatedAt) == "Invalid Date") {
                             json.updated = json.updatedAt;
                             json.updatedAt = "";
                         }
@@ -177,65 +178,105 @@ module.exports = function () {
 
             fileStream.on('end', function () {
                 var jSON = JSON.parse(data);
-                for (var i = 0; i < jSON.data.length; i++) {
-                    jSON.data[i].expires ? jSON.data[i].expires : jSON.data[i].expires = null;
-                    (jSON.data[i]._id || jSON.data[i].id) ? jSON.data[i]._id = (jSON.data[i]._id || jSON.data[i].id) : jSON.data[i]._id = util.getId();
-                    if(jSON.data[i].createdAt){
-                        if(new Date(jSON.data[i].createdAt) == "Invalid Date"){
-                            jSON.data[i].created = jSON.data[i].createdAt;
+                try {
+                    for (var i = 0; i < jSON.data.length; i++) {
+                        jSON.data[i].expires ? jSON.data[i].expires : jSON.data[i].expires = null;
+                        (jSON.data[i]._id || jSON.data[i].id) ? jSON.data[i]._id = (jSON.data[i]._id || jSON.data[i].id) : jSON.data[i]._id = util.getId();
+                        if (jSON.data[i].createdAt) {
+                            if (new Date(jSON.data[i].createdAt) == "Invalid Date") {
+                                jSON.data[i].created = jSON.data[i].createdAt;
+                                jSON.data[i].createdAt = "";
+                            }
+                        } else {
                             jSON.data[i].createdAt = "";
                         }
-                    } else {
-                        jSON.data[i].createdAt = "";
-                    }
-                    if(jSON.data[i].updatedAt){
-                        if(new Date(jSON.data[i].updatedAt) == "Invalid Date"){
-                            jSON.data[i].updated = jSON.data[i].updatedAt;
+                        if (jSON.data[i].updatedAt) {
+                            if (new Date(jSON.data[i].updatedAt) == "Invalid Date") {
+                                jSON.data[i].updated = jSON.data[i].updatedAt;
+                                jSON.data[i].updatedAt = "";
+                            }
+                        } else {
                             jSON.data[i].updatedAt = "";
                         }
-                    } else {
-                        jSON.data[i].updatedAt = "";
+                        jSON.data[i]._version ? jSON.data[i]._version : jSON.data[i]._version = "1";
+                        jSON.data[i]._type ? jSON.data[i]._type : jSON.data[i]._type = "custom";
+                        jSON.data[i].ACL ? jSON.data[i].ACL :
+                            jSON.data[i].ACL = {
+                                "read": {
+                                    "allow": {
+                                        "user": [
+                                            "all"
+                                        ],
+                                        "role": []
+                                    },
+                                    "deny": {
+                                        "user": [],
+                                        "role": []
+                                    }
+                                },
+                                "write": {
+                                    "allow": {
+                                        "user": [
+                                            "all"
+                                        ],
+                                        "role": []
+                                    },
+                                    "deny": {
+                                        "user": [],
+                                        "role": []
+                                    }
+                                }
+                            };
+                        jSON.data[i]._modifiedColumns = Object.keys(jSON.data[i]);
+                        jSON.data[i]._isModified = true;
+                        jSON.data[i]._tableName = tableName;
                     }
-                    jSON.data[i]._version ? jSON.data[i]._version : jSON.data[i]._version = "1";
-                    jSON.data[i]._type ? jSON.data[i]._type : jSON.data[i]._type = "custom";
-                    jSON.data[i].ACL ? jSON.data[i].ACL :
-                        jSON.data[i].ACL = {
-                            "read": {
-                                "allow": {
-                                    "user": [
-                                        "all"
-                                    ],
-                                    "role": []
-                                },
-                                "deny": {
-                                    "user": [],
-                                    "role": []
-                                }
-                            },
-                            "write": {
-                                "allow": {
-                                    "user": [
-                                        "all"
-                                    ],
-                                    "role": []
-                                },
-                                "deny": {
-                                    "user": [],
-                                    "role": []
-                                }
-                            }
-                        };
-                    jSON.data[i]._modifiedColumns = Object.keys(jSON.data[i]);
-                    jSON.data[i]._isModified = true;
-                    jSON.data[i]._tableName = tableName;
+                    deferred.resolve(jSON.data);
+                } catch (error) {
+                    console.log(error);
+                    deferred.reject(error);
                 }
-                deferred.resolve(jSON.data);
             });
 
             fileStream.on('error', function (error) {
                 deferred.reject(error);
             });
             return deferred.promise;
+        },
+
+        generateSchema: function (document) {
+            var tableHeaders = [];
+            var headers = Object.keys(document[0]);
+            headers.map(function (x) {
+                if (x == "_type" || x == "_version" || x == "_tableName" || x == "_isModified" || x == "_modifiedColumns" || x == "" || x == "_id" || x == "ACL" || x == "createdAt" || x == "updatedAt" || x == "expires") {
+                    return;
+                }
+                var obj = {};
+                obj["name"] = x;
+                obj["_type"] = "column";
+                var type = typeof document[0][x];
+                if (type == "string") {
+                    obj["dataType"] = "Text";
+                } else {
+                    obj["dataType"] = type.charAt(0).toUpperCase() + type.slice(1);
+                }
+                obj["unique"] = false;
+                obj["defaultValue"] = null;
+                obj["required"] = false;
+                obj["relatedTo"] = null;
+                obj["relationType"] = null;
+                obj["isDeletable"] = true;
+                obj["isEditable"] = true;
+                obj["isRenamable"] = false;
+                obj["editableByMasterKey"] = false;
+                tableHeaders.push(obj);
+            });
+            var body = {
+                data: {
+                    columns: tableHeaders.concat(tablesData.Custom).reverse()
+                }
+            };
+            return body;
         }
     }
 }
