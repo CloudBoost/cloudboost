@@ -1121,7 +1121,6 @@ module.exports = function() {
             var fileExt = path.extname(fileName);
 
             global.fileService.getFile(appId, fileId, customHelper.getAccessList(req), isMasterKey).then(function (file) {
-                console.log(file, "pppppppppppppppppp")
                 var fileStream = global.mongoService.document.getFileStreamById(appId, file._id);
                 var parseFile = null;
             

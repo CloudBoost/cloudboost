@@ -114,12 +114,7 @@ module.exports = function () {
             var xslJsonObj = [];
             var workSheetsFromBuffer;
             fileStream.on('data', function (chunk) {
-                console.log("   ")
-                console.log(chunk, "{{{{{{{{}}}}}")
-                console.log("   ")
                 workSheetsFromBuffer = xlsx.parse(chunk);
-                console.log(workSheetsFromBuffer)
-                console.log(workSheetsFromBuffer[0].data, "{{{++++++++")
             });
 
             fileStream.on('end', function () {
