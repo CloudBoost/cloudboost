@@ -16,6 +16,8 @@ var json2csv = require('json2csv');
 var jsonToXlsx = require('json2xlsx');
 var jsonXlsxWriteFile = require('icg-json-to-xlsx');
 var fs = require('fs');
+var path = require('path');
+var customHelper = require('../helpers/custom.js');
 
 module.exports = function() {
 
@@ -1106,6 +1108,68 @@ module.exports = function() {
                 deferred.reject(err);
             });
             return deferred.promise;
+        },
+
+        importTable: function (req, isMasterKey) {
+            var deferred = q.defer();
+            var appId = req.params.appId;
+            var appKey = req.body.key;
+            var fileId = req.body.fileId;
+            var table = req.body.tableName;
+            var tableName = table.replace(/\s/g, '');
+            var fileName = req.body.fileName;
+            var fileExt = path.extname(fileName);
+
+            global.fileService.getFile(appId, fileId, customHelper.getAccessList(req), isMasterKey).then(function (file) {
+                var fileStream = global.mongoService.document.getFileStreamById(appId, file._id);
+                var parseFile = null;
+            
+                if (fileExt == ".csv") {
+                    parseFile = global.importHelpers.importCSVFile;
+                } else if (fileExt == '.xls' || fileExt == '.xlsx') {
+                    parseFile = global.importHelpers.importXLSFile;
+                } else {
+                    parseFile = global.importHelpers.importJSONFile;
+                }
+
+                if (parseFile) {
+                parseFile(fileStream, tableName).then(function (document) {
+                    var body = global.importHelpers.generateSchema(document);
+                    global.appService.getTable(appId, tableName).then(function (table) {
+                        if (table == null) {
+
+                            let authorizationLevel = table ? 'table' : 'app'
+                            global.appService.isClientAuthorized(appId, appKey, authorizationLevel, table).then(function (isAuthorized) {
+                                if (isAuthorized) {
+                                    global.appService.upsertTable(appId, tableName, body.data.columns, body.data).then(function (table) {
+                                        global.customService.save(appId, tableName, document, customHelper.getAccessList(req), isMasterKey).then(function (result) {
+                                            console.log('+++ Save Success +++', table.name);
+                                            console.log(result);
+                                            deferred.resolve(result);
+                                        }, function (error) {
+                                            console.log('++++++ Save Error +++++++');
+                                            console.log(error);
+                                            deferred.reject(error);
+                                        });
+                                    }, function (err) {
+                                        deferred.reject(err);
+                                    });
+                                } else deferred.reject("status: unauthorised");
+                            }, function (error) {
+                                deferred.reject(error);
+                            });
+                        } else {
+                            deferred.reject("Table already exists");
+                        }
+                    }, function (err) {
+                        deferred.reject(err);
+                    });
+                }, function(error){
+                    deferred.reject(error);
+                });
+            }
+        });
+        return deferred.promise;
         }
     };
 };
