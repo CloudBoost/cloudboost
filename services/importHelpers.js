@@ -298,7 +298,6 @@ module.exports = function () {
                                         }
                                     }
                                 };
-                            console.log(jSON.data[i].ACL, typeof jSON.data[i].ACL, "}}}}}}}}}-------")
                             jSON.data[i]._modifiedColumns = Object.keys(jSON.data[i]);
                             jSON.data[i]._isModified = true;
                             jSON.data[i]._tableName = tableName;
