@@ -15,7 +15,7 @@ module.exports = function () {
                 .fromStream(fileStream)
                 .on('json', (json) => {
                     json.expires ? json.expires : json.expires = null;
-                    (json._id || json.id) ? json._id = (json._id || json.id) : json._id = util.getId();
+                    json._id = util.getId();
                     json._version ? json._version : json._version = "1";
                     json._type ? json._type : json._type = "custom";
                     if (json.createdAt) {
@@ -135,10 +135,10 @@ module.exports = function () {
                                     if (typeof element.data[i][j] != 'undefined' && typeof headers[j] != 'undefined') {
                                         if (headers[j] == "A CL" || headers[j] == "ACL" || headers[j] == "A C L") {
                                             try {
-                                                obj[headers[j]] = JSON.parse(element.data[i][j]);
+                                                obj['ACL'] = JSON.parse(element.data[i][j]);
                                             } catch (err) {
                                                 console.log("++++++++++Error in ACL++++++++");
-                                                obj[headers[j]] = {
+                                                obj['ACL'] = {
                                                     "read": {
                                                         "allow": {
                                                             "user": [
@@ -207,7 +207,10 @@ module.exports = function () {
                                     }
                                 };
                                 obj.expires ? obj.expires : obj.expires = null;
-                                (obj._id || obj.id) ? obj._id = (obj._id || obj.id) : obj._id = util.getId();
+                                if (obj._id) {
+                                    delete obj._id
+                                };
+                                obj._id = util.getId();
                                 obj.updatedAt ? obj.updatedAt : obj.updatedAt = "";
                                 obj._version ? obj._version : obj._version = "1";
                                 obj._type ? obj._type : obj._type = "custom";
@@ -249,7 +252,7 @@ module.exports = function () {
                     try {
                         for (var i = 0; i < jSON.data.length; i++) {
                             jSON.data[i].expires ? jSON.data[i].expires : jSON.data[i].expires = null;
-                            (jSON.data[i]._id || jSON.data[i].id) ? jSON.data[i]._id = (jSON.data[i]._id || jSON.data[i].id) : jSON.data[i]._id = util.getId();
+                            jSON.data[i]._id = util.getId();
                             if (jSON.data[i].createdAt) {
                                 if (new Date(jSON.data[i].createdAt) == "Invalid Date") {
                                     jSON.data[i].created = jSON.data[i].createdAt;
@@ -295,6 +298,7 @@ module.exports = function () {
                                         }
                                     }
                                 };
+                            console.log(jSON.data[i].ACL, typeof jSON.data[i].ACL, "}}}}}}}}}-------")
                             jSON.data[i]._modifiedColumns = Object.keys(jSON.data[i]);
                             jSON.data[i]._isModified = true;
                             jSON.data[i]._tableName = tableName;
@@ -318,39 +322,196 @@ module.exports = function () {
             return deferred.promise;
         },
 
-        generateSchema: function (document) {
+        generateSchema: function (document, importType) {
             var tableHeaders = [];
             var headers = Object.keys(document[0]);
+            var body = {
+                data: {
+                    columns: [
+                        {
+                            "name": "id",
+                            "_type": "column",
+                            "dataType": "Id",
+                            "required": true,
+                            "unique": true,
+                            "relatedTo": null,
+                            "relationType": null,
+                            "isDeletable": false,
+                            "isEditable": false,
+                            "isRenamable": false,
+                            "editableByMasterKey": false
+                        },
+                        {
+                            "name": "expires",
+                            "_type": "column",
+                            "dataType": "DateTime",
+                            "required": false,
+                            "unique": false,
+                            "relatedTo": null,
+                            "relationType": null,
+                            "isDeletable": false,
+                            "isEditable": false,
+                            "isRenamable": false,
+                            "editableByMasterKey": false
+                        },
+                        {
+                            "name": "updatedAt",
+                            "_type": "column",
+                            "dataType": "DateTime",
+                            "required": true,
+                            "unique": false,
+                            "relatedTo": null,
+                            "relationType": null,
+                            "isDeletable": false,
+                            "isEditable": false,
+                            "isRenamable": false,
+                            "editableByMasterKey": false
+                        },
+                        {
+                            "name": "createdAt",
+                            "_type": "column",
+                            "dataType": "DateTime",
+                            "required": true,
+                            "unique": false,
+                            "relatedTo": null,
+                            "relationType": null,
+                            "isDeletable": false,
+                            "isEditable": false,
+                            "isRenamable": false,
+                            "editableByMasterKey": false,
+                            "defaultValue": "1970-01-01T00:00:00.000Z"
+                        },
+                        {
+                            "name": "ACL",
+                            "_type": "column",
+                            "dataType": "ACL",
+                            "required": true,
+                            "unique": false,
+                            "relatedTo": null,
+                            "relationType": null,
+                            "isDeletable": false,
+                            "isEditable": false,
+                            "isRenamable": false,
+                            "editableByMasterKey": false
+                        }
+                    ]
+                }
+            };
             headers.map(function (x) {
-                if (x == "_type" || x == "_version" || x == "_tableName" || x == "_isModified" || x == "_modifiedColumns" || x == "" || x == "_id" || x == "ACL" || x == "createdAt" || x == "updatedAt" || x == "expires") {
+                if (x == "_type" || x == "_version" || x == "_tableName" || x == "_isModified" || x == "_modifiedColumns" || x == "" || x == "id" || x == "_id" || x == "ACL" || x == "createdAt" || x == "updatedAt" || x == "expires") {
                     return;
                 }
                 var obj = {};
                 obj["name"] = x;
                 obj["_type"] = "column";
-                var type = typeof document[0][x];
-                if (type == "string") {
-                    obj["dataType"] = "Text";
-                } else {
-                    obj["dataType"] = type.charAt(0).toUpperCase() + type.slice(1);
-                }
+                obj["dataType"] = detectDataType(document[0][x], "dataType");
+                tableHeaders.push({
+                    "colName": x,
+                    "colType": obj["dataType"]
+                });
                 obj["unique"] = false;
                 obj["defaultValue"] = null;
                 obj["required"] = false;
-                obj["relatedTo"] = null;
+                if (obj["dataType"] == "List") {
+                    obj["relatedTo"] = detectDataType(document[0][x], "relatedTo");
+                } else {
+                    obj["relatedTo"] = null;
+                }
                 obj["relationType"] = null;
                 obj["isDeletable"] = true;
                 obj["isEditable"] = true;
                 obj["isRenamable"] = false;
                 obj["editableByMasterKey"] = false;
-                tableHeaders.push(obj);
+                body.data.columns.push(obj);
             });
-            var body = {
-                data: {
-                    columns: tableHeaders.concat(tablesData.Custom).reverse()
-                }
-            };
+            if (importType != "json") {
+                validateData(tableHeaders, document);
+            }
             return body;
         }
     }
+}
+
+function detectDataType(data, colProp) {
+    var type;
+    if (isJson(data)) {
+        try {
+            data = JSON.parse(data);
+        } catch (e) {
+            console.log(e)
+        }
+    }
+    if (colProp == "relatedTo") {
+        data = data[0];
+    }
+    
+    if (data == "true" || data == "false" || data == true || data == false) {
+        type = "Boolean";
+    } else if (!isNaN(data)) {
+        type = "Number";
+    } else if (isUrl(data) && !(data instanceof Array)) {
+        type = "URL";
+    } else if (validateEmail(data) && !(data instanceof Array)) {
+        type = "Email"
+    } else if (new Date(data).toString() != "Invalid Date") {
+        type = "DateTime"
+    } else if (data instanceof Array) {
+        type = "List";
+    } else if (isJson(data) || typeof data == "object") {
+        if (data._type) {
+            if (data._type == "file") {
+                type = "File";
+            } else if (data._type == "point") {
+                type = "GeoPoint";
+            } else if (data._tableName) {
+                type = data._tableName
+            }
+        } else {
+            type = "Object";
+        }
+    } else {
+        type = typeof data;
+    }
+    if (type == "string") {
+        type = "Text";
+    }
+    return type;
+}
+
+function isJson(str) {
+    try {
+        JSON.parse(str);
+    } catch (e) {
+        return false;
+    }
+    return true;
+}
+
+function validateData(tableHeaders, document) {
+    document.map(function (data) {
+        tableHeaders.map(function (header) {
+            if (header.colType == "Boolean") {
+                data[header.colName] ? data[header.colName] = true : data[header.colName] = false;
+            } else if (header.colType == "File" || header.colType == "Object" || header.colType == "GeoPoint" || header.colType == "List") {
+                data[header.colName] = JSON.parse(data[header.colName]);
+            } else if (header.colType == "Number") {
+                data[header.colName] = parseInt(data[header.colName]);
+            } else if (header.colType == "DateTime") {
+                if (typeof data[header.colName] == "string") {
+                    data[header.colName] = data[header.colName].replace(/"/g, "");
+                }
+                data[header.colName] = (new Date(data[header.colName]).toString() == "Invalid Date" ? data[header.colName] : new Date(data[header.colName]));
+            }
+        });
+    });
+}
+
+function isUrl(s) {
+    var regexp = /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/
+    return regexp.test(s);
+}
+
+function validateEmail(email) {
+    var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(email);
 }

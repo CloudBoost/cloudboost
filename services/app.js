@@ -1123,18 +1123,21 @@ module.exports = function() {
             global.fileService.getFile(appId, fileId, customHelper.getAccessList(req), isMasterKey).then(function (file) {
                 var fileStream = global.mongoService.document.getFileStreamById(appId, file._id);
                 var parseFile = null;
-            
+                var importType;
                 if (fileExt == ".csv") {
                     parseFile = global.importHelpers.importCSVFile;
+                    importType = "csv";
                 } else if (fileExt == '.xls' || fileExt == '.xlsx') {
                     parseFile = global.importHelpers.importXLSFile;
+                    importType = "xls";
                 } else {
                     parseFile = global.importHelpers.importJSONFile;
+                    importType = "json";
                 }
 
                 if (parseFile) {
                 parseFile(fileStream, tableName).then(function (document) {
-                    var body = global.importHelpers.generateSchema(document);
+                    var body = global.importHelpers.generateSchema(document, importType);
                     global.appService.getTable(appId, tableName).then(function (table) {
                         if (table == null) {
 
@@ -1168,8 +1171,8 @@ module.exports = function() {
                     deferred.reject(error);
                 });
             }
-        });
-        return deferred.promise;
+            });
+            return deferred.promise;
         }
     };
 };
