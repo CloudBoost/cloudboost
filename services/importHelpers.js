@@ -323,7 +323,11 @@ module.exports = function () {
 
         generateSchema: function (document, importType) {
             var tableHeaders = [];
-            var headers = Object.keys(document[0]);
+            var nonTHeaders = [];
+            var masterArray = [];
+            for (var i = 0; i < document.length; i++) {
+                masterArray.push(Object.keys(document[i]));
+            }
             var body = {
                 data: {
                     columns: [
@@ -396,43 +400,79 @@ module.exports = function () {
                     ]
                 }
             };
-            headers.map(function (x) {
-                if (x == "_type" || x == "_version" || x == "_tableName" || x == "_isModified" || x == "_modifiedColumns" || x == "" || x == "id" || x == "_id" || x == "ACL" || x == "createdAt" || x == "updatedAt" || x == "expires") {
-                    return;
+            if (masterArray.length > 0) {
+                var index = masterArray.map(function (a) { return a.length; }).indexOf(Math.max.apply(Math, masterArray.map(function (a) { return a.length; })));
+                var headers = masterArray[index];
+                console.log(headers.length, headers, "}|||||||||")
+                for (var j = 0; j < headers.length; j++) {
+                    var x = headers[j];
+                    console.log(x, "{{{{{{{{{{{{{")
+                    if (x == "_type" || x == "_version" || x == "_tableName" || x == "_isModified" || x == "_modifiedColumns" || x == "" || x == "id" || x == "_id" || x == "ACL" || x == "createdAt" || x == "updatedAt" || x == "expires") {
+                        continue;
+                    }
+                    var obj = {};
+                    obj["name"] = x;
+                    obj["_type"] = "column";
+                    console.log("caalling")
+                    var type = check(document, index, x, "dataType");
+                    console.log(type, x)
+                    if (!type) {
+                        nonTHeaders.push({
+                            "colName": x
+                        });
+                        continue;
+                    } else {
+                        obj["dataType"] = type;
+                    }
+                    tableHeaders.push({
+                        "colName": x,
+                        "colType": obj["dataType"]
+                    });
+                    obj["unique"] = false;
+                    obj["defaultValue"] = null;
+                    obj["required"] = false;
+                    if (obj["dataType"] == "List") {
+                        obj["relatedTo"] = check(document, index, x, "relatedTo");
+                    } else {
+                        obj["relatedTo"] = null;
+                    }
+                    obj["relationType"] = null;
+                    obj["isDeletable"] = true;
+                    obj["isEditable"] = true;
+                    obj["isRenamable"] = false;
+                    obj["editableByMasterKey"] = false;
+                    body.data.columns.push(obj);
                 }
-                var obj = {};
-                obj["name"] = x;
-                obj["_type"] = "column";
-                obj["dataType"] = detectDataType(document[0][x], "dataType");
-                tableHeaders.push({
-                    "colName": x,
-                    "colType": obj["dataType"]
-                });
-                obj["unique"] = false;
-                obj["defaultValue"] = null;
-                obj["required"] = false;
-                if (obj["dataType"] == "List") {
-                    obj["relatedTo"] = detectDataType(document[0][x], "relatedTo");
-                } else {
-                    obj["relatedTo"] = null;
-                }
-                obj["relationType"] = null;
-                obj["isDeletable"] = true;
-                obj["isEditable"] = true;
-                obj["isRenamable"] = false;
-                obj["editableByMasterKey"] = false;
-                body.data.columns.push(obj);
-            });
-            if (importType != "json") {
-                validateData(tableHeaders, document);
+                validateData(tableHeaders, nonTHeaders, document);
+                return body;
+            } else {
+                return null;
             }
-            return body;
         }
     }
 }
 
+function check(document, index, x, colProp) {
+    var type, data = document[index][x], delCol = false;
+    if (isEmpty(data)) {
+        for (var i = 0; i < document.length; i++) {
+            if (!isEmpty(document[i][x])) {
+                delCol = false;
+                data = document[i][x];
+                break;
+            } else {
+                delCol = true;
+            }
+        }
+        if (delCol && colProp == "dataType") {
+            return null;
+        }
+    }
+    type = detectDataType(data, colProp);
+    return type;
+}
+
 function detectDataType(data, colProp) {
-    var type;
     if (isJson(data)) {
         try {
             data = JSON.parse(data);
@@ -443,7 +483,6 @@ function detectDataType(data, colProp) {
     if (colProp == "relatedTo") {
         data = data[0];
     }
-    
     if (data == "true" || data == "false" || data == true || data == false) {
         type = "Boolean";
     } else if (!isNaN(data)) {
@@ -486,20 +525,18 @@ function isJson(str) {
     return true;
 }
 
-function validateData(tableHeaders, document) {
+function validateData(tableHeaders, nonTHeaders, document) {
     document.map(function (data) {
         tableHeaders.map(function (header) {
-            if (header.colType == "Boolean") {
-                data[header.colName] ? data[header.colName] = true : data[header.colName] = false;
-            } else if (header.colType == "File" || header.colType == "Object" || header.colType == "GeoPoint" || header.colType == "List") {
-                data[header.colName] = JSON.parse(data[header.colName]);
-            } else if (header.colType == "Number") {
-                data[header.colName] = parseInt(data[header.colName]);
-            } else if (header.colType == "DateTime") {
-                if (typeof data[header.colName] == "string") {
-                    data[header.colName] = data[header.colName].replace(/"/g, "");
-                }
-                data[header.colName] = (new Date(data[header.colName]).toString() == "Invalid Date" ? data[header.colName] : new Date(data[header.colName]));
+            if (isEmpty(data[header.colName])) {
+                emptyDataValidation(data, header)
+            } else {
+                dataValidation(data, header);
+            }
+        });
+        nonTHeaders.map(function (ele) {
+            if (data[ele.colName] == "" || data[ele.colName] == null) {
+                delete data[ele.colName];
             }
         });
     });
@@ -513,4 +550,52 @@ function isUrl(s) {
 function validateEmail(email) {
     var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(email);
+}
+
+function isEmpty(obj) {
+    if (obj == null) return true;
+
+    if (obj.length > 0) return false;
+    if (obj.length === 0) return true;
+
+    if (typeof obj !== "object") return true;
+
+    for (var key in obj) {
+        if (hasOwnProperty.call(obj, key)) return false;
+    }
+
+    return true;
+}
+
+function emptyDataValidation(data, header) {
+    if (header.colType == "Boolean") {
+        data[header.colName] = false;
+    } else if (header.colType == "GeoPoint") {
+        data[header.colName] = { "_type": "point", "coordinates": [0, 0], "latitude": 0, "longitude": 0 };
+    } else if (header.colType == "File") {
+        data[header.colName] = null;
+    } else if (header.colType == "Object") {
+        data[header.colName] = null;
+    } else if (header.colType == "List") {
+        data[header.colName] = null;
+    } else if (header.colType == "Number") {
+        data[header.colName] = null;
+    } else if (header.colType == "DateTime") {
+        data[header.colName] = new Date();
+    }
+}
+
+function dataValidation(data, header) {
+    if (header.colType == "Boolean") {
+        data[header.colName] ? data[header.colName] = true : data[header.colName] = false;
+    } else if (typeof data[header.colName] != "object" && (header.colType == "File" || header.colType == "Object" || header.colType == "GeoPoint" || header.colType == "List")) {
+        JSON.parse(data[header.colName]) ? data[header.colName] = JSON.parse(data[header.colName]) : data[header.colName] = data[header.colName]
+    } else if (header.colType == "Number") {
+        data[header.colName] = parseInt(data[header.colName]);
+    } else if (header.colType == "DateTime") {
+        if (typeof data[header.colName] == "string") {
+            data[header.colName] = data[header.colName].replace(/"/g, "");
+        }
+        data[header.colName] = (new Date(data[header.colName]).toString() == "Invalid Date" ? data[header.colName] : new Date(data[header.colName]));
+    }
 }
