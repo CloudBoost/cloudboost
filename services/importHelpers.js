@@ -168,13 +168,9 @@ module.exports = function () {
                                             continue;
                                         }
                                         if (headers[j] == "createdAt" && new Date(element.data[i][j]).toString() == "Invalid Date") {
-                                            obj["created"] = element.data[i][j].replace(/"/g, "");
-                                            obj["created"] = obj["created"].replace(/\./g, "");
-                                            continue;
-                                        }
-                                        if (headers[j] == "updatedAt" && new Date(element.data[i][j]).toString() == "Invalid Date") {
-                                            obj["updated"] = element.data[i][j].replace(/"/g, "");
-                                            obj["updated"] = obj["updated"].replace(/\./g, "");
+                                            element.data[i][j] = element.data[i][j].replace(/"/g, "");
+                                            var date = element.data[i][j].split("T");
+                                            obj["createdAt"] = new Date(date[0]);
                                             continue;
                                         }
                                         obj[headers[j]] = element.data[i][j] == 'null' ? null : element.data[i][j];
@@ -406,16 +402,13 @@ module.exports = function () {
                 console.log(headers.length, headers, "}|||||||||")
                 for (var j = 0; j < headers.length; j++) {
                     var x = headers[j];
-                    console.log(x, "{{{{{{{{{{{{{")
                     if (x == "_type" || x == "_version" || x == "_tableName" || x == "_isModified" || x == "_modifiedColumns" || x == "" || x == "id" || x == "_id" || x == "ACL" || x == "createdAt" || x == "updatedAt" || x == "expires") {
                         continue;
                     }
                     var obj = {};
                     obj["name"] = x;
                     obj["_type"] = "column";
-                    console.log("caalling")
                     var type = check(document, index, x, "dataType");
-                    console.log(type, x)
                     if (!type) {
                         nonTHeaders.push({
                             "colName": x
