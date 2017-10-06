@@ -455,26 +455,20 @@ module.exports = function () {
 function check(document, index, x, colProp) {
     var type, data = document[index][x], delCol = false;
     if (isEmpty(data)) {
-        console.log("in");
         for (var i = 0; i < document.length; i++) {
             if (!isEmpty(document[i][x])) {
-                console.log("found");
                 delCol = false;
                 data = document[i][x];
                 break;
             } else {
-                console.log("notFound", i, x)
                 delCol = true;
             }
         }
         if (delCol && colProp == "dataType") {
-            console.log("delete+++++++++++++++----------------")
             return null;
         }
     }
     type = detectDataType(data, colProp);
-    if (x == "adbb" || x == "asdbb") console.log("//////////////////////////")
-    console.log(x, type, data, "++++++++++++++++++++++++")
     return type;
 }
 
