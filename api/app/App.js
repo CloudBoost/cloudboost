@@ -295,7 +295,6 @@ module.exports = function () {
             if (!appId) {
                 res.status(400).send("appId is missing");
             }
-
             if (!tableName) {
                 res.status(400).send("tableName is missing");
             }
