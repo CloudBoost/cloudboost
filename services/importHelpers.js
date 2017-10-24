@@ -399,7 +399,6 @@ module.exports = function () {
             if (masterArray.length > 0) {
                 var index = masterArray.map(function (a) { return a.length; }).indexOf(Math.max.apply(Math, masterArray.map(function (a) { return a.length; })));
                 var headers = masterArray[index];
-                console.log(headers.length, headers, "}|||||||||")
                 for (var j = 0; j < headers.length; j++) {
                     var x = headers[j];
                     if (x == "_type" || x == "_version" || x == "_tableName" || x == "_isModified" || x == "_modifiedColumns" || x == "" || x == "id" || x == "_id" || x == "ACL" || x == "createdAt" || x == "updatedAt" || x == "expires") {
@@ -441,6 +440,46 @@ module.exports = function () {
             } else {
                 return null;
             }
+        },
+
+        compareSchema: function (document, actualSchema, generatedSchema) {
+            var deferred = q.defer();
+            if (actualSchema.columns && generatedSchema.data.columns) {
+                var actCols = actualSchema.columns;
+                var genCols = generatedSchema.data.columns;
+
+                var newCols = [];
+
+                for (var i = 0; i < genCols.length; i++) {
+                    var addFlag = false;
+                    for (var j = 0; j < actCols.length; j++) {
+                        if (genCols[i].name == actCols[j].name) {
+                            addFlag = false;
+                            if (genCols[i].dataType != actCols[j].dataType) {
+                                genCols[i].name = genCols[i].name + "_" + genCols[i].dataType;
+                                updateDocument(document, actCols[j], genCols[i]);
+                                newCols.push(genCols[i]);
+                            }
+                            break;
+                        } else {
+                            addFlag = true;
+                        }
+                    }
+                    if (addFlag) {
+                        newCols.push(genCols[i]);
+                    }
+                }
+                var schema = actCols.concat(newCols);
+                if (verifyRequiredCols(schema, document)) {
+                    deferred.resolve({ data: { columns: schema } });
+                } else {
+                    deferred.reject("Required Data Missing")
+                }
+            } else {
+                deferred.reject("Schema not present")
+            }
+
+            return deferred.promise;
         }
     }
 }
@@ -478,7 +517,7 @@ function detectDataType(data, colProp) {
     }
     if (data == "true" || data == "false" || data == true || data == false) {
         type = "Boolean";
-    } else if (!isNaN(data)) {
+    } else if (!isNaN(data) && typeof data == "number") {
         type = "Number";
     } else if (isUrl(data) && !(data instanceof Array)) {
         type = "URL";
@@ -551,6 +590,7 @@ function isEmpty(obj) {
     if (obj.length > 0) return false;
     if (obj.length === 0) return true;
 
+    if (typeof obj == 'number') return false;
     if (typeof obj !== "object") return true;
 
     for (var key in obj) {
@@ -582,13 +622,47 @@ function dataValidation(data, header) {
     if (header.colType == "Boolean") {
         data[header.colName] ? data[header.colName] = true : data[header.colName] = false;
     } else if (typeof data[header.colName] != "object" && (header.colType == "File" || header.colType == "Object" || header.colType == "GeoPoint" || header.colType == "List")) {
-        JSON.parse(data[header.colName]) ? data[header.colName] = JSON.parse(data[header.colName]) : data[header.colName] = data[header.colName]
+        isJson(data[header.colName]) ? data[header.colName] = JSON.parse(data[header.colName]) : data[header.colName] = null;
     } else if (header.colType == "Number") {
-        data[header.colName] = parseInt(data[header.colName]);
+        parseInt(data[header.colName]) ? data[header.colName] = parseInt(data[header.colName]) : data[header.colName] = 0;
     } else if (header.colType == "DateTime") {
         if (typeof data[header.colName] == "string") {
             data[header.colName] = data[header.colName].replace(/"/g, "");
         }
-        data[header.colName] = (new Date(data[header.colName]).toString() == "Invalid Date" ? data[header.colName] : new Date(data[header.colName]));
+        data[header.colName] = (new Date(data[header.colName]).toString() == "Invalid Date" ? new Date() : new Date(data[header.colName]));
+    } else if (header.colType == "Text") {
+        if (isJson(data[header.colName]) || data[header.colName] == true || data[header.colName] == false || data[header.colName] == "true" || data[header.colName] == "false") {
+            data[header.colName] = null;
+        } else {
+            data[header.colName] = data[header.colName];
+        }
     }
+}
+
+function updateDocument(document, actualField, newField) {
+    document.map(function (doc) {
+        if (doc[actualField.name]) {
+            doc[newField.name] = doc[actualField.name];
+            doc["_modifiedColumns"].push(newField.name);
+            var index = doc['_modifiedColumns'].indexOf(actualField.name);
+            if (index > -1) {
+                doc['_modifiedColumns'].splice(index, 1);
+            }
+            delete doc[actualField.name];
+        }
+    });
+}
+
+function verifyRequiredCols(schema, document) {
+    var flag = true;
+    document.map(function (doc) {
+        schema.map(function (column) {
+            if (column.name !== "id" && column.name !== "ACL" && column.name !== "expires" && column.name !== "updatedAt" && column.name !== "createdAt" && column.required) {
+                if (isEmpty(doc[column.name]) || doc[column.name] == "undefined") {
+                    flag = false;
+                }
+            }
+        });
+    });
+    return flag;
 }
