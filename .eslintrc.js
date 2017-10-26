@@ -1,11 +1,10 @@
 module.exports = {
-    "env": {
-    },
-    "extends": "eslint:recommended",
-    "rules": {
-        "semi": [
-            "error",
-            "always"
-        ]
-    }
+  env: {
+    browser: true,
+    node: true
+  },
+  extends: "eslint:recommended",
+  rules: {
+    semi: ["error", "always"]
+  }
 };
