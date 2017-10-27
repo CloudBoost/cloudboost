@@ -988,6 +988,7 @@ module.exports = function () {
             var deferred = q.defer();
             var collectionRemovePromises = [];
             var validated = false;
+            
             try {
                 fileData = JSON.parse(file.toString());
                 for (var k in fileData) {
