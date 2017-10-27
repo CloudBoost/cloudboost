@@ -130,7 +130,7 @@ module.exports = function () {
         } else {
 
             /***************************UPDATE******************************/
-            console.log('++++++++ UPDATE TABLE API +++++++++');
+            console.log('++++++++ UPDATE TABLE API +++++++++', req.params.tableName);
             var appId = req.params.appId;
             var tableName = req.params.tableName;
             var body = req.body || {};
@@ -249,6 +249,7 @@ module.exports = function () {
         try {
             var appKey = req.body.key;
             var appId = req.params.appId;
+            console.log(req.body)
             global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
                 if (isMasterKey) {
                     var file;
@@ -304,11 +305,10 @@ module.exports = function () {
             global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
                 global.appService.exportTable(appId, tableName, exportType.toLowerCase(), isMasterKey, accessList).then(function (data) {
                     if (exportType.toLowerCase() === 'json') {
-                        res.status(200).json({ data });
+                        res.status(200).json(data);
                     } else { res.status(200).send(data); }
                 }, function (err) {
                     console.log("Error : Exporting Table.");
-                    console.log(err);
                     res.status(500).send(err);
                 });
             }, function (error) {
@@ -330,7 +330,7 @@ module.exports = function () {
             var tableName = req.body.tableName;
             var fileName = req.body.fileName;
             var fileExt = path.extname(fileName);
-            
+
             if (!appKey) {
                 return res.status(400).send("key is missing");
             }
@@ -347,9 +347,9 @@ module.exports = function () {
                 return res.status(400).send(fileExt + " is not allowed");
             }
             global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
-                global.appService.importTable(req, isMasterKey).then(function(result){
+                global.appService.importTable(req, isMasterKey).then(function (result) {
                     return res.status(200).json(result);
-                }, function(error){
+                }, function (error) {
                     return res.status(500).send(error);
                 })
             }, function (error) {

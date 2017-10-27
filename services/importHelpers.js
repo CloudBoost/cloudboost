@@ -245,6 +245,7 @@ module.exports = function () {
             fileStream.on('end', function () {
                 try {
                     var jSON = JSON.parse(data);
+                    jSON.data = jSON;
                     try {
                         for (var i = 0; i < jSON.data.length; i++) {
                             jSON.data[i].expires ? jSON.data[i].expires : jSON.data[i].expires = null;
