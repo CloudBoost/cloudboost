@@ -972,8 +972,9 @@ function servicesKickstart() {
       .then(function() {
         //Connects to postgres database
         let pg = require("./database-connect/pgConnect.js")().connect();
-        console.log("==========pg");
-        console.log(pg);
+        pg.then(function(pgDb) {
+          global.pgClient = pgDb;
+        });
       });
   } catch (err) {
     global.winston.log("error", {
