@@ -545,6 +545,8 @@ if (https) {
 function addConnections() {
   //MONGO DB
   setUpMongoDB();
+  //POSTGRES
+  setUpPostgresDB();
   //setUp Redis
   setUpRedis();
   //ANALYTICS.
@@ -862,57 +864,117 @@ function setUpMongoDB() {
   }
 }
 
+function setUpPostgresDB() {
+  //Setting up Postgres connections
+  try {
+    console.log("Setting up Postgres from config...");
+    let pgConnectionString = "postgres://";
+
+    if (
+      process.env["CLOUDBOOST_POSTGRES_USERNAME"] &&
+      process.env["CLOUDBOOST_POSTGRES_PASSWORD"]
+    ) {
+      pgConnectionString +=
+        process.env["CLOUDBOOST_POSTGRES_USERNAME"] +
+        ":" +
+        process.env["CLOUDBOOST_POSTGRES_PASSWORD"] +
+        "@";
+    }
+
+    if (global.config && global.config.pg && global.config.pg.length > 0) {
+      if (global.config.pg[0].username && global.config.pg[0].password) {
+        pgConnectionString += `${global.config.pg[0].username}:${global.config
+          .pg[0].password}@`;
+      }
+
+      for (var i = 0; i < global.config.pg.length; i++) {
+        pgConnectionString += `${global.config.pg[i].host}:${global.config.pg[i]
+          .port},`;
+      }
+    }
+
+    if (pgConnectionString === "postgres://") {
+      global.config.pg = [];
+      global.config.pg.push({ host: "localhost", port: "5432" });
+
+      pgConnectionString += "localhost:5432,";
+    }
+
+    pgConnectionString = pgConnectionString.substring(
+      0,
+      pgConnectionString.length - 1
+    );
+    pgConnectionString += "/"; //de limitter.
+    global.keys.pgConnectionString = pgConnectionString;
+
+    console.log("Postgres connection string:" + global.keys.pgConnectionString);
+    console.log(pgConnectionString);
+  } catch (error) {
+    global.winston.log("error", {
+      error: String(error),
+      stack: new Error().stack
+    });
+  }
+}
+
 //to kickstart database services
 function servicesKickstart() {
   try {
     console.log("Kickstart database services..");
 
     var db = require("./database-connect/mongoConnect.js")().connect();
-    db.then(
-      function(db) {
-        try {
-          global.mongoClient = db;
-          //Init Secure key for this cluster. Secure key is used for Encryption / Creating apps , etc.
-          global.keyService.initSecureKey().then(
-            function(key) {
-              console.log("Registering Cluster...");
-              global.serverService.registerServer(key).then(
-                function() {
-                  console.log("Cluster Registered.");
-                },
-                function(error) {
-                  console.log("Cluster registration failed.");
-                  console.log(error);
-                }
-              );
-            },
-            function(error) {
-              console.log("Failed to register the cluster.");
-              console.error("Error: ", error);
-            }
-          );
-          //Cluster Key is used to differentiate which cluster is the request coming from in Analytics.
-          global.keyService.initClusterKey();
-          attachServices();
-          attachAPI();
-          if (!process.env.CBENV || process.env.CBENV === "STAGING")
-            attachDbDisconnectApi();
-          attachCronJobs();
-        } catch (e) {
-          console.log(e);
-          global.winston.log("error", {
-            error: String(e),
-            stack: new Error().stack
-          });
+    db
+      .then(
+        function(db) {
+          try {
+            global.mongoClient = db;
+            //Init Secure key for this cluster. Secure key is used for Encryption / Creating apps , etc.
+            global.keyService.initSecureKey().then(
+              function(key) {
+                console.log("Registering Cluster...");
+                global.serverService.registerServer(key).then(
+                  function() {
+                    console.log("Cluster Registered.");
+                  },
+                  function(error) {
+                    console.log("Cluster registration failed.");
+                    console.log(error);
+                  }
+                );
+              },
+              function(error) {
+                console.log("Failed to register the cluster.");
+                console.error("Error: ", error);
+              }
+            );
+            //Cluster Key is used to differentiate which cluster is the request coming from in Analytics.
+            global.keyService.initClusterKey();
+            attachServices();
+            attachAPI();
+            if (!process.env.CBENV || process.env.CBENV === "STAGING")
+              attachDbDisconnectApi();
+            attachCronJobs();
+          } catch (e) {
+            console.log(e);
+            global.winston.log("error", {
+              error: String(e),
+              stack: new Error().stack
+            });
+          }
+        },
+        function(err) {
+          console.log("Cannot connect to MongoDB.");
+          console.log(err);
+          // exit server if connection to mongo was not made
+          process.exit(1);
         }
-      },
-      function(err) {
-        console.log("Cannot connect to MongoDB.");
-        console.log(err);
-        // exit server if connection to mongo was not made
-        process.exit(1);
-      }
-    );
+      )
+      .then(function() {
+        //Connects to postgres database
+        let pg = require("./database-connect/pgConnect.js")().connect();
+        console.log("==========pg");
+        console.log(pg);
+      });
   } catch (err) {
     global.winston.log("error", {
       error: String(err),
