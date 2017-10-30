@@ -498,11 +498,65 @@ if (https) {
 function addConnections() {
     //MONGO DB
     setUpMongoDB();
+    //POSTGRESQL
+    setUpPostgreSQL();
     //setUp Redis
     setUpRedis();
     //ANALYTICS.
     setUpAnalytics();
 }
+
+function setUpPostgreSQL() {
+    //Setting up Postgres connections
+    try {
+      console.log("Setting up Postgres from config...");
+      let pgConnectionString = "postgres://";
+  
+      if (
+        process.env["CLOUDBOOST_POSTGRES_USERNAME"] &&
+        process.env["CLOUDBOOST_POSTGRES_PASSWORD"]
+      ) {
+        pgConnectionString +=
+          process.env["CLOUDBOOST_POSTGRES_USERNAME"] +
+          ":" +
+          process.env["CLOUDBOOST_POSTGRES_PASSWORD"] +
+          "@";
+      }
+  
+      if (global.config && global.config.pg && global.config.pg.length > 0) {
+        if (global.config.pg[0].username && global.config.pg[0].password) {
+          pgConnectionString += `${global.config.pg[0].username}:${global.config
+            .pg[0].password}@`;
+        }
+  
+        for (var i = 0; i < global.config.pg.length; i++) {
+          pgConnectionString += `${global.config.pg[i].host}:${global.config.pg[i]
+            .port},`;
+        }
+      }
+  
+      if (pgConnectionString === "postgres://") {
+        global.config.pg = [];
+        global.config.pg.push({ host: "localhost", port: "5432" });
+  
+        pgConnectionString += "localhost:5432,";
+      }
+  
+      pgConnectionString = pgConnectionString.substring(
+        0,
+        pgConnectionString.length - 1
+      );
+      pgConnectionString += "/"; //de limitter.
+      global.keys.pgConnectionString = pgConnectionString;
+  
+      console.log("Postgres connection string:" + global.keys.pgConnectionString);
+    } catch (error) {
+      global.winston.log("error", {
+        error: String(error),
+        stack: new Error().stack
+      });
+    }
+  }
 
 function setUpAnalytics() {
     try {
@@ -797,6 +851,12 @@ function servicesKickstart() {
             console.log(err);
             // exit server if connection to mongo was not made
             process.exit(1)
+        }).then(function() {
+            //Connects to postgres database
+            let pg = require("./database-connect/pgConnect.js")().connect();
+            pg.then(function(pgDb) {
+                global.pgClient = pgDb;
+            });
         });
 
     } catch (err) {
