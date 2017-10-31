@@ -209,7 +209,8 @@ module.exports = function() {
                             } else if (project) {
                                 console.log("new app got saved...");
                                 //create a mongodb app.
-                                promises.push(global.mongoUtil.app.create(appId));
+                                // promises.push(global.mongoUtil.app.create(appId));
+                                promises.push(global.postgresUtil.app.create(appId));
                                 global.q.all(promises).then(function(res) {
                                     deferred.resolve(document);
                                 }, function(err) {

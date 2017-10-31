@@ -127,6 +127,7 @@ global.serverService = null;
 global.mailService = null;
 
 global.mongoUtil = null;
+global.postgresUtil = null;
 
 global.cacheService = null;
 global.cacheItems = [];
@@ -308,6 +309,7 @@ function attachServices() {
 
         //loading utils
         global.mongoUtil = require('./dbUtil/mongo')();
+        global.postgresUtil = require('./dbUtil/postgres')();
         global.apiTracker = require('./database-connect/apiTracker')();
 
         //loading services.
@@ -855,7 +857,12 @@ function servicesKickstart() {
             //Connects to postgres database
             let pg = require("./database-connect/pgConnect.js")().connect();
             pg.then(function(pgDb) {
+                // console.log(pgDb)
+                console.log('Connection established');
                 global.pgClient = pgDb;
+            }).catch(function(err) {
+                console.log('Error: No connection established');
+                console.log(err);
             });
         });
 
