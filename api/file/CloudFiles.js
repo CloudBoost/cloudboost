@@ -40,6 +40,7 @@ module.exports = function() {
                 }).then(function(file) {
                     return res.status(200).send(file);
                 }, function(err) {
+                    console.log(err, "++++++++++++++++++++++")
                     return res.status(500).send(err);
                 });
             });
