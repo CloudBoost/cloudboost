@@ -19,8 +19,8 @@ module.exports = function() {
                 res.send();
 
             var fileStream = global.mongoService.document.getFileStreamById(appId, file._id);
-
             res.set('Content-Type', file.contentType);
+            res.setHeader('Cache-Control', 'public, max-age=86400');
             res.set('Content-Disposition', 'attachment; filename="' + file.filename + '"');
 
             fileStream.on("error", function(err) {
