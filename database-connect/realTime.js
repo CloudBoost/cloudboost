@@ -101,7 +101,13 @@ module.exports = function (io) {
                     } else { //data has both the room id and the sessionId.
                         socket.join(data.room);
                         //connect socket.id and sessionId together
-                        global.socketQueryHelper.setData(socket.id, data.data);
+
+                        // build socketid specefic to table
+                        var tableSocketId = data.room.split('')
+                        tableSocketId.splice(-8,8)
+                        tableSocketId = socket.id + tableSocketId.join('')
+
+                        global.socketQueryHelper.setData(tableSocketId, data.data);
                         global.socketSessionHelper.saveSession(socket.id, data.sessionId);
                     }
                 } catch (e) {
@@ -116,13 +122,15 @@ module.exports = function (io) {
                 try {
                     console.log('++++++++ Leave Object Realtime Channel+++++');
                     console.log(data);
-                    global.socketQueryHelper.getData(socket.id, data.eventType, function (err, socketData) {
+                    // build socketid specefic to table
+                    var tableSocketId = socket.id + data.event
+                    global.socketQueryHelper.getData(tableSocketId, data.eventType, function (err, socketData) {
                         if (err)
                             throw err;
                         else {
                             socket.leave(data.event + socketData.timestamp);
                             socket.emit('leave' + data.event + data.timestamp, socketData.timestamp); //to removeAlListeners
-                            global.socketQueryHelper.deleteData(socket.id, data.event);
+                            global.socketQueryHelper.deleteData(tableSocketId, data.event);
                         }
                     });
                 } catch (e) {
@@ -212,7 +220,7 @@ function _sendNotification(appId, document, socket, eventType) {
 
             session = session || {}
 
-            global.socketQueryHelper.getData(socket.id, eventType, function (err, socketData) {
+            global.socketQueryHelper.getData(_buildSocketId(socket.id,appId,document._tableName,eventType), eventType, function (err, socketData) {
 
                 socketData = socketData || { timestamp: '' };
                 var socketQueryValidate = true;
@@ -259,4 +267,8 @@ function _sendNotification(appId, document, socket, eventType) {
         deferred.reject(e);
     }
     return deferred.promise;
+}
+
+function _buildSocketId(socketId, appId,tableName,eventType){
+    return socketId + (appId + 'table' + tableName + eventType).toLowerCase()
 }
