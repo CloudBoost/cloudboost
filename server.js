@@ -75,7 +75,7 @@ global.app = global.express();
 global.app.set('view engine', 'ejs');
 global.app.use('*/assets',global.express.static(path.join(__dirname, 'page-templates/assets')));
 global.app.use(bodyParser.json({limit: '5mb'}));
-global.app.use(bodyParser.urlencoded({limit: '5mb'}));
+global.app.use(bodyParser.urlencoded({limit: '5mb', extended: true}));
 
 var http = null;
 var https = null;
@@ -509,56 +509,56 @@ function addConnections() {
 }
 
 function setUpPostgreSQL() {
-    //Setting up Postgres connections
-    try {
-      console.log("Setting up Postgres from config...");
-      let pgConnectionString = "postgres://";
-  
-      if (
-        process.env["CLOUDBOOST_POSTGRES_USERNAME"] &&
-        process.env["CLOUDBOOST_POSTGRES_PASSWORD"]
-      ) {
-        pgConnectionString +=
-          process.env["CLOUDBOOST_POSTGRES_USERNAME"] +
-          ":" +
-          process.env["CLOUDBOOST_POSTGRES_PASSWORD"] +
-          "@";
-      }
-  
-      if (global.config && global.config.pg && global.config.pg.length > 0) {
-        if (global.config.pg[0].username && global.config.pg[0].password) {
-          pgConnectionString += `${global.config.pg[0].username}:${global.config
-            .pg[0].password}@`;
-        }
-  
-        for (var i = 0; i < global.config.pg.length; i++) {
-          pgConnectionString += `${global.config.pg[i].host}:${global.config.pg[i]
-            .port},`;
-        }
-      }
-  
-      if (pgConnectionString === "postgres://") {
-        global.config.pg = [];
-        global.config.pg.push({ host: "localhost", port: "5432" });
-  
-        pgConnectionString += "localhost:5432,";
-      }
-  
-      pgConnectionString = pgConnectionString.substring(
-        0,
-        pgConnectionString.length - 1
-      );
-      pgConnectionString += "/"; //de limitter.
-      global.keys.pgConnectionString = pgConnectionString;
-  
-      console.log("Postgres connection string:" + global.keys.pgConnectionString);
-    } catch (error) {
-      global.winston.log("error", {
-        error: String(error),
-        stack: new Error().stack
-      });
+  //Setting up Postgres connections
+  try {
+    console.log("Setting up Postgres from config...");
+    let pgConnectionString = "postgres://";
+
+    if (
+      process.env["CLOUDBOOST_POSTGRES_USERNAME"] &&
+      process.env["CLOUDBOOST_POSTGRES_PASSWORD"]
+    ) {
+      pgConnectionString +=
+        process.env["CLOUDBOOST_POSTGRES_USERNAME"] +
+        ":" +
+        process.env["CLOUDBOOST_POSTGRES_PASSWORD"] +
+        "@";
     }
+
+    if (global.config && global.config.pg && global.config.pg.length > 0) {
+      if (global.config.pg[0].username && global.config.pg[0].password) {
+        pgConnectionString += `${global.config.pg[0].username}:${global.config
+          .pg[0].password}@`;
+      }
+
+      for (var i = 0; i < global.config.pg.length; i++) {
+        pgConnectionString += `${global.config.pg[i].host}:${global.config.pg[i]
+          .port},`;
+      }
+    }
+
+    if (pgConnectionString === "postgres://") {
+      global.config.pg = [];
+      global.config.pg.push({ host: "localhost", port: "5432" });
+
+      pgConnectionString += "localhost:5432,";
+    }
+
+    pgConnectionString = pgConnectionString.substring(
+      0,
+      pgConnectionString.length - 1
+    );
+    pgConnectionString += "/"; //de limitter.
+    global.keys.pgConnectionString = pgConnectionString;
+
+    console.log("Postgres connection string: " + global.keys.pgConnectionString);
+  } catch (error) {
+    global.winston.log("error", {
+      error: String(error),
+      stack: new Error().stack
+    });
   }
+}
 
 function setUpAnalytics() {
     try {
@@ -853,17 +853,6 @@ function servicesKickstart() {
             console.log(err);
             // exit server if connection to mongo was not made
             process.exit(1)
-        }).then(function() {
-            //Connects to postgres database
-            let pg = require("./database-connect/pgConnect.js")().connect();
-            pg.then(function(pgDb) {
-                // console.log(pgDb)
-                console.log('Connection established');
-                global.pgClient = pgDb;
-            }).catch(function(err) {
-                console.log('Error: No connection established');
-                console.log(err);
-            });
         });
 
     } catch (err) {

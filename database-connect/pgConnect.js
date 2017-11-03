@@ -9,12 +9,25 @@ var Sequelize = require("sequelize");
 
 module.exports = function() {
   var obj = {
-    connect: function() {
+    connect: function(appId) {
       var deferred = q.defer();
       try {
-        const pgClient = new Sequelize(global.keys.pgConnectionString);
+        const pgClient = new Sequelize(global.keys.pgConnectionString, {
+          database: appId,
+          define: {
+            timestamps: false
+          }
+        });
 
-        deferred.resolve(pgClient);
+        pgClient.authenticate()
+          .then(function() {
+            console.log('Success: Database authenticated successfully');
+            deferred.resolve(pgClient);
+          })
+          .catch(function() {
+            deferred.reject(`Error: Unable to authenticate ${global.keys.pgConnectionString}/${appId}`);
+          })
+
       } catch (e) {
         global.winston.log("error", {
           error: String(e),
