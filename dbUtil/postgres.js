@@ -32,7 +32,7 @@ module.exports = function() {
           .then(function(db) {
             console.log(db);
             global.pgClient[appId] = require("./database-connect/pgConnect.js")().connect(appId);
-            deferred.resolve(pgClient);
+            deferred.resolve();
           }).catch(function(err) {
             console.log("Error: Creating a database in postgreSQL");
             deferred.reject("Error: Creating a database in postgreSQL");
