@@ -1017,12 +1017,6 @@ module.exports = function() {
 
                     console.log("Collection Object Created.");
 
-                    _Schema.findOne().then(function (schema) {
-                        
-                    }).catch(function(err) {
-                        console.log('Error in finding table')
-                    })
-
                     _Schema.update(table, {
                         where: {
                             name: tableName
@@ -1041,11 +1035,11 @@ module.exports = function() {
                             var cloneOldColumns = [].concat(oldColumns || []);
 
                             if (isNewTable) {
-                                var mongoPromise = global.mongoUtil.collection.create(appId, tableName, schema);
+                                var postgresPromise = global.postgresUtil.collection.create(appId, tableName, schema);
                                 //Index all text fields
-                                var mongoIndexTextPromise = global.mongoUtil.collection.deleteAndCreateTextIndexes(appId, tableName, cloneOldColumns, schema);
+                                var postgresIndexTextPromise = global.postgresUtil.collection.deleteAndCreateTextIndexes(appId, tableName, cloneOldColumns, schema);
 
-                                q.allSettled([mongoPromise, mongoIndexTextPromise]).then(function(res) {
+                                q.allSettled([postgresPromise, postgresIndexTextPromise]).then(function(res) {
                                     if (res[0].state === 'fulfilled' && res[1].state === 'fulfilled') {
                                         deferred.resolve(table);
                                     } else {
@@ -1072,7 +1066,7 @@ module.exports = function() {
                                     var columnsToAdd = _getColumnsToAdd(oldColumns, schema);
 
                                     for (var i = 0; i < columnsToAdd.length; i++) {
-                                        promises.push(self.createColumn(appId, tableName, columnsToAdd[i]));
+                                        promises.push(self.createColumnInPG(appId, tableName, columnsToAdd[i]));
                                     }
 
                                     //Index all text fields
@@ -1081,6 +1075,9 @@ module.exports = function() {
                                     q.all(promises.concat(updateColumnNameOfOldRecordsPromises)).then(function(res) {
                                         //confirm all colums are updated 
                                         q.all(updateColumnNameOfOldRecordsPromises).then(function(res) {
+                                            console.log("===================table");
+                                            console.log(table);
+                                            console.log("===================table");
                                             deferred.resolve(table);
                                         }, function(error) {
                                             //TODO : Rollback.
@@ -1118,6 +1115,31 @@ module.exports = function() {
 
             try {
                 var mongoPromise = global.mongoUtil.collection.addColumn(appId, collectionName, column);
+                q.allSettled([mongoPromise]).then(function(res) {
+                    if (res[0].state === 'fulfilled') {
+                        deferred.resolve("Success");
+                    } else {
+                        //TODO : Rollback.
+                        deferred.reject("Unable to create column");
+                    }
+                });
+            } catch (err) {
+                global.winston.log('error', {
+                    "error": String(err),
+                    "stack": new Error().stack
+                });
+                deferred.reject(err);
+            }
+
+            return deferred.promise;
+        },
+        
+        createColumnInPG: function(appId, collectionName, column) {
+
+            var deferred = global.q.defer();
+
+            try {
+                var mongoPromise = global.postgresUtil.collection.addColumn(appId, collectionName, column);
                 q.allSettled([mongoPromise]).then(function(res) {
                     if (res[0].state === 'fulfilled') {
                         deferred.resolve("Success");
