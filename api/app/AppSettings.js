@@ -210,6 +210,13 @@ module.exports = function() {
         });
 
     });
+
+    // Add/Update the dataSource for the app
+    global.app.post('/settings/dataSource/:appId', function(req, res) {});
+
+    // Get the current dataSource for the app
+    global.app.get('/settings/dataSource/:appId', function(req, res) {});
+
 };
 
 /*Desc   : Get fileStream and contentType from upload request

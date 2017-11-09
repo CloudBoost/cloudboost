@@ -9,6 +9,7 @@ var q = require('q');
 var crypto = require("crypto");
 var uuid = require('uuid');
 var _ = require('underscore');
+var Sequelize = require('sequelize');
 var util = require('../helpers/util.js');
 
 var tablesData = require('../helpers/cloudTable');
@@ -209,7 +210,8 @@ module.exports = function() {
                             } else if (project) {
                                 console.log("new app got saved...");
                                 //create a mongodb app.
-                                promises.push(global.mongoUtil.app.create(appId));
+                                // promises.push(global.mongoUtil.app.create(appId));
+                                promises.push(global.postgresUtil.app.create(appId));
                                 global.q.all(promises).then(function(res) {
                                     deferred.resolve(document);
                                 }, function(err) {
@@ -680,36 +682,37 @@ module.exports = function() {
                         table.type = tableType;
                         table._type = "table";
                         table.isEditableByClientKey = !!tableProps.isEditableByClientKey
-                    }
+                    }                               
 
                     var collection = global.mongoClient.db(appId).collection("_Schema");
 
                     //get previous schema object of current table if old table
                     var renameColumnObject={};
-                    if(!isNewTable)
-                    collection.findOne({name:tableName},function(err,doc){
-                        if(err)
-                            deferred.reject("Error : Failed to get the table. ");
-                        else if(!doc)
-                            deferred.reject("Error : Failed to get the table. ");
-                        else{
-                            
-                            doc.columns.forEach(function(oldColumnObj,i){
-                                //check column id
-                                schema.forEach(function(newColumnObj,i){
-                                    //match column id of each columns
-                                    if(newColumnObj._id===oldColumnObj._id){
-                                        if(newColumnObj.name!=oldColumnObj.name){
-                                            //column name is updated update previous records.
-                                            renameColumnObject[oldColumnObj.name]=newColumnObj.name;
+                    if(!isNewTable) {
+                        collection.findOne({name:tableName},function(err,doc){
+                            if(err)
+                                deferred.reject("Error : Failed to get the table. ");
+                            else if(!doc)
+                                deferred.reject("Error : Failed to get the table. ");
+                            else{
+                                
+                                doc.columns.forEach(function(oldColumnObj,i){
+                                    //check column id
+                                    schema.forEach(function(newColumnObj,i){
+                                        //match column id of each columns
+                                        if(newColumnObj._id===oldColumnObj._id){
+                                            if(newColumnObj.name!=oldColumnObj.name){
+                                                //column name is updated update previous records.
+                                                renameColumnObject[oldColumnObj.name]=newColumnObj.name;
+                                            }
                                         }
-                                    }
+                                    })
                                 })
-                            })
-                            updateColumnNameOfOldRecordsPromises.push(_updateColumnNameOfOldRecords(tableName,appId,renameColumnObject));
-
-                        }
-                    })
+                                updateColumnNameOfOldRecordsPromises.push(_updateColumnNameOfOldRecords(tableName,appId,renameColumnObject));
+    
+                            }
+                        })
+                    }
 
                     console.log('Collection Object Created.');
 
@@ -807,6 +810,304 @@ module.exports = function() {
             return deferred.promise;
         },
 
+        upsertTableInPG: function(appId, tableName, schema, tableProps) {
+
+            var deferred = global.q.defer();
+            tableProps = tableProps || {
+                isEditableByClientKey: false
+            }
+            var updateColumnNameOfOldRecordsPromises=[]
+
+            try {
+
+                var self = this;
+                var isNewTable = false;
+                var tableType = null;
+                var maxCount = null; //How many tables of this type can be in an app.
+                var originalTable = null;
+
+                if (!tableName) {
+                    deferred.reject("Table name is empty");
+                    return deferred.promise;
+                }
+
+                if (typeof(tableName) !== "string") {
+                    deferred.reject("Table name is not a string.");
+                    return deferred.promise;
+                }
+
+                //get the type of a table.
+                if (tableName === "User") {
+                    tableType = "user";
+                } else if (tableName === "Role") {
+                    tableType = "role";
+                } else if (tableName === "Device") {
+                    tableType = "device";
+                } else if (tableName === "_File") {
+                    tableType = "file";
+                } else if (tableName === "_Event") {
+                    tableType = "event";
+                } else if (tableName === "_Funnel") {
+                    tableType = "funnel";
+                } else {
+                    tableType = "custom";
+                }
+
+                if (tableType === 'user' || tableType === 'role' || tableType === 'device' || tableType === 'file' || tableType === 'event' || tableType === 'funnel') {
+                    maxCount = 1;
+                } else {
+                    maxCount = 99999;
+                }
+
+                //duplicate column value verification
+                if (!_checkDuplicateColumns(schema)) {
+                    deferred.reject("Error : Duplicate Column or Invalid Column Found.");
+                    return deferred.promise;
+                }
+
+                //dataType check.
+                var defaultDataType = _getDefaultColumnWithDataType(tableType);
+                var valid = _checkValidDataType(schema, defaultDataType, tableType);
+                if (!valid) {
+                    deferred.reject("Error : Invalid DataType Found.");
+                    return deferred.promise;
+                }
+
+                let db = global.pgClient[appId];
+                // checks whether the model('_Schema') is defined in database
+
+                db.queryInterface.showAllTables().then(function(tables) {
+                    console.log(tables);
+                    if(tables && tables.length === 0 && tables.indexOf("_Schema") === -1) {
+                        db.define("_Schema", {
+                            id: {
+                                type: Sequelize.STRING,
+                                primaryKey: true
+                            },
+                            columns: {
+                                type: Sequelize.TEXT
+                            },
+                            name: {
+                                type: Sequelize.STRING
+                            },
+                            type: {
+                                type: Sequelize.STRING
+                            },
+                            _type: {
+                                type: Sequelize.STRING
+                            },
+                            isEditableByClientKey: {
+                                type: Sequelize.BOOLEAN
+                            },
+                        }, {
+                            sequelize: db,
+                            freezeTableName: true, //added this because Sequelize pluralizes the table name
+                            hooks: {
+                                beforeValidate: function(table, options) {
+                                    table.columns = JSON.stringify(table.columns)
+                                }
+                            }
+                        }).sync();
+                    } else {
+                        return db.models._Schema;
+                    }
+                }).then(function(_Schema) {
+                    console.log("Created _Schema table in PostgreSQL");
+                                        
+                    _Schema.findAll({
+                        where: { name: tableName }
+                    })
+                    .then(function(tables) { 
+                        console.log("Tables: ", tables)
+                        var oldColumns = null;
+                        var table = tables[0];
+                        if (table) {
+                            table.columns = JSON.parse(table.columns);
+                            oldColumns = table.columns;
+                            //check duplicate columns, Pluck all name property of every columns.
+                            var tableColumns = _.filter(_.pluck(table.columns, "name"), function(value) {
+                                    return value.toLowerCase();
+                                }
+                            );
+    
+                            var defaultColumns = _getDefaultColumnList(tableType);
+    
+                            try {
+                                for (var i = 0; i < schema.length; i++) {
+                                    var index = tableColumns.indexOf(schema[i].name.toLowerCase());
+                                    if (index >= 0) {
+                                        //column with the same name found in the table. Checking type...
+                                        if (schema[i].dataType !== table.columns[index].dataType || schema[i].relatedTo != table.columns[index].relatedTo || schema[i].relationType != table.columns[index].relationType || schema[i].isDeletable != table.columns[index].isDeletable || schema[i].isEditable != table.columns[index].isEditable || schema[i].isRenamable != table.columns[index].isRenamable || schema[i].editableByMasterKey != table.columns[index].editableByMasterKey || schema[i].isSearchable != table.columns[index].isSearchable) {
+                                            deferred.reject("Cannot Change Column's Property. Only Required and Unique Field can be changed.");
+                                            return deferred.promise;
+                                        }
+    
+                                        if (schema[i].required !== table.columns[index].required && defaultColumns.indexOf(schema[i].name.toLowerCase()) >= 0) {
+                                            deferred.reject("Error : Cannot change the required field of a default column.");
+                                            return deferred.promise;
+                                        }
+    
+                                        if (schema[i].unique !== table.columns[index].unique && defaultColumns.indexOf(schema[i].name.toLowerCase()) >= 0) {
+                                            deferred.reject("Error : Cannot change the unique field of a default column.");
+                                            return deferred.promise;
+                                        }
+                                    }
+                                }
+                            } catch (e) {
+                                console.log("Error");
+                                console.log(e);
+                                global.winston.log("error", {
+                                error: String(e),
+                                stack: new Error().stack
+                                });
+                            }
+    
+                            table.columns = schema;
+                            // update table props
+                            table.isEditableByClientKey = !!tableProps.isEditableByClientKey;
+                        } else {
+                            isNewTable = true;
+    
+                            table = {};
+                            table.id = util.getId();
+                            table.columns = schema;
+    
+                            table.name = tableName;
+                            table.type = tableType;
+                            table._type = "table";
+                            table.isEditableByClientKey = !!tableProps.isEditableByClientKey;
+                        }
+    
+                        var renameColumnObject={};
+                        if(!isNewTable) {
+                            _Schema.findOne({
+                                where: {name:tableName}
+                            }, function(doc){
+                                if(!doc)
+                                    deferred.reject("Error : Failed to get the table. ");
+                                else{
+                                    doc.columns = JSON.parse(doc.columns);
+                                    doc.columns.forEach(function(oldColumnObj,i){
+                                        //check column id
+                                        schema.forEach(function(newColumnObj,i){
+                                            //match column id of each columns
+                                            if(newColumnObj._id===oldColumnObj._id){
+                                                if(newColumnObj.name!=oldColumnObj.name){
+                                                    //column name is updated update previous records.
+                                                    renameColumnObject[oldColumnObj.name]=newColumnObj.name;
+                                                }
+                                            }
+                                        })
+                                    })
+                                    updateColumnNameOfOldRecordsPromises.push(_updateColumnNameOfOldRecords(tableName,appId,renameColumnObject));
+        
+                                }
+                            })
+                        }
+    
+                        console.log("Collection Object Created.");
+    
+                        _Schema.update(table, {
+                            where: {
+                                name: tableName
+                            }
+                        }).then(function(response){
+    
+                            var table = null;
+    
+                            if (response && response.value)
+                                table = response.value;
+    
+                            if (table) {
+                                //clear the cache.
+                                global.redisClient.del(global.keys.cacheSchemaPrefix + '-' + appId + ':' + tableName);
+    
+                                var cloneOldColumns = [].concat(oldColumns || []);
+    
+                                if (isNewTable) {
+                                    var postgresPromise = global.postgresUtil.collection.create(appId, tableName, schema);
+                                    //Index all text fields
+                                    var postgresIndexTextPromise = global.postgresUtil.collection.deleteAndCreateTextIndexes(appId, tableName, cloneOldColumns, schema);
+    
+                                    q.allSettled([postgresPromise, postgresIndexTextPromise]).then(function(res) {
+                                        if (res[0].state === 'fulfilled' && res[1].state === 'fulfilled') {
+                                            deferred.resolve(table);
+                                        } else {
+                                            //TODO : Rollback.
+                                            deferred.resolve(table);
+                                        }
+                                    }, function(error) {
+                                        //TODO : Rollback.
+                                        deferred.resolve(table);
+                                    });
+    
+                                } else {
+                                    //check if any column is deleted, if yes.. then delete it from everywhere.
+                                    if (oldColumns) {
+    
+                                        var promises = [];
+    
+                                        var columnsToDelete = _getColumnsToDelete(oldColumns, schema);
+    
+                                        for (var i = 0; i < columnsToDelete.length; i++) {
+                                            promises.push(self.deleteColumn(appId, tableName, columnsToDelete[i].name, columnsToDelete[i].dataType));
+                                        }
+    
+                                        var columnsToAdd = _getColumnsToAdd(oldColumns, schema);
+    
+                                        for (var i = 0; i < columnsToAdd.length; i++) {
+                                            promises.push(self.createColumnInPG(appId, tableName, columnsToAdd[i]));
+                                        }
+    
+                                        //Index all text fields
+                                        promises.push(global.mongoUtil.collection.deleteAndCreateTextIndexes(appId, tableName, cloneOldColumns, schema));
+                                        //updateColumnNameOfOldRecordsPromises stores the promises for updating previous records.
+                                        q.all(promises.concat(updateColumnNameOfOldRecordsPromises)).then(function(res) {
+                                            //confirm all colums are updated 
+                                            q.all(updateColumnNameOfOldRecordsPromises).then(function(res) {
+                                                console.log("===================table");
+                                                console.log(table);
+                                                console.log("===================table");
+                                                deferred.resolve(table);
+                                            }, function(error) {
+                                                //TODO : Rollback.
+                                                deferred.resolve(table);
+                                            });     
+                                            }, function(error) {
+                                            //TODO : Rollback.
+                                            deferred.resolve(table);
+                                        });
+    
+                                    }
+                                }
+                            }
+                        }).catch(function(err) {
+                            console.log("Error upating table\n", err);
+                            deferred.reject(err);
+                        });
+                    }).catch(function(err) {
+                        console.log("Error finding table");
+                        deferred.reject(err);
+                    });
+                }).catch(function(err) {
+                    console.log("Unable to create _Schema table in PostgreSQL", err);
+                    deferred.reject("Unable to create _Schema table in PostgreSQL");
+                    return deferred.promised
+                });
+
+            } catch (e) {
+                global.winston.log('error', {
+                    "error": String(e),
+                    "stack": new Error().stack
+                });
+                console.log("FATAL : Error updating a table");
+                console.log(e);
+                deferred.reject(e);
+            }
+
+            return deferred.promise;
+        },
+
         createColumn: function(appId, collectionName, column) {
 
             var deferred = global.q.defer();
@@ -831,15 +1132,40 @@ module.exports = function() {
 
             return deferred.promise;
         },
+        
+        createColumnInPG: function(appId, collectionName, column) {
+
+            var deferred = global.q.defer();
+
+            try {
+                var mongoPromise = global.postgresUtil.collection.addColumn(appId, collectionName, column);
+                q.allSettled([mongoPromise]).then(function(res) {
+                    if (res[0].state === 'fulfilled') {
+                        deferred.resolve("Success");
+                    } else {
+                        //TODO : Rollback.
+                        deferred.reject("Unable to create column");
+                    }
+                });
+            } catch (err) {
+                global.winston.log('error', {
+                    "error": String(err),
+                    "stack": new Error().stack
+                });
+                deferred.reject(err);
+            }
+
+            return deferred.promise;
+        },
 
         createDefaultTables: function(appId) {
             return q.all([
-                global.appService.upsertTable(appId, 'Role', tablesData.Role),
-                global.appService.upsertTable(appId, 'Device', tablesData.Device),
-                global.appService.upsertTable(appId, 'User', tablesData.User),
-                global.appService.upsertTable(appId, '_File', tablesData._File),
-                global.appService.upsertTable(appId, '_Event', tablesData._Event),
-                global.appService.upsertTable(appId, '_Funnel', tablesData._Funnel)
+                global.appService.upsertTableInPG(appId, 'Role', tablesData.Role),
+                global.appService.upsertTableInPG(appId, 'Device', tablesData.Device),
+                global.appService.upsertTableInPG(appId, 'User', tablesData.User),
+                global.appService.upsertTableInPG(appId, '_File', tablesData._File),
+                global.appService.upsertTableInPG(appId, '_Event', tablesData._Event),
+                global.appService.upsertTableInPG(appId, '_Funnel', tablesData._Funnel)
             ]);
         },
 
@@ -1114,13 +1440,24 @@ function _updateColumnNameOfOldRecords(tableName,appId,renameColumnObject){
 
         var deferred = q.defer();
 
-        var collection = global.mongoClient.db(appId).collection(tableName);
+        /* var collection = global.mongoClient.db(appId).collection(tableName);
         collection.updateMany( {}, { $rename: renameColumnObject },function(err,doc){
             if(err)
                 deferred.reject()
             else
                 deferred.resolve();
-        } );
+        } ); */
+        let renameQuery = "";
+        for(let oldname in renameColumnObject) {
+            renameQuery += `RENAME COLUMN ${oldname} to ${renameColumnObject[oldname]},`;
+        }
+        renameQuery = renameQuery.substring(0, renameQuery.length-1)
+        const db = global.pgClient[appId];
+        db.query(`ALTER TABLE ${tableName} ${renameQuery}`).then(function() {
+            deferred.resolve();
+        }).catch(function() {
+            deferred.reject();
+        })
 
        return deferred.promise;
 

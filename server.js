@@ -75,7 +75,7 @@ global.app = global.express();
 global.app.set('view engine', 'ejs');
 global.app.use('*/assets',global.express.static(path.join(__dirname, 'page-templates/assets')));
 global.app.use(bodyParser.json({limit: '5mb'}));
-global.app.use(bodyParser.urlencoded({limit: '5mb'}));
+global.app.use(bodyParser.urlencoded({limit: '5mb', extended: true}));
 
 var http = null;
 var https = null;
@@ -127,12 +127,14 @@ global.serverService = null;
 global.mailService = null;
 
 global.mongoUtil = null;
+global.postgresUtil = null;
 
 global.cacheService = null;
 global.cacheItems = [];
 global.apiTracker = null;
 global.socketQueries = [];
 global.model = {};
+global.pgClient = {};
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
@@ -308,6 +310,7 @@ function attachServices() {
 
         //loading utils
         global.mongoUtil = require('./dbUtil/mongo')();
+        global.postgresUtil = require('./dbUtil/postgres')();
         global.apiTracker = require('./database-connect/apiTracker')();
 
         //loading services.
@@ -498,10 +501,64 @@ if (https) {
 function addConnections() {
     //MONGO DB
     setUpMongoDB();
+    //POSTGRESQL
+    setUpPostgreSQL();
     //setUp Redis
     setUpRedis();
     //ANALYTICS.
     setUpAnalytics();
+}
+
+function setUpPostgreSQL() {
+  //Setting up Postgres connections
+  try {
+    console.log("Setting up Postgres from config...");
+    let pgConnectionString = "postgres://";
+
+    if (
+      process.env["CLOUDBOOST_POSTGRES_USERNAME"] &&
+      process.env["CLOUDBOOST_POSTGRES_PASSWORD"]
+    ) {
+      pgConnectionString +=
+        process.env["CLOUDBOOST_POSTGRES_USERNAME"] +
+        ":" +
+        process.env["CLOUDBOOST_POSTGRES_PASSWORD"] +
+        "@";
+    }
+
+    if (global.config && global.config.pg && global.config.pg.length > 0) {
+      if (global.config.pg[0].username && global.config.pg[0].password) {
+        pgConnectionString += `${global.config.pg[0].username}:${global.config
+          .pg[0].password}@`;
+      }
+
+      for (var i = 0; i < global.config.pg.length; i++) {
+        pgConnectionString += `${global.config.pg[i].host}:${global.config.pg[i]
+          .port},`;
+      }
+    }
+
+    if (pgConnectionString === "postgres://") {
+      global.config.pg = [];
+      global.config.pg.push({ host: "localhost", port: "5432" });
+
+      pgConnectionString += "localhost:5432,";
+    }
+
+    pgConnectionString = pgConnectionString.substring(
+      0,
+      pgConnectionString.length - 1
+    );
+    pgConnectionString += "/"; //de limitter.
+    global.keys.pgConnectionString = pgConnectionString;
+
+    console.log("Postgres connection string: " + global.keys.pgConnectionString);
+  } catch (error) {
+    global.winston.log("error", {
+      error: String(error),
+      stack: new Error().stack
+    });
+  }
 }
 
 function setUpAnalytics() {

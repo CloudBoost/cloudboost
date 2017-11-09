@@ -1,16 +1,31 @@
 {
- "mongo" : [{
-   "host" : "localhost",
-   "port" : "27017"
- }],
- 
- "elasticsearch" : [{
-   "host" : "localhost",
-   "port" : "9200"
- }],
- 
- "redis" : [{
-               "host" : "127.0.0.1",
-               "port" : 6379               
-           }]
+  "mongo": [
+    {
+      "host": "localhost",
+      "port": "27017"
+    }
+  ],
+
+  "pg": [
+    {
+      "username": "postgres",
+      "password": "postgres",
+      "host": "localhost",
+      "port": "5432"
+    }
+  ],
+
+  "elasticsearch": [
+    {
+      "host": "localhost",
+      "port": "9200"
+    }
+  ],
+
+  "redis": [
+    {
+      "host": "127.0.0.1",
+      "port": 6379
+    }
+  ]
 }
