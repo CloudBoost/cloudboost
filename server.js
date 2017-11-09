@@ -134,6 +134,7 @@ global.cacheItems = [];
 global.apiTracker = null;
 global.socketQueries = [];
 global.model = {};
+global.pgClient = {};
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());

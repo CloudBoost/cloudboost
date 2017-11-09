@@ -12,8 +12,8 @@ module.exports = function() {
     connect: function(appId) {
       var deferred = q.defer();
       try {
-        const pgClient = new Sequelize(global.keys.pgConnectionString, {
-          database: appId,
+        const pgClient = new Sequelize(`${global.keys.pgConnectionString}${appId}`, {
+          benchmark: true,
           define: {
             timestamps: false
           }
@@ -26,7 +26,7 @@ module.exports = function() {
           })
           .catch(function() {
             deferred.reject(`Error: Unable to authenticate ${global.keys.pgConnectionString}/${appId}`);
-          })
+          });
 
       } catch (e) {
         global.winston.log("error", {

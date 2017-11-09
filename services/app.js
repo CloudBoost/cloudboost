@@ -875,225 +875,224 @@ module.exports = function() {
 
                 let db = global.pgClient[appId];
                 // checks whether the model('_Schema') is defined in database
-                let _Schema = null;
 
-                if(!db.isDefined("_Schema")) {
-                    _Schema = db.define("_Schema");
-                    _Schema.init({
-                        _id: {
-                            type: Sequelize.INTEGER,
-                            primaryKey: true
-                        },
-                        id: {
-                            type: Sequelize.INTEGER
-                        },
-                        columns: {
-                            type: Sequelize.TEXT
-                        },
-                        name: {
-                            type: Sequelize.STRING
-                        },
-                        type: {
-                            type: Sequelize.STRING
-                        },
-                        _type: {
-                            type: Sequelize.STRING
-                        },
-                        isEditableByClientKey: {
-                            type: Sequelize.BOOLEAN
-                        },
-                    }, {
-                        sequelize: db,
-                        hooks: {
-                            beforeValidate: function(schema, options) {
-                                schema.columns = JSON.stringify(JSON.parse(schema.columns))
-                            }
-                        }
-                    });
-                    db.sync().then(function() {
-                        console.log("_Schema table created in PostgreSQL");
-                    }).catch(function(err) {
-                        console.log("Unable to create _Schema table in PostgreSQL", err);
-                        deferred.reject("Unable to create _Schema table in PostgreSQL");
-                        return deferred.promised
-                    })
-                }
-
-                _Schema = db.model("_Schema");
-
-                console.log(_Schema);
-
-                _Schema.findAll({
-                    where: { name: tableName }
-                })
-                .then(function(err, tables) {
-                    var oldColumns = null;
-                    var table = tables[0];
-                    if (err) {
-                        consol.log(err);
-                        deferred.reject(err);
-                    } else if (table) {
-                        oldColumns = table.columns;
-                        //check duplicate columns, Pluck all name property of every columns.
-                        var tableColumns = _.filter(_.pluck(table.columns, "name"), function(value) {
-                                return value.toLowerCase();
-                            }
-                        );
-
-                        var defaultColumns = _getDefaultColumnList(tableType);
-
-                        try {
-                            for (var i = 0; i < schema.length; i++) {
-                                var index = tableColumns.indexOf(schema[i].name.toLowerCase());
-                                if (index >= 0) {
-                                    //column with the same name found in the table. Checking type...
-                                    if (schema[i].dataType !== table.columns[index].dataType || schema[i].relatedTo != table.columns[index].relatedTo || schema[i].relationType != table.columns[index].relationType || schema[i].isDeletable != table.columns[index].isDeletable || schema[i].isEditable != table.columns[index].isEditable || schema[i].isRenamable != table.columns[index].isRenamable || schema[i].editableByMasterKey != table.columns[index].editableByMasterKey || schema[i].isSearchable != table.columns[index].isSearchable) {
-                                        deferred.reject("Cannot Change Column's Property. Only Required and Unique Field can be changed.");
-                                        return deferred.promise;
-                                    }
-
-                                    if (schema[i].required !== table.columns[index].required && defaultColumns.indexOf(schema[i].name.toLowerCase()) >= 0) {
-                                        deferred.reject("Error : Cannot change the required field of a default column.");
-                                        return deferred.promise;
-                                    }
-
-                                    if (schema[i].unique !== table.columns[index].unique && defaultColumns.indexOf(schema[i].name.toLowerCase()) >= 0) {
-                                        deferred.reject("Error : Cannot change the unique field of a default column.");
-                                        return deferred.promise;
-                                    }
+                db.queryInterface.showAllTables().then(function(tables) {
+                    console.log(tables);
+                    if(tables && tables.length === 0 && tables.indexOf("_Schema") === -1) {
+                        db.define("_Schema", {
+                            id: {
+                                type: Sequelize.STRING,
+                                primaryKey: true
+                            },
+                            columns: {
+                                type: Sequelize.TEXT
+                            },
+                            name: {
+                                type: Sequelize.STRING
+                            },
+                            type: {
+                                type: Sequelize.STRING
+                            },
+                            _type: {
+                                type: Sequelize.STRING
+                            },
+                            isEditableByClientKey: {
+                                type: Sequelize.BOOLEAN
+                            },
+                        }, {
+                            sequelize: db,
+                            freezeTableName: true, //added this because Sequelize pluralizes the table name
+                            hooks: {
+                                beforeValidate: function(table, options) {
+                                    table.columns = JSON.stringify(table.columns)
                                 }
                             }
-                        } catch (e) {
-                            console.log("Error");
-                            console.log(e);
-                            global.winston.log("error", {
-                            error: String(e),
-                            stack: new Error().stack
-                            });
-                        }
-
-                        table.columns = schema;
-                        // update table props
-                        table.isEditableByClientKey = !!tableProps.isEditableByClientKey;
+                        }).sync();
                     } else {
-                        isNewTable = true;
-
-                        table = {};
-                        table.id = util.getId();
-                        table.columns = schema;
-
-                        table.name = tableName;
-                        table.type = tableType;
-                        table._type = "table";
-                        table.isEditableByClientKey = !!tableProps.isEditableByClientKey;
+                        return db.models._Schema;
                     }
-
-                    var renameColumnObject={};
-                    if(!isNewTable) {
-                        _Schema.findOne({
-                            where: {name:tableName}
-                        },function(doc){
-                            if(!doc)
-                                deferred.reject("Error : Failed to get the table. ");
-                            else{
-                                let doc = JSON.stringify(doc);
-                                doc.columns.forEach(function(oldColumnObj,i){
-                                    //check column id
-                                    schema.forEach(function(newColumnObj,i){
-                                        //match column id of each columns
-                                        if(newColumnObj._id===oldColumnObj._id){
-                                            if(newColumnObj.name!=oldColumnObj.name){
-                                                //column name is updated update previous records.
-                                                renameColumnObject[oldColumnObj.name]=newColumnObj.name;
-                                            }
-                                        }
-                                    })
-                                })
-                                updateColumnNameOfOldRecordsPromises.push(_updateColumnNameOfOldRecords(tableName,appId,renameColumnObject));
-    
-                            }
-                        })
-                    }
-
-                    console.log("Collection Object Created.");
-
-                    _Schema.update(table, {
-                        where: {
-                            name: tableName
-                        }
-                    }).then(function(response){
-
-                        var table = null;
-
-                        if (response && response.value)
-                            table = response.value;
-
+                }).then(function(_Schema) {
+                    console.log("Created _Schema table in PostgreSQL");
+                                        
+                    _Schema.findAll({
+                        where: { name: tableName }
+                    })
+                    .then(function(tables) { 
+                        console.log("Tables: ", tables)
+                        var oldColumns = null;
+                        var table = tables[0];
                         if (table) {
-                            //clear the cache.
-                            global.redisClient.del(global.keys.cacheSchemaPrefix + '-' + appId + ':' + tableName);
-
-                            var cloneOldColumns = [].concat(oldColumns || []);
-
-                            if (isNewTable) {
-                                var postgresPromise = global.postgresUtil.collection.create(appId, tableName, schema);
-                                //Index all text fields
-                                var postgresIndexTextPromise = global.postgresUtil.collection.deleteAndCreateTextIndexes(appId, tableName, cloneOldColumns, schema);
-
-                                q.allSettled([postgresPromise, postgresIndexTextPromise]).then(function(res) {
-                                    if (res[0].state === 'fulfilled' && res[1].state === 'fulfilled') {
-                                        deferred.resolve(table);
-                                    } else {
-                                        //TODO : Rollback.
-                                        deferred.resolve(table);
+                            table.columns = JSON.parse(table.columns);
+                            oldColumns = table.columns;
+                            //check duplicate columns, Pluck all name property of every columns.
+                            var tableColumns = _.filter(_.pluck(table.columns, "name"), function(value) {
+                                    return value.toLowerCase();
+                                }
+                            );
+    
+                            var defaultColumns = _getDefaultColumnList(tableType);
+    
+                            try {
+                                for (var i = 0; i < schema.length; i++) {
+                                    var index = tableColumns.indexOf(schema[i].name.toLowerCase());
+                                    if (index >= 0) {
+                                        //column with the same name found in the table. Checking type...
+                                        if (schema[i].dataType !== table.columns[index].dataType || schema[i].relatedTo != table.columns[index].relatedTo || schema[i].relationType != table.columns[index].relationType || schema[i].isDeletable != table.columns[index].isDeletable || schema[i].isEditable != table.columns[index].isEditable || schema[i].isRenamable != table.columns[index].isRenamable || schema[i].editableByMasterKey != table.columns[index].editableByMasterKey || schema[i].isSearchable != table.columns[index].isSearchable) {
+                                            deferred.reject("Cannot Change Column's Property. Only Required and Unique Field can be changed.");
+                                            return deferred.promise;
+                                        }
+    
+                                        if (schema[i].required !== table.columns[index].required && defaultColumns.indexOf(schema[i].name.toLowerCase()) >= 0) {
+                                            deferred.reject("Error : Cannot change the required field of a default column.");
+                                            return deferred.promise;
+                                        }
+    
+                                        if (schema[i].unique !== table.columns[index].unique && defaultColumns.indexOf(schema[i].name.toLowerCase()) >= 0) {
+                                            deferred.reject("Error : Cannot change the unique field of a default column.");
+                                            return deferred.promise;
+                                        }
                                     }
-                                }, function(error) {
-                                    //TODO : Rollback.
-                                    deferred.resolve(table);
+                                }
+                            } catch (e) {
+                                console.log("Error");
+                                console.log(e);
+                                global.winston.log("error", {
+                                error: String(e),
+                                stack: new Error().stack
                                 });
-
-                            } else {
-                                //check if any column is deleted, if yes.. then delete it from everywhere.
-                                if (oldColumns) {
-
-                                    var promises = [];
-
-                                    var columnsToDelete = _getColumnsToDelete(oldColumns, schema);
-
-                                    for (var i = 0; i < columnsToDelete.length; i++) {
-                                        promises.push(self.deleteColumn(appId, tableName, columnsToDelete[i].name, columnsToDelete[i].dataType));
-                                    }
-
-                                    var columnsToAdd = _getColumnsToAdd(oldColumns, schema);
-
-                                    for (var i = 0; i < columnsToAdd.length; i++) {
-                                        promises.push(self.createColumnInPG(appId, tableName, columnsToAdd[i]));
-                                    }
-
+                            }
+    
+                            table.columns = schema;
+                            // update table props
+                            table.isEditableByClientKey = !!tableProps.isEditableByClientKey;
+                        } else {
+                            isNewTable = true;
+    
+                            table = {};
+                            table.id = util.getId();
+                            table.columns = schema;
+    
+                            table.name = tableName;
+                            table.type = tableType;
+                            table._type = "table";
+                            table.isEditableByClientKey = !!tableProps.isEditableByClientKey;
+                        }
+    
+                        var renameColumnObject={};
+                        if(!isNewTable) {
+                            _Schema.findOne({
+                                where: {name:tableName}
+                            }, function(doc){
+                                if(!doc)
+                                    deferred.reject("Error : Failed to get the table. ");
+                                else{
+                                    doc.columns = JSON.parse(doc.columns);
+                                    doc.columns.forEach(function(oldColumnObj,i){
+                                        //check column id
+                                        schema.forEach(function(newColumnObj,i){
+                                            //match column id of each columns
+                                            if(newColumnObj._id===oldColumnObj._id){
+                                                if(newColumnObj.name!=oldColumnObj.name){
+                                                    //column name is updated update previous records.
+                                                    renameColumnObject[oldColumnObj.name]=newColumnObj.name;
+                                                }
+                                            }
+                                        })
+                                    })
+                                    updateColumnNameOfOldRecordsPromises.push(_updateColumnNameOfOldRecords(tableName,appId,renameColumnObject));
+        
+                                }
+                            })
+                        }
+    
+                        console.log("Collection Object Created.");
+    
+                        _Schema.update(table, {
+                            where: {
+                                name: tableName
+                            }
+                        }).then(function(response){
+    
+                            var table = null;
+    
+                            if (response && response.value)
+                                table = response.value;
+    
+                            if (table) {
+                                //clear the cache.
+                                global.redisClient.del(global.keys.cacheSchemaPrefix + '-' + appId + ':' + tableName);
+    
+                                var cloneOldColumns = [].concat(oldColumns || []);
+    
+                                if (isNewTable) {
+                                    var postgresPromise = global.postgresUtil.collection.create(appId, tableName, schema);
                                     //Index all text fields
-                                    promises.push(global.mongoUtil.collection.deleteAndCreateTextIndexes(appId, tableName, cloneOldColumns, schema));
-                                    //updateColumnNameOfOldRecordsPromises stores the promises for updating previous records.
-                                    q.all(promises.concat(updateColumnNameOfOldRecordsPromises)).then(function(res) {
-                                        //confirm all colums are updated 
-                                        q.all(updateColumnNameOfOldRecordsPromises).then(function(res) {
-                                            console.log("===================table");
-                                            console.log(table);
-                                            console.log("===================table");
+                                    var postgresIndexTextPromise = global.postgresUtil.collection.deleteAndCreateTextIndexes(appId, tableName, cloneOldColumns, schema);
+    
+                                    q.allSettled([postgresPromise, postgresIndexTextPromise]).then(function(res) {
+                                        if (res[0].state === 'fulfilled' && res[1].state === 'fulfilled') {
                                             deferred.resolve(table);
-                                        }, function(error) {
+                                        } else {
                                             //TODO : Rollback.
                                             deferred.resolve(table);
-                                    });     
-                                        }, function(error) {
+                                        }
+                                    }, function(error) {
                                         //TODO : Rollback.
                                         deferred.resolve(table);
                                     });
-
+    
+                                } else {
+                                    //check if any column is deleted, if yes.. then delete it from everywhere.
+                                    if (oldColumns) {
+    
+                                        var promises = [];
+    
+                                        var columnsToDelete = _getColumnsToDelete(oldColumns, schema);
+    
+                                        for (var i = 0; i < columnsToDelete.length; i++) {
+                                            promises.push(self.deleteColumn(appId, tableName, columnsToDelete[i].name, columnsToDelete[i].dataType));
+                                        }
+    
+                                        var columnsToAdd = _getColumnsToAdd(oldColumns, schema);
+    
+                                        for (var i = 0; i < columnsToAdd.length; i++) {
+                                            promises.push(self.createColumnInPG(appId, tableName, columnsToAdd[i]));
+                                        }
+    
+                                        //Index all text fields
+                                        promises.push(global.mongoUtil.collection.deleteAndCreateTextIndexes(appId, tableName, cloneOldColumns, schema));
+                                        //updateColumnNameOfOldRecordsPromises stores the promises for updating previous records.
+                                        q.all(promises.concat(updateColumnNameOfOldRecordsPromises)).then(function(res) {
+                                            //confirm all colums are updated 
+                                            q.all(updateColumnNameOfOldRecordsPromises).then(function(res) {
+                                                console.log("===================table");
+                                                console.log(table);
+                                                console.log("===================table");
+                                                deferred.resolve(table);
+                                            }, function(error) {
+                                                //TODO : Rollback.
+                                                deferred.resolve(table);
+                                            });     
+                                            }, function(error) {
+                                            //TODO : Rollback.
+                                            deferred.resolve(table);
+                                        });
+    
+                                    }
                                 }
                             }
-                        }
+                        }).catch(function(err) {
+                            console.log("Error upating table\n", err);
+                            deferred.reject(err);
+                        });
                     }).catch(function(err) {
-
+                        console.log("Error finding table");
+                        deferred.reject(err);
                     });
+                }).catch(function(err) {
+                    console.log("Unable to create _Schema table in PostgreSQL", err);
+                    deferred.reject("Unable to create _Schema table in PostgreSQL");
+                    return deferred.promised
                 });
 
             } catch (e) {
@@ -1454,12 +1453,7 @@ function _updateColumnNameOfOldRecords(tableName,appId,renameColumnObject){
         }
         renameQuery = renameQuery.substring(0, renameQuery.length-1)
         const db = global.pgClient[appId];
-        db.query('ALTER TABLE :tableName :renameQuery', {
-            replacements: {
-                tableName: tableName,
-                renameQuery: renameQuery
-            }
-        }).then(function() {
+        db.query(`ALTER TABLE ${tableName} ${renameQuery}`).then(function() {
             deferred.resolve();
         }).catch(function() {
             deferred.reject();
