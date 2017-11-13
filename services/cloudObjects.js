@@ -121,10 +121,9 @@ module.exports = function() {
             return deferred.promise;
         },
 
-        save: function(appId, collectionName, document, accessList, isMasterKey, opts) {
+        save: function(appId, collectionName, document, accessList, isMasterKey, opts, encryption_key) {
 
             console.log("In Custom Save function");
-
             var deferred = global.q.defer();
 
             try {
@@ -137,7 +136,7 @@ module.exports = function() {
                         document[i] = _checkIdList(document[i], reqType);
                         _generateId(document[i], reqType);
                         console.log('Saving document...');
-                        promises.push(_save(appId, collectionName, document[i], accessList, isMasterKey, reqType, opts));
+                        promises.push(_save(appId, collectionName, document[i], accessList, isMasterKey, reqType, opts, encryption_key));
                     }
                     global.q.allSettled(promises).then(function(res) {
 
@@ -162,7 +161,7 @@ module.exports = function() {
                     });
                 } else {
                     console.log('Saving document...');
-                    _save(appId, collectionName, document, accessList, isMasterKey, opts).then(function(res) {
+                    _save(appId, collectionName, document, accessList, isMasterKey, null, opts, encryption_key).then(function(res) {
                         deferred.resolve(res);
                     }, function(err) {
                         deferred.reject(err);
@@ -249,13 +248,12 @@ module.exports = function() {
     };
 };
 
-function _save(appId, collectionName, document, accessList, isMasterKey, reqType, opts) {
+function _save(appId, collectionName, document, accessList, isMasterKey, reqType, opts, encryption_key) {
 
     var deferred = q.defer();
-
+    console.log(appId, collectionName, document, accessList, isMasterKey, reqType, opts, encryption_key);
     try {
-        console.log("DOCUMENT TO SAVE : ");
-        console.log(document);
+        console.log("DOCUMENT TO SAVE :");
 
         var docToSave = document;
 
@@ -283,7 +281,7 @@ function _save(appId, collectionName, document, accessList, isMasterKey, reqType
                 listOfDocs = obj.newDoc;
                 obj = obj.oldDoc;
                 console.log("ACL checked");
-                _validateSchema(appId, listOfDocs, accessList, isMasterKey).then(function(listOfDocs) {
+                _validateSchema(appId, listOfDocs, accessList, isMasterKey, encryption_key).then(function(listOfDocs) {
                     console.log("Schema checked");
 
 
@@ -371,12 +369,12 @@ function _delete(appId, collectionName, document, accessList, isMasterKey) {
 
 }
 
-function _validateSchema(appId, listOfDocs, accessList, isMasterKey) {
+function _validateSchema(appId, listOfDocs, accessList, isMasterKey, encryption_key) {
     var deferred = global.q.defer();
     try {
         var promises = [];
         for (var i = 0; i < listOfDocs.length; i++)
-            promises.push(_isSchemaValid(appId, listOfDocs[i]._tableName, listOfDocs[i], accessList, isMasterKey));
+            promises.push(_isSchemaValid(appId, listOfDocs[i]._tableName, listOfDocs[i], accessList, isMasterKey, encryption_key));
         global.q.all(promises).then(function(docs) {
             deferred.resolve(docs);
         }, function(err) {
@@ -415,7 +413,7 @@ function _sendNotification(appId, res, reqType) {
     }
 }
 
-var _isSchemaValid = function(appId, collectionName, document, accessList, isMasterKey) {
+var _isSchemaValid = function(appId, collectionName, document, accessList, isMasterKey, encryption_key) {
     var mainPromise = q.defer();
     var columnNotFound = false
 
@@ -467,11 +465,10 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                         return mainPromise.promise;
                     }
                 }
-
                 //This code encrypts the password in the documents. It shouldn't be here in validateSchema - Let's have it here for temp.
                 if (columns[i].dataType === 'EncryptedText') {
                     if (document[columns[i].name] && typeof document[columns[i].name] === 'string' && document._modifiedColumns.indexOf(columns[i].name) !== -1) {
-                        document[columns[i].name] = _encrypt(document[columns[i].name]);
+                        document[columns[i].name] = _encrypt(document[columns[i].name], encryption_key);
                     }
                 }
 
@@ -1348,9 +1345,15 @@ function _modifyFieldsInQuery(appId, collectionName, query) {
     return deferred.promise;
 }
 
-function _encrypt(data) {
+function _encrypt(data, encryption_key) {
     try {
-        return crypto.pbkdf2Sync(data, global.keys.secureKey, 10000, 64, 'sha1').toString('base64');
+        var cipher_alg = 'aes-256-ctr';
+        var encryptedPassword;
+        if(encryption_key && encryption_key.iv && encryption_key.key){
+            return encryptText(cipher_alg, encryption_key.key, encryption_key.iv, data);
+        } else {
+            return crypto.pbkdf2Sync(data, global.keys.secureKey, 10000, 64, 'sha1').toString('base64');
+        }
     } catch (err) {
         global.winston.log('error', {
             "error": String(err),
@@ -1614,4 +1617,20 @@ function _getUniqueObjects(objectsList) {
         });
         return uniqueListObject;
     }
+}
+
+//to encrypt data
+function encryptText(cipher_alg, key, iv, text) {
+			var cipher = crypto.createCipheriv(cipher_alg, key.toString('hex').slice(0, 32), iv.toString('hex').slice(0, 16));
+			var result = cipher.update(text, "utf8", 'hex');
+			result += cipher.final('hex');
+			return result;
+}
+
+//to decrypt data
+function decryptText(cipher_alg, key, iv, text) {
+			var decipher = crypto.createDecipheriv(cipher_alg, key.toString('hex').slice(0, 32), iv.toString('hex').slice(0, 16));
+			var result = decipher.update(text, 'hex');
+			result += decipher.final();
+			return result;
 }

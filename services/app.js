@@ -7,6 +7,7 @@
 var Collections = require('../database-connect/collections.js');
 var q = require('q');
 var crypto = require("crypto");
+var CryptoJS = require("crypto-js");
 var uuid = require('uuid');
 var _ = require('underscore');
 var util = require('../helpers/util.js');
@@ -198,27 +199,33 @@ module.exports = function () {
                         document.keys.js = _generateKey();
                         document.keys.master = _generateKey();
 
-                        var collection = global.mongoClient.db(global.keys.globalDb).collection("projects");
+                        getKeyAndIV(function (data) { //using 64 byte key
+                            console.log("got key and iv buffers");
 
-                        console.log('Collection Object Created.');
+                            document.keys.encryption_key = data;
 
-                        collection.save(document, function (err, project) {
-                            if (err) {
-                                console.log("Error : Cannot create project.");
-                                console.log(error);
-                                deferred.reject("Cannot create a new app now.");
+                            var collection = global.mongoClient.db(global.keys.globalDb).collection("projects");
 
-                            } else if (project) {
-                                console.log("new app got saved...");
-                                //create a mongodb app.
-                                promises.push(global.mongoUtil.app.create(appId));
-                                global.q.all(promises).then(function (res) {
-                                    deferred.resolve(document);
-                                }, function (err) {
-                                    deferred.reject(err);
-                                });
-                            }
-
+                            console.log('Collection Object Created.');
+    
+                            collection.save(document, function (err, project) {
+                                if (err) {
+                                    console.log("Error : Cannot create project.");
+                                    console.log(err);
+                                    deferred.reject("Cannot create a new app now.");
+    
+                                } else if (project) {
+                                    console.log("new app got saved...");
+                                    //create a mongodb app.
+                                    promises.push(global.mongoUtil.app.create(appId));
+                                    global.q.all(promises).then(function (res) {
+                                        deferred.resolve(document);
+                                    }, function (err) {
+                                        deferred.reject(err);
+                                    });
+                                }
+    
+                            });
                         });
                     }
                 });
@@ -1673,4 +1680,29 @@ function convertObjectToString(arr) {
     }
     return arr;
 
+}
+
+function getKeyAndIV(callback) {
+    
+    var key = makeid(48);
+
+    crypto.pseudoRandomBytes(16, function (err, ivBuffer) {
+        
+        var keyBuffer  = (key instanceof Buffer) ? key : new Buffer(key) ;
+                
+        callback({
+            iv: ivBuffer,
+            key: keyBuffer
+        });
+    });
+}
+
+function makeid(len) {
+    var text = "";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  
+    for (var i = 0; i < len; i++)
+      text += possible.charAt(Math.floor(Math.random() * possible.length));
+  
+    return text;
 }
