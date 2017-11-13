@@ -251,10 +251,9 @@ module.exports = function() {
 function _save(appId, collectionName, document, accessList, isMasterKey, reqType, opts, encryption_key) {
 
     var deferred = q.defer();
-    console.log(appId, collectionName, document, accessList, isMasterKey, reqType, opts, encryption_key);
     try {
         console.log("DOCUMENT TO SAVE :");
-
+        console.log(document)
         var docToSave = document;
 
         var promises = [];
