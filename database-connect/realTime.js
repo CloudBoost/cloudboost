@@ -72,13 +72,13 @@ module.exports = function (io) {
                     var roomSockets = io.to(data.channel);
                     var sockets = roomSockets.sockets;
 
-                    if (typeof sockets === "object") {
-                        for (var key in sockets) {
-                            if (sockets[key]) {
-                                sockets[key].emit(data.channel, data.data);
-                            }
-                        }
-                    }
+                    // if (typeof sockets === "object") {
+                    //     for (var key in sockets) {
+                    //         if (sockets[key]) {
+                    //             sockets[key].emit(data.channel, data.data);
+                    //         }
+                    //     }
+                    // }
 
                     io.emit(data.channel, data.data);
 
