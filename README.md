@@ -1,9 +1,9 @@
-<img src="https://www.dropbox.com/s/7ghf1kl7crp5bvy/CbLogoIcon.png?raw=1" height="80" />
+<img src="https://www.dropbox.com/s/gpdhpr3c63dquby/CLoudBoostLogo-Circle-250.png?dl=0&raw=1" height="150" style="text-align: center;" />
 
 [![Build Status](https://travis-ci.org/CloudBoost/cloudboost.svg?branch=master)](https://travis-ci.org/CloudBoost/cloudboost)
 [![OpenCollective](https://opencollective.com/cloudboost/backers/badge.svg)](#backers) 
 
-CloudBoost is the complete serverless platform for your app. **Think of CloudBoost as Parse + Firebase + Algolia + Iron.io all combined into one** :
+CloudBoost is the complete cloud platform for your app. **Think of CloudBoost as Parse + Firebase + Algolia + Iron.io all combined into one** :
  - Data-Storage / JSON Storage / BLOB Storage
  - 100% data ownership
  - Realtime
@@ -12,6 +12,7 @@ CloudBoost is the complete serverless platform for your app. **Think of CloudBoo
  - Queues
  - More - ACL's, User Authentication, Server-less apps and more.
 
+CloudBoost also has a [managed service](https://www.cloudboost.io), so you don't have to install or configure anything. You can sign up for the managed service [here.](https://www.cloudboost.io)
 
 
 ## Deploy with Docker (recommended)
@@ -155,6 +156,10 @@ To read more about app settings, check [Click here](https://github.com/CloudBoos
 - [StackOverflow](stackoverflow.com/questions/tagged/cloudboost) : Tag your questions with `cloudboost` tag, so that we're notified.
 - Email: [support@cloudboost.io](support@cloudboost.io)
 - Twitter: [@cloudboostio](https://twitter.com/cloudboostio)
+
+# Tests
+
+Tests are in a seperate repository. You can find them [here.](https://www.github.com/cloudboost/javascriptsdk)  
 
 # Contributing
 
