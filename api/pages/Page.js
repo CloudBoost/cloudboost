@@ -75,13 +75,15 @@ module.exports = function() {
                 "message": "New Password is required."
             });
         }
-            
-        global.userService.resetUserPassword(appId, username, newPassword, resetKey, customHelper.getAccessList(req), true)
-        .then(function(result) {
-            res.json({message : "Password changed successfully."});
-        }, function(error) {
-            res.json(400, {
-                error: error
+        
+        global.appService.getApp(appId).then(function (application) {
+            global.userService.resetUserPassword(appId, username, newPassword, resetKey, customHelper.getAccessList(req), true, application.keys.encryption_key)
+            .then(function(result) {
+                res.json({message : "Password changed successfully."});
+            }, function(error) {
+                res.json(400, {
+                    error: error
+                });
             });
         });
         
