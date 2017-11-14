@@ -1349,6 +1349,9 @@ function _encrypt(data, encryption_key) {
         var cipher_alg = 'aes-256-ctr';
         var encryptedPassword;
         if(encryption_key && encryption_key.iv && encryption_key.key){
+            // to decrypt text use this
+            // var encryptedText = encryptText(cipher_alg, encryption_key.key, encryption_key.iv, data);
+            // console.log(decryptText(cipher_alg, encryption_key.key, encryption_key.iv, encryptedText));
             return encryptText(cipher_alg, encryption_key.key, encryption_key.iv, data);
         } else {
             return crypto.pbkdf2Sync(data, global.keys.secureKey, 10000, 64, 'sha1').toString('base64');

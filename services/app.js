@@ -7,7 +7,6 @@
 var Collections = require('../database-connect/collections.js');
 var q = require('q');
 var crypto = require("crypto");
-var CryptoJS = require("crypto-js");
 var uuid = require('uuid');
 var _ = require('underscore');
 var util = require('../helpers/util.js');
