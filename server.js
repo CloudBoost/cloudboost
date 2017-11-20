@@ -752,7 +752,7 @@ function setUpMongoDB() {
 
         if (isReplicaSet) {
             console.log("MongoDB is in ReplicaSet");
-            var str = "?replicaSet=cloudboost&slaveOk=true&maxPoolSize=200&ssl=false&connectTimeoutMS=30000&socketTimeoutMS=30000&w=1&wtimeoutMS=30000";
+            var str = "?replicaSet=cloudboost";
             global.keys.mongoConnectionString += str;
         }
 
