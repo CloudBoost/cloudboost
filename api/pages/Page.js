@@ -33,6 +33,7 @@ module.exports = function() {
 
             appKeys.masterKey=list[0].keys.master;
             var appSettingsObject=list[1];
+            list[0].keys.encryption_key ? delete list[0].keys.encryption_key : null;
 
             var general=_.first(_.where(appSettingsObject, {category: "general"}));
             var auth=_.first(_.where(appSettingsObject, {category: "auth"}));
