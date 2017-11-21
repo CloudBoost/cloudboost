@@ -57,7 +57,9 @@ module.exports = function () {
             var deferred = q.defer();
             try {
                 var mongoClient = require('mongodb').MongoClient;
-                mongoClient.connect(global.keys.mongoConnectionString, function (err, db) {
+                mongoClient.connect(global.keys.mongoConnectionString, {
+                    poolSize: 200
+                  }, function (err, db) {
                     if (err) {
                         deferred.reject(err);
                     } else {
