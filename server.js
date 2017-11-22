@@ -23,6 +23,9 @@ require('winston-loggly');
 var slack = require('winston-bishop-slack').Slack;
 var util = require('util');
 
+var CLOUDBOOST_HOSTED = process.env["CLOUDBOOST_HOSTED"]
+console.log('IS CLOUDBOOST RUNNING ON AN HOSTED ENV - ' , CLOUDBOOST_HOSTED)
+
 global.keys = require('./database-connect/keys.js')();
 
 if (global.env === "development") {
@@ -82,7 +85,7 @@ var https = null;
 try {
     if (fs.statSync('./config/cert.crt').isFile() && fs.statSync('./config/key.key').isFile()) {
         //use https
-        console.log("Running on HTTPS protocol.");
+        console.log("Found HTTPS Certs, adding to https server.");
         var httpsOptions = {
             key: fs.readFileSync('./config/key.key'),
             cert: fs.readFileSync('./config/cert.crt')
@@ -100,7 +103,8 @@ http = require('http').createServer(global.app);
 require('./database-connect/cors.js')(); //cors!
 var io = require('socket.io')();
 
-if (https) {
+// attach io to https only if running in hosted env and certs are found
+if (https && CLOUDBOOST_HOSTED) {
     io.attach(https);
 } else {
     io.attach(http);
@@ -125,6 +129,7 @@ global.fileService = null;
 global.queueService = null;
 global.serverService = null;
 global.mailService = null;
+global.helperService = null;
 
 global.mongoUtil = null;
 
@@ -324,6 +329,7 @@ function attachServices() {
         global.pushService = require('./services/cloudPush.js')();
         global.emailService = require('./services/cloudEmail.js')();
         global.authService = require('./services/auth.js')();
+        global.importHelpers = require('./services/importHelpers.js')();
 
         console.log('+++++++++++ Services Status : OK. ++++++++++++++++++');
     } catch (e) {
@@ -488,7 +494,8 @@ http.listen(app.get('port'), function() {
     }
 });
 
-if (https) {
+// run https only if running in hosted env and certs are found
+if (https && CLOUDBOOST_HOSTED) {
     https.listen(4731, function() {
         console.log("HTTPS Server started.");
     });
@@ -745,7 +752,7 @@ function setUpMongoDB() {
 
         if (isReplicaSet) {
             console.log("MongoDB is in ReplicaSet");
-            var str = "?replicaSet=cloudboost&slaveOk=true&maxPoolSize=200&ssl=false&connectTimeoutMS=30000&socketTimeoutMS=30000&w=1&wtimeoutMS=30000";
+            var str = "?replicaSet=cloudboost";
             global.keys.mongoConnectionString += str;
         }
 
