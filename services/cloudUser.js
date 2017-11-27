@@ -10,13 +10,13 @@ var crypto = require('crypto');
 var q = require('q');
 var Collections = require('../database-connect/collections.js');
 var _ = require('underscore');
-
+var cipher_alg = 'aes-256-ctr';
 
 module.exports = function() {
 
 	return {
 		
-		login: function(appId, username, password, accessList, isMasterKey) {
+		login: function(appId, username, password, accessList, isMasterKey, encryption_key) {
 			var deferred = q.defer();
 
 			try{
@@ -28,8 +28,13 @@ module.exports = function() {
 						return;
 	                }
 
-	                var isAuthenticatedUser=false;
-	                var encryptedPassword = crypto.pbkdf2Sync(password, global.keys.secureKey, 10000, 64, 'sha1').toString('base64');
+					var encryptedPassword;
+					var isAuthenticatedUser=false;
+					if(encryption_key && encryption_key.iv && encryption_key.key){
+						encryptedPassword = encryptText(cipher_alg, encryption_key.key, encryption_key.iv, password);
+					} else {
+						encryptedPassword = crypto.pbkdf2Sync(password, global.keys.secureKey, 10000, 64, 'sha1').toString('base64');
+					}
 					if (encryptedPassword === user.password) { //authenticate user.
 						isAuthenticatedUser=true;
 					} 
@@ -78,7 +83,7 @@ module.exports = function() {
 			return deferred.promise;
 		},
         
-        changePassword: function(appId, userId, oldPassword, newPassword, accessList, isMasterKey) {
+        changePassword: function(appId, userId, oldPassword, newPassword, accessList, isMasterKey, encryption_key) {
 			var deferred = q.defer();
 
 			try{
@@ -88,16 +93,24 @@ module.exports = function() {
 					if (!user) {
 						deferred.reject('Invalid User');
 						return;
-	                }
-
-					var encryptedPassword = crypto.pbkdf2Sync(oldPassword, global.keys.secureKey, 10000, 64, 'sha1').toString('base64');
+					}
+					var encryptedPassword;
+					if(encryption_key && encryption_key.iv && encryption_key.key){
+						encryptedPassword = encryptText(cipher_alg, encryption_key.key, encryption_key.iv, oldPassword);
+					} else {
+						encryptedPassword = crypto.pbkdf2Sync(oldPassword, global.keys.secureKey, 10000, 64, 'sha1').toString('base64');
+					}
 					if (encryptedPassword === user.password) { //authenticate user.
-						 user.password = crypto.pbkdf2Sync(newPassword, global.keys.secureKey, 10000, 64, 'sha1').toString('base64');
-					     global.mongoService.document.save(appId,  [{document:user}]).then(function(document) {
+						if(encryption_key && encryption_key.iv && encryption_key.key){
+							user.password = encryptText(cipher_alg, encryption_key.key, encryption_key.iv, oldPassword);
+						} else {
+							user.password = crypto.pbkdf2Sync(oldPassword, global.keys.secureKey, 10000, 64, 'sha1').toString('base64');
+						}
+					    global.mongoService.document.save(appId,  [{document:user}]).then(function(document) {
 	                        deferred.resolve(user); //returns no. of items matched
-	                     }, function(error) {
+	                    }, function(error) {
 	                        deferred.reject(error);
-	                     });
+	                    });
 	                } else {
 						deferred.reject('Invalid Old Password');
 					}
@@ -156,7 +169,7 @@ module.exports = function() {
 			return deferred.promise;
         },
         
-        resetUserPassword: function(appId, username, newPassword, resetKey, accessList, isMasterKey){
+        resetUserPassword: function(appId, username, newPassword, resetKey, accessList, isMasterKey, encryption_key){
             var deferred = q.defer();
 			
 			try{
@@ -173,7 +186,11 @@ module.exports = function() {
 	                   .digest('hex');
 	                
 	                if(passwordResetKey === resetKey){
-	                    user.password = crypto.pbkdf2Sync(newPassword, global.keys.secureKey, 10000, 64, 'sha1').toString('base64');
+						if(encryption_key && encryption_key.iv && encryption_key.key){
+							user.password = encryptText(cipher_alg, encryption_key.key, encryption_key.iv, newPassword);
+						} else {
+							user.password = crypto.pbkdf2Sync(newPassword, global.keys.secureKey, 10000, 64, 'sha1').toString('base64');
+						}
 	                    global.mongoService.document.save(appId,  [{document:user}]).then(function(user) {
 	                        deferred.resolve(); //returns no. of items matched
 	                    }, function(error) {
@@ -193,9 +210,8 @@ module.exports = function() {
 			return deferred.promise;
         },
 
-		signup: function(appId, document, accessList, isMasterKey) {
+		signup: function(appId, document, accessList, isMasterKey, encryption_key) {
 			var deferred = q.defer();
-
 			try{
 				global.customService.findOne(appId, Collections.User, {
 					username: document.username
@@ -205,7 +221,7 @@ module.exports = function() {
 						return;
 					}
 
-	                global.customService.save(appId, Collections.User, document,accessList,isMasterKey).then(function(user) {
+	                global.customService.save(appId, Collections.User, document,accessList,isMasterKey, null, encryption_key).then(function(user) {
 						            
 		                //Send an email to activate account. 
 	                    var cipher = crypto.createCipher('aes192', global.keys.secureKey);
@@ -447,4 +463,20 @@ module.exports = function() {
 		}
 	};
 };
+
+//to encrypt data
+function encryptText(cipher_alg, key, iv, text) {
+			var cipher = crypto.createCipheriv(cipher_alg, key.toString('hex').slice(0, 32), iv.toString('hex').slice(0, 16));
+			var result = cipher.update(text, "utf8", 'hex');
+			result += cipher.final('hex');
+			return result;
+}
+
+//to decrypt data
+function decryptText(cipher_alg, key, iv, text, encoding) {
+			var decipher = crypto.createDecipheriv(cipher_alg, key.toString('hex').slice(0, 32), iv.toString('hex').slice(0,16));
+			var result = decipher.update(text, 'hex');
+			result += decipher.final();
+			return result;
+}
 

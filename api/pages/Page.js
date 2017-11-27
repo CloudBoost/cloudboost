@@ -33,6 +33,7 @@ module.exports = function() {
 
             appKeys.masterKey=list[0].keys.master;
             var appSettingsObject=list[1];
+            list[0].keys.encryption_key ? delete list[0].keys.encryption_key : null;
 
             var general=_.first(_.where(appSettingsObject, {category: "general"}));
             var auth=_.first(_.where(appSettingsObject, {category: "auth"}));
@@ -75,13 +76,15 @@ module.exports = function() {
                 "message": "New Password is required."
             });
         }
-            
-        global.userService.resetUserPassword(appId, username, newPassword, resetKey, customHelper.getAccessList(req), true)
-        .then(function(result) {
-            res.json({message : "Password changed successfully."});
-        }, function(error) {
-            res.json(400, {
-                error: error
+        
+        global.appService.getApp(appId).then(function (application) {
+            global.userService.resetUserPassword(appId, username, newPassword, resetKey, customHelper.getAccessList(req), true, application.keys.encryption_key)
+            .then(function(result) {
+                res.json({message : "Password changed successfully."});
+            }, function(error) {
+                res.json(400, {
+                    error: error
+                });
             });
         });
         
