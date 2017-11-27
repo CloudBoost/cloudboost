@@ -26,6 +26,7 @@ module.exports = function () {
 
                     global.appService.createDefaultTables(appId).then(function () {
                         console.log("Success : App Successfully Created.");
+                        delete app.keys.encryption_key;
                         res.status(200).send(app);
                     }, function (err) {
                         console.log("Error : Cannot create an app.");
