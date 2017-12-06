@@ -103,12 +103,12 @@ http = require('http').createServer(global.app);
 require('./database-connect/cors.js')(); //cors!
 var io = require('socket.io')();
 
-// attach io to https only if running in hosted env and certs are found
+io.attach(http);
+// attach io to https, only if running in hosted env and certs are found
 if (https && CLOUDBOOST_HOSTED) {
     io.attach(https);
-} else {
-    io.attach(http);
 }
+
 
 var Redis = require('ioredis');
 
