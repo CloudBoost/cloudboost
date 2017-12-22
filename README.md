@@ -7,7 +7,7 @@ CloudBoost is the complete cloud platform for your app. **Think of CloudBoost as
  - Data-Storage / JSON Storage / BLOB Storage
  - 100% data ownership
  - Realtime
- - Search
+ - Search 
  - Cache
  - Queues
  - More - ACL's, User Authentication, Server-less apps and more.
