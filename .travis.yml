@@ -37,7 +37,7 @@ install:
 - cd ..
 after_success:
 - if [ "$TRAVIS_BRANCH" == "staging" ]; then
-    docker login --username $DOCKERUSERNAME --password $DOCKERPASSWORD --email $DOCKEREMAIL;
+    docker login --username $DOCKERUSERNAME --password $DOCKERPASSWORD;
     docker push cloudboost/cloudboost:staging;
     git clone https://github.com/CloudBoost/kube-cred.git;
     cd kube-cred;

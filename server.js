@@ -570,16 +570,34 @@ function setUpRedis() {
         } else {
 
             console.log("Setting up Redis with no config....");
-            if (process.env["REDIS_SENTINEL_SERVICE_HOST"]) {
+
+            if (process.env["REDIS_SENTINEL_SERVICE_HOST"] || process.env["KUBERNETES_STATEFUL_REDIS_URL"]) {
                 //this is running on Kubernetes
                 console.log("Redis is running on Kubernetes.");
 
-                var obj = {
-                    host: process.env["REDIS_SENTINEL_SERVICE_HOST"],
-                    port: process.env["REDIS_SENTINEL_SERVICE_PORT"],
-                    enableReadyCheck: false
-                };
-                hosts.push(obj);
+                if (process.env["KUBERNETES_STATEFUL_REDIS_URL"]) {
+
+                    console.log('REDIS running on kube cluster')
+
+                    process.env["KUBERNETES_STATEFUL_REDIS_URL"].split(',').map(function(x,i){
+                        hosts.push({
+                            host:x.split(':')[0],
+                            port:x.split(':')[1],
+                            enableReadyCheck: false
+                        })
+                    })
+
+                    isCluster = true;
+            
+                } else {
+                    var obj = {
+                        host: process.env["REDIS_SENTINEL_SERVICE_HOST"],
+                        port: process.env["REDIS_SENTINEL_SERVICE_PORT"],
+                        enableReadyCheck: false
+                    };
+                    hosts.push(obj);
+                }
+
             } else {
                 //take from env variables.
                 console.log("Setting up Redis take from env variables");
