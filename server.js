@@ -103,12 +103,12 @@ http = require('http').createServer(global.app);
 require('./database-connect/cors.js')(); //cors!
 var io = require('socket.io')();
 
-// attach io to https only if running in hosted env and certs are found
+io.attach(http);
+// attach io to https, only if running in hosted env and certs are found
 if (https && CLOUDBOOST_HOSTED) {
     io.attach(https);
-} else {
-    io.attach(http);
 }
+
 
 var Redis = require('ioredis');
 
@@ -570,16 +570,34 @@ function setUpRedis() {
         } else {
 
             console.log("Setting up Redis with no config....");
-            if (process.env["REDIS_SENTINEL_SERVICE_HOST"]) {
+
+            if (process.env["REDIS_SENTINEL_SERVICE_HOST"] || process.env["KUBERNETES_STATEFUL_REDIS_URL"]) {
                 //this is running on Kubernetes
                 console.log("Redis is running on Kubernetes.");
 
-                var obj = {
-                    host: process.env["REDIS_SENTINEL_SERVICE_HOST"],
-                    port: process.env["REDIS_SENTINEL_SERVICE_PORT"],
-                    enableReadyCheck: false
-                };
-                hosts.push(obj);
+                if (process.env["KUBERNETES_STATEFUL_REDIS_URL"]) {
+
+                    console.log('REDIS running on kube cluster')
+
+                    process.env["KUBERNETES_STATEFUL_REDIS_URL"].split(',').map(function(x,i){
+                        hosts.push({
+                            host:x.split(':')[0],
+                            port:x.split(':')[1],
+                            enableReadyCheck: false
+                        })
+                    })
+
+                    isCluster = true;
+            
+                } else {
+                    var obj = {
+                        host: process.env["REDIS_SENTINEL_SERVICE_HOST"],
+                        port: process.env["REDIS_SENTINEL_SERVICE_PORT"],
+                        enableReadyCheck: false
+                    };
+                    hosts.push(obj);
+                }
+
             } else {
                 //take from env variables.
                 console.log("Setting up Redis take from env variables");
@@ -752,7 +770,7 @@ function setUpMongoDB() {
 
         if (isReplicaSet) {
             console.log("MongoDB is in ReplicaSet");
-            var str = "?replicaSet=cloudboost&slaveOk=true&maxPoolSize=200&ssl=false&connectTimeoutMS=30000&socketTimeoutMS=30000&w=1&wtimeoutMS=30000";
+            var str = "?replicaSet=cloudboost";
             global.keys.mongoConnectionString += str;
         }
 

@@ -1083,7 +1083,7 @@ module.exports = function () {
         exportTable: function (appId, tableName, exportType, isMasterKey, accessList) {
 
             var deferred = q.defer();
-            global.customService.find(appId, tableName, {}, null, null, null, null, accessList, isMasterKey).then(function (tables) {
+            global.customService.find(appId, tableName, {}, null, null, 999999, null, accessList, isMasterKey).then(function (tables) {
                 tables.map(function (docs) {
                     docs.createdAt ? delete docs.createdAt : null;
                     docs.updatedAt ? delete docs.updatedAt : null;
