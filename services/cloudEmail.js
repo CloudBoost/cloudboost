@@ -8,33 +8,33 @@
 
 var q = require('q');
 
-module.exports = function() {
+module.exports = function () {
 
 	return {
-		sendEmail: function(appId,emailBody,emailSubject,isMasterKey){
+		sendEmail: function (appId, emailBody, emailSubject, query, isMasterKey) {
 			var deferred = q.defer();
-			global.customService.find(appId,'User',null,{email:true},null,null,null,{},isMasterKey).then(function(data){
-				if(data.length != 0){
+			global.customService.find(appId, query, 'User', { email: true }, null, null, null, {}, isMasterKey).then(function (data) {
+				if (data.length != 0) {
 					var emailPromises = [];
-					for(var k in data){
-						if(data[k].email){
-							emailPromises.push(global.mailService.emailCampaign(appId,data[k].email,emailBody,emailSubject));
+					for (var k in data) {
+						if (data[k].email) {
+							emailPromises.push(global.mailService.emailCampaign(appId, data[k].email, emailBody, emailSubject));
 						}
 					}
-					q.all(emailPromises).then(function(data){
+					q.all(emailPromises).then(function (data) {
 						deferred.resolve(data);
-					},function(err){
+					}, function (err) {
 						deferred.reject(err);
 					})
 				} else {
 					deferred.reject("No users found");
 				}
-			},function(err){
+			}, function (err) {
 				deferred.reject(err);
 			})
 			return deferred.promise;
 		}
-		
+
 	};
 
 };

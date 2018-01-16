@@ -1,0 +1,17 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.8.0
+ignore: {}
+# patches apply the minimum changes required to fix a vulnerability
+patch:
+  'npm:debug:20170905':
+    - nodemailer-mailgun-transport > mailgun-js > debug:
+        patched: '2017-11-21T04:47:12.009Z'
+  'npm:ms:20170412':
+    - nodemailer-mailgun-transport > mailgun-js > debug > ms:
+        patched: '2017-11-21T04:47:12.009Z'
+  'npm:qs:20140806-1':
+    - winston-bishop-slack > winston > request > qs:
+        patched: '2017-11-21T04:47:12.009Z'
+  'npm:request:20160119':
+    - winston-bishop-slack > winston > request:
+        patched: '2017-11-21T04:47:12.009Z'
