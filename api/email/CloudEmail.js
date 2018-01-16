@@ -6,46 +6,47 @@
 */
 
 
-module.exports = function() {   
+module.exports = function () {
 
-   /**
-    *Description : Send Email to all users in the selected aplication
-    *Params: 
-    *- Param secureKey: Secure key of System
-    *Returns:
-    -Success : success on emails sent
-    -Error : Error Data( 'Server Error' : status 500 )
-    */
+    /**
+     *Description : Send Email to all users in the selected aplication
+     *Params: 
+     *- Param secureKey: Secure key of System
+     *Returns:
+     -Success : success on emails sent
+     -Error : Error Data( 'Server Error' : status 500 )
+     */
     global.app.post('/email/:appId/campaign', function (req, res) {
         console.log("++++ Email Campaign ++++++");
-        try{
+        try {
             var appId = req.params.appId;
             var appKey = req.body.key;
+            var query = req.body.query;
             var emailBody = req.body.emailBody;
             var emailSubject = req.body.emailSubject;
 
-            global.appService.isMasterKey(appId,appKey).then(function (isMasterKey) {
+            global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
                 if (isMasterKey) {
-                    global.emailService.sendEmail(appId,emailBody,emailSubject,isMasterKey).then(function(data){
+                    global.emailService.sendEmail(appId, query, emailBody, emailSubject, isMasterKey).then(function (data) {
                         res.status(200).send(null);
-                    },function(err){
-                        if(err === "Email Configuration is not found." || err === "No users found"){
-                            res.status(400).send({error:err});
+                    }, function (err) {
+                        if (err === "Email Configuration is not found." || err === "No users found") {
+                            res.status(400).send({ error: err });
                         } else {
-                            res.status(500).json({message:"Something went wrong",error:err});
+                            res.status(500).json({ message: "Something went wrong", error: err });
                         }
                     });
                 } else {
-                    res.status(401).send({status : 'Unauthorized'});
+                    res.status(401).send({ status: 'Unauthorized' });
                 }
             }, function (error) {
                 return res.status(500).send('Cannot retrieve security keys.');
-            });      
-        } catch(e){
+            });
+        } catch (e) {
             console.log(e);
         }
-                
-        
+
+
     });
 
 };
