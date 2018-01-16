@@ -27,7 +27,7 @@ module.exports = function () {
 
             global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
                 if (isMasterKey) {
-                    global.emailService.sendEmail(appId, query, emailBody, emailSubject, isMasterKey).then(function (data) {
+                    global.emailService.sendEmail(appId, emailBody, emailSubject, query, isMasterKey).then(function (data) {
                         res.status(200).send(null);
                     }, function (err) {
                         if (err === "Email Configuration is not found." || err === "No users found") {
