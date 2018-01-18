@@ -477,7 +477,7 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
             var query = {
                 $or: []
             };
-            var col ;
+            var uniqueColumn ;
             for (var i = 0; i < columns.length; i++) { 
                 if (columns[i].unique && document[columns[i].name] && modifiedDocuments.indexOf(columns[i].name) >= 0) {
                     var temp = {};
@@ -496,9 +496,10 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                     query.$or.push(temp);
                     console.log('OR Query');
                     console.log(query);
-                    col = temp
+                    uniqueColumn = temp
                 }
-            }
+            } 
+           
             if (query.$or.length > 0) {
                 var findPromise = q.defer();
                     promises.push(findPromise.promise);
@@ -507,8 +508,10 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                     console.log(res);
                     if (res.length === 1 && res[0]._id === document._id) {
                         findPromise.resolve('Update the document');
-                    } else if (res.length > 0) {
-                       findPromise.reject({error:'Unique constraint violated',violatedColumn:col.name});
+                    } else if (res.length > 0) { console.log(uniqueColumn)
+                        key = Object.keys(uniqueColumn);
+                        var violatedColumn = key[0]               
+                       findPromise.reject({error:'Unique constraint violated',violatedColumn:violatedColumn});
                     } else {
                         findPromise.resolve('save the document');
                     }
