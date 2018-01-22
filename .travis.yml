@@ -63,7 +63,7 @@ deploy:
 after_deploy:
 # Docker Deploy.
 - if [ "$TRAVIS_BRANCH" == "master" ]; then
-  docker login --username $DOCKERUSERNAME --password $DOCKERPASSWORD --email $DOCKEREMAIL;
+  docker login --username $DOCKERUSERNAME --password $DOCKERPASSWORD;
   docker push cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER;
   docker push cloudboost/cloudboost:latest;
   git clone https://github.com/CloudBoost/kube-cred.git;
