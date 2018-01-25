@@ -73,9 +73,12 @@
   },
   "devDependencies": {
     "eslint": "^3.16.1",
-    "grunt-eslint": "^19.0.0"
+    "grunt-eslint": "^19.0.0",
+    "chai": "^4.1.2",
+    "mocha": "^4.0.1"
   },
   "scripts": {
+    "test": "mocha",
     "snyk-protect": "snyk protect",
     "prepare": "npm run snyk-protect"
   },
