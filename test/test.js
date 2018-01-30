@@ -155,7 +155,7 @@ describe("CloudBoost API", function () {
     });
 
     it("Should create a table", function (done) {
-
+        this.timeout(100000);
         var params = {
             "data": {
                 "name": "Employee",
@@ -253,7 +253,7 @@ describe("CloudBoost API", function () {
     describe("Adding new row and editing same row in users table", function () {
         var rowId = util.generateHash();
         it("Should add new row with default modified columns in users table", function (done) {
-
+            this.timeout(100000);
             var params = {
                 "document":
                     {
@@ -299,7 +299,7 @@ describe("CloudBoost API", function () {
         });
 
         it("Should edit existing row with username modified cloumn in users table", function (done) {
-
+            this.timeout(100000);
             var params = {
                 "document":
                     {
@@ -358,7 +358,7 @@ describe("CloudBoost API", function () {
 
 
     it("Should add user in users table", function (done) {
-
+        this.timeout(100000);
         var params = {
             "document":
                 {
@@ -407,6 +407,7 @@ describe("CloudBoost API", function () {
     });
 
     it('should send emails successfully', done => {
+        this.timeout(100000);
         let params = {
             key: testMasterKey,
             emailBody: 'test12',

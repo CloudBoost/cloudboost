@@ -96,7 +96,7 @@ describe("CloudBoost Email API", function () {
     });
 
     it("Should add user in users table", function (done) {
-
+        this.timeout(100000);
         var params = {
             "document":
                 {
@@ -146,6 +146,7 @@ describe("CloudBoost Email API", function () {
 
 
     it('should send emails successfully', done => {
+        this.timeout(100000);
         let params = {
             key: testMasterKey,
             emailBody: 'test12',

@@ -12,7 +12,6 @@ describe("CloudBoost Users API", function () {
 
   it("MongoDb,RedisDb & Elastic SearchDb Statuses..", function (done) {
     this.timeout(100000);
-
     var url = URL + '/status';
     var params = {};
     params.url = URL;
@@ -94,9 +93,9 @@ describe("CloudBoost Users API", function () {
     }
 
   });
- 
-  it("Should add user in users table", function (done) {
 
+  it("Should add user in users table", function (done) {
+    this.timeout(100000);
     var params = {
       "document":
         {
