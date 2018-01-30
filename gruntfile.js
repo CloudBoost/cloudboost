@@ -36,6 +36,7 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks("grunt-bumpup");
     grunt.loadNpmTasks("grunt-env");
     grunt.loadNpmTasks("grunt-eslint");
+    grunt.loadNpmTasks("grunt-test");
 
     grunt.registerTask('default', ['bumpup', "env:build", "eslint:all","test"]);
 };
