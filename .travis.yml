@@ -35,6 +35,9 @@ install:
 - grunt
 - npm test
 - cd ..
+script:
+node server
+npm test
 after_success:
 - if [ "$TRAVIS_BRANCH" == "staging" ]; then
     docker login --username $DOCKERUSERNAME --password $DOCKERPASSWORD;
