@@ -18,7 +18,8 @@ module.exports = function (grunt) {
                     'test/init/init.js',
                     'test/app/CloudApp.js',
                     'test/users/CloudUsers.js',
-                    'test/email/CloudEmail.js'
+                    'test/email/CloudEmail.js',
+                    'test/app/DeleteApp.js'
                 ],
                 dest: 'test/test.js'
             }
