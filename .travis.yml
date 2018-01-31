@@ -33,9 +33,7 @@ install:
 - npm test
 - git clone https://github.com/cloudboost/javascriptsdk
 - cd javascriptsdk
-- npm install grunt-cli -g
 - npm install
-- npm install grunt --save-dev
 - grunt
 - npm test
 - cd ..
