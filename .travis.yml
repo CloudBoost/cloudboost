@@ -35,6 +35,7 @@ install:
 - cd javascriptsdk
 - npm install grunt-cli -g
 - npm install
+- npm install grunt --save-dev
 - grunt
 - npm test
 - cd ..
