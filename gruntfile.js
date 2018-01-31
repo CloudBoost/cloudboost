@@ -16,7 +16,8 @@ module.exports = function (grunt) {
                     'test/util/util.js',
                     'test/requireModules.js',
                     'test/init/init.js',
-                    'test/app/CloudApp.js',
+                    'test/app/App.js',
+                    'test/app/AppSettings.js',
                     'test/users/CloudUsers.js',
                     'test/email/CloudEmail.js',
                     'test/app/DeleteApp.js'
