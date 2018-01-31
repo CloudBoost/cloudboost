@@ -127,7 +127,7 @@ describe("CloudBoost Users API", function () {
           "username": "test",
           "roles": null,
           "password": null,
-          "email": "rravithejareddy@gmail.com", // please use test email 
+          "email": "hello@cloudboost.io", 
           "socialAuth": null,
           "verified": null, "_isModified": true,
           "_modifiedColumns": ["createdAt", "updatedAt", "ACL", "expires", "email", "username"],
