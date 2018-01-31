@@ -29,7 +29,7 @@ install:
 - docker run --name cloudboost -e  MAIL_PROVIDER=$MAIL_PROVIDER -e  MAIL_PROVIDER_API_KEY=$MAIL_PROVIDER_API_KEY -e  DOMAIN=$DOMAIN -e  FROM_EMAIL=$FROM_EMAIL -e  FROM_NAME=$FROM_NAME -p 4730:4730 -it --link redis:redis --link mongo:mongo -d cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER
 - sleep 30s
 - docker logs cloudboost
-- grunt
+- grunt test
 - npm test
 - git clone https://github.com/cloudboost/javascriptsdk
 - cd javascriptsdk
