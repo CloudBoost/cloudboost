@@ -36,6 +36,7 @@ install:
 - npm install grunt-cli -g
 - npm install grunt --save-dev
 - npm install
+- sleep 30s
 - grunt
 - npm test
 - cd ..
