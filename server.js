@@ -189,8 +189,7 @@ global.app.use([
     '/file/:appId',
     '/data/:appId',
     '/app/:appId/:tableName',
-    '/user/:appId',
-    '/push/:appId'
+    '/user/:appId'
     ], function(req, res, next) {
     //This is the Middleware for authenticating the app access using appID and key
     //check if all the services are loaded first.
@@ -199,7 +198,7 @@ global.app.use([
 
         console.log("This is the Middleware for authenticating the app access using appID and key");
 
-        if (!global.customService || !global.serverService || !global.mongoService || !global.userService || !global.roleService || !global.appService || !global.fileService || !global.pushService) {
+        if (!global.customService || !global.serverService || !global.mongoService || !global.userService || !global.roleService || !global.appService || !global.fileService) {
             return res.status(400).send("Services Not Loaded");
         }
 
@@ -320,7 +319,6 @@ function attachServices() {
         global.fileService = require('./services/cloudFiles.js')();
         global.serverService = require('./services/server.js')();
         global.mailService = require('./services/mail.js')();
-        global.pushService = require('./services/cloudPush.js')();
         global.emailService = require('./services/cloudEmail.js')();
         global.authService = require('./services/auth.js')();
         global.importHelpers = require('./services/importHelpers.js')();
@@ -343,7 +341,7 @@ function attachAPI() {
 
     try {
         console.log("Attach API's");
-        if (!global.mongoClient || !global.customService || !global.mongoService || !global.userService || !global.roleService || !global.appService || !global.fileService || !global.pushService) {
+        if (!global.mongoClient || !global.customService || !global.mongoService || !global.userService || !global.roleService || !global.appService || !global.fileService) {
             console.log("Failed to attach API's because services not loaded properly.");
             return;
         }
@@ -357,7 +355,6 @@ function attachAPI() {
         require('./api/app/AppFiles.js')();
         require('./api/file/CloudFiles.js')();
         require('./api/server/Server.js')();
-        require('./api/pushNotifications/CloudPush.js')();
         require('./api/email/CloudEmail.js')();
         require('./api/pages/Page.js')();
         require('./api/auth/Auth.js')();
