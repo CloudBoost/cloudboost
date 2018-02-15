@@ -8,8 +8,6 @@ CloudBoost is the complete cloud platform for your app. **Think of CloudBoost as
  - 100% data ownership
  - Realtime
  - Search 
- - Cache
- - Queues
  - More - ACL's, User Authentication, Server-less apps and more.
 
 CloudBoost also has a [managed service](https://www.cloudboost.io), so you don't have to install or configure anything. You can sign up for the managed service [here.](https://www.cloudboost.io)
