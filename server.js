@@ -789,8 +789,7 @@ function servicesKickstart() {
                     global.serverService.registerServer(key).then(function() {
                         console.log("Cluster Registered.");
                     }, function(error) {
-                        console.log("Cluster registration failed.");
-                        console.log(error);
+                        // Do nothing
                     });
                 }, function(error) {
                     console.log("Failed to register the cluster.");
