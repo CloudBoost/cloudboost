@@ -126,14 +126,12 @@ global.customService = null;
 global.userService = null;
 global.appService = null;
 global.fileService = null;
-global.queueService = null;
 global.serverService = null;
 global.mailService = null;
 global.helperService = null;
 
 global.mongoUtil = null;
 
-global.cacheService = null;
 global.cacheItems = [];
 global.apiTracker = null;
 global.socketQueries = [];
@@ -192,8 +190,6 @@ global.app.use([
     '/data/:appId',
     '/app/:appId/:tableName',
     '/user/:appId',
-    '/cache/:appId',
-    '/queue/:appId',
     '/push/:appId'
     ], function(req, res, next) {
     //This is the Middleware for authenticating the app access using appID and key
@@ -203,7 +199,7 @@ global.app.use([
 
         console.log("This is the Middleware for authenticating the app access using appID and key");
 
-        if (!global.customService || !global.serverService || !global.mongoService || !global.userService || !global.roleService || !global.appService || !global.fileService || !global.cacheService || !global.pushService) {
+        if (!global.customService || !global.serverService || !global.mongoService || !global.userService || !global.roleService || !global.appService || !global.fileService || !global.pushService) {
             return res.status(400).send("Services Not Loaded");
         }
 
@@ -321,9 +317,7 @@ function attachServices() {
         global.userService = require('./services/cloudUser.js')();
         global.roleService = require('./services/cloudRole.js')();
         global.appService = require('./services/app.js')();
-        global.queueService = require('./services/cloudQueue.js')();
         global.fileService = require('./services/cloudFiles.js')();
-        global.cacheService = require('./services/cloudCache.js')();
         global.serverService = require('./services/server.js')();
         global.mailService = require('./services/mail.js')();
         global.pushService = require('./services/cloudPush.js')();
@@ -349,7 +343,7 @@ function attachAPI() {
 
     try {
         console.log("Attach API's");
-        if (!global.mongoClient || !global.customService || !global.mongoService || !global.userService || !global.roleService || !global.appService || !global.fileService || !global.cacheService || !global.pushService) {
+        if (!global.mongoClient || !global.customService || !global.mongoService || !global.userService || !global.roleService || !global.appService || !global.fileService || !global.pushService) {
             console.log("Failed to attach API's because services not loaded properly.");
             return;
         }
@@ -362,8 +356,6 @@ function attachAPI() {
         require('./api/app/AppSettings.js')();
         require('./api/app/AppFiles.js')();
         require('./api/file/CloudFiles.js')();
-        require('./api/queue/CloudQueue.js')();
-        require('./api/cache/CloudCache.js')();
         require('./api/server/Server.js')();
         require('./api/pushNotifications/CloudPush.js')();
         require('./api/email/CloudEmail.js')();
@@ -797,8 +789,7 @@ function servicesKickstart() {
                     global.serverService.registerServer(key).then(function() {
                         console.log("Cluster Registered.");
                     }, function(error) {
-                        console.log("Cluster registration failed.");
-                        console.log(error);
+                        // Do nothing
                     });
                 }, function(error) {
                     console.log("Failed to register the cluster.");
