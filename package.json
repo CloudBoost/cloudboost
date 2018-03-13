@@ -49,7 +49,7 @@
     "node-linkedin": "^0.5.3",
     "node-twitter-api": "^1.7.1",
     "node-uuid": "^1.4.7",
-    "node-xlsx": "^0.11.0",
+    "node-xlsx": "^0.12.0",
     "nodemailer": "^2.4.1",
     "nodemailer-mailgun-transport": "^1.0.2",
     "oauth": "^0.9.14",
