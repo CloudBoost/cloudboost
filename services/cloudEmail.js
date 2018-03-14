@@ -13,7 +13,7 @@ module.exports = function () {
 	return {
 		sendEmail: function (appId, emailBody, emailSubject, query, isMasterKey) {
 			var deferred = q.defer();
-			global.customService.find(appId, query, 'User', { email: true }, null, null, null, {}, isMasterKey).then(function (data) {
+			global.customService.find(appId, 'User', query, { email: true }, null, null, null, {}, isMasterKey).then(function (data) {
 				if (data.length != 0) {
 					var emailPromises = [];
 					for (var k in data) {

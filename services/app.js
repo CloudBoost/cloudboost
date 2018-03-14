@@ -206,13 +206,13 @@ module.exports = function () {
                             var collection = global.mongoClient.db(global.keys.globalDb).collection("projects");
 
                             console.log('Collection Object Created.');
-    
+
                             collection.save(document, function (err, project) {
                                 if (err) {
                                     console.log("Error : Cannot create project.");
                                     console.log(err);
                                     deferred.reject("Cannot create a new app now.");
-    
+
                                 } else if (project) {
                                     console.log("new app got saved...");
                                     //create a mongodb app.
@@ -223,7 +223,7 @@ module.exports = function () {
                                         deferred.reject(err);
                                     });
                                 }
-    
+
                             });
                         });
                     }
@@ -994,7 +994,7 @@ module.exports = function () {
             var deferred = q.defer();
             var collectionRemovePromises = [];
             var validated = false;
-            
+
             try {
                 fileData = JSON.parse(file.toString());
                 for (var k in fileData) {
@@ -1608,11 +1608,11 @@ function _getDefaultColumnWithDataType(type) {
             defaultColumn['email'] = 'Email';
             defaultColumn['password'] = 'EncryptedText';
             defaultColumn['roles'] = 'List';
+            defaultColumn['channels'] = 'List';
         } else if (type == 'role') {
             defaultColumn['name'] = 'Text';
 
         } else if (type == 'device') {
-            defaultColumn['channels'] = 'List';
             defaultColumn['deviceToken'] = 'Text';
             defaultColumn['deviceOS'] = 'Text';
             defaultColumn['timezone'] = 'Text';
@@ -1682,13 +1682,13 @@ function convertObjectToString(arr) {
 }
 
 function getKeyAndIV(callback) {
-    
+
     var key = makeid(48);
 
     crypto.pseudoRandomBytes(16, function (err, ivBuffer) {
-        
-        var keyBuffer  = (key instanceof Buffer) ? key : new Buffer(key) ;
-                
+
+        var keyBuffer = (key instanceof Buffer) ? key : new Buffer(key);
+
         callback({
             iv: ivBuffer,
             key: keyBuffer
@@ -1699,9 +1699,9 @@ function getKeyAndIV(callback) {
 function makeid(len) {
     var text = "";
     var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  
+
     for (var i = 0; i < len; i++)
-      text += possible.charAt(Math.floor(Math.random() * possible.length));
-  
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+
     return text;
 }

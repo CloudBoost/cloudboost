@@ -1,6 +1,6 @@
 {
   "name": "DataServices",
-  "version": "1.0.112",
+  "version": "1.0.116",
   "main": "server.js",
   "engines": {
     "node": ">=5.0.0"
@@ -23,6 +23,7 @@
     "cron": "^1.1.0",
     "crypto": "^0.0.3",
     "csvtojson": "^1.1.7",
+    "deep-equal": "^1.0.1",
     "ejs": "^2.4.1",
     "elasticsearch": "^8.0.0",
     "express": "^4.13.4",
@@ -32,7 +33,7 @@
     "github": "^0.2.4",
     "googleapis": "^16.0.0",
     "gridfs-stream": "^1.1.1",
-    "grunt": "^1.0.0",
+    "grunt": "^1.0.1",
     "grunt-bumpup": "^0.6.2",
     "grunt-env": "^0.4.4",
     "icg-json-to-xlsx": "^0.2.5",
@@ -72,10 +73,14 @@
     "snyk": "^1.49.4"
   },
   "devDependencies": {
+    "chai": "^4.1.2",
     "eslint": "^3.16.1",
-    "grunt-eslint": "^19.0.0"
+    "grunt-contrib-concat": "^0.5.1",
+    "grunt-eslint": "^19.0.0",
+    "mocha": "^4.0.1"
   },
   "scripts": {
+    "test": "mocha",
     "snyk-protect": "snyk protect",
     "prepare": "npm run snyk-protect"
   },

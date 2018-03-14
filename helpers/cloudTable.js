@@ -136,18 +136,6 @@ module.exports = {
             "isRenamable": false,
             "editableByMasterKey": false
         }, {
-            "name": "channels",
-            "_type": "column",
-            "dataType": "List",
-            "required": false,
-            "unique": false,
-            "relatedTo": "Text",
-            "relationType": null,
-            "isDeletable": false,
-            "isEditable": false,
-            "isRenamable": false,
-            "editableByMasterKey": false
-        }, {
             "name": "deviceToken",
             "_type": "column",
             "dataType": "Text",
@@ -315,6 +303,18 @@ module.exports = {
             "isRenamable": false,
             "editableByMasterKey": false,
             "defaultValue": null
+        }, {
+            "name": "channels",
+            "_type": "column",
+            "dataType": "List",
+            "required": false,
+            "unique": false,
+            "relatedTo": "Text",
+            "relationType": null,
+            "isDeletable": false,
+            "isEditable": false,
+            "isRenamable": false,
+            "editableByMasterKey": false
         }, {
             "name": "socialAuth",
             "_type": "column",

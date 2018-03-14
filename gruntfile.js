@@ -5,25 +5,47 @@
 */
 
 module.exports = function (grunt) {
-   
+
     var pkg = require("./package.json");
-    
-    grunt.initConfig({
+    var config = {
+        concat: {
+            test: {
+                // the files to concatenate
+                src: [
+                    'test/config.js',
+                    'test/util/util.js',
+                    'test/requireModules.js',
+                    'test/init/init.js',
+                    'test/app/App.js',
+                    'test/app/AppSettings.js',
+                    'test/users/CloudUsers.js',
+                    'test/email/CloudEmail.js',
+                    'test/app/DeleteApp.js'
+                ],
+                dest: 'test/test.js'
+            }
+        },
         bumpup: 'package.json',
-        env : {
-          build : {
-                CLOUDBOOST_VERSION : pkg.version 
+        env: {
+            build: {
+                CLOUDBOOST_VERSION: pkg.version
             },
-         },
-         eslint : {
-            all:["*.js","**/*.js","api/**/*.js","!node_modules/**/*.js"]
-         }
-         
-    });
-   
+        },
+        eslint: {
+            all: ["*.js", "**/*.js", "api/**/*.js", "!node_modules/**/*.js"]
+        },
+
+
+    }
+    grunt.initConfig(config);
+
+
     grunt.loadNpmTasks("grunt-bumpup");
     grunt.loadNpmTasks("grunt-env");
     grunt.loadNpmTasks("grunt-eslint");
-    
-    grunt.registerTask('default', ['bumpup', "env:build","eslint:all"]);
+    grunt.loadNpmTasks('grunt-contrib-concat');
+
+
+    grunt.registerTask('test', ['concat:test']);
+    grunt.registerTask('default', ['bumpup', "env:build", "eslint:all"]);
 };
