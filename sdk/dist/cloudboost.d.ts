@@ -9,6 +9,7 @@ interface CloudApp {
 	onDisconnect(functionToFire :any):any
 	connect():any
 	disconnect():any
+	isConnected:boolean
 }
 interface CloudNotification {
 	on(channelName:any, callback?:any, done?:any):any

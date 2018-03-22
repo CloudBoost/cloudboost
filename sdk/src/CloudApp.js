@@ -95,6 +95,13 @@ class CloudApp {
     }
 }
 
+
+Object.defineProperty(CloudApp.prototype, 'isConnected', {
+    get: function() {
+        return this._isConnected;
+    }
+});
+
 function _confirmConnection(callback) {
     var URL = CB.apiUrl + '/status';
     CB._request('GET', URL).then(function(res) {

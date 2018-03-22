@@ -86,12 +86,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	__webpack_require__(74);
 	__webpack_require__(75);
 	__webpack_require__(76);
-	__webpack_require__(77);
+	__webpack_require__(78);
 	__webpack_require__(79);
 	__webpack_require__(80);
 	__webpack_require__(81);
-	__webpack_require__(82);
-	__webpack_require__(83);
 
 	try {
 	    window.CB = _CB2.default;
@@ -1178,7 +1176,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	__webpack_require__(24)(
 	    Promise, PromiseArray, tryConvertToPromise, INTERNAL, async, getDomain);
 	Promise.Promise = Promise;
-	Promise.version = "3.5.0";
+	Promise.version = "3.5.1";
 	__webpack_require__(25)(Promise, PromiseArray, apiRejection, tryConvertToPromise, INTERNAL, debug);
 	__webpack_require__(26)(Promise);
 	__webpack_require__(27)(Promise, apiRejection, tryConvertToPromise, createContext, INTERNAL, debug);
@@ -1450,10 +1448,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	function isError(obj) {
-	    return obj !== null &&
+	    return obj instanceof Error ||
+	        (obj !== null &&
 	           typeof obj === "object" &&
 	           typeof obj.message === "string" &&
-	           typeof obj.name === "string";
+	           typeof obj.name === "string");
 	}
 
 	function markAsOriginatingFromRejection(e) {
@@ -2614,7 +2613,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	Promise.prototype._ensurePossibleRejectionHandled = function () {
 	    if ((this._bitField & 524288) !== 0) return;
 	    this._setRejectionIsUnhandled();
-	    async.invokeLater(this._notifyUnhandledRejection, this, undefined);
+	    var self = this;
+	    setTimeout(function() {
+	        self._notifyUnhandledRejection();
+	    }, 1);
 	};
 
 	Promise.prototype._notifyUnhandledRejectionIsHandled = function () {
@@ -6287,15 +6289,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    if (thisObj instanceof _CB2.default.Column) columnName = thisObj.document.name;
 
-	    if (thisObj instanceof _CB2.default.CloudQueue) tableName = thisObj.document.name;
-
 	    if (thisObj instanceof _CB2.default.CloudTable) tableName = thisObj.document.name;
-
-	    if (thisObj instanceof _CB2.default.CloudCache) tableName = thisObj.document.name;
 
 	    var obj = _CB2.default._clone(thisObj, id, longitude, latitude, tableName, columnName);
 
-	    if (!obj instanceof _CB2.default.CloudObject || !obj instanceof _CB2.default.CloudFile || !obj instanceof _CB2.default.CloudGeoPoint || !obj instanceof _CB2.default.CloudTable || !obj instanceof _CB2.default.Column || !obj instanceof _CB2.default.QueueMessage || !obj instanceof _CB2.default.CloudQueue || !obj instanceof _CB2.default.CloudCache) {
+	    if (!obj instanceof _CB2.default.CloudObject || !obj instanceof _CB2.default.CloudFile || !obj instanceof _CB2.default.CloudGeoPoint || !obj instanceof _CB2.default.CloudTable || !obj instanceof _CB2.default.Column) {
 	        throw "Data passed is not an instance of CloudObject or CloudFile or CloudGeoPoint";
 	    }
 
@@ -6306,7 +6304,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var doc = obj.document;
 
 	    for (var key in doc) {
-	        if (doc[key] instanceof _CB2.default.CloudObject || doc[key] instanceof _CB2.default.CloudFile || doc[key] instanceof _CB2.default.CloudGeoPoint || doc[key] instanceof _CB2.default.Column || doc[key] instanceof _CB2.default.QueueMessage || doc[key] instanceof _CB2.default.CloudQueue || doc[key] instanceof _CB2.default.CloudCache) {
+	        if (doc[key] instanceof _CB2.default.CloudObject || doc[key] instanceof _CB2.default.CloudFile || doc[key] instanceof _CB2.default.CloudGeoPoint || doc[key] instanceof _CB2.default.Column) {
 	            //if something is a relation.
 	            doc[key] = _CB2.default.toJSON(doc[key]); //serialize this object.
 	        } else if (key === 'ACL') {
@@ -6316,7 +6314,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        } else if (doc[key] instanceof Array) {
 	            //if this is an array.
 	            //then check if this is an array of CloudObjects, if yes, then serialize every CloudObject.
-	            if (doc[key][0] && (doc[key][0] instanceof _CB2.default.CloudObject || doc[key][0] instanceof _CB2.default.CloudFile || doc[key][0] instanceof _CB2.default.CloudGeoPoint || doc[key][0] instanceof _CB2.default.Column || doc[key][0] instanceof _CB2.default.QueueMessage || doc[key][0] instanceof _CB2.default.CloudQueue || doc[key][0] instanceof _CB2.default.CloudCache)) {
+	            if (doc[key][0] && (doc[key][0] instanceof _CB2.default.CloudObject || doc[key][0] instanceof _CB2.default.CloudFile || doc[key][0] instanceof _CB2.default.CloudGeoPoint || doc[key][0] instanceof _CB2.default.Column)) {
 	                var arr = [];
 	                for (var i = 0; i < doc[key].length; i++) {
 	                    arr.push(_CB2.default.toJSON(doc[key][i]));
@@ -6376,7 +6374,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	        }
 	        var id = thisObj;
-	        if (thisObj instanceof Object && !(thisObj instanceof _CB2.default.CloudQueue)) id = thisObj._id || thisObj.id;
+	        if (thisObj instanceof Object) id = thisObj._id || thisObj.id;
 	        if (!thisObj || data['_id'] === id) {
 	            var id = null;
 	            var latitude = null;
@@ -6407,7 +6405,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            thisObj.document = document;
 	        }
 
-	        if (thisObj instanceof _CB2.default.CloudObject || thisObj instanceof _CB2.default.CloudUser || thisObj instanceof _CB2.default.CloudRole || thisObj instanceof _CB2.default.CloudQueue || thisObj instanceof _CB2.default.QueueMessage || thisObj instanceof _CB2.default.CloudFile || thisObj instanceof _CB2.default.CloudCache) {
+	        if (thisObj instanceof _CB2.default.CloudObject || thisObj instanceof _CB2.default.CloudUser || thisObj instanceof _CB2.default.CloudRole || thisObj instanceof _CB2.default.CloudFile) {
 	            //activate ACL.
 	            if (thisObj.document["ACL"]) thisObj.document["ACL"].parent = thisObj;
 	        }
@@ -6425,19 +6423,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    if (type === 'custom') {
 	        obj = new _CB2.default.CloudObject();
-	    }
-
-	    if (type === 'queue') {
-	        //tablename is queue name in this instance.
-	        obj = new _CB2.default.CloudQueue(name);
-	    }
-
-	    if (type === 'queue-message') {
-	        obj = new _CB2.default.QueueMessage();
-	    }
-
-	    if (type === 'cache') {
-	        obj = new _CB2.default.CloudCache(name);
 	    }
 
 	    if (type === 'role') {
@@ -6495,13 +6480,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        for (var key in doc) {
 	            if (doc[key] instanceof _CB2.default.CloudFile) doc2[key] = _CB2.default._clone(doc[key], doc[key].document._id);else if (doc[key] instanceof _CB2.default.CloudObject) {
 	                doc2[key] = _CB2.default._clone(doc[key], null);
-	            } else if (doc[key] instanceof _CB2.default.CloudQueue) {
-	                doc2[key] = _CB2.default._clone(doc[key], null);
-	            } else if (doc[key] instanceof _CB2.default.QueueMessage) {
-	                doc2[key] = _CB2.default._clone(doc[key], null);
 	            } else if (doc[key] instanceof _CB2.default.CloudGeoPoint) {
-	                doc2[key] = _CB2.default._clone(doc[key], null);
-	            } else if (doc[key] instanceof _CB2.default.CloudCache) {
 	                doc2[key] = _CB2.default._clone(doc[key], null);
 	            } else doc2[key] = doc[key];
 	        }
@@ -17711,7 +17690,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var require;var require;/* WEBPACK VAR INJECTION */(function(global) {/*!
 	    localForage -- Offline Storage, Improved
-	    Version 1.5.0
+	    Version 1.5.6
 	    https://localforage.github.io/localForage
 	    (c) 2013-2017 Mozilla, Apache License 2.0
 	*/
@@ -17801,7 +17780,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var FULFILLED = ['FULFILLED'];
 	var PENDING = ['PENDING'];
 
-	module.exports = exports = Promise;
+	module.exports = Promise;
 
 	function Promise(resolver) {
 	  if (typeof resolver !== 'function') {
@@ -17907,7 +17886,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function getThen(obj) {
 	  // Make sure we only access the accessor once as required by the spec
 	  var then = obj && obj.then;
-	  if (obj && typeof obj === 'object' && typeof then === 'function') {
+	  if (obj && (typeof obj === 'object' || typeof obj === 'function') && typeof then === 'function') {
 	    return function appyThen() {
 	      then.apply(obj, arguments);
 	    };
@@ -17955,7 +17934,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return out;
 	}
 
-	exports.resolve = resolve;
+	Promise.resolve = resolve;
 	function resolve(value) {
 	  if (value instanceof this) {
 	    return value;
@@ -17963,13 +17942,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	  return handlers.resolve(new this(INTERNAL), value);
 	}
 
-	exports.reject = reject;
+	Promise.reject = reject;
 	function reject(reason) {
 	  var promise = new this(INTERNAL);
 	  return handlers.reject(promise, reason);
 	}
 
-	exports.all = all;
+	Promise.all = all;
 	function all(iterable) {
 	  var self = this;
 	  if (Object.prototype.toString.call(iterable) !== '[object Array]') {
@@ -18008,7 +17987,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  }
 	}
 
-	exports.race = race;
+	Promise.race = race;
 	function race(iterable) {
 	  var self = this;
 	  if (Object.prototype.toString.call(iterable) !== '[object Array]') {
@@ -18076,7 +18055,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        if (typeof msIndexedDB !== 'undefined') {
 	            return msIndexedDB;
 	        }
-	    } catch (e) {}
+	    } catch (e) {
+	        return;
+	    }
 	}
 
 	var idb = getIDB();
@@ -18101,19 +18082,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        return (!isSafari || hasFetch) && typeof indexedDB !== 'undefined' &&
 	        // some outdated implementations of IDB that appear on Samsung
 	        // and HTC Android devices <4.4 are missing IDBKeyRange
+	        // See: https://github.com/mozilla/localForage/issues/128
+	        // See: https://github.com/mozilla/localForage/issues/272
 	        typeof IDBKeyRange !== 'undefined';
-	    } catch (e) {
-	        return false;
-	    }
-	}
-
-	function isWebSQLValid() {
-	    return typeof openDatabase === 'function';
-	}
-
-	function isLocalStorageValid() {
-	    try {
-	        return typeof localStorage !== 'undefined' && 'setItem' in localStorage && localStorage.setItem;
 	    } catch (e) {
 	        return false;
 	    }
@@ -18173,6 +18144,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 	}
 
+	function normalizeKey(key) {
+	    // Cast the key to a string, as that's all we can set as a key.
+	    if (typeof key !== 'string') {
+	        console.warn(key + ' used as a key, but it is not a string.');
+	        key = String(key);
+	    }
+
+	    return key;
+	}
+
 	// Some code originally from async_storage.js in
 	// [Gaia](https://github.com/mozilla-b2g/gaia).
 
@@ -18180,6 +18161,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	var supportsBlobs;
 	var dbContexts;
 	var toString = Object.prototype.toString;
+
+	// Transaction Modes
+	var READ_ONLY = 'readonly';
+	var READ_WRITE = 'readwrite';
 
 	// Transform a binary string to an array buffer, because otherwise
 	// weird stuff happens when you try to work with the binary string directly.
@@ -18213,7 +18198,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	//
 	function _checkBlobSupportWithoutCaching(idb) {
 	    return new Promise$1(function (resolve) {
-	        var txn = idb.transaction(DETECT_BLOB_SUPPORT_STORE, 'readwrite');
+	        var txn = idb.transaction(DETECT_BLOB_SUPPORT_STORE, READ_WRITE);
 	        var blob = createBlob(['']);
 	        txn.objectStore(DETECT_BLOB_SUPPORT_STORE).put(blob, 'key');
 
@@ -18280,6 +18265,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	    // chain of promises).
 	    if (deferredOperation) {
 	        deferredOperation.resolve();
+	    }
+	}
+
+	function _rejectReadiness(dbInfo, err) {
+	    var dbContext = dbContexts[dbInfo.name];
+
+	    // Dequeue a deferred operation.
+	    var deferredOperation = dbContext.deferredOperations.pop();
+
+	    // Reject its promise (which is part of the database readiness
+	    // chain of promises).
+	    if (deferredOperation) {
+	        deferredOperation.reject(err);
 	    }
 	}
 
@@ -18425,6 +18423,51 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return promise;
 	}
 
+	// Try to establish a new db connection to replace the
+	// current one which is broken (i.e. experiencing
+	// InvalidStateError while creating a transaction).
+	function _tryReconnect(dbInfo) {
+	    _deferReadiness(dbInfo);
+
+	    var dbContext = dbContexts[dbInfo.name];
+	    var forages = dbContext.forages;
+
+	    for (var i = 0; i < forages.length; i++) {
+	        if (forages[i]._dbInfo.db) {
+	            forages[i]._dbInfo.db.close();
+	            forages[i]._dbInfo.db = null;
+	        }
+	    }
+
+	    return _getConnection(dbInfo, false).then(function (db) {
+	        for (var j = 0; j < forages.length; j++) {
+	            forages[j]._dbInfo.db = db;
+	        }
+	    })["catch"](function (err) {
+	        _rejectReadiness(dbInfo, err);
+	        throw err;
+	    });
+	}
+
+	// FF doesn't like Promises (micro-tasks) and IDDB store operations,
+	// so we have to do it with callbacks
+	function createTransaction(dbInfo, mode, callback) {
+	    try {
+	        var tx = dbInfo.db.transaction(dbInfo.storeName, mode);
+	        callback(null, tx);
+	    } catch (err) {
+	        if (!dbInfo.db || err.name === 'InvalidStateError') {
+	            return _tryReconnect(dbInfo).then(function () {
+
+	                var tx = dbInfo.db.transaction(dbInfo.storeName, mode);
+	                callback(null, tx);
+	            });
+	        }
+
+	        callback(err);
+	    }
+	}
+
 	// Open the IndexedDB database (automatically creates one if one didn't
 	// previously exist), using any options set in the config.
 	function _initStorage(options) {
@@ -18523,32 +18566,37 @@ return /******/ (function(modules) { // webpackBootstrap
 	function getItem(key, callback) {
 	    var self = this;
 
-	    // Cast the key to a string, as that's all we can set as a key.
-	    if (typeof key !== 'string') {
-	        console.warn(key + ' used as a key, but it is not a string.');
-	        key = String(key);
-	    }
+	    key = normalizeKey(key);
 
 	    var promise = new Promise$1(function (resolve, reject) {
 	        self.ready().then(function () {
-	            var dbInfo = self._dbInfo;
-	            var store = dbInfo.db.transaction(dbInfo.storeName, 'readonly').objectStore(dbInfo.storeName);
-	            var req = store.get(key);
-
-	            req.onsuccess = function () {
-	                var value = req.result;
-	                if (value === undefined) {
-	                    value = null;
+	            createTransaction(self._dbInfo, READ_ONLY, function (err, transaction) {
+	                if (err) {
+	                    return reject(err);
 	                }
-	                if (_isEncodedBlob(value)) {
-	                    value = _decodeBlob(value);
-	                }
-	                resolve(value);
-	            };
 
-	            req.onerror = function () {
-	                reject(req.error);
-	            };
+	                try {
+	                    var store = transaction.objectStore(self._dbInfo.storeName);
+	                    var req = store.get(key);
+
+	                    req.onsuccess = function () {
+	                        var value = req.result;
+	                        if (value === undefined) {
+	                            value = null;
+	                        }
+	                        if (_isEncodedBlob(value)) {
+	                            value = _decodeBlob(value);
+	                        }
+	                        resolve(value);
+	                    };
+
+	                    req.onerror = function () {
+	                        reject(req.error);
+	                    };
+	                } catch (e) {
+	                    reject(e);
+	                }
+	            });
 	        })["catch"](reject);
 	    });
 
@@ -18562,35 +18610,46 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    var promise = new Promise$1(function (resolve, reject) {
 	        self.ready().then(function () {
-	            var dbInfo = self._dbInfo;
-	            var store = dbInfo.db.transaction(dbInfo.storeName, 'readonly').objectStore(dbInfo.storeName);
-
-	            var req = store.openCursor();
-	            var iterationNumber = 1;
-
-	            req.onsuccess = function () {
-	                var cursor = req.result;
-
-	                if (cursor) {
-	                    var value = cursor.value;
-	                    if (_isEncodedBlob(value)) {
-	                        value = _decodeBlob(value);
-	                    }
-	                    var result = iterator(value, cursor.key, iterationNumber++);
-
-	                    if (result !== void 0) {
-	                        resolve(result);
-	                    } else {
-	                        cursor["continue"]();
-	                    }
-	                } else {
-	                    resolve();
+	            createTransaction(self._dbInfo, READ_ONLY, function (err, transaction) {
+	                if (err) {
+	                    return reject(err);
 	                }
-	            };
 
-	            req.onerror = function () {
-	                reject(req.error);
-	            };
+	                try {
+	                    var store = transaction.objectStore(self._dbInfo.storeName);
+	                    var req = store.openCursor();
+	                    var iterationNumber = 1;
+
+	                    req.onsuccess = function () {
+	                        var cursor = req.result;
+
+	                        if (cursor) {
+	                            var value = cursor.value;
+	                            if (_isEncodedBlob(value)) {
+	                                value = _decodeBlob(value);
+	                            }
+	                            var result = iterator(value, cursor.key, iterationNumber++);
+
+	                            // when the iterator callback retuns any
+	                            // (non-`undefined`) value, then we stop
+	                            // the iteration immediately
+	                            if (result !== void 0) {
+	                                resolve(result);
+	                            } else {
+	                                cursor["continue"]();
+	                            }
+	                        } else {
+	                            resolve();
+	                        }
+	                    };
+
+	                    req.onerror = function () {
+	                        reject(req.error);
+	                    };
+	                } catch (e) {
+	                    reject(e);
+	                }
+	            });
 	        })["catch"](reject);
 	    });
 
@@ -18602,11 +18661,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function setItem(key, value, callback) {
 	    var self = this;
 
-	    // Cast the key to a string, as that's all we can set as a key.
-	    if (typeof key !== 'string') {
-	        console.warn(key + ' used as a key, but it is not a string.');
-	        key = String(key);
-	    }
+	    key = normalizeKey(key);
 
 	    var promise = new Promise$1(function (resolve, reject) {
 	        var dbInfo;
@@ -18622,35 +18677,45 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	            return value;
 	        }).then(function (value) {
-	            var transaction = dbInfo.db.transaction(dbInfo.storeName, 'readwrite');
-	            var store = transaction.objectStore(dbInfo.storeName);
-	            var req = store.put(value, key);
-
-	            // The reason we don't _save_ null is because IE 10 does
-	            // not support saving the `null` type in IndexedDB. How
-	            // ironic, given the bug below!
-	            // See: https://github.com/mozilla/localForage/issues/161
-	            if (value === null) {
-	                value = undefined;
-	            }
-
-	            transaction.oncomplete = function () {
-	                // Cast to undefined so the value passed to
-	                // callback/promise is the same as what one would get out
-	                // of `getItem()` later. This leads to some weirdness
-	                // (setItem('foo', undefined) will return `null`), but
-	                // it's not my fault localStorage is our baseline and that
-	                // it's weird.
-	                if (value === undefined) {
-	                    value = null;
+	            createTransaction(self._dbInfo, READ_WRITE, function (err, transaction) {
+	                if (err) {
+	                    return reject(err);
 	                }
 
-	                resolve(value);
-	            };
-	            transaction.onabort = transaction.onerror = function () {
-	                var err = req.error ? req.error : req.transaction.error;
-	                reject(err);
-	            };
+	                try {
+	                    var store = transaction.objectStore(self._dbInfo.storeName);
+
+	                    // The reason we don't _save_ null is because IE 10 does
+	                    // not support saving the `null` type in IndexedDB. How
+	                    // ironic, given the bug below!
+	                    // See: https://github.com/mozilla/localForage/issues/161
+	                    if (value === null) {
+	                        value = undefined;
+	                    }
+
+	                    var req = store.put(value, key);
+
+	                    transaction.oncomplete = function () {
+	                        // Cast to undefined so the value passed to
+	                        // callback/promise is the same as what one would get out
+	                        // of `getItem()` later. This leads to some weirdness
+	                        // (setItem('foo', undefined) will return `null`), but
+	                        // it's not my fault localStorage is our baseline and that
+	                        // it's weird.
+	                        if (value === undefined) {
+	                            value = null;
+	                        }
+
+	                        resolve(value);
+	                    };
+	                    transaction.onabort = transaction.onerror = function () {
+	                        var err = req.error ? req.error : req.transaction.error;
+	                        reject(err);
+	                    };
+	                } catch (e) {
+	                    reject(e);
+	                }
+	            });
 	        })["catch"](reject);
 	    });
 
@@ -18661,38 +18726,41 @@ return /******/ (function(modules) { // webpackBootstrap
 	function removeItem(key, callback) {
 	    var self = this;
 
-	    // Cast the key to a string, as that's all we can set as a key.
-	    if (typeof key !== 'string') {
-	        console.warn(key + ' used as a key, but it is not a string.');
-	        key = String(key);
-	    }
+	    key = normalizeKey(key);
 
 	    var promise = new Promise$1(function (resolve, reject) {
 	        self.ready().then(function () {
-	            var dbInfo = self._dbInfo;
-	            var transaction = dbInfo.db.transaction(dbInfo.storeName, 'readwrite');
-	            var store = transaction.objectStore(dbInfo.storeName);
+	            createTransaction(self._dbInfo, READ_WRITE, function (err, transaction) {
+	                if (err) {
+	                    return reject(err);
+	                }
 
-	            // We use a Grunt task to make this safe for IE and some
-	            // versions of Android (including those used by Cordova).
-	            // Normally IE won't like `.delete()` and will insist on
-	            // using `['delete']()`, but we have a build step that
-	            // fixes this for us now.
-	            var req = store["delete"](key);
-	            transaction.oncomplete = function () {
-	                resolve();
-	            };
+	                try {
+	                    var store = transaction.objectStore(self._dbInfo.storeName);
+	                    // We use a Grunt task to make this safe for IE and some
+	                    // versions of Android (including those used by Cordova).
+	                    // Normally IE won't like `.delete()` and will insist on
+	                    // using `['delete']()`, but we have a build step that
+	                    // fixes this for us now.
+	                    var req = store["delete"](key);
+	                    transaction.oncomplete = function () {
+	                        resolve();
+	                    };
 
-	            transaction.onerror = function () {
-	                reject(req.error);
-	            };
+	                    transaction.onerror = function () {
+	                        reject(req.error);
+	                    };
 
-	            // The request will be also be aborted if we've exceeded our storage
-	            // space.
-	            transaction.onabort = function () {
-	                var err = req.error ? req.error : req.transaction.error;
-	                reject(err);
-	            };
+	                    // The request will be also be aborted if we've exceeded our storage
+	                    // space.
+	                    transaction.onabort = function () {
+	                        var err = req.error ? req.error : req.transaction.error;
+	                        reject(err);
+	                    };
+	                } catch (e) {
+	                    reject(e);
+	                }
+	            });
 	        })["catch"](reject);
 	    });
 
@@ -18705,19 +18773,27 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    var promise = new Promise$1(function (resolve, reject) {
 	        self.ready().then(function () {
-	            var dbInfo = self._dbInfo;
-	            var transaction = dbInfo.db.transaction(dbInfo.storeName, 'readwrite');
-	            var store = transaction.objectStore(dbInfo.storeName);
-	            var req = store.clear();
+	            createTransaction(self._dbInfo, READ_WRITE, function (err, transaction) {
+	                if (err) {
+	                    return reject(err);
+	                }
 
-	            transaction.oncomplete = function () {
-	                resolve();
-	            };
+	                try {
+	                    var store = transaction.objectStore(self._dbInfo.storeName);
+	                    var req = store.clear();
 
-	            transaction.onabort = transaction.onerror = function () {
-	                var err = req.error ? req.error : req.transaction.error;
-	                reject(err);
-	            };
+	                    transaction.oncomplete = function () {
+	                        resolve();
+	                    };
+
+	                    transaction.onabort = transaction.onerror = function () {
+	                        var err = req.error ? req.error : req.transaction.error;
+	                        reject(err);
+	                    };
+	                } catch (e) {
+	                    reject(e);
+	                }
+	            });
 	        })["catch"](reject);
 	    });
 
@@ -18730,17 +18806,26 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    var promise = new Promise$1(function (resolve, reject) {
 	        self.ready().then(function () {
-	            var dbInfo = self._dbInfo;
-	            var store = dbInfo.db.transaction(dbInfo.storeName, 'readonly').objectStore(dbInfo.storeName);
-	            var req = store.count();
+	            createTransaction(self._dbInfo, READ_ONLY, function (err, transaction) {
+	                if (err) {
+	                    return reject(err);
+	                }
 
-	            req.onsuccess = function () {
-	                resolve(req.result);
-	            };
+	                try {
+	                    var store = transaction.objectStore(self._dbInfo.storeName);
+	                    var req = store.count();
 
-	            req.onerror = function () {
-	                reject(req.error);
-	            };
+	                    req.onsuccess = function () {
+	                        resolve(req.result);
+	                    };
+
+	                    req.onerror = function () {
+	                        reject(req.error);
+	                    };
+	                } catch (e) {
+	                    reject(e);
+	                }
+	            });
 	        })["catch"](reject);
 	    });
 
@@ -18759,40 +18844,49 @@ return /******/ (function(modules) { // webpackBootstrap
 	        }
 
 	        self.ready().then(function () {
-	            var dbInfo = self._dbInfo;
-	            var store = dbInfo.db.transaction(dbInfo.storeName, 'readonly').objectStore(dbInfo.storeName);
-
-	            var advanced = false;
-	            var req = store.openCursor();
-	            req.onsuccess = function () {
-	                var cursor = req.result;
-	                if (!cursor) {
-	                    // this means there weren't enough keys
-	                    resolve(null);
-
-	                    return;
+	            createTransaction(self._dbInfo, READ_ONLY, function (err, transaction) {
+	                if (err) {
+	                    return reject(err);
 	                }
 
-	                if (n === 0) {
-	                    // We have the first key, return it if that's what they
-	                    // wanted.
-	                    resolve(cursor.key);
-	                } else {
-	                    if (!advanced) {
-	                        // Otherwise, ask the cursor to skip ahead n
-	                        // records.
-	                        advanced = true;
-	                        cursor.advance(n);
-	                    } else {
-	                        // When we get here, we've got the nth key.
-	                        resolve(cursor.key);
-	                    }
-	                }
-	            };
+	                try {
+	                    var store = transaction.objectStore(self._dbInfo.storeName);
+	                    var advanced = false;
+	                    var req = store.openCursor();
 
-	            req.onerror = function () {
-	                reject(req.error);
-	            };
+	                    req.onsuccess = function () {
+	                        var cursor = req.result;
+	                        if (!cursor) {
+	                            // this means there weren't enough keys
+	                            resolve(null);
+
+	                            return;
+	                        }
+
+	                        if (n === 0) {
+	                            // We have the first key, return it if that's what they
+	                            // wanted.
+	                            resolve(cursor.key);
+	                        } else {
+	                            if (!advanced) {
+	                                // Otherwise, ask the cursor to skip ahead n
+	                                // records.
+	                                advanced = true;
+	                                cursor.advance(n);
+	                            } else {
+	                                // When we get here, we've got the nth key.
+	                                resolve(cursor.key);
+	                            }
+	                        }
+	                    };
+
+	                    req.onerror = function () {
+	                        reject(req.error);
+	                    };
+	                } catch (e) {
+	                    reject(e);
+	                }
+	            });
 	        })["catch"](reject);
 	    });
 
@@ -18805,27 +18899,35 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    var promise = new Promise$1(function (resolve, reject) {
 	        self.ready().then(function () {
-	            var dbInfo = self._dbInfo;
-	            var store = dbInfo.db.transaction(dbInfo.storeName, 'readonly').objectStore(dbInfo.storeName);
-
-	            var req = store.openCursor();
-	            var keys = [];
-
-	            req.onsuccess = function () {
-	                var cursor = req.result;
-
-	                if (!cursor) {
-	                    resolve(keys);
-	                    return;
+	            createTransaction(self._dbInfo, READ_ONLY, function (err, transaction) {
+	                if (err) {
+	                    return reject(err);
 	                }
 
-	                keys.push(cursor.key);
-	                cursor["continue"]();
-	            };
+	                try {
+	                    var store = transaction.objectStore(self._dbInfo.storeName);
+	                    var req = store.openCursor();
+	                    var keys = [];
 
-	            req.onerror = function () {
-	                reject(req.error);
-	            };
+	                    req.onsuccess = function () {
+	                        var cursor = req.result;
+
+	                        if (!cursor) {
+	                            resolve(keys);
+	                            return;
+	                        }
+
+	                        keys.push(cursor.key);
+	                        cursor["continue"]();
+	                    };
+
+	                    req.onerror = function () {
+	                        reject(req.error);
+	                    };
+	                } catch (e) {
+	                    reject(e);
+	                }
+	            });
 	        })["catch"](reject);
 	    });
 
@@ -18836,6 +18938,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var asyncStorage = {
 	    _driver: 'asyncStorage',
 	    _initStorage: _initStorage,
+	    _support: isIndexedDBValid(),
 	    iterate: iterate,
 	    getItem: getItem,
 	    setItem: setItem,
@@ -18845,6 +18948,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: key,
 	    keys: keys
 	};
+
+	function isWebSQLValid() {
+	    return typeof openDatabase === 'function';
+	}
 
 	// Sadly, the best way to save binary data in WebSQL/localStorage is serializing
 	// it to Base64, so this is how we store it to prevent very strange errors with less
@@ -19121,11 +19228,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function getItem$1(key, callback) {
 	    var self = this;
 
-	    // Cast the key to a string, as that's all we can set as a key.
-	    if (typeof key !== 'string') {
-	        console.warn(key + ' used as a key, but it is not a string.');
-	        key = String(key);
-	    }
+	    key = normalizeKey(key);
 
 	    var promise = new Promise$1(function (resolve, reject) {
 	        self.ready().then(function () {
@@ -19200,11 +19303,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function _setItem(key, value, callback, retriesLeft) {
 	    var self = this;
 
-	    // Cast the key to a string, as that's all we can set as a key.
-	    if (typeof key !== 'string') {
-	        console.warn(key + ' used as a key, but it is not a string.');
-	        key = String(key);
-	    }
+	    key = normalizeKey(key);
 
 	    var promise = new Promise$1(function (resolve, reject) {
 	        self.ready().then(function () {
@@ -19263,11 +19362,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function removeItem$1(key, callback) {
 	    var self = this;
 
-	    // Cast the key to a string, as that's all we can set as a key.
-	    if (typeof key !== 'string') {
-	        console.warn(key + ' used as a key, but it is not a string.');
-	        key = String(key);
-	    }
+	    key = normalizeKey(key);
 
 	    var promise = new Promise$1(function (resolve, reject) {
 	        self.ready().then(function () {
@@ -19276,7 +19371,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	                t.executeSql('DELETE FROM ' + dbInfo.storeName + ' WHERE key = ?', [key], function () {
 	                    resolve();
 	                }, function (t, error) {
-
 	                    reject(error);
 	                });
 	            });
@@ -19324,7 +19418,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	                    resolve(result);
 	                }, function (t, error) {
-
 	                    reject(error);
 	                });
 	            });
@@ -19379,7 +19472,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	                    resolve(keys);
 	                }, function (t, error) {
-
 	                    reject(error);
 	                });
 	            });
@@ -19393,6 +19485,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var webSQLStorage = {
 	    _driver: 'webSQLStorage',
 	    _initStorage: _initStorage$1,
+	    _support: isWebSQLValid(),
 	    iterate: iterate$1,
 	    getItem: getItem$1,
 	    setItem: setItem$1,
@@ -19402,6 +19495,36 @@ return /******/ (function(modules) { // webpackBootstrap
 	    key: key$1,
 	    keys: keys$1
 	};
+
+	function isLocalStorageValid() {
+	    try {
+	        return typeof localStorage !== 'undefined' && 'setItem' in localStorage && typeof localStorage.setItem === 'function';
+	    } catch (e) {
+	        return false;
+	    }
+	}
+
+	// Check if localStorage throws when saving an item
+	function checkIfLocalStorageThrows() {
+	    var localStorageTestKey = '_localforage_support_test';
+
+	    try {
+	        localStorage.setItem(localStorageTestKey, true);
+	        localStorage.removeItem(localStorageTestKey);
+
+	        return false;
+	    } catch (e) {
+	        return true;
+	    }
+	}
+
+	// Check if localStorage is usable and allows to save an item
+	// This method checks if localStorage is usable in Safari Private Browsing
+	// mode, or in any other case where the available quota for localStorage
+	// is 0 and there wasn't any saved items yet.
+	function _isLocalStorageUsable() {
+	    return !checkIfLocalStorageThrows() || localStorage.length > 0;
+	}
 
 	// Config the localStorage backend, using options set in the config.
 	function _initStorage$2(options) {
@@ -19417,6 +19540,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    if (dbInfo.storeName !== self._defaultConfig.storeName) {
 	        dbInfo.keyPrefix += dbInfo.storeName + '/';
+	    }
+
+	    if (!_isLocalStorageUsable()) {
+	        return Promise$1.reject();
 	    }
 
 	    self._dbInfo = dbInfo;
@@ -19451,11 +19578,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function getItem$2(key, callback) {
 	    var self = this;
 
-	    // Cast the key to a string, as that's all we can set as a key.
-	    if (typeof key !== 'string') {
-	        console.warn(key + ' used as a key, but it is not a string.');
-	        key = String(key);
-	    }
+	    key = normalizeKey(key);
 
 	    var promise = self.ready().then(function () {
 	        var dbInfo = self._dbInfo;
@@ -19553,8 +19676,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var keys = [];
 
 	        for (var i = 0; i < length; i++) {
-	            if (localStorage.key(i).indexOf(dbInfo.keyPrefix) === 0) {
-	                keys.push(localStorage.key(i).substring(dbInfo.keyPrefix.length));
+	            var itemKey = localStorage.key(i);
+	            if (itemKey.indexOf(dbInfo.keyPrefix) === 0) {
+	                keys.push(itemKey.substring(dbInfo.keyPrefix.length));
 	            }
 	        }
 
@@ -19580,11 +19704,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function removeItem$2(key, callback) {
 	    var self = this;
 
-	    // Cast the key to a string, as that's all we can set as a key.
-	    if (typeof key !== 'string') {
-	        console.warn(key + ' used as a key, but it is not a string.');
-	        key = String(key);
-	    }
+	    key = normalizeKey(key);
 
 	    var promise = self.ready().then(function () {
 	        var dbInfo = self._dbInfo;
@@ -19602,11 +19722,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function setItem$2(key, value, callback) {
 	    var self = this;
 
-	    // Cast the key to a string, as that's all we can set as a key.
-	    if (typeof key !== 'string') {
-	        console.warn(key + ' used as a key, but it is not a string.');
-	        key = String(key);
-	    }
+	    key = normalizeKey(key);
 
 	    var promise = self.ready().then(function () {
 	        // Convert undefined values to null.
@@ -19647,7 +19763,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var localStorageWrapper = {
 	    _driver: 'localStorageWrapper',
 	    _initStorage: _initStorage$2,
-	    // Default API, from Gaia/localStorage.
+	    _support: isLocalStorageValid(),
 	    iterate: iterate$2,
 	    getItem: getItem$2,
 	    setItem: setItem$2,
@@ -19658,17 +19774,23 @@ return /******/ (function(modules) { // webpackBootstrap
 	    keys: keys$2
 	};
 
-	// Custom drivers are stored here when `defineDriver()` is called.
-	// They are shared across all instances of localForage.
-	var CustomDrivers = {};
-
-	var DriverType = {
-	    INDEXEDDB: 'asyncStorage',
-	    LOCALSTORAGE: 'localStorageWrapper',
-	    WEBSQL: 'webSQLStorage'
+	var isArray = Array.isArray || function (arg) {
+	    return Object.prototype.toString.call(arg) === '[object Array]';
 	};
 
-	var DefaultDriverOrder = [DriverType.INDEXEDDB, DriverType.WEBSQL, DriverType.LOCALSTORAGE];
+	// Drivers are stored here when `defineDriver()` is called.
+	// They are shared across all instances of localForage.
+	var DefinedDrivers = {};
+
+	var DriverSupport = {};
+
+	var DefaultDrivers = {
+	    INDEXEDDB: asyncStorage,
+	    WEBSQL: webSQLStorage,
+	    LOCALSTORAGE: localStorageWrapper
+	};
+
+	var DefaultDriverOrder = [DefaultDrivers.INDEXEDDB._driver, DefaultDrivers.WEBSQL._driver, DefaultDrivers.LOCALSTORAGE._driver];
 
 	var LibraryMethods = ['clear', 'getItem', 'iterate', 'key', 'keys', 'length', 'removeItem', 'setItem'];
 
@@ -19681,22 +19803,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    size: 4980736,
 	    storeName: 'keyvaluepairs',
 	    version: 1.0
-	};
-
-	var driverSupport = {};
-	// Check to see if IndexedDB is available and if it is the latest
-	// implementation; it's our preferred backend library. We use "_spec_test"
-	// as the name of the database because it's not the one we'll operate on,
-	// but it's useful to make sure its using the right spec.
-	// See: https://github.com/mozilla/localForage/issues/128
-	driverSupport[DriverType.INDEXEDDB] = isIndexedDBValid();
-
-	driverSupport[DriverType.WEBSQL] = isWebSQLValid();
-
-	driverSupport[DriverType.LOCALSTORAGE] = isLocalStorageValid();
-
-	var isArray = Array.isArray || function (arg) {
-	    return Object.prototype.toString.call(arg) === '[object Array]';
 	};
 
 	function callWhenReady(localForageInstance, libraryMethod) {
@@ -19713,12 +19819,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	        var arg = arguments[i];
 
 	        if (arg) {
-	            for (var key in arg) {
-	                if (arg.hasOwnProperty(key)) {
-	                    if (isArray(arg[key])) {
-	                        arguments[0][key] = arg[key].slice();
+	            for (var _key in arg) {
+	                if (arg.hasOwnProperty(_key)) {
+	                    if (isArray(arg[_key])) {
+	                        arguments[0][_key] = arg[_key].slice();
 	                    } else {
-	                        arguments[0][key] = arg[key];
+	                        arguments[0][_key] = arg[_key];
 	                    }
 	                }
 	            }
@@ -19728,23 +19834,24 @@ return /******/ (function(modules) { // webpackBootstrap
 	    return arguments[0];
 	}
 
-	function isLibraryDriver(driverName) {
-	    for (var driver in DriverType) {
-	        if (DriverType.hasOwnProperty(driver) && DriverType[driver] === driverName) {
-	            return true;
-	        }
-	    }
-
-	    return false;
-	}
-
 	var LocalForage = function () {
 	    function LocalForage(options) {
 	        _classCallCheck(this, LocalForage);
 
-	        this.INDEXEDDB = DriverType.INDEXEDDB;
-	        this.LOCALSTORAGE = DriverType.LOCALSTORAGE;
-	        this.WEBSQL = DriverType.WEBSQL;
+	        for (var driverTypeKey in DefaultDrivers) {
+	            if (DefaultDrivers.hasOwnProperty(driverTypeKey)) {
+	                var driver = DefaultDrivers[driverTypeKey];
+	                var driverName = driver._driver;
+	                this[driverTypeKey] = driverName;
+
+	                if (!DefinedDrivers[driverName]) {
+	                    // we don't need to wait for the promise,
+	                    // since the default drivers can be defined
+	                    // in a blocking manner
+	                    this.defineDriver(driver);
+	                }
+	            }
+	        }
 
 	        this._defaultConfig = extend({}, DefaultConfig);
 	        this._config = extend({}, this._defaultConfig, options);
@@ -19771,7 +19878,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	            // If localforage is ready and fully initialized, we can't set
 	            // any new configuration values. Instead, we return an error.
 	            if (this._ready) {
-	                return new Error("Can't call config() after localforage " + 'has been used.');
+	                return new Error('Can\'t call config() after localforage ' + 'has been used.');
 	            }
 
 	            for (var i in options) {
@@ -19809,7 +19916,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	            try {
 	                var driverName = driverObject._driver;
 	                var complianceError = new Error('Custom driver not compliant; see ' + 'https://mozilla.github.io/localForage/#definedriver');
-	                var namingError = new Error('Custom driver name already in use: ' + driverObject._driver);
 
 	                // A driver name should be defined and not overlap with the
 	                // library-defined, default drivers.
@@ -19817,34 +19923,37 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    reject(complianceError);
 	                    return;
 	                }
-	                if (isLibraryDriver(driverObject._driver)) {
-	                    reject(namingError);
-	                    return;
-	                }
 
-	                var customDriverMethods = LibraryMethods.concat('_initStorage');
-	                for (var i = 0; i < customDriverMethods.length; i++) {
-	                    var customDriverMethod = customDriverMethods[i];
+	                var driverMethods = LibraryMethods.concat('_initStorage');
+	                for (var i = 0, len = driverMethods.length; i < len; i++) {
+	                    var customDriverMethod = driverMethods[i];
 	                    if (!customDriverMethod || !driverObject[customDriverMethod] || typeof driverObject[customDriverMethod] !== 'function') {
 	                        reject(complianceError);
 	                        return;
 	                    }
 	                }
 
-	                var supportPromise = Promise$1.resolve(true);
+	                var setDriverSupport = function setDriverSupport(support) {
+	                    if (DefinedDrivers[driverName]) {
+	                        console.info('Redefining LocalForage driver: ' + driverName);
+	                    }
+	                    DefinedDrivers[driverName] = driverObject;
+	                    DriverSupport[driverName] = support;
+	                    // don't use a then, so that we can define
+	                    // drivers that have simple _support methods
+	                    // in a blocking manner
+	                    resolve();
+	                };
+
 	                if ('_support' in driverObject) {
 	                    if (driverObject._support && typeof driverObject._support === 'function') {
-	                        supportPromise = driverObject._support();
+	                        driverObject._support().then(setDriverSupport, reject);
 	                    } else {
-	                        supportPromise = Promise$1.resolve(!!driverObject._support);
+	                        setDriverSupport(!!driverObject._support);
 	                    }
+	                } else {
+	                    setDriverSupport(true);
 	                }
-
-	                supportPromise.then(function (supportResult) {
-	                    driverSupport[driverName] = supportResult;
-	                    CustomDrivers[driverName] = driverObject;
-	                    resolve();
-	                }, reject);
 	            } catch (e) {
 	                reject(e);
 	            }
@@ -19859,23 +19968,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    };
 
 	    LocalForage.prototype.getDriver = function getDriver(driverName, callback, errorCallback) {
-	        var self = this;
-	        var getDriverPromise = Promise$1.resolve().then(function () {
-	            if (isLibraryDriver(driverName)) {
-	                switch (driverName) {
-	                    case self.INDEXEDDB:
-	                        return asyncStorage;
-	                    case self.LOCALSTORAGE:
-	                        return localStorageWrapper;
-	                    case self.WEBSQL:
-	                        return webSQLStorage;
-	                }
-	            } else if (CustomDrivers[driverName]) {
-	                return CustomDrivers[driverName];
-	            } else {
-	                throw new Error('Driver not found.');
-	            }
-	        });
+	        var getDriverPromise = DefinedDrivers[driverName] ? Promise$1.resolve(DefinedDrivers[driverName]) : Promise$1.reject(new Error('Driver not found.'));
+
 	        executeTwoCallbacks(getDriverPromise, callback, errorCallback);
 	        return getDriverPromise;
 	    };
@@ -19977,7 +20071,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    };
 
 	    LocalForage.prototype.supports = function supports(driverName) {
-	        return !!driverSupport[driverName];
+	        return !!DriverSupport[driverName];
 	    };
 
 	    LocalForage.prototype._extend = function _extend(libraryMethodsAndProperties) {
@@ -20000,7 +20094,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        // corresponding driver method until localForage is ready. These stubs
 	        // will be replaced by the driver methods as soon as the driver is
 	        // loaded, so there is no performance impact.
-	        for (var i = 0; i < LibraryMethods.length; i++) {
+	        for (var i = 0, len = LibraryMethods.length; i < len; i++) {
 	            callWhenReady(this, LibraryMethods[i]);
 	        }
 	    };
@@ -20350,904 +20444,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    value: true
 	});
 
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-	var _CB = __webpack_require__(1);
-
-	var _CB2 = _interopRequireDefault(_CB);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	/*
-	CloudQueue
-	 */
-
-	var CloudQueue = function () {
-	    function CloudQueue(queueName, queueType) {
-	        _classCallCheck(this, CloudQueue);
-
-	        if (typeof queueName === 'undefined' || queueName == null) {
-	            throw "Cannot create a queue with empty name";
-	        }
-
-	        this.document = {};
-	        this.document.ACL = new _CB2.default.ACL(); //ACL(s) of the document
-	        this.document._type = 'queue';
-	        this.document.expires = null;
-	        this.document.name = queueName;
-	        this.document.retry = null;
-	        this.document.subscribers = [];
-	        this.document.messages = [];
-
-	        if (queueType && queueType !== "push" && queueType !== "pull") {
-	            throw "Type can be push or pull";
-	        }
-	        if (queueType) {
-	            this.document.queueType = queueType;
-	        } else {
-	            this.document.queueType = "pull";
-	        }
-	    }
-
-	    _createClass(CloudQueue, [{
-	        key: 'addMessage',
-	        value: function addMessage(queueMessage, callback) {
-
-	            if (queueMessage == null) throw "Message cannot be null";
-
-	            var def;
-	            _CB2.default._validate();
-
-	            if (!callback) {
-	                def = new _CB2.default.Promise();
-	            }
-
-	            var messages = [];
-
-	            if (queueMessage.constructor !== Array) {
-	                messages.push(queueMessage);
-	            } else {
-	                messages = queueMessage;
-	            }
-
-	            for (var i = 0; i < messages.length; i++) {
-	                if (!(messages[i] instanceof _CB2.default.QueueMessage)) {
-	                    messages[i] = new _CB2.default.QueueMessage(messages[i]);
-	                }
-	            }
-
-	            this.document.messages = messages;
-
-	            //PUT TO SERVER.
-	            var thisObj = this;
-
-	            var params = JSON.stringify({
-	                document: _CB2.default.toJSON(thisObj),
-	                key: _CB2.default.appKey
-	            });
-
-	            var url = _CB2.default.apiUrl + "/queue/" + _CB2.default.appId + '/' + thisObj.document.name + '/message';
-
-	            _CB2.default._request('PUT', url, params).then(function (response) {
-	                var messages = _CB2.default.fromJSON(JSON.parse(response));
-	                if (callback) {
-	                    callback.success(messages);
-	                } else {
-	                    def.resolve(messages);
-	                }
-	            }, function (err) {
-	                if (callback) {
-	                    callback.error(err);
-	                } else {
-	                    def.reject(err);
-	                }
-	            });
-	        }
-	    }, {
-	        key: 'updateMessage',
-	        value: function updateMessage(queueMessage, callback) {
-
-	            if (queueMessage == null) throw "Message cannot be null";
-
-	            var def;
-	            _CB2.default._validate();
-
-	            if (!callback) {
-	                def = new _CB2.default.Promise();
-	            }
-
-	            var messages = [];
-
-	            if (queueMessage.constructor !== Array) {
-	                if (!queueMessage.id) {
-	                    throw "Message cannot be updated because it has never been saved.";
-	                } else {
-	                    messages.push(queueMessage);
-	                }
-	            } else {
-	                messages = queueMessage;
-	                for (var i = 0; i < messages.length; i++) {
-	                    if (!(messages[i] instanceof _CB2.default.QueueMessage)) {
-	                        throw "Message is not an instance of QueueMessage.";
-	                    }
-
-	                    if (!message[i].id) {
-	                        throw "Message cannot be updated because it has never been saved.";
-	                    }
-	                }
-	            }
-
-	            return this.addMessage(queueMessage, callback);
-	        }
-	    }, {
-	        key: 'getMessage',
-	        value: function getMessage(count, callback) {
-
-	            var def;
-	            _CB2.default._validate();
-
-	            if (!callback) {
-	                def = new _CB2.default.Promise();
-	            }
-
-	            if ((typeof count === 'undefined' ? 'undefined' : _typeof(count)) === 'object' && !callback) {
-	                callback = count;
-	                count = null;
-	            }
-
-	            if (!count) count = 1;
-
-	            var thisObj = this;
-
-	            var params = JSON.stringify({
-	                count: count,
-	                key: _CB2.default.appKey
-	            });
-
-	            var url = _CB2.default.apiUrl + "/queue/" + _CB2.default.appId + '/' + thisObj.document.name + '/getMessage';
-
-	            _CB2.default._request('POST', url, params).then(function (response) {
-
-	                if (!response || response === "") {
-	                    response = null;
-	                }
-
-	                if (callback) {
-	                    callback.success(_CB2.default.fromJSON(JSON.parse(response)));
-	                } else {
-	                    def.resolve(_CB2.default.fromJSON(JSON.parse(response)));
-	                }
-	            }, function (err) {
-	                if (callback) {
-	                    callback.error(err);
-	                } else {
-	                    def.reject(err);
-	                }
-	            });
-	        }
-	    }, {
-	        key: 'getAllMessages',
-	        value: function getAllMessages(callback) {
-
-	            var def;
-	            _CB2.default._validate();
-
-	            if (!callback) {
-	                def = new _CB2.default.Promise();
-	            }
-
-	            if ((typeof count === 'undefined' ? 'undefined' : _typeof(count)) === 'object' && !callback) {
-	                callback = count;
-	                count = null;
-	            }
-
-	            var thisObj = this;
-
-	            var params = JSON.stringify({
-	                key: _CB2.default.appKey
-	            });
-
-	            var url = _CB2.default.apiUrl + "/queue/" + _CB2.default.appId + '/' + thisObj.document.name + '/messages';
-
-	            _CB2.default._request('POST', url, params).then(function (response) {
-
-	                if (!response || response === "") {
-	                    response = null;
-	                }
-
-	                if (callback) {
-	                    callback.success(_CB2.default.fromJSON(JSON.parse(response)));
-	                } else {
-	                    def.resolve(_CB2.default.fromJSON(JSON.parse(response)));
-	                }
-	            }, function (err) {
-	                if (callback) {
-	                    callback.error(err);
-	                } else {
-	                    def.reject(err);
-	                }
-	            });
-	        }
-	    }, {
-	        key: 'getMessageById',
-	        value: function getMessageById(id, callback) {
-	            var def;
-
-	            _CB2.default._validate();
-
-	            if (!callback) {
-	                def = new _CB2.default.Promise();
-	            }
-
-	            var params = JSON.stringify({
-	                key: _CB2.default.appKey
-	            });
-
-	            var url = _CB2.default.apiUrl + "/queue/" + _CB2.default.appId + '/' + this.document.name + '/message/' + id;
-
-	            _CB2.default._request('POST', url, params).then(function (response) {
-
-	                if (!response || response === "") {
-	                    response = null;
-	                }
-
-	                if (callback) {
-	                    callback.success(_CB2.default.fromJSON(JSON.parse(response)));
-	                } else {
-	                    def.resolve(_CB2.default.fromJSON(JSON.parse(response)));
-	                }
-	            }, function (err) {
-	                if (callback) {
-	                    callback.error(err);
-	                } else {
-	                    def.reject(err);
-	                }
-	            });
-	        }
-	    }, {
-	        key: 'get',
-	        value: function get(callback) {
-	            var def;
-
-	            _CB2.default._validate();
-
-	            if (!callback) {
-	                def = new _CB2.default.Promise();
-	            }
-
-	            var thisObj = this;
-
-	            var params = JSON.stringify({
-	                key: _CB2.default.appKey
-	            });
-
-	            var url = _CB2.default.apiUrl + "/queue/" + _CB2.default.appId + '/' + thisObj.document.name + '/';
-
-	            _CB2.default._request('POST', url, params).then(function (response) {
-	                if (callback) {
-	                    callback.success(_CB2.default.fromJSON(JSON.parse(response), thisObj));
-	                } else {
-	                    def.resolve(_CB2.default.fromJSON(JSON.parse(response), thisObj));
-	                }
-	            }, function (err) {
-	                if (callback) {
-	                    callback.error(err);
-	                } else {
-	                    def.reject(err);
-	                }
-	            });
-	        }
-	    }, {
-	        key: 'create',
-	        value: function create(callback) {
-	            var def;
-
-	            _CB2.default._validate();
-
-	            if (!callback) {
-	                def = new _CB2.default.Promise();
-	            }
-
-	            var thisObj = this;
-
-	            var params = JSON.stringify({
-	                key: _CB2.default.appKey,
-	                document: _CB2.default.toJSON(thisObj)
-	            });
-
-	            var url = _CB2.default.apiUrl + "/queue/" + _CB2.default.appId + '/' + thisObj.document.name + '/create';
-
-	            _CB2.default._request('POST', url, params).then(function (response) {
-	                if (callback) {
-	                    callback.success(_CB2.default.fromJSON(JSON.parse(response), thisObj));
-	                } else {
-	                    def.resolve(_CB2.default.fromJSON(JSON.parse(response), thisObj));
-	                }
-	            }, function (err) {
-	                if (callback) {
-	                    callback.error(err);
-	                } else {
-	                    def.reject(err);
-	                }
-	            });
-	        }
-	    }, {
-	        key: 'addSubscriber',
-	        value: function addSubscriber(url, callback) {
-
-	            var def;
-
-	            _CB2.default._validate();
-
-	            if (!callback) {
-	                def = new _CB2.default.Promise();
-	            }
-
-	            var tempSubscribers = this.document.subscribers;
-
-	            this.document.subscribers = [];
-
-	            if (url.constructor === Array) {
-	                for (var i = 0; i < url.length; i++) {
-	                    this.document.subscribers.push(url[i]);
-	                }
-	            } else {
-	                this.document.subscribers.push(url);
-	            }
-
-	            var params = JSON.stringify({
-	                key: _CB2.default.appKey,
-	                document: _CB2.default.toJSON(this)
-	            });
-
-	            var thisObj = this;
-
-	            var url = _CB2.default.apiUrl + '/queue/' + _CB2.default.appId + '/' + thisObj.document.name + '/subscriber/';
-
-	            _CB2.default._request('POST', url, params).then(function (response) {
-	                thisObj = _CB2.default.fromJSON(JSON.parse(response), thisObj);
-	                if (callback) {
-	                    callback.success(thisObj);
-	                } else {
-	                    def.resolve(thisObj);
-	                }
-	            }, function (err) {
-	                thisObj.document.subscribers = tempSubscribers;
-	                if (callback) {
-	                    callback.error(err);
-	                } else {
-	                    def.reject(err);
-	                }
-	            });
-	        }
-	    }, {
-	        key: 'removeSubscriber',
-	        value: function removeSubscriber(url, callback) {
-
-	            var def;
-
-	            _CB2.default._validate();
-
-	            if (!callback) {
-	                def = new _CB2.default.Promise();
-	            }
-
-	            var tempSubscribers = this.document.subscribers;
-
-	            this.document.subscribers = [];
-
-	            if (url.constructor === Array) {
-	                for (var i = 0; i < url.length; i++) {
-	                    this.document.subscribers.push(url[i]);
-	                }
-	            } else {
-	                this.document.subscribers.push(url);
-	            }
-
-	            var thisObj = this;
-
-	            var params = JSON.stringify({
-	                key: _CB2.default.appKey,
-	                document: _CB2.default.toJSON(thisObj),
-	                method: "DELETE"
-	            });
-
-	            var url = _CB2.default.apiUrl + '/queue/' + _CB2.default.appId + '/' + thisObj.document.name + '/subscriber/';
-
-	            _CB2.default._request('PUT', url, params).then(function (response) {
-	                thisObj = _CB2.default.fromJSON(JSON.parse(response), thisObj);
-	                if (callback) {
-	                    callback.success(thisObj);
-	                } else {
-	                    def.resolve(thisObj);
-	                }
-	            }, function (err) {
-	                this.document.subscribers = tempSubscribers;
-	                if (callback) {
-	                    callback.error(err);
-	                } else {
-	                    def.reject(err);
-	                }
-	            });
-	        }
-	    }, {
-	        key: 'peekMessage',
-	        value: function peekMessage(count, callback) {
-
-	            var def;
-
-	            _CB2.default._validate();
-
-	            if (!callback) {
-	                def = new _CB2.default.Promise();
-	            }
-
-	            if ((typeof count === 'undefined' ? 'undefined' : _typeof(count)) === 'object' && !callback) {
-	                callback = count;
-	                count = null;
-	            }
-
-	            if (!count) count = 1;
-
-	            var params = JSON.stringify({
-	                key: _CB2.default.appKey,
-	                count: count
-	            });
-
-	            var url = _CB2.default.apiUrl + "/queue/" + _CB2.default.appId + '/' + this.document.name + '/peekMessage';
-
-	            _CB2.default._request('POST', url, params).then(function (response) {
-	                if (callback) {
-	                    callback.success(_CB2.default.fromJSON(JSON.parse(response)));
-	                } else {
-	                    def.resolve(_CB2.default.fromJSON(JSON.parse(response)));
-	                }
-	            }, function (err) {
-	                if (callback) {
-	                    callback.error(err);
-	                } else {
-	                    def.reject(err);
-	                }
-	            });
-	        }
-	    }, {
-	        key: 'delete',
-	        value: function _delete(callback) {
-	            var def;
-
-	            _CB2.default._validate();
-
-	            if (!callback) {
-	                def = new _CB2.default.Promise();
-	            }
-
-	            var params = JSON.stringify({
-	                key: _CB2.default.appKey,
-	                document: _CB2.default.toJSON(this),
-	                method: "DELETE"
-	            });
-
-	            var thisObj = this;
-
-	            var url = _CB2.default.apiUrl + "/queue/" + _CB2.default.appId + '/' + thisObj.document.name;
-
-	            _CB2.default._request('PUT', url, params).then(function (response) {
-	                thisObj = _CB2.default.fromJSON(JSON.parse(response), thisObj);
-	                if (callback) {
-	                    callback.success(thisObj);
-	                } else {
-	                    def.resolve(thisObj);
-	                }
-	            }, function (err) {
-	                if (callback) {
-	                    callback.error(err);
-	                } else {
-	                    def.reject(err);
-	                }
-	            });
-	        }
-	    }, {
-	        key: 'clear',
-	        value: function clear(callback) {
-	            var def;
-
-	            _CB2.default._validate();
-
-	            if (!callback) {
-	                def = new _CB2.default.Promise();
-	            }
-
-	            var params = JSON.stringify({
-	                key: _CB2.default.appKey,
-	                document: _CB2.default.toJSON(this),
-	                method: "DELETE"
-	            });
-
-	            var thisObj = this;
-
-	            var url = _CB2.default.apiUrl + "/queue/" + _CB2.default.appId + '/' + thisObj.document.name + "/clear";
-
-	            _CB2.default._request('PUT', url, params).then(function (response) {
-	                thisObj = _CB2.default.fromJSON(JSON.parse(response), thisObj);
-	                if (callback) {
-	                    callback.success(thisObj);
-	                } else {
-	                    def.resolve(thisObj);
-	                }
-	            }, function (err) {
-	                if (callback) {
-	                    callback.error(err);
-	                } else {
-	                    def.reject(err);
-	                }
-	            });
-	        }
-	    }, {
-	        key: 'refreshMessageTimeout',
-	        value: function refreshMessageTimeout(id, timeout, callback) {
-	            var def;
-
-	            _CB2.default._validate();
-
-	            if (!callback) {
-	                def = new _CB2.default.Promise();
-	            }
-
-	            if (!id) throw "Message Id cannot be null";
-
-	            if (id instanceof _CB2.default.QueueMessage) {
-	                if (!id.id) {
-	                    throw "Queue Message should have an id.";
-	                } else {
-	                    id = id.id;
-	                }
-	            }
-
-	            if (!callback && (timeout.success || timeout.error)) {
-	                callback = timeout;
-	                timeout = null;
-	            }
-
-	            var params = JSON.stringify({
-	                key: _CB2.default.appKey,
-	                timeout: timeout
-	            });
-
-	            var thisObj = this;
-
-	            var url = _CB2.default.apiUrl + "/queue/" + _CB2.default.appId + '/' + thisObj.document.name + "/" + id + "/refresh-message-timeout";
-
-	            _CB2.default._request('PUT', url, params).then(function (response) {
-	                if (callback) {
-	                    callback.success(_CB2.default.fromJSON(JSON.parse(response)));
-	                } else {
-	                    def.resolve(_CB2.default.fromJSON(JSON.parse(response)));
-	                }
-	            }, function (err) {
-	                if (callback) {
-	                    callback.error(err);
-	                } else {
-	                    def.reject(err);
-	                }
-	            });
-	        }
-	    }, {
-	        key: 'deleteMessage',
-	        value: function deleteMessage(id, callback) {
-	            var def;
-
-	            _CB2.default._validate();
-
-	            if (!id || !(id instanceof _CB2.default.QueueMessage) && typeof id !== 'string') {
-	                throw "Delete Message function should have id of the message or insance of QueueMessage as the first parameter. ";
-	            }
-
-	            if (id instanceof _CB2.default.QueueMessage) {
-	                id = id.id;
-	            }
-
-	            if (!callback) {
-	                def = new _CB2.default.Promise();
-	            }
-
-	            var params = JSON.stringify({
-	                key: _CB2.default.appKey,
-	                method: "DELETE"
-	            });
-
-	            var thisObj = this;
-
-	            var url = _CB2.default.apiUrl + "/queue/" + _CB2.default.appId + '/' + thisObj.document.name + "/message/" + id;
-
-	            _CB2.default._request('PUT', url, params).then(function (response) {
-	                if (callback) {
-	                    callback.success(_CB2.default.fromJSON(JSON.parse(response)));
-	                } else {
-	                    def.resolve(_CB2.default.fromJSON(JSON.parse(response)));
-	                }
-	            }, function (err) {
-	                if (callback) {
-	                    callback.error(err);
-	                } else {
-	                    def.reject(err);
-	                }
-	            });
-	        }
-	    }, {
-	        key: 'update',
-	        value: function update(callback) {
-	            var def;
-
-	            _CB2.default._validate();
-
-	            if (!callback) {
-	                def = new _CB2.default.Promise();
-	            }
-
-	            var thisObj = this;
-
-	            var params = JSON.stringify({
-	                key: _CB2.default.appKey,
-	                document: _CB2.default.toJSON(thisObj)
-	            });
-
-	            var url = _CB2.default.apiUrl + "/queue/" + _CB2.default.appId + '/' + thisObj.document.name;
-
-	            _CB2.default._request('PUT', url, params).then(function (response) {
-	                if (callback) {
-	                    callback.success(_CB2.default.fromJSON(JSON.parse(response), thisObj));
-	                } else {
-	                    def.resolve(_CB2.default.fromJSON(JSON.parse(response), thisObj));
-	                }
-	            }, function (err) {
-	                if (callback) {
-	                    callback.error(err);
-	                } else {
-	                    def.reject(err);
-	                }
-	            });
-	        }
-	    }]);
-
-	    return CloudQueue;
-	}();
-
-	Object.defineProperty(CloudQueue.prototype, 'retry', {
-	    get: function get() {
-	        return this.document.retry;
-	    },
-	    set: function set(retry) {
-
-	        if (this.queueType !== "push") {
-	            throw "Queue Type should be push to set this property";
-	        }
-
-	        this.document.retry = retry;
-	        _CB2.default._modified(this, 'retry');
-	    }
-	});
-
-	Object.defineProperty(CloudQueue.prototype, 'size', {
-	    get: function get() {
-	        if (this.document.size) return this.document.size;else return 0;
-	    }
-	});
-
-	Object.defineProperty(CloudQueue.prototype, 'name', {
-	    get: function get() {
-	        return this.document.name;
-	    }
-	});
-
-	Object.defineProperty(CloudQueue.prototype, 'subscribers', {
-	    get: function get() {
-	        return this.document.subscribers;
-	    }
-	});
-
-	Object.defineProperty(CloudQueue.prototype, 'type', {
-	    get: function get() {
-	        return this.document.queueType;
-	    },
-	    set: function set(queueType) {
-	        this.document.queueType = queueType;
-	        _CB2.default._modified(this, 'queueType');
-	    }
-	});
-
-	Object.defineProperty(CloudQueue.prototype, 'ACL', {
-	    get: function get() {
-	        return this.document.ACL;
-	    },
-	    set: function set(ACL) {
-	        this.document.ACL = ACL;
-	        _CB2.default._modified(this, 'ACL');
-	    }
-	});
-
-	Object.defineProperty(CloudQueue.prototype, 'id', {
-	    get: function get() {
-	        return this.document._id;
-	    }
-	});
-
-	Object.defineProperty(CloudQueue.prototype, 'createdAt', {
-	    get: function get() {
-	        return this.document.createdAt;
-	    }
-	});
-
-	Object.defineProperty(CloudQueue.prototype, 'updatedAt', {
-	    get: function get() {
-	        return this.document.updatedAt;
-	    }
-	});
-
-	Object.defineProperty(CloudQueue.prototype, 'expires', {
-	    get: function get() {
-	        return this.document.expires;
-	    },
-	    set: function set(expires) {
-	        this.document.expires = expires;
-	        _CB2.default._modified(this, 'expires');
-	    }
-	});
-
-	CloudQueue.getAll = function (callback) {
-
-	    var def;
-
-	    _CB2.default._validate();
-
-	    if (!callback) {
-	        def = new _CB2.default.Promise();
-	    }
-
-	    var thisObj = this;
-
-	    var params = JSON.stringify({
-	        key: _CB2.default.appKey
-	    });
-
-	    var url = _CB2.default.apiUrl + "/queue/" + _CB2.default.appId + '/';
-
-	    _CB2.default._request('POST', url, params).then(function (response) {
-
-	        if (response === "") {
-	            response = null;
-	        }
-
-	        if (callback) {
-	            callback.success(_CB2.default.fromJSON(JSON.parse(response)));
-	        } else {
-	            def.resolve(_CB2.default.fromJSON(JSON.parse(response)));
-	        }
-	    }, function (err) {
-	        if (callback) {
-	            callback.error(err);
-	        } else {
-	            def.reject(err);
-	        }
-	    });
-	};
-
-	CloudQueue.get = function (queueName, callback) {
-	    var queue = new _CB2.default.CloudQueue(queueName);
-	    return queue.get(callback);
-	};
-
-	CloudQueue.delete = function (queueName, callback) {
-	    var queue = new _CB2.default.CloudQueue(queueName);
-	    return queue.delete(callback);
-	};
-
-	_CB2.default.CloudQueue = CloudQueue;
-
-	_CB2.default.QueueMessage = function (data) {
-
-	    this.document = {};
-	    this.document.ACL = new _CB2.default.ACL(); //ACL(s) of the document
-	    this.document._type = 'queue-message';
-	    this.document.expires = null;
-	    this.document.timeout = 1800; //30 mins by default.
-	    this.document.delay = null;
-	    this.document.message = data;
-	    this.document._id = null;
-	    this.document._modifiedColumns = ['createdAt', 'updatedAt', 'ACL', 'expires', 'timeout', 'delay', 'message'];
-	    this.document._isModified = true;
-	};
-
-	Object.defineProperty(_CB2.default.QueueMessage.prototype, 'message', {
-	    get: function get() {
-	        return this.document.message;
-	    },
-	    set: function set(message) {
-	        this.document.message = message;
-	        _CB2.default._modified(this, 'message');
-	    }
-	});
-
-	Object.defineProperty(_CB2.default.QueueMessage.prototype, 'ACL', {
-	    get: function get() {
-	        return this.document.ACL;
-	    },
-	    set: function set(ACL) {
-	        this.document.ACL = ACL;
-	        _CB2.default._modified(this, 'ACL');
-	    }
-	});
-
-	Object.defineProperty(_CB2.default.QueueMessage.prototype, 'id', {
-	    get: function get() {
-	        return this.document._id;
-	    }
-	});
-
-	Object.defineProperty(_CB2.default.QueueMessage.prototype, 'createdAt', {
-	    get: function get() {
-	        return this.document.createdAt;
-	    },
-	    set: function set(createdAt) {
-	        this.document.createdAt = createdAt;
-	        _CB2.default._modified(this, 'createdAt');
-	    }
-	});
-
-	Object.defineProperty(_CB2.default.QueueMessage.prototype, 'updatedAt', {
-	    get: function get() {
-	        return this.document.updatedAt;
-	    },
-	    set: function set(updatedAt) {
-	        this.document.updatedAt = updatedAt;
-	        _CB2.default._modified(this, 'updatedAt');
-	    }
-	});
-
-	Object.defineProperty(_CB2.default.QueueMessage.prototype, 'expires', {
-	    get: function get() {
-	        return this.document.expires;
-	    },
-	    set: function set(expires) {
-	        this.document.expires = expires;
-	        _CB2.default._modified(this, 'expires');
-	    }
-	});
-
-	Object.defineProperty(_CB2.default.QueueMessage.prototype, 'timeout', {
-	    get: function get() {
-	        return this.document.timeout;
-	    },
-	    set: function set(timeout) {
-	        this.document.timeout = timeout;
-	        _CB2.default._modified(this, 'timeout');
-	    }
-	});
-
-	Object.defineProperty(_CB2.default.QueueMessage.prototype, 'delay', {
-	    get: function get() {
-	        if (this.document.delay) return this.document.delay / 1000;else return 0;
-	    },
-	    set: function set(delay) {
-	        delay *= 1000; //converting to seconds from milli seconds,
-	        this.document.delay = delay;
-	        _CB2.default._modified(this, 'delay');
-	    }
-	});
-
-	exports.default = _CB2.default.CloudQueue;
-
-/***/ },
-/* 76 */
-/***/ function(module, exports, __webpack_require__) {
-
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-
 	var _CB = __webpack_require__(1);
 
 	var _CB2 = _interopRequireDefault(_CB);
@@ -21292,7 +20488,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = _CB2.default.CloudRole;
 
 /***/ },
-/* 77 */
+/* 76 */
 /***/ function(module, exports, __webpack_require__) {
 
 	Object.defineProperty(exports, "__esModule", {
@@ -21313,7 +20509,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	var os = __webpack_require__(78);
+	var os = __webpack_require__(77);
 	/*
 	 CloudEvent
 	 */
@@ -21431,7 +20627,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = CloudEvent;
 
 /***/ },
-/* 78 */
+/* 77 */
 /***/ function(module, exports) {
 
 	exports.endianness = function () { return 'LE' };
@@ -21482,7 +20678,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 79 */
+/* 78 */
 /***/ function(module, exports, __webpack_require__) {
 
 	Object.defineProperty(exports, "__esModule", {
@@ -21987,461 +21183,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = _CB2.default.CloudUser;
 
 /***/ },
-/* 80 */
-/***/ function(module, exports, __webpack_require__) {
-
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-	var _CB = __webpack_require__(1);
-
-	var _CB2 = _interopRequireDefault(_CB);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	/*
-	 CloudCache
-	 */
-
-	var CloudCache = function () {
-	    function CloudCache(cacheName) {
-	        _classCallCheck(this, CloudCache);
-
-	        if (typeof cacheName === 'undefined' || cacheName === null || cacheName === '') {
-	            throw "Cannot create a cache with empty name";
-	        }
-	        this.document = {};
-	        this.document._tableName = "cache";
-	        this.document.name = cacheName;
-	        this.document.size = "";
-	        this.document.items = [];
-	    }
-
-	    _createClass(CloudCache, [{
-	        key: 'set',
-	        value: function set(key, value, callback) {
-	            var def;
-	            _CB2.default._validate();
-
-	            if (!callback) {
-	                def = new _CB2.default.Promise();
-	            }
-
-	            if (typeof value === 'undefined') {
-	                throw "Value cannot be undefined.";
-	            }
-
-	            var params = JSON.stringify({ key: _CB2.default.appKey, item: value });
-
-	            var url = _CB2.default.apiUrl + '/cache/' + _CB2.default.appId + '/' + this.document.name + '/' + key;
-	            _CB2.default._request('PUT', url, params, true).then(function (response) {
-	                if (_CB2.default._isJsonString(response)) {
-	                    response = JSON.parse(response);
-	                }
-
-	                var obj = _CB2.default.fromJSON(response);
-	                if (callback) {
-	                    callback.success(obj);
-	                } else {
-	                    def.resolve(obj);
-	                }
-	            }, function (err) {
-	                if (callback) {
-	                    callback.error(err);
-	                } else {
-	                    def.reject(err);
-	                }
-	            });
-	            if (!callback) {
-	                return def.promise;
-	            }
-	        }
-	    }, {
-	        key: 'deleteItem',
-	        value: function deleteItem(key, callback) {
-	            var def;
-	            _CB2.default._validate();
-
-	            if (!callback) {
-	                def = new _CB2.default.Promise();
-	            }
-
-	            var params = JSON.stringify({ key: _CB2.default.appKey, method: "DELETE" });
-
-	            var url = _CB2.default.apiUrl + '/cache/' + _CB2.default.appId + '/' + this.document.name + '/item/' + key;
-	            _CB2.default._request('PUT', url, params, true).then(function (response) {
-	                if (_CB2.default._isJsonString(response)) {
-	                    response = JSON.parse(response);
-	                }
-
-	                var obj = _CB2.default.fromJSON(response);
-	                if (callback) {
-	                    callback.success(obj);
-	                } else {
-	                    def.resolve(obj);
-	                }
-	            }, function (err) {
-	                if (callback) {
-	                    callback.error(err);
-	                } else {
-	                    def.reject(err);
-	                }
-	            });
-	            if (!callback) {
-	                return def.promise;
-	            }
-	        }
-	    }, {
-	        key: 'create',
-	        value: function create(callback) {
-	            var def;
-	            _CB2.default._validate();
-
-	            if (!callback) {
-	                def = new _CB2.default.Promise();
-	            }
-
-	            var params = JSON.stringify({ key: _CB2.default.appKey });
-
-	            var thisObj = this;
-
-	            var url = _CB2.default.apiUrl + '/cache/' + _CB2.default.appId + '/' + this.document.name + '/create';
-	            _CB2.default._request('POST', url, params, true).then(function (response) {
-	                if (_CB2.default._isJsonString(response)) {
-	                    response = JSON.parse(response);
-	                }
-	                var obj = _CB2.default.fromJSON(response, thisObj);
-	                if (callback) {
-	                    callback.success(obj);
-	                } else {
-	                    def.resolve(obj);
-	                }
-	            }, function (err) {
-	                if (callback) {
-	                    callback.error(err);
-	                } else {
-	                    def.reject(err);
-	                }
-	            });
-	            if (!callback) {
-	                return def.promise;
-	            }
-	        }
-	    }, {
-	        key: 'get',
-	        value: function get(key, callback) {
-
-	            var def;
-	            _CB2.default._validate();
-
-	            if (!callback) {
-	                def = new _CB2.default.Promise();
-	            }
-
-	            var params = JSON.stringify({ key: _CB2.default.appKey });
-
-	            var url = _CB2.default.apiUrl + '/cache/' + _CB2.default.appId + '/' + this.document.name + '/' + key + '/item';
-	            _CB2.default._request('POST', url, params, true).then(function (response) {
-	                if (_CB2.default._isJsonString(response)) {
-	                    response = JSON.parse(response);
-	                }
-	                var obj = _CB2.default.fromJSON(response);
-	                if (callback) {
-	                    callback.success(obj);
-	                } else {
-	                    def.resolve(obj);
-	                }
-	            }, function (err) {
-	                if (callback) {
-	                    callback.error(err);
-	                } else {
-	                    def.reject(err);
-	                }
-	            });
-	            if (!callback) {
-	                return def.promise;
-	            }
-	        }
-	    }, {
-	        key: 'getInfo',
-	        value: function getInfo(callback) {
-	            var def;
-	            _CB2.default._validate();
-
-	            if (!callback) {
-	                def = new _CB2.default.Promise();
-	            }
-
-	            var params = JSON.stringify({ key: _CB2.default.appKey });
-
-	            var thisObj = this;
-
-	            var url = _CB2.default.apiUrl + '/cache/' + _CB2.default.appId + '/' + this.document.name;
-	            _CB2.default._request('POST', url, params, true).then(function (response) {
-	                if (_CB2.default._isJsonString(response)) {
-	                    response = JSON.parse(response);
-	                }
-	                var obj = _CB2.default.fromJSON(response, thisObj);
-	                if (callback) {
-	                    callback.success(obj);
-	                } else {
-	                    def.resolve(obj);
-	                }
-	            }, function (err) {
-	                if (callback) {
-	                    callback.error(err);
-	                } else {
-	                    def.reject(err);
-	                }
-	            });
-	            if (!callback) {
-	                return def.promise;
-	            }
-	        }
-	    }, {
-	        key: 'getItemsCount',
-	        value: function getItemsCount(callback) {
-	            var def;
-	            _CB2.default._validate();
-
-	            if (!callback) {
-	                def = new _CB2.default.Promise();
-	            }
-
-	            var params = JSON.stringify({ key: _CB2.default.appKey });
-
-	            var url = _CB2.default.apiUrl + '/cache/' + _CB2.default.appId + '/' + this.document.name + '/items/count';
-	            _CB2.default._request('POST', url, params, true).then(function (response) {
-	                if (_CB2.default._isJsonString(response)) {
-	                    response = JSON.parse(response);
-	                }
-	                var obj = _CB2.default.fromJSON(response);
-	                if (callback) {
-	                    callback.success(obj);
-	                } else {
-	                    def.resolve(obj);
-	                }
-	            }, function (err) {
-	                if (callback) {
-	                    callback.error(err);
-	                } else {
-	                    def.reject(err);
-	                }
-	            });
-	            if (!callback) {
-	                return def.promise;
-	            }
-	        }
-	    }, {
-	        key: 'getAll',
-	        value: function getAll(callback) {
-	            var def;
-	            _CB2.default._validate();
-
-	            if (!callback) {
-	                def = new _CB2.default.Promise();
-	            }
-
-	            var thisObj = this;
-
-	            var params = JSON.stringify({ key: _CB2.default.appKey });
-	            var url = _CB2.default.apiUrl + '/cache/' + _CB2.default.appId + '/' + this.document.name + '/items';
-	            _CB2.default._request('POST', url, params, true).then(function (response) {
-	                if (_CB2.default._isJsonString(response)) {
-	                    response = JSON.parse(response);
-	                }
-	                var obj = _CB2.default.fromJSON(response);
-
-	                thisObj.document.items = obj;
-
-	                if (callback) {
-	                    callback.success(obj);
-	                } else {
-	                    def.resolve(obj);
-	                }
-	            }, function (err) {
-	                if (callback) {
-	                    callback.error(err);
-	                } else {
-	                    def.reject(err);
-	                }
-	            });
-	            if (!callback) {
-	                return def.promise;
-	            }
-	        }
-	    }, {
-	        key: 'clear',
-	        value: function clear(callback) {
-	            var def;
-	            _CB2.default._validate();
-
-	            if (!callback) {
-	                def = new _CB2.default.Promise();
-	            }
-
-	            var params = JSON.stringify({ key: _CB2.default.appKey, method: "DELETE" });
-
-	            var thisObj = this;
-
-	            var url = _CB2.default.apiUrl + '/cache/' + _CB2.default.appId + '/' + this.document.name + '/clear/items';
-	            _CB2.default._request('PUT', url, params, true).then(function (response) {
-	                if (_CB2.default._isJsonString(response)) {
-	                    response = JSON.parse(response);
-	                }
-	                var obj = _CB2.default.fromJSON(response, thisObj);
-	                if (callback) {
-	                    callback.success(obj);
-	                } else {
-	                    def.resolve(obj);
-	                }
-	            }, function (err) {
-	                if (callback) {
-	                    callback.error(err);
-	                } else {
-	                    def.reject(err);
-	                }
-	            });
-	            if (!callback) {
-	                return def.promise;
-	            }
-	        }
-	    }, {
-	        key: 'delete',
-	        value: function _delete(callback) {
-	            var def;
-	            _CB2.default._validate();
-
-	            if (!callback) {
-	                def = new _CB2.default.Promise();
-	            }
-
-	            var params = JSON.stringify({ key: _CB2.default.appKey, method: "DELETE" });
-
-	            var thisObj = this;
-
-	            var url = _CB2.default.apiUrl + '/cache/' + _CB2.default.appId + '/' + this.document.name;
-	            _CB2.default._request('PUT', url, params, true).then(function (response) {
-	                if (_CB2.default._isJsonString(response)) {
-	                    response = JSON.parse(response);
-	                }
-	                var obj = _CB2.default.fromJSON(response, thisObj);
-	                if (callback) {
-	                    callback.success(obj);
-	                } else {
-	                    def.resolve(obj);
-	                }
-	            }, function (err) {
-	                if (callback) {
-	                    callback.error(err);
-	                } else {
-	                    def.reject(err);
-	                }
-	            });
-	            if (!callback) {
-	                return def.promise;
-	            }
-	        }
-	    }]);
-
-	    return CloudCache;
-	}();
-
-	CloudCache.getAll = function (callback) {
-	    var def;
-	    _CB2.default._validate();
-
-	    if (!callback) {
-	        def = new _CB2.default.Promise();
-	    }
-
-	    var params = JSON.stringify({ key: _CB2.default.appKey });
-
-	    var url = _CB2.default.apiUrl + '/cache/' + _CB2.default.appId;
-	    _CB2.default._request('POST', url, params, true).then(function (response) {
-	        if (_CB2.default._isJsonString(response)) {
-	            response = JSON.parse(response);
-	        }
-	        var obj = _CB2.default.fromJSON(response);
-	        if (callback) {
-	            callback.success(obj);
-	        } else {
-	            def.resolve(obj);
-	        }
-	    }, function (err) {
-	        if (callback) {
-	            callback.error(err);
-	        } else {
-	            def.reject(err);
-	        }
-	    });
-	    if (!callback) {
-	        return def.promise;
-	    }
-	};
-
-	CloudCache.deleteAll = function (callback) {
-	    var def;
-	    _CB2.default._validate();
-
-	    if (!callback) {
-	        def = new _CB2.default.Promise();
-	    }
-
-	    var params = JSON.stringify({ key: _CB2.default.appKey, method: "DELETE" });
-
-	    var url = _CB2.default.apiUrl + '/cache/' + _CB2.default.appId;
-	    _CB2.default._request('PUT', url, params, true).then(function (response) {
-	        if (_CB2.default._isJsonString(response)) {
-	            response = JSON.parse(response);
-	        }
-	        var obj = _CB2.default.fromJSON(response);
-	        if (callback) {
-	            callback.success(obj);
-	        } else {
-	            def.resolve(obj);
-	        }
-	    }, function (err) {
-	        if (callback) {
-	            callback.error(err);
-	        } else {
-	            def.reject(err);
-	        }
-	    });
-	    if (!callback) {
-	        return def.promise;
-	    }
-	};
-
-	Object.defineProperty(CloudCache.prototype, 'name', {
-	    get: function get() {
-	        return this.document.name;
-	    }
-	});
-
-	Object.defineProperty(CloudCache.prototype, 'size', {
-	    get: function get() {
-	        return this.document.size;
-	    }
-	});
-
-	Object.defineProperty(CloudCache.prototype, 'items', {
-	    get: function get() {
-	        return this.document.items;
-	    }
-	});
-
-	_CB2.default.CloudCache = CloudCache;
-
-	exports.default = _CB2.default.CloudCache;
-
-/***/ },
-/* 81 */
+/* 79 */
 /***/ function(module, exports, __webpack_require__) {
 
 	Object.defineProperty(exports, "__esModule", {
@@ -22533,7 +21275,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = _CB2.default.CloudNotification;
 
 /***/ },
-/* 82 */
+/* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
 	Object.defineProperty(exports, "__esModule", {
@@ -22938,7 +21680,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = _CB2.default.CloudPush;
 
 /***/ },
-/* 83 */
+/* 81 */
 /***/ function(module, exports, __webpack_require__) {
 
 	Object.defineProperty(exports, "__esModule", {
