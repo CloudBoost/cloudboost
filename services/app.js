@@ -613,8 +613,9 @@ module.exports = function () {
                 }
 
                 //duplicate column value verification
-                if (!_checkDuplicateColumns(schema)) {
-                    deferred.reject("Error : Duplicate Column or Invalid Column Found.");
+                var errorDetails = _checkDuplicateColumns(schema);
+                if (errorDetails) {
+                    deferred.reject(errorDetails);
                     return deferred.promise;
                 }
 
@@ -1257,22 +1258,36 @@ function _checkDuplicateColumns(columns) {
     try {
         var length = columns.length;
         columns = _.pluck(columns, 'name');
+        
+        //check for null names. 
+        for(var i=0;i<columns.length;i++){
+
+            if(columns[i].indexOf(' ')>-1){
+                return "Column "+columns[i]+" cannot contain any spaces";
+            }
+
+            if(columns[i].length === 0){
+                return "Column in the table has an empty name"; 
+            }
+        }
+
         columns = _.filter(columns, Boolean);
         columns = _.filter(columns, function (value) {
             return value.toLowerCase();
         });
         columns = _.uniq(columns);
+        
         if (length != columns.length)
-            return false;
+            return "Column with the same name found in the table";
 
-        return true;
+        return null;
 
     } catch (e) {
         global.winston.log('error', {
             "error": String(e),
             "stack": new Error().stack
         });
-        return null;
+        return "Error";
     }
 }
 

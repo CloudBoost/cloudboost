@@ -794,12 +794,7 @@ function servicesKickstart() {
                 //Init Secure key for this cluster. Secure key is used for Encryption / Creating apps , etc.
                 global.keyService.initSecureKey().then(function(key) {
                     console.log("Registering Cluster...");
-                    global.serverService.registerServer(key).then(function() {
-                        console.log("Cluster Registered.");
-                    }, function(error) {
-                        console.log("Cluster registration failed.");
-                        console.log(error);
-                    });
+                    global.serverService.registerServer(key);
                 }, function(error) {
                     console.log("Failed to register the cluster.");
                 });
