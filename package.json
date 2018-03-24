@@ -1,6 +1,6 @@
 {
   "name": "DataServices",
-  "version": "1.0.115",
+  "version": "1.0.116",
   "main": "server.js",
   "engines": {
     "node": ">=5.0.0"

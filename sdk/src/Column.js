@@ -5,6 +5,14 @@ import CB from './CB'
 class Column {
   constructor(columnName, dataType, required, unique){
      this.document = {};
+
+     if(!columnName || columnName === '')
+        throw "Column Name is required."
+     
+     if(typeof(columnName)!=='string'){
+         throw "Column Name should be of type string.";
+     }
+     
      if(columnName){
        CB._columnNameValidation(columnName);
        this.document.name = columnName;

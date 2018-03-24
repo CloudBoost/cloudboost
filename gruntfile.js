@@ -55,7 +55,6 @@ module.exports = function (grunt) {
                     'test/CloudFile/CloudFile.js',
                     'test/CloudUser/userTest.js',
                     'test/CloudEvent/test.js',
-                    'test/CloudPush/pushSend.js',
                     'test/CloudCache/CloudCache.js',
                     'test/CloudQueue/tests.js',
                     'test/CloudObject/test.js',

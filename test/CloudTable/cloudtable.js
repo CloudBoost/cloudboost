@@ -134,17 +134,22 @@ describe("Cloud Table", function(){
         
     });
 
-    it("should add a column to an existing table",function(done){
+    it("Should not be able to add empy columnn name",function(done){
         this.timeout(90000);
         var obj = new CB.CloudTable(tableName);
         CB.CloudTable.get(obj).then(function(table){
-        	var column1 = new CB.Column('', 'Text', true, false);
-		    table.addColumn(column1);
-		    table.save().then(function(table){
-		          done("Saved a table with an empty column.");
-		    },function(){
+            try{
+                var column1 = new CB.Column('', 'Text', true, false);
+                table.addColumn(column1);
+                table.save().then(function(table){
+                    done("Saved a table with an empty column.");
+                },function(){
+                    done();
+                });
+            }
+            catch(e){
                 done();
-            });
+            }
         },function(){
             done("should fetch the table");
         });
