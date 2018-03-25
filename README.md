@@ -136,6 +136,73 @@ Once your app is ready, You can then get the latest SDK from  https://tutorials.
 
 You can then follow rest of the documentation from https://tutorials.cloudboost.io. You can also check out API Reference on https://docs.cloudboost.io
 
+## JavaScript SDK
+
+JavaScript SDK can be found in the `sdk` folder of this repo. 
+
+### NPM Installation
+```
+npm install cloudboost
+```
+
+### NodeJS Usage
+
+``` js
+
+var CB = require('cloudboost');
+
+```
+
+### Bower Installation
+```
+bower install cloudboost
+```
+
+### JavaScript Usage
+
+``` js
+<script src="bower_components/cloudboost/dist/cloudboost.js"></script>
+```
+
+### Module Bundlers
+
+``` js
+// For ES6/ES7 , TypeScript(typings included)
+import * as CB from 'cloudboost';
+
+//For ES5 (requireJs)
+var CB = require('cloudboost');
+
+```
+
+### Sample Code
+
+``` js
+
+// AppID and AppKey are your App ID and key of the application created in CloudBoost Dashboard.
+
+//Init your Application
+CB.CloudApp.init('YourAppId','YourAppKey');
+
+//Data Storage : Create a CloudObject of type 'Custom' (Note: You need to create a table 'Custom' on CloudBoost Dashboard)
+
+var obj = new CB.CloudObject('Custom');
+
+//Set the property 'name' (Note: Create a column 'name' of type text on CloudBoost Dashboard)
+obj.set('name','CloudBoost');
+
+//Save the object
+obj.save({
+    success:function(res){
+        console.log("object saved successfully");
+    },
+    error:function(err){
+        console.log("error while saving object");
+    }
+});
+
+```
+
 ## Cluster Maintenance, Scale, and Updates
 
 CloudBoost runs on MongoDB and Redis. You're responsible for managing the [uptime](https://en.wikipedia.org/wiki/Uptime), [replication](https://en.wikipedia.org/wiki/Replication_(computing)), [sharding](https://en.wikipedia.org/wiki/Shard_(database_architecture)), [backups](https://en.wikipedia.org/wiki/Backup) of your data in each of these databases. 
