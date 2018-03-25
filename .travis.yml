@@ -30,6 +30,7 @@ install:
 - sleep 30s
 - docker logs cloudboost
 - grunt
+- webpack
 - npm test
 after_success:
 - if [ "$TRAVIS_BRANCH" == "staging" ]; then

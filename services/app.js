@@ -1263,11 +1263,11 @@ function _checkDuplicateColumns(columns) {
         for(var i=0;i<columns.length;i++){
 
             if(columns[i].indexOf(' ')>-1){
-                return "Column "+columns[i]+" cannot contain any spaces";
+                return "Column "+columns[i]+" cannot contain any spaces.";
             }
 
             if(columns[i].length === 0){
-                return "Column in the table has an empty name"; 
+                return "Column in the table has an empty name."; 
             }
         }
 

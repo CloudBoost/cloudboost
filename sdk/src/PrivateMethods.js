@@ -33,7 +33,7 @@ CB.toJSON = function(thisObj) {
     if (thisObj instanceof CB.CloudTable)
         tableName = thisObj.document.name;
 
-    var obj = CB._clone(thisObj, id, longitude, latitude, tableName, columnName);
+    var obj = CB._clone(thisObj, id, longitude, latitude, tableName || columnName);
 
     if (!obj instanceof CB.CloudObject || !obj instanceof CB.CloudFile || !obj instanceof CB.CloudGeoPoint || !obj instanceof CB.CloudTable || !obj instanceof CB.Column) {
         throw "Data passed is not an instance of CloudObject or CloudFile or CloudGeoPoint";
@@ -226,10 +226,10 @@ function _all(arrayOfPromises) {
     });
 };
 
-CB._clone = function(obj, id, longitude, latitude, tableName, columnName) {
+CB._clone = function(obj, id, longitude, latitude, name) {
     var n_obj = {};
     if (obj.document._type && obj.document._type != 'point') {
-        n_obj = CB._getObjectByType(obj.document._type, id, longitude, latitude, tableName, columnName);
+        n_obj = CB._getObjectByType(obj.document._type, id, longitude, latitude, name);
         var doc = obj.document;
         var doc2 = {};
         for (var key in doc) {

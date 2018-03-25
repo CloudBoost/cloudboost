@@ -4,6 +4,8 @@
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
+
+//This grunt file is used to package SDK tests. 
 module.exports = function (grunt) {
    
     var pkg = require("./package.json");
@@ -22,27 +24,7 @@ module.exports = function (grunt) {
          },
 
         concat: {
-            sdk: {
-                // the files to concatenate
-                src: [
-                    'sdk/src/Promises.js',
-                    'sdk/src/PrivateMethods.js',
-                    'sdk/src/CloudSocketClientLib.js',
-                    'sdk/src/CloudApp.js',
-                    'sdk/src/ACL.js',
-                    'sdk/src/CloudNotifications.js',
-                    'sdk/src/CloudObject.js',
-                    'sdk/src/CloudRole.js',
-                    'sdk/src/CloudFile.js',
-                    'sdk/src/CloudGeoPoint.js',
-                    'sdk/src/CloudTable.js',
-                    'sdk/src/Column.js',
-                    'sdk/src/CloudUser.js',
-                    'sdk/src/CloudEvent.js'
-                ],
-                // the location of the resulting JS file
-                dest: 'sdk/dist/temp.js'
-            },
+            
             test: {
                 // the files to concatenate
                 src: [
@@ -106,16 +88,6 @@ module.exports = function (grunt) {
             }
         },
 
-        babel: {
-            options: {
-                sourceMap: false
-            },
-            dist: {
-                files: {
-                    'sdk/dist/cloudboost.js': ['sdk/src/*.js']
-                }
-            }
-        },
 
         uglify: {
             uglifyDev: {
@@ -138,9 +110,8 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-bumpup');
     grunt.loadNpmTasks("grunt-env");
     grunt.loadNpmTasks("grunt-eslint");
-    grunt.loadNpmTasks("grunt-babel");
     
-    grunt.registerTask('default', ['bumpup', "env:build",'concat:sdk','concat:test',"babel"]);
+    grunt.registerTask('default', ['bumpup', "env:build",'concat:test']);
     grunt.registerTask('release', ['concat:sdkRelease', 'uglify:uglifyRelease']);
 };
 
