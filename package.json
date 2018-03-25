@@ -1,6 +1,6 @@
 {
   "name": "DataServices",
-  "version": "1.0.116",
+  "version": "1.0.123",
   "main": "server.js",
   "engines": {
     "node": ">=5.0.0"
@@ -93,6 +93,7 @@
     "grunt-contrib-uglify": "^0.9.1",
     "grunt-contrib-watch": "^0.6.1",
     "grunt-release": "^0.13.0",
+    "grunt-babel": "^6.0.0",
     "json-loader": "^0.5.4",
     "mocha": "^2.4.5",
     "phantomjs-prebuilt": "*",
@@ -111,5 +112,9 @@
     "test-node": "./node_modules/.bin/mocha --reporter spec test/test.js",
     "2npm": "publish"
   },
-  "snyk": true
+  "babel": {
+    "presets": [
+      "es2015"
+    ]
+  }
 }

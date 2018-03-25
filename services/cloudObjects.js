@@ -450,12 +450,20 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                     document[columns[i].name] = null;
                 }
 
+                //if column datatype is bool, and data is  null, change data to false by default. 
+                if(columns[i].dataType === "Boolean" && !document[columns[i].name]){
+                    document[columns[i].name] = false;
+                }
+
                 if (columns[i].required) {
                     if (document[columns[i].name] === null || document[columns[i].name] === undefined) {
                         mainPromise.reject(columns[i].name + ' is required');
                         return mainPromise.promise;
                     }
                 }
+
+                
+
 
                 //Is Editable only by master key is true?
                 if (columns[i].editableByMasterKey && modifiedDocuments.indexOf(columns[i].name) > -1) {
@@ -502,14 +510,13 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                 var findPromise = q.defer();
                 promises.push(findPromise.promise);
                 global.mongoService.document.find(appId, collectionName, query, null, null, 9999999, 0, null, true).then(function(res) {
-                    console.log('Unique Result');
-                    console.log(res);
+                    
                     if (res.length === 1 && res[0]._id === document._id) {
                         findPromise.resolve('Update the document');
                     } else if (res.length > 0) {
                         findPromise.reject('Unique constraint violated.');
                     } else {
-                        findPromise.resolve('save the document');
+                        findPromise.resolve('Save the document');
                     }
                 }, function(error) {
                     findPromise.reject(error);

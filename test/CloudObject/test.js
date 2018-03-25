@@ -1299,4 +1299,20 @@ describe("Cloud Object", function() {
 
     });
 
+    it("Should Save false a boolean column when data is null", function(done) {
+
+        this.timeout(30000);
+
+        var obj = new CB.CloudObject('Employee');
+        obj.save().then(function(res) {
+            if (res.get("isCXO")===false)
+                done();
+            else
+                done("False not saved by default.");
+            }
+        , function(err) {
+            done(err);
+        });
+    });
+
 });

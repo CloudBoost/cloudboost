@@ -41,7 +41,7 @@ module.exports = function (grunt) {
                     'sdk/src/CloudEvent.js'
                 ],
                 // the location of the resulting JS file
-                dest: 'sdk/dist/cloudboost.js'
+                dest: 'sdk/dist/temp.js'
             },
             test: {
                 // the files to concatenate
@@ -95,12 +95,25 @@ module.exports = function (grunt) {
                 dest: 'test/test.js'
             },
 
+
+
             sdkRelease: {
                 // the files to concatenate
                 src: ['sdk/dist/cloudboost.js'],
 
                 // the location of the resulting JS file
                 dest: 'sdk/dist/' + pjson.version + '.js'
+            }
+        },
+
+        babel: {
+            options: {
+                sourceMap: false
+            },
+            dist: {
+                files: {
+                    'sdk/dist/cloudboost.js': ['sdk/src/*.js']
+                }
             }
         },
 
@@ -125,8 +138,9 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-bumpup');
     grunt.loadNpmTasks("grunt-env");
     grunt.loadNpmTasks("grunt-eslint");
+    grunt.loadNpmTasks("grunt-babel");
     
-    grunt.registerTask('default', ['bumpup', "env:build",'concat:test',]);
+    grunt.registerTask('default', ['bumpup', "env:build",'concat:sdk','concat:test',"babel"]);
     grunt.registerTask('release', ['concat:sdkRelease', 'uglify:uglifyRelease']);
 };
 

@@ -315,7 +315,10 @@ describe("Should Create All Test Tables", function(done) {
         Age.dataType = 'Number';
         var Name = new CB.Column('Name');
         Name.dataType = 'Text';
+        var IsCXO = new CB.Column('isCXO');
+        IsCXO.dataType = 'Boolean';
         obj = new CB.CloudTable('Employee');
+        obj.addColumn(IsCXO);
         obj.addColumn(Age);
         obj.addColumn(Name);
         var dob = new CB.Column('dob');
@@ -4532,6 +4535,22 @@ describe("Cloud Object", function() {
             done(err);
         });
 
+    });
+
+    it("Should Save false a boolean column when data is null", function(done) {
+
+        this.timeout(30000);
+
+        var obj = new CB.CloudObject('Employee');
+        obj.save().then(function(res) {
+            if (res.get("isCXO")===false)
+                done();
+            else
+                done("False not saved by default.");
+            }
+        , function(err) {
+            done(err);
+        });
     });
 
 });
