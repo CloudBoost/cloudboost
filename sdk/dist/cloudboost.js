@@ -16357,7 +16357,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    set: function set(defaultValue) {
 
 	        if (typeof defaultValue === 'string') {
-	            supportedStringDataTypes = ['Text', 'EncryptedText'];
+	            var supportedStringDataTypes = ['Text', 'EncryptedText'];
 	            if (supportedStringDataTypes.indexOf(this.document.dataType) > -1) {
 	                this.document.defaultValue = defaultValue;
 	            } else if (this.document.dataType === 'URL') {

@@ -109,7 +109,7 @@ Object.defineProperty(Column.prototype,'defaultValue',{
     set: function(defaultValue) {
 
         if(typeof defaultValue === 'string') {
-            supportedStringDataTypes = ['Text', 'EncryptedText'];
+            var supportedStringDataTypes = ['Text', 'EncryptedText'];
             if(supportedStringDataTypes.indexOf(this.document.dataType) > -1){
                 this.document.defaultValue = defaultValue;
             }
