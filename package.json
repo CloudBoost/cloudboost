@@ -1,5 +1,5 @@
 {
-  "name": "DataServices",
+  "name": "cloudboost-server",
   "version": "1.0.130",
   "main": "server.js",
   "engines": {
