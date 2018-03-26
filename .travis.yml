@@ -53,15 +53,15 @@ after_success:
     mkdir ~/.kube;
     mv config ~/.kube/;
     kubectl rolling-update cloudboost-api --image=cloudboost/cloudboost:latest --image-pull-policy=Always;
-    cd sdk
-    npm install
-    npm set init.author.name $NPM_USERNAME
-    npm set init.author.email $NPM_EMAIL
-    npm set init.author.url "https://cloudboost.io"
-    npm --no-git-tag-version version 2.0.$TRAVIS_BUILD_NUMBER --force
-    echo -e "$NPM_USERNAME\n$NPM_PASSWORD\n$NPM_EMAIL" | npm login
-    sleep 10s
-    npm publish
+    cd sdk;
+    npm install;
+    npm set init.author.name $NPM_USERNAME;
+    npm set init.author.email $NPM_EMAIL;
+    npm set init.author.url "https://cloudboost.io";
+    npm --no-git-tag-version version 2.0.$TRAVIS_BUILD_NUMBER --force;
+    echo -e "$NPM_USERNAME\n$NPM_PASSWORD\n$NPM_EMAIL" | npm login;
+    sleep 10s;
+    npm publish;
   fi
 before_deploy:
   - git config --global user.email "builds@travis-ci.com"
