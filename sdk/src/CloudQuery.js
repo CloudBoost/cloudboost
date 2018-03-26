@@ -873,6 +873,7 @@ class CloudQuery {
     };
 
     findFromLocalStore(callback) {
+
         var thisObj = this;
         if (!thisObj.tableName) {
             throw "TableName is null.";
