@@ -1,5 +1,5 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
-version: v1.8.0
+version: v1.10.2
 ignore: {}
 # patches apply the minimum changes required to fix a vulnerability
 patch:
@@ -12,6 +12,15 @@ patch:
   'npm:qs:20140806-1':
     - winston-bishop-slack > winston > request > qs:
         patched: '2017-11-21T04:47:12.009Z'
+    - winston-bishop-slack > winston > request > qs:
+        patched: '2018-03-26T20:47:07.423Z'
   'npm:request:20160119':
     - winston-bishop-slack > winston > request:
         patched: '2017-11-21T04:47:12.009Z'
+    - winston-bishop-slack > winston > request:
+        patched: '2018-03-26T20:47:07.423Z'
+    - phantomjs > request:
+        patched: '2018-03-26T20:47:07.423Z'
+  'npm:tough-cookie:20170905':
+    - phantomjs > request > tough-cookie:
+        patched: '2018-03-26T20:47:07.423Z'
