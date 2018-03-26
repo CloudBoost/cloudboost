@@ -13,7 +13,7 @@ module.exports = function() {
     //Update Settings for the App
     global.app.put('/settings/:appId/:category', function(req, res) {
 
-        console.log('++++++++ General App Settings API +++++++++');
+        
 
         var appId = req.params.appId;
         var category = req.params.category;
@@ -52,7 +52,7 @@ module.exports = function() {
     //Get Settings for the App
     global.app.post('/settings/:appId', function(req, res) {
 
-        console.log('++++++++ General App Settings API +++++++++');
+        
 
         var appId = req.params.appId;
         var sdk = req.body.sdk || "REST";
@@ -91,7 +91,7 @@ module.exports = function() {
     */
     global.app.put('/settings/:appId/file/:category', function(req, res) {
 
-        console.log("++++ Stream file to gridfs ++++++");
+        
 
         var appId = req.params.appId;
         var appKey = req.body.key || req.params.key;
@@ -167,7 +167,7 @@ module.exports = function() {
     //get file from gridfs
     global.app.get('/settings/:appId/file/:fileName', function(req, res) {
 
-        console.log("++++ Stream file from gridfs++++++");
+        
 
         var appId = req.params.appId;
         var fileName = req.params.fileName;

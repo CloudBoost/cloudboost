@@ -9,7 +9,7 @@ module.exports = function() {
     //get file from gridfs
     global.app.get('/appfile/:appId/icon', function(req, res) {
 
-        console.log("++++ Stream file from gridfs++++++");
+        
 
         var appId = req.params.appId;
         var fileName = appId;

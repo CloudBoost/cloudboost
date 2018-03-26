@@ -69,7 +69,7 @@ describe("Bulk API",function(done){
             });
         }
     }catch(e){
-        console.log("Not in Browser");
+        
     }
 
     it("Should properly save a relation in Bulk API",function(done){

@@ -10,7 +10,7 @@ describe("Query_ACL", function () {
     it("Should create new user", function (done) {
 
         if(CB._isNode){
-            console.log('Skipped, Not meant for NodeJS');
+            
             done();
             return;
          }
@@ -33,7 +33,7 @@ describe("Query_ACL", function () {
     it("Should set the public read access", function (done) {
 
         if(CB._isNode){
-            console.log('Skipped, Not meant for NodeJS');
+            
             done();
             return;
          }
@@ -73,7 +73,7 @@ describe("Query_ACL", function () {
     it("Should search object with user read access", function (done) {
 
         if(CB._isNode){
-            console.log('Skipped, Not meant for NodeJS');
+            
             done();
             return;
          }

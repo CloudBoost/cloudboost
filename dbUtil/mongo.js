@@ -50,7 +50,7 @@ module.exports = function() {
 
         create: function(appId) {
 
-            console.log("Create app from mongo");
+            
 
             var deferred = q.defer();
 
@@ -66,16 +66,16 @@ module.exports = function() {
                 var db = new Db(appId, replSet, {w: 1});
 
                 if (db) {
-                    console.log("Success : App created in Storage backend.");
+                    
                     deferred.resolve(db);
                 } else {
-                    console.log("Error : Creating an app in the Storage Backend ");
+                    
                     global.winston.log("Error : Creating an app in the Storage Backend ");
                     deferred.reject("Error : Creating an app in the Storage Backend ");
                 }
             } catch (e) {
-                console.log("Error : Creating an app in Storage Backend.");
-                console.log(e);
+                
+                
                 global.winston.log('error', {
                     "error": String(e),
                     "stack": new Error().stack
@@ -255,10 +255,10 @@ module.exports = function() {
                     var collection = global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));
                     collection.createIndex(obj, function(err, res) {
                         if (err) {
-                            console.log("Could not create index", err);
+                            
                             deferred.reject(err);
                         } else {
-                            console.log(res);
+                            
                             deferred.resolve(res);
                         }
 
@@ -294,10 +294,10 @@ module.exports = function() {
                 }, function(err, res) {
                     if (err) {
                         global.winston.log('error', err);
-                        console.log("Could not create index");
+                        
                         deferred.reject(err);
                     } else {
-                        console.log(res);
+                        
                         deferred.resolve(res);
                     }
 
@@ -325,10 +325,10 @@ module.exports = function() {
                 var collection = global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));
                 collection.indexInformation(function(err, res) {
                     if (err) {
-                        console.log("oops");
+                        
                         deferred.resolve(null);
                     } else {
-                        console.log(res);
+                        
                         deferred.resolve(res);
                     }
                 });
@@ -347,10 +347,10 @@ module.exports = function() {
             var deferred = q.defer();
 
             try {
-                console.log('++++ Mongo : Renaming Column ++++++');
-                console.log('Collection Name : ' + collectionName);
-                console.log('Old Column Name : ' + oldColumnName);
-                console.log('New Column Name : ' + newColumnName);
+                
+                
+                
+                
 
                 var _self = obj;
 
@@ -367,11 +367,11 @@ module.exports = function() {
                 }, function(err, result) {
                     if (err) {
                         global.winston.log('error', err);
-                        console.log('Column Rename Error');
-                        console.log(err);
+                        
+                        
                         deferred.reject(err);
                     } else {
-                        console.log('Column Renamed');
+                        
                         deferred.resolve();
                     }
                 });
@@ -392,9 +392,9 @@ module.exports = function() {
             var deferred = q.defer();
 
             try {
-                console.log('++++ Mongo : Dropping Column ++++++');
-                console.log('Collection Name : ' + collectionName);
-                console.log('Column Name : ' + columnName);
+                
+                
+                
 
                 var _self = obj;
 
@@ -460,8 +460,8 @@ module.exports = function() {
             var deferred = q.defer();
 
             try {
-                console.log('++++ Mongo : Dropping Collection ++++++');
-                console.log('Collection Name : ' + collectionName);
+                
+                
 
                 if (global.mongoDisconnected) {
                     deferred.reject("Database Not Connected");
@@ -474,15 +474,15 @@ module.exports = function() {
                 collection.drop(function(err, reply) {
                     if (err) {
                         if (err.message === 'ns not found') {
-                            console.log('Collection Drop Success');
+                            
                             deferred.resolve();
                         } else {
                             global.winston.log('error', err);
-                            console.log('Collection Drop Error');
+                            
                             deferred.reject(err);
                         }
                     } else {
-                        console.log('Collection Dropped');
+                        
                         deferred.resolve();
                     }
                 });
@@ -504,8 +504,8 @@ module.exports = function() {
             var deferred = q.defer();
 
             try {
-                console.log('++++ Mongo : Renaming Collection ++++++');
-                console.log('Collection Name : ' + oldCollectionName);
+                
+                
 
                 var _self = obj;
 
@@ -514,19 +514,19 @@ module.exports = function() {
                 collection.rename(_self.collection.getId(appId, newCollectionName), function(err, collection) {
                     if (err) {
 
-                        console.log(err);
+                        
 
                         if (err.message === 'source namespace does not exist') {
-                            console.log('Collection Renamed'); //if oldCollectionName is not found.
+                             //if oldCollectionName is not found.
                             deferred.resolve();
                         } else {
-                            console.log('Collection Rename Error');
+                            
                             global.winston.log('error', err);
                             deferred.reject(err);
                         }
 
                     } else {
-                        console.log('Collection Renamed');
+                        
                         deferred.resolve();
                     }
                 });
@@ -644,8 +644,8 @@ function _dropIndex(appId, collectionName, indexString) {
             collection.dropIndex(indexString, function(err, result) {
                 if (err && err.message && err.message != 'ns not found') {
                     global.winston.log('error', err);
-                    console.log("unable to drop index");
-                    console.log(err);
+                    
+                    
                     deferred.reject(err);
                 } else {
                     deferred.resolve(result);
@@ -679,10 +679,10 @@ function _unsetColumn(appId, collectionName, query) {
                 multi: true
             }, function(err, result) {
                 if (err) {
-                    console.log('Column Drop Error');
+                    
                     deferred.reject(err);
                 } else {
-                    console.log('Column Dropped');
+                    
                     deferred.resolve();
                 }
             });

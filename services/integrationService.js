@@ -112,7 +112,7 @@ function notifyOnSlack(integrationSettings, document, appName) {
             }
             ])
         }, function (err, response) {
-            console.log(response);
+            
         });
         return true;
     }
@@ -143,7 +143,7 @@ function notifyOnZapier(integrationSettings, document, collection_name, table_ev
 
         request(options, function (error, response, body) {
             if (!error && response.statusCode == 200) {
-                console.log(body);
+                
             }
         })
     }

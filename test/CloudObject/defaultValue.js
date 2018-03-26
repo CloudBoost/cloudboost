@@ -55,7 +55,7 @@ describe("Setting Default Values for Cloud Object", function(){
 
         table.save({
             success : function(table){
-                console.log("table created");
+                
                 done();
             },
             error : function(error){
@@ -251,7 +251,7 @@ describe("Setting Default Values for Cloud Object", function(){
         var obj = new CB.CloudObject(tableName);
         obj.save({
             success : function(obj){
-                console.log(obj.get("NameET"));
+                
                 if(obj.get("NameET") === defaults.EncryptedText){
                     done()
                 }
@@ -349,10 +349,10 @@ describe("Setting Default Values for Cloud Object", function(){
         
         globalTable.delete({
             success : function(table){
-                console.log("Testing Complete")
+                
             }, 
             error : function(err){
-                console.log(err)
+                
             }
         });
         

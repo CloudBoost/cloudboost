@@ -101,7 +101,7 @@ function _registerServerAnalytics(secureKey){
 
 function _mongoDbStatus(){
 
-    console.log("MongoDB Status Function...");
+    
 
     var deferred = Q.defer();
 
@@ -114,12 +114,12 @@ function _mongoDbStatus(){
 
         global.mongoClient.command({ serverStatus: 1},function(err, status){
           if(err) { 
-            console.log(err);
+            
             responseJson.error="Unable to know CBEngine Mongodb status";
             deferred.reject(responseJson);                                    
           }
 
-          console.log("MongoDB Status:"+status.ok);
+          
           if(status && status.ok===1){ 
             responseJson.success="CBEngine Mongodb status is okay";          
             deferred.resolve(responseJson);                                               
@@ -139,7 +139,7 @@ function _mongoDbStatus(){
 
 function _redisDbStatus(){
 
-    console.log("RedisDB Status Function...");
+    
 
     var deferred = Q.defer();
 
@@ -153,11 +153,11 @@ function _redisDbStatus(){
         //Simple ping/pong with callback
         global.redisClient.call('PING', function (error, result) {                
             if(error){
-                console.log(error);
+                
                 responseJson.error="Unable to know CBEngine Redisdb status";
                 deferred.reject(responseJson);
             }
-            console.log("RedisDB Status:"+result);
+            
             if(result==="PONG"){
               responseJson.success="CBEngine Redisdb PING is successfull";
               deferred.resolve(responseJson); 

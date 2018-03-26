@@ -10,7 +10,7 @@ describe("Offline Mode", function() {
     it("should pin the object to local store", function(done) {
         this.timeout(70000);
 
-        console.log('Disconnecting App......');
+        
         CB.CloudApp.disconnect();
         setTimeout(function() {
             var found = false;
@@ -188,7 +188,7 @@ describe("Offline Mode", function() {
         query.equalTo('name', 'Offline-offline');
         query.findFromLocalStore({
             success: function(obj) {
-                console.log(obj);
+                
                 if (obj[0].get('name') == 'Offline-offline')
                     done();
                 else
@@ -206,7 +206,7 @@ describe("Offline Mode", function() {
 
         this.timeout(30000);
         var count = 0;
-        console.log('Connecting App');
+        
         CB.CloudApp.connect();
 
         setTimeout(function() {
@@ -214,7 +214,7 @@ describe("Offline Mode", function() {
             query.equalTo('name', 'Offline-Student');
             query.find({
                 success: function(obj) {
-                    console.log(obj);
+                    
                     if (obj[0].get('name') == 'Offline-Student')
                         done();
                     else

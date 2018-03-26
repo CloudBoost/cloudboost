@@ -40,26 +40,26 @@ module.exports = function (){
                             var body = JSON.parse(body);
                             if(body.limitExceeded){
                                 obj.blockApp(body.appId).then(function(){
-                                    console.log("App blocked because it exceededthe current plan. ");
+                                    
                                 }, function(error){
-                                    console.log("App Block Error");
-                                    console.log(error);
+                                    
+                                    
                                 });
                             }else{
                                 obj.releaseApp(body.appId).then(function(){
-                                    console.log("App released.");
+                                    
                                 }, function(error){
-                                    console.log("App Release Error");
-                                    console.log(error);
+                                    
+                                    
                                 });
                             }
                         }catch(e){
                             global.winston.log('error',{"error":String(e),"stack": new Error().stack});
                             obj.releaseApp(body.appId).then(function(){
-                                console.log("App released.");
+                                
                             }, function(error){
-                                console.log("App Release Error");
-                                console.log(error);
+                                
+                                
                             });
                         }
                         

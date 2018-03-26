@@ -180,7 +180,7 @@ describe("Cloud Objects Files", function() {
 
         }
     }catch(e){
-        console.log("Not in Browser");
+        
     }
 
 });

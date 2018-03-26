@@ -143,7 +143,7 @@ module.exports = function() {
 						return deferred.reject("User with email "+email+" not found.");					
 					}
 					
-					console.log("User with "+email+" found");
+					
 	            
 	                //Send an email to reset user password here. 
 	                var passwordResetKey = crypto.createHmac('sha256', global.keys.secureKey)
@@ -330,7 +330,7 @@ module.exports = function() {
 	                }
 	                
 	                
-	                console.log(role);
+	                
 
 	                if (!role) {
 						deferred.reject('Role does not exists');

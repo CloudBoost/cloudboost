@@ -15,7 +15,7 @@ module.exports = function() {
             /******************DELETE API*********************/
         } else {
             /******************SAVE API*********************/
-            console.log("SAVE API");
+            
             var appId = req.params.appId;
             var document = req.body.document;
             var collectionName = req.params.tableName;
@@ -31,13 +31,13 @@ module.exports = function() {
             global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
                 return global.customService.save(appId, collectionName, document, customHelper.getAccessList(req), isMasterKey);
             }).then(function(result) {
-                console.log('+++ Save Success +++');
-                console.log(result);
+                
+                
                 integrationService.integrationNotification(appId, document, collectionName, table_event);
                 res.status(200).send(result);
             }, function(error) {
-                console.log('++++++ Save Error +++++++');
-                console.log(error);
+                
+                
                 res.status(400).send(error);
             });
 
@@ -61,7 +61,7 @@ module.exports = function() {
     global.app.delete('/data/:appId/:tableName', _deleteApi);
 
     function _deleteApi(req, res) { //delete a document matching the <objectId>
-        console.log("DELETE API");
+        
         var appId = req.params.appId;
         var collectionName = req.params.tableName;
         var document = req.body.document;
@@ -84,7 +84,7 @@ module.exports = function() {
 };
 
 function _getData(req, res) { //get document(s) object based on query and various parameters
-    console.log("FIND API");
+    
     var appId = req.params.appId;
     var collectionName = req.params.tableName;
     var query = req.body.query;
@@ -107,7 +107,7 @@ function _getData(req, res) { //get document(s) object based on query and variou
 }
 
 function _count(req, res) { //get document(s) object based on query and various parameters
-    console.log("COUNT API");
+    
     var appId = req.params.appId;
     var collectionName = req.params.tableName;
     var query = req.body.query;
@@ -128,7 +128,7 @@ function _count(req, res) { //get document(s) object based on query and various 
 }
 
 function _distinct(req, res, next) { //get document(s) object based on query and various parameters
-    console.log("DISTINCT API");
+    
     var appId = req.params.appId;
     var collectionName = req.params.tableName;
     var onKey = req.body.onKey;
@@ -152,7 +152,7 @@ function _distinct(req, res, next) { //get document(s) object based on query and
 }
 
 function _findOne(req, res) { //get a single document matching the search query
-    console.log("FIND ONE API");
+    
     var appId = req.params.appId;
     var collectionName = req.params.tableName;
     var query = req.body.query;

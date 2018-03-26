@@ -9,7 +9,7 @@ describe("Disabled - Cloud Objects Notification", function() {
 
         CB.CloudObject.on('Student', 'created', function(data){
          if(data.get('name') === 'sample') {
-             console.log(data);
+             
              CB.CloudObject.off('Student','created',{success:function(){},error:function(){}});
          }
          else

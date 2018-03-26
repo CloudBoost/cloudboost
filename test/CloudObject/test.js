@@ -23,7 +23,7 @@ describe("Cloud Object", function() {
                         }
                     }, error : function(query){
                         //cannot query. 
-                        console.log(query);
+                        
                         done("Cannot query");
                     }
                 });
@@ -118,7 +118,7 @@ describe("Cloud Object", function() {
                                         }
                                     },
                                     error : function(query){
-                                        console.log(query);
+                                        
                                         done("Cannot query");
                                     }
                                 });
@@ -1202,9 +1202,9 @@ describe("Cloud Object", function() {
 
                     obj.save({
                         success: function(newObj) {
-                            //console.log("OLD CreatedAt : "+createdAt);
-                            //console.log("NEW CreatedAt : "+Date.parse(newObj.createdAt));
-                            //console.log("NEW UpdatedAt : "+Date.parse(newObj.updatedAt));
+                            //
+                            //
+                            //
 
                             if (Date.parse(newObj.createdAt) === createdAt && Date.parse(newObj.updatedAt) !== createdAt) {
                                 done();

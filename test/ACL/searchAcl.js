@@ -9,7 +9,7 @@
         it("Should create new user", function (done) {
 
             if(CB._isNode){
-            console.log('Skipped, Not meant for NodeJS');
+            
             done();
             return;
          }

@@ -230,7 +230,7 @@ describe("Export & Import Table", function () {
                             });
                         }
                     } catch (e) {
-                        console.log(e);
+                        
                         done(e);
                     }
                 },
@@ -369,7 +369,7 @@ describe("Export & Import Table", function () {
                                     throw 'únable to get the url';
                                 }
                             }, function (err) {
-                                console.log(err);
+                                
                                 done(err);
                                 throw "Unable to save file";
                             });
@@ -377,7 +377,7 @@ describe("Export & Import Table", function () {
                             throw err
                         });
                     } catch (e) {
-                        console.log(e);
+                        
                         done(e);
                     }
                 },

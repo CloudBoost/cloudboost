@@ -153,7 +153,7 @@ describe("Cloud GeoPoint Test", function() {
                done("didnot retrieve the records.")
             }
         }, function (error) {
-            console.log(error);
+            
             done(error);
         });
 	});*/

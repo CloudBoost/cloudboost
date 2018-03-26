@@ -196,12 +196,12 @@
                 var temp = list.get('newColumn');
                 query1.equalTo('newColumn',temp);
                 query1.find().then(function(obj){
-                    //console.log(obj);
+                    //
                     done();
                 }, function () {
                     throw "";
                 });
-                //console.log(list);
+                //
             },function(){
                 throw "unable to save data";
             })

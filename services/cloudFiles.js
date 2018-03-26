@@ -19,7 +19,7 @@ module.exports = function() {
                    Reject->Error on getMyUrl() or saving filestream or saving cloudBoostFileObject
         */
         upload: function(appId, fileStream, contentType, fileObj, accessList, isMasterKey) {
-            console.log('+++++ In File Upload Service ++++++++');
+            
             var deferred = q.defer();
 
             try {
@@ -33,8 +33,8 @@ module.exports = function() {
                         fileObj._version = 0;
                         newFileName = fileObj._id + fileObj.name.slice(fileObj.name.indexOf('.'), fileObj.name.length);
                         fileObj.url = url + "/file/" + appId + "/" + fileObj._id + fileObj.name.slice(fileObj.name.indexOf('.'), fileObj.name.length);
-                        console.log("File URL : ");
-                        console.log(fileObj.url);
+                        
+                        
                     } else {
                         fileObj._version = fileObj._version + 1;
                     }
@@ -68,14 +68,14 @@ module.exports = function() {
                    Reject->Error on getMyUrl() or saving filestream or saving cloudBoostFileObject
         */
         delete: function(appId, fileObj, accessList, isMasterKey) {
-            console.log('+++++ In File Delete Service ++++++++');
+            
             var collectionName = '_File';
             var deferred = q.defer();
             try {
                 var collectionName = "_File";
                 var fileUrl = global.keys.fileUrl + appId + "/";
                 var filename = fileObj.url.substr(fileUrl.length, fileObj.url.length + 1);
-                console.log(filename + "  " + fileObj.url);
+                
 
                 var promises = [];
                 promises.push(global.mongoService.document.deleteFileFromGridFs(appId, fileObj._id));
@@ -103,7 +103,7 @@ module.exports = function() {
                    Reject->Error on _readFileACL() or getFile from gridFs
         */
         getFile: function(appId, filename, accessList, isMasterKey) {
-            console.log('+++++ In Get File Service ++++++++');
+            
             var deferred = q.defer();
 
             try {
@@ -112,14 +112,14 @@ module.exports = function() {
                     _id: filename.split('.')[0]
                 }, null, null, 1, 0, accessList, isMasterKey, null).then(function(file) {
                     if (file.length == 1) {
-                        console.log("Read Access Allowed.");
+                        
                         global.mongoService.document.getFile(appId, filename.split('.')[0]).then(function(res) {
                             deferred.resolve(res);
                         }, function(err) {
                             deferred.reject(err);
                         });
                     } else {
-                        console.log("Read Access Denied.");
+                        
                         deferred.reject("Unauthorized");
                     }
                 }, function() {

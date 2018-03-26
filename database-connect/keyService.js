@@ -16,12 +16,12 @@ module.exports = {
             try {
                 var deferred = q.defer();
                 
-                console.log("Initializing Secure Key...");
+                
 
                 var key = null;
 
                 if (global.keys.secureKey) {
-                    console.log("Secure Key : " + global.keys.secureKey);
+                    
                     deferred.resolve(global.keys.secureKey);
                 } else {
 
@@ -30,8 +30,8 @@ module.exports = {
 
                     collection.find({}).toArray(function (err, docs) {
                         if (err) {
-                            console.log("Error retrieveing Global Settings");
-                            console.log(err);
+                            
+                            
                             deferred.reject(err);
                         } else {
 
@@ -40,7 +40,7 @@ module.exports = {
                             if (docs.length >= 1) {
                                 if (docs[0].secureKey) {
                                     global.keys.secureKey = docs[0].secureKey;
-                                    console.log("Secure Key : " + global.keys.secureKey);
+                                    
                                     deferred.resolve(global.keys.secureKey);
                                 } else {
 
@@ -54,13 +54,13 @@ module.exports = {
 
                                     collection.save(docs[0], function (err, doc) {
                                         if (err) {
-                                            console.log("Error while saving Global Settings");
-                                            console.log(err);
+                                            
+                                            
                                             deferred.reject(err);
                                         } else {
                                             //resolve if not an error
                                             global.keys.secureKey = key;
-                                            console.log("Secure Key : " + global.keys.secureKey);
+                                            
                                             deferred.resolve(key);
                                         }
                                     });
@@ -72,12 +72,12 @@ module.exports = {
                                 global.keys.secureKey = key;
                                 collection.save(doc, function (err, doc) {
                                     if (err) {
-                                        console.log("Error while saving Global Settings");
-                                        console.log(err);
+                                        
+                                        
                                         deferred.reject(err);
                                     } else {
                                         //resolve if not an error
-                                        console.log("Secure Key : " + global.keys.secureKey);
+                                        
                                         deferred.resolve(key);
                                     }
                                 });
@@ -89,8 +89,8 @@ module.exports = {
 
                 return deferred.promise;
             }catch(e){
-                console.log("Error Init Encrypt Key");
-                console.log(e);
+                
+                
                 global.winston.log('error',{"error":String(e),"stack": new Error().stack});   
             }
         },
@@ -98,12 +98,12 @@ module.exports = {
     initClusterKey : function () {
         try {
 
-            console.log("Initializing Cluster Key...");
+            
 
             var key = null;
 
             if (global.keys.secureKey) {
-                console.log("Cluster Key : " + global.keys.clusterKey);
+                
                 deferred.resolve(global.keys.clusterKey);
             } else {
 
@@ -114,8 +114,8 @@ module.exports = {
 
                 collection.find({}).toArray(function (err, docs) {
                     if (err) {
-                        console.log("Error retrieveing Global Settings");
-                        console.log(err);
+                        
+                        
                         deferred.reject(err);
                     } else {
 
@@ -124,7 +124,7 @@ module.exports = {
                         if (docs.length >= 1) {
                             if (docs[0].clusterKey) {
                                 global.keys.clusterKey = docs[0].clusterKey;
-                                console.log("Cluster Key : " + global.keys.clusterKey);
+                                
                                 deferred.resolve(global.keys.clusterKey);
                             } else {
 
@@ -136,13 +136,13 @@ module.exports = {
 
                                 collection.save(docs[0], function (err, doc) {
                                     if (err) {
-                                        console.log("Error while saving Global Settings");
-                                        console.log(err);
+                                        
+                                        
                                         deferred.reject(err);
                                     } else {
                                         //resolve if not an error
                                         global.keys.clusterKey = key;
-                                        console.log("Cluster Key : " + global.keys.clusterKey);
+                                        
                                         deferred.resolve(key);
                                     }
                                 });
@@ -154,12 +154,12 @@ module.exports = {
                             global.keys.clusterKey = key;
                             collection.save(doc, function (err, doc) {
                                 if (err) {
-                                    console.log("Error while saving Global Settings");
-                                    console.log(err);
+                                    
+                                    
                                     deferred.reject(err);
                                 } else {
                                     //resolve if not an error
-                                    console.log("Cluster Key : " + global.keys.clusterKey);
+                                    
                                     deferred.resolve(key);
                                 }
                             });
@@ -172,8 +172,8 @@ module.exports = {
 
             return deferred.promise;
         }catch(e){
-            console.log("Error Init Cluster Key");
-            console.log(e);
+            
+            
             global.winston.log('error',{"error":String(e),"stack": new Error().stack});       
         }
     },
@@ -186,7 +186,7 @@ module.exports = {
                     if (global.keys.myURL) {
                         deferred.resolve(global.keys.myURL);
                     } else {
-                        console.log("Retrieving Cluster URL...");
+                        
                         //get it from mongodb, If does not exist, create a new random key and return; 
                         var deferred = q.defer();
                         
@@ -194,14 +194,14 @@ module.exports = {
                         
                         collection.find({}).toArray(function (err, docs) {
                             if (err) {
-                                console.log("Error retrieving Global Settings");
-                                console.log(err);
+                                
+                                
                                 deferred.reject(err);
                             } else {
 
                                 if (docs.length >= 1) {
                                     if (docs[0].myURL) {
-                                        console.log("Cluster URL : "+docs[0].myURL);
+                                        
                                         global.keys.myURL = docs[0].myURL;
                                         deferred.resolve(global.keys.myURL);
                                     } else {
@@ -234,22 +234,22 @@ module.exports = {
 
             collection.find({}).toArray(function (err, docs) {
                 if (err) {
-                    console.log("Error retrieving Global Settings");
-                    console.log(err);
+                    
+                    
                     deferred.reject(err);
                 } else {
 
                     if (docs.length >= 1) {
-                        console.log("URL Record Found");
+                        
                         docs[0].myURL = url;
-                        console.log("Updating...");
+                        
                         collection.save(docs[0], function(err, doc){
 
                             if(err){
-                                console.log("Error Updating");
+                                
                                 deferred.reject("Error, cannot change the cluster URL.");
                             }else{
-                                console.log("Updated.");
+                                
                                 global.keys.myURL = url;
                                 deferred.resolve(url);
                             }

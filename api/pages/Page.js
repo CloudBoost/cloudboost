@@ -26,7 +26,7 @@ module.exports = function() {
 
         q.all(promises).then(function(list){            
 
-            console.log(list);
+            
             
             var appKeys={};
             appKeys.appId=appId;
@@ -97,7 +97,7 @@ module.exports = function() {
     */
     global.app.get('/page/:appId/authentication', function(req, res) { 
 
-        console.log("Render Authentication Page..");
+        
 
         var appId = req.params.appId || null;      
         var sdk = req.body.sdk || "REST";     
@@ -108,7 +108,7 @@ module.exports = function() {
 
         q.all(promises).then(function(list){            
 
-            console.log(list);
+            
             
             var appKeys={};
             appKeys.appId=appId;
@@ -152,7 +152,7 @@ module.exports = function() {
     */
     global.app.get('/page/:appId/verify', function(req, res) { 
 
-        console.log("Render Aactivation Page..");
+        
 
         var appId = req.params.appId || null;      
         var sdk = req.body.sdk || "REST"; 

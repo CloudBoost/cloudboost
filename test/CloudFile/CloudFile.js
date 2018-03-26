@@ -9,7 +9,7 @@ describe("Cloud Files", function(done) {
         var type = 'txt';
         var fileObj = new CB.CloudFile(name, data, type);
         fileObj.save().then(function(file) {
-            //console.log(file);
+            //
             if (file.url) {
 
                 if (!window) {
@@ -514,7 +514,7 @@ describe("Cloud Files", function(done) {
             });
         }
     } catch (e) {
-        console.log('In node');
+        
     }
 
     it("Should Save a file file data and name then fetch it", function(done) {
@@ -526,7 +526,7 @@ describe("Cloud Files", function(done) {
         var type = 'txt';
         var fileObj = new CB.CloudFile(name, data, type);
         fileObj.save().then(function(file) {
-            //console.log(file);
+            //
             if (file.url) {
                 file.fetch().then(function(res) {
                     res.getFileContent().then(function(res) {
@@ -557,7 +557,7 @@ describe("Cloud Files", function(done) {
         obj.set('file', fileObj);
         obj.set('name', 'abcd');
         obj.save().then(function(res) {
-            //console.log(res);
+            //
             var id = res.get('id');
             var query = new CB.CloudQuery('Sample');
             query.equalTo('id', id);
@@ -621,7 +621,7 @@ describe("Cloud Files", function(done) {
                 query.include('Company.File');
                 query.equalTo('id', res.get('id'));
                 query.find().then(function(res) {
-                    // console.log(res);
+                    // 
                     done();
                 }, function(err) {
                     done(err);
@@ -656,7 +656,7 @@ describe("Cloud Files", function(done) {
     //     };
 
     //     function getImage(){
-    //         console.log(xhttp.responseType);
+    //         
     //     }
 
     //     xhttp.send(null);
@@ -684,7 +684,7 @@ describe("Cloud Files", function(done) {
 
     //     };
     //       function resizeImage(){
-    //         console.log(xhttp.responseType);
+    //         
     //       }
     //     xhttp.send(null);
 

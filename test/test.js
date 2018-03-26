@@ -328,7 +328,7 @@ describe("Should Create All Test Tables", function(done) {
         password.dataType = 'EncryptedText';
         obj.addColumn(password);
         obj.save().then(function(res) {
-            //console.log(res);
+            //
             done();
         }, function(err) {
             throw "Unable to Create Table";
@@ -395,7 +395,7 @@ describe("Should Create All Test Tables", function(done) {
         obj.addColumn(Name);
         obj.addColumn(File);
         obj.save().then(function(res) {
-            //console.log(res);
+            //
             done();
         }, function() {
             throw "Unable to Create Table";
@@ -414,7 +414,7 @@ describe("Should Create All Test Tables", function(done) {
         obj.addColumn(City);
         obj.addColumn(PinCode);
         obj.save().then(function(res) {
-            //console.log(res);
+            //
             done();
         }, function() {
             throw "Unable to Create Table";
@@ -436,7 +436,7 @@ describe("Should Create All Test Tables", function(done) {
             Address.relatedTo = 'Address';
             res.addColumn(Address);
             res.save().then(function(res) {
-                //console.log(res);
+                //
                 done();
             }, function(err) {
                 throw "Unable to Update schema of the table";
@@ -461,7 +461,7 @@ describe("Should Create All Test Tables", function(done) {
             Address.relatedTo = 'Address';
             res.addColumn(Address);
             res.save().then(function(res) {
-                //console.log(res);
+                //
                 done();
             }, function(err) {
                 throw "Unable to Update schema of the table";
@@ -1211,7 +1211,7 @@ describe("Export & Import Table", function () {
                             });
                         }
                     } catch (e) {
-                        console.log(e);
+                        
                         done(e);
                     }
                 },
@@ -1350,7 +1350,7 @@ describe("Export & Import Table", function () {
                                     throw 'únable to get the url';
                                 }
                             }, function (err) {
-                                console.log(err);
+                                
                                 done(err);
                                 throw "Unable to save file";
                             });
@@ -1358,7 +1358,7 @@ describe("Export & Import Table", function () {
                             throw err
                         });
                     } catch (e) {
-                        console.log(e);
+                        
                         done(e);
                     }
                 },
@@ -1382,7 +1382,7 @@ describe("Cloud Files", function(done) {
         var type = 'txt';
         var fileObj = new CB.CloudFile(name, data, type);
         fileObj.save().then(function(file) {
-            //console.log(file);
+            //
             if (file.url) {
 
                 if (!window) {
@@ -1887,7 +1887,7 @@ describe("Cloud Files", function(done) {
             });
         }
     } catch (e) {
-        console.log('In node');
+        
     }
 
     it("Should Save a file file data and name then fetch it", function(done) {
@@ -1899,7 +1899,7 @@ describe("Cloud Files", function(done) {
         var type = 'txt';
         var fileObj = new CB.CloudFile(name, data, type);
         fileObj.save().then(function(file) {
-            //console.log(file);
+            //
             if (file.url) {
                 file.fetch().then(function(res) {
                     res.getFileContent().then(function(res) {
@@ -1930,7 +1930,7 @@ describe("Cloud Files", function(done) {
         obj.set('file', fileObj);
         obj.set('name', 'abcd');
         obj.save().then(function(res) {
-            //console.log(res);
+            //
             var id = res.get('id');
             var query = new CB.CloudQuery('Sample');
             query.equalTo('id', id);
@@ -1994,7 +1994,7 @@ describe("Cloud Files", function(done) {
                 query.include('Company.File');
                 query.equalTo('id', res.get('id'));
                 query.find().then(function(res) {
-                    // console.log(res);
+                    // 
                     done();
                 }, function(err) {
                     done(err);
@@ -2029,7 +2029,7 @@ describe("Cloud Files", function(done) {
     //     };
 
     //     function getImage(){
-    //         console.log(xhttp.responseType);
+    //         
     //     }
 
     //     xhttp.send(null);
@@ -2057,7 +2057,7 @@ describe("Cloud Files", function(done) {
 
     //     };
     //       function resizeImage(){
-    //         console.log(xhttp.responseType);
+    //         
     //       }
     //     xhttp.send(null);
 
@@ -2455,10 +2455,10 @@ describe("CloudUser", function () {
             if(list.get('username') === usrname && list.get('_version')>=0){
                 var query = new CB.CloudQuery('User');
                 query.findById(user.get('id')).then(function(obj){
-                    console.log(obj);
+                    
                     done();
                 },function(err){
-                    console.log(err);
+                    
                 });
             }
             else
@@ -3261,7 +3261,7 @@ describe("Cloud Object", function() {
                         }
                     }, error : function(query){
                         //cannot query. 
-                        console.log(query);
+                        
                         done("Cannot query");
                     }
                 });
@@ -3356,7 +3356,7 @@ describe("Cloud Object", function() {
                                         }
                                     },
                                     error : function(query){
-                                        console.log(query);
+                                        
                                         done("Cannot query");
                                     }
                                 });
@@ -4440,9 +4440,9 @@ describe("Cloud Object", function() {
 
                     obj.save({
                         success: function(newObj) {
-                            //console.log("OLD CreatedAt : "+createdAt);
-                            //console.log("NEW CreatedAt : "+Date.parse(newObj.createdAt));
-                            //console.log("NEW UpdatedAt : "+Date.parse(newObj.updatedAt));
+                            //
+                            //
+                            //
 
                             if (Date.parse(newObj.createdAt) === createdAt && Date.parse(newObj.updatedAt) !== createdAt) {
                                 done();
@@ -4626,7 +4626,7 @@ describe("Bulk API",function(done){
             });
         }
     }catch(e){
-        console.log("Not in Browser");
+        
     }
 
     it("Should properly save a relation in Bulk API",function(done){
@@ -4849,7 +4849,7 @@ describe("Cloud Objects Files", function() {
 
         }
     }catch(e){
-        console.log("Not in Browser");
+        
     }
 
 });
@@ -6488,7 +6488,7 @@ describe("Offline Mode", function() {
     it("should pin the object to local store", function(done) {
         this.timeout(70000);
 
-        console.log('Disconnecting App......');
+        
         CB.CloudApp.disconnect();
         setTimeout(function() {
             var found = false;
@@ -6666,7 +6666,7 @@ describe("Offline Mode", function() {
         query.equalTo('name', 'Offline-offline');
         query.findFromLocalStore({
             success: function(obj) {
-                console.log(obj);
+                
                 if (obj[0].get('name') == 'Offline-offline')
                     done();
                 else
@@ -6684,7 +6684,7 @@ describe("Offline Mode", function() {
 
         this.timeout(30000);
         var count = 0;
-        console.log('Connecting App');
+        
         CB.CloudApp.connect();
 
         setTimeout(function() {
@@ -6692,7 +6692,7 @@ describe("Offline Mode", function() {
             query.equalTo('name', 'Offline-Student');
             query.find({
                 success: function(obj) {
-                    console.log(obj);
+                    
                     if (obj[0].get('name') == 'Offline-Student')
                         done();
                     else
@@ -7020,12 +7020,12 @@ describe("CloudQuery Include", function (done) {
                 var temp = list.get('newColumn');
                 query1.equalTo('newColumn',temp);
                 query1.find().then(function(obj){
-                    //console.log(obj);
+                    //
                     done();
                 }, function () {
                     throw "";
                 });
-                //console.log(list);
+                //
             },function(){
                 throw "unable to save data";
             })
@@ -9450,7 +9450,7 @@ describe("ACL", function () {
         this.timeout(20000);
 
         if(CB._isNode){
-            console.log('Skipped, Not meant for NodeJS');
+            
             done();
             return;
         }
@@ -9490,7 +9490,7 @@ describe("ACL", function () {
         this.timeout(20000);
 
         if(CB._isNode){
-            console.log('Skipped, Not meant for NodeJS');
+            
             done();
             return;
         }
@@ -9560,7 +9560,7 @@ describe("ACL", function () {
         this.timeout(20000);
 
         if(CB._isNode){
-            console.log('Skipped, Not meant for NodeJS');
+            
             done();
             return;
         }
@@ -9589,7 +9589,7 @@ describe("ACL", function () {
     it("Should create new user", function (done) {
 
         if(CB._isNode){
-            console.log('Skipped, Not meant for NodeJS');
+            
             done();
             return;
          }
@@ -9613,7 +9613,7 @@ describe("ACL", function () {
     it("Should set the user read access", function (done) {
 
         if(CB._isNode){
-            console.log('Skipped, Not meant for NodeJS');
+            
             done();
             return;
          }
@@ -9637,7 +9637,7 @@ describe("ACL", function () {
 
     it("Should allow users of role to write", function (done) {
         if(CB._isNode){
-            console.log('Skipped, Not meant for NodeJS');
+            
             done();
             return;
          }
@@ -9663,7 +9663,7 @@ describe("ACL", function () {
     it("Should allow users of role to read", function (done) {
 
         if(CB._isNode){
-            console.log('Skipped, Not meant for NodeJS');
+            
             done();
             return;
         }
@@ -9698,7 +9698,7 @@ describe("Query_ACL", function () {
     it("Should create new user", function (done) {
 
         if(CB._isNode){
-            console.log('Skipped, Not meant for NodeJS');
+            
             done();
             return;
          }
@@ -9721,7 +9721,7 @@ describe("Query_ACL", function () {
     it("Should set the public read access", function (done) {
 
         if(CB._isNode){
-            console.log('Skipped, Not meant for NodeJS');
+            
             done();
             return;
          }
@@ -9761,7 +9761,7 @@ describe("Query_ACL", function () {
     it("Should search object with user read access", function (done) {
 
         if(CB._isNode){
-            console.log('Skipped, Not meant for NodeJS');
+            
             done();
             return;
          }
@@ -9808,7 +9808,7 @@ describe("Query_ACL", function () {
         it("Should create new user", function (done) {
 
             if(CB._isNode){
-            console.log('Skipped, Not meant for NodeJS');
+            
             done();
             return;
          }
@@ -9864,7 +9864,7 @@ describe("CloudNotification", function() {
       		CB.CloudNotification.publish('sample1', 'data1',{
 				success : function(){
 					//succesfully published. //do nothing. 
-					console.log("Published Successfully.");
+					
 				},
 				error : function(err){
 					//error
@@ -10156,7 +10156,7 @@ describe("Cloud GeoPoint Test", function() {
                done("didnot retrieve the records.")
             }
         }, function (error) {
-            console.log(error);
+            
             done(error);
         });
 	});*/
@@ -10308,7 +10308,7 @@ describe("Version Test",function(done){
     it("Should create new user with version", function (done) {
 
         if(CB._isNode){
-            console.log('Skipped, Not meant for NodeJS');
+            
             done();
             return;
          }
@@ -10367,7 +10367,7 @@ describe("Version Test",function(done){
     it("Should retrieve a saved user object",function(done){
 
         if(CB._isNode){
-            console.log('Skipped, Not meant for NodeJS');
+            
             done();
             return;
          }
@@ -11650,7 +11650,7 @@ describe("Disabled - Cloud Objects Notification", function() {
 
         CB.CloudObject.on('Student', 'created', function(data){
          if(data.get('name') === 'sample') {
-             console.log(data);
+             
              CB.CloudObject.off('Student','created',{success:function(){},error:function(){}});
          }
          else

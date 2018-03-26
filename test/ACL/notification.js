@@ -3,7 +3,7 @@ describe("ACL on CloudObject Notifications", function () {
     it("Should create new user and listen to CloudNotification events.", function (done) {
 
         if(CB._isNode){
-            console.log('Skipped, Not meant for NodeJS');
+            
             done();
             return;
          }
@@ -49,7 +49,7 @@ describe("ACL on CloudObject Notifications", function () {
     it("Should NOT receieve a  notification when public read access is false;", function (done) {
 
         if(CB._isNode){
-            console.log('Skipped, Not meant for NodeJS');
+            
             done();
             return;
          }
@@ -89,7 +89,7 @@ describe("ACL on CloudObject Notifications", function () {
             userObj.save();
 
             setTimeout(function(){ 
-                console.log('Done!');
+                
                 if(!isDone){
                     isDone=true;
                     done();
@@ -106,7 +106,7 @@ describe("ACL on CloudObject Notifications", function () {
     it("Should NOT receivee an event when user read access is false;", function (done) {
 
         if(CB._isNode){
-            console.log('Skipped, Not meant for NodeJS');
+            
             done();
             return;
          }
@@ -161,7 +161,7 @@ describe("ACL on CloudObject Notifications", function () {
     it("Should NOT receieve a  notification when public read access is true but user is false;", function (done) {
 
         if(CB._isNode){
-            console.log('Skipped, Not meant for NodeJS');
+            
             done();
             return;
          }
@@ -219,7 +219,7 @@ describe("ACL on CloudObject Notifications", function () {
     it("Should receieve a notification when public read access is false but user is true;", function (done) {
 
         if(CB._isNode){
-            console.log('Skipped, Not meant for NodeJS');
+            
             done();
             return;
          }
@@ -268,7 +268,7 @@ describe("ACL on CloudObject Notifications", function () {
     it("Should NOT receieve a notification when user is logged out.", function (done) {
 
         if(CB._isNode){
-            console.log('Skipped, Not meant for NodeJS');
+            
             done();
             return;
          }
@@ -327,7 +327,7 @@ describe("ACL on CloudObject Notifications", function () {
     it("Should receieve a notification when user is logged out and logged back in.", function (done) {
 
         if(CB._isNode){
-            console.log('Skipped, Not meant for NodeJS');
+            
             done();
             return;
          }
@@ -362,7 +362,7 @@ describe("ACL on CloudObject Notifications", function () {
 
             user.logOut({
                 success: function(user){
-                console.log(user);
+                
                     user.set("password",passwd);
                     user.logIn({
                         success : function(){

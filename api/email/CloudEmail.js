@@ -17,7 +17,7 @@ module.exports = function () {
      -Error : Error Data( 'Server Error' : status 500 )
      */
     global.app.post('/email/:appId/campaign', function (req, res) {
-        console.log("++++ Email Campaign ++++++");
+        
         try {
             var appId = req.params.appId;
             var appKey = req.body.key;
@@ -43,7 +43,7 @@ module.exports = function () {
                 return res.status(500).send('Cannot retrieve security keys.');
             });
         } catch (e) {
-            console.log(e);
+            
         }
 
 

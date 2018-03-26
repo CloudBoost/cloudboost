@@ -31,7 +31,7 @@ describe("CloudNotification", function() {
       		CB.CloudNotification.publish('sample1', 'data1',{
 				success : function(){
 					//succesfully published. //do nothing. 
-					console.log("Published Successfully.");
+					
 				},
 				error : function(err){
 					//error

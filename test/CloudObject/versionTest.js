@@ -81,7 +81,7 @@ describe("Version Test",function(done){
     it("Should create new user with version", function (done) {
 
         if(CB._isNode){
-            console.log('Skipped, Not meant for NodeJS');
+            
             done();
             return;
          }
@@ -140,7 +140,7 @@ describe("Version Test",function(done){
     it("Should retrieve a saved user object",function(done){
 
         if(CB._isNode){
-            console.log('Skipped, Not meant for NodeJS');
+            
             done();
             return;
          }

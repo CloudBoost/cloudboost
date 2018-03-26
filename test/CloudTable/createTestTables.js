@@ -24,7 +24,7 @@ describe("Should Create All Test Tables", function(done) {
         password.dataType = 'EncryptedText';
         obj.addColumn(password);
         obj.save().then(function(res) {
-            //console.log(res);
+            //
             done();
         }, function(err) {
             throw "Unable to Create Table";
@@ -91,7 +91,7 @@ describe("Should Create All Test Tables", function(done) {
         obj.addColumn(Name);
         obj.addColumn(File);
         obj.save().then(function(res) {
-            //console.log(res);
+            //
             done();
         }, function() {
             throw "Unable to Create Table";
@@ -110,7 +110,7 @@ describe("Should Create All Test Tables", function(done) {
         obj.addColumn(City);
         obj.addColumn(PinCode);
         obj.save().then(function(res) {
-            //console.log(res);
+            //
             done();
         }, function() {
             throw "Unable to Create Table";
@@ -132,7 +132,7 @@ describe("Should Create All Test Tables", function(done) {
             Address.relatedTo = 'Address';
             res.addColumn(Address);
             res.save().then(function(res) {
-                //console.log(res);
+                //
                 done();
             }, function(err) {
                 throw "Unable to Update schema of the table";
@@ -157,7 +157,7 @@ describe("Should Create All Test Tables", function(done) {
             Address.relatedTo = 'Address';
             res.addColumn(Address);
             res.save().then(function(res) {
-                //console.log(res);
+                //
                 done();
             }, function(err) {
                 throw "Unable to Update schema of the table";

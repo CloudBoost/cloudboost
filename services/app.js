@@ -100,16 +100,16 @@ module.exports = function () {
 
             try {
                 //check redis cache first.
-                console.log('+++++ Redis Get App +++++++');
+                
                 global.redisClient.get(global.keys.cacheAppPrefix + ':' + appId, function (err, res) {
 
                     if (res) {
                         res = JSON.parse(res);
-                        console.log('App found in Redis :');
-                        console.log(res);
+                        
+                        
                         deferred.resolve(res);
                     } else {
-                        console.log('App not found in Redis. Retrieving from Storage.');
+                        
                         //if not found in cache then hit the Db.
 
                         var collection = global.mongoClient.db(global.keys.globalDb).collection("projects");
@@ -121,7 +121,7 @@ module.exports = function () {
                             } else if (!docs || docs.length == 0) {
                                 deferred.reject("App Not found");
                             } else if (docs.length > 0) {
-                                console.log('Redis App SET');
+                                
                                 global.redisClient.setex(global.keys.cacheAppPrefix + ':' + appId, global.keys.appExpirationTimeFromCache, JSON.stringify(docs[0]));
                                 deferred.resolve(docs[0]);
                             }
@@ -171,14 +171,14 @@ module.exports = function () {
 
         createApp: function (appId, userId, appName) {
 
-            console.log("Create App function...");
+            
 
             var deferred = q.defer();
             try {
 
                 var promises = [];
 
-                console.log("Find AppID already exists or not...");
+                
                 var collection = global.mongoClient.db(global.keys.globalDb).collection("projects");
                 var findQuery = collection.find({ appId: appId });
                 findQuery.toArray(function (err, projects) {
@@ -190,7 +190,7 @@ module.exports = function () {
                         deferred.reject('AppID already exists');
                     } else {
 
-                        console.log("Setting params to save new app.");
+                        
 
                         var document = {};
                         document.appId = appId;
@@ -199,22 +199,22 @@ module.exports = function () {
                         document.keys.master = _generateKey();
 
                         getKeyAndIV(function (data) { //using 64 byte key
-                            console.log("got key and iv buffers");
+                            
 
                             document.keys.encryption_key = data;
 
                             var collection = global.mongoClient.db(global.keys.globalDb).collection("projects");
 
-                            console.log('Collection Object Created.');
+                            
     
                             collection.save(document, function (err, project) {
                                 if (err) {
-                                    console.log("Error : Cannot create project.");
-                                    console.log(err);
+                                    
+                                    
                                     deferred.reject("Cannot create a new app now.");
     
                                 } else if (project) {
-                                    console.log("new app got saved...");
+                                    
                                     //create a mongodb app.
                                     promises.push(global.mongoUtil.app.create(appId));
                                     global.q.all(promises).then(function (res) {
@@ -234,8 +234,8 @@ module.exports = function () {
                     "error": String(e),
                     "stack": new Error().stack
                 });
-                console.log("FATAL : Cannot create app.");
-                console.log(e);
+                
+                
                 deferred.reject("Cannot create an app right now.");
             }
 
@@ -280,7 +280,7 @@ module.exports = function () {
                             });
                         }
 
-                        console.log(doc);
+                        
                     });
             } catch (err) {
                 global.winston.log('error', {
@@ -304,8 +304,8 @@ module.exports = function () {
                 findQuery.toArray(function (err, tables) {
                     if (err) {
                         deferred.reject("Error : Failed to retrieve the table.");
-                        console.log("Error : Failed to retrieve the table.");
-                        console.log(err);
+                        
+                        
                     }
                     if (tables && tables.length > 0) {
                         deferred.resolve(tables[0]);
@@ -327,7 +327,7 @@ module.exports = function () {
 
         getAllTables: function (appId) {
 
-            console.log("Get all Tables...");
+            
 
             var deferred = q.defer();
 
@@ -338,18 +338,18 @@ module.exports = function () {
                 findQuery.toArray(function (err, tables) {
                     if (err) {
                         deferred.reject("Error : Failed to retrieve the table.");
-                        console.log("Error : Failed to retrieve the table.");
-                        console.log(err);
+                        
+                        
                     }
                     if (tables.length > 0) {
                         // filtering out private '_Tables'
                         tables = tables.filter(function (table) {
                             return table.name[0] !== '_';
                         });
-                        console.log("Tables found...");
+                        
                         deferred.resolve(tables);
                     } else {
-                        console.log("No Tables found");
+                        
                         deferred.resolve([]);
                     }
                 });
@@ -392,7 +392,7 @@ module.exports = function () {
                             deferred.reject(err);
                         } else if (doc.result.n !== 0) {
                             //send a post request to DataServices.
-                            console.log("Success : Table " + tableName + " deleted.");
+                            
 
                             //delete table from cache.
                             global.redisClient.del(global.keys.cacheSchemaPrefix + '-' + appId + ':' + tableName);
@@ -665,8 +665,8 @@ module.exports = function () {
                                 }
                             }
                         } catch (e) {
-                            console.log("Error");
-                            console.log(e);
+                            
+                            
                             global.winston.log('error', {
                                 "error": String(e),
                                 "stack": new Error().stack
@@ -720,7 +720,7 @@ module.exports = function () {
                             }
                         })
 
-                    console.log('Collection Object Created.');
+                    
 
                     collection.findOneAndUpdate({
                         name: tableName
@@ -808,8 +808,8 @@ module.exports = function () {
                     "error": String(e),
                     "stack": new Error().stack
                 });
-                console.log("FATAL : Error updating a table");
-                console.log(e);
+                
+                
                 deferred.reject(e);
             }
 
@@ -883,12 +883,12 @@ module.exports = function () {
                             deferred.reject(err);
                         }
                         if (newDoc) {
-                            console.log("Successfull on Change client key in app...");
+                            
                             //delete project/app from redis so further request will make a new entry with new keys
                             deleteAppFromRedis(appId);
                             deferred.resolve(newDoc.value);
                         } else {
-                            console.log("App not found for Change client key in app...");
+                            
                             deferred.resolve(null);
                         }
                     });
@@ -935,12 +935,12 @@ module.exports = function () {
                             deferred.reject(err);
                         }
                         if (newDoc) {
-                            console.log("Successfull on Change client key in app...");
+                            
                             //delete project/app from redis so further request will make a new entry with new keys
                             deleteAppFromRedis(appId);
                             deferred.resolve(newDoc.value);
                         } else {
-                            console.log("App not found for Change client key in app...");
+                            
                             deferred.resolve(null);
                         }
                     });
@@ -1167,16 +1167,16 @@ module.exports = function () {
                                             if (isAuthorized) {
                                                 global.appService.upsertTable(appId, tableName, schema.data.columns, schema.data).then(function (table) {
                                                     global.customService.save(appId, tableName, document, customHelper.getAccessList(req), isMasterKey).then(function (result) {
-                                                        console.log('+++ Save Success +++', table.name);
-                                                        console.log(result);
+                                                        
+                                                        
                                                         deferred.resolve(result);
                                                     }, function (error) {
-                                                        console.log('++++++ Save Error +++++++');
-                                                        console.log(error);
+                                                        
+                                                        
                                                         deferred.reject(error);
                                                     });
                                                 }, function (err) {
-                                                    console.log(err);
+                                                    
                                                     return deferred.reject(err);
                                                 });
                                             } else return deferred.reject({ status: 'Unauthorized' });
@@ -1188,8 +1188,8 @@ module.exports = function () {
                                         return deferred.reject(err);
                                     });
                                 }, function (err) {
-                                    console.log("+++++++Schema not generated++++++++");
-                                    console.log(err);
+                                    
+                                    
                                     deferred.reject(err);
                                 });
 

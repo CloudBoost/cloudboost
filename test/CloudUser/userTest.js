@@ -222,10 +222,10 @@ describe("CloudUser", function () {
             if(list.get('username') === usrname && list.get('_version')>=0){
                 var query = new CB.CloudQuery('User');
                 query.findById(user.get('id')).then(function(obj){
-                    console.log(obj);
+                    
                     done();
                 },function(err){
-                    console.log(err);
+                    
                 });
             }
             else
