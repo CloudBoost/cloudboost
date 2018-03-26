@@ -46,7 +46,6 @@ module.exports = function (grunt) {
                     'test/CloudObject/expire.js',
                     'test/CloudObject/notification.js',
                     'test/CloudObject/notificationQueries.js',
-                    'test/CloudObject/offlineMode.js',
                     'test/CloudObject/encryption.js',
                     'test/CloudExpire/test.js',
                     'test/CloudQuery/includeList.js',

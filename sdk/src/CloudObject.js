@@ -127,6 +127,10 @@ class CloudObject {
     };
 
     saveEventually(callback) {
+
+        if(CB._isNode)
+            throw "This function is not available on NodeJS";
+
         var thisObj = this;
         var def;
         if (!callback) {
@@ -538,6 +542,10 @@ CloudObject.deleteAll = function(array, callback) {
 };
 
 CloudObject.pin = function(cloudObjects, callback) {
+
+    if(CB._isNode)
+        throw "This function is not available on NodeJS";
+
     if (!cloudObjects)
         throw "cloudObject(s) is required.";
     var def;
@@ -584,6 +592,10 @@ CloudObject.pin = function(cloudObjects, callback) {
 }
 
 CloudObject.unPin = function(cloudObjects, callback) {
+
+    if(CB._isNode)
+        throw "This function is not available on NodeJS";
+
     if (!cloudObjects)
         throw "cloudObject(s) is required.";
     var def;
@@ -677,6 +689,10 @@ function _groupObjects(objects) {
 }
 
 CloudObject.sync = function(callback) {
+
+    if(CB._isNode)
+        throw "This function is not available on NodeJS";
+        
     var def;
     if (!callback)
         def = new CB.Promise();
@@ -751,6 +767,10 @@ CloudObject.sync = function(callback) {
 }
 
 CloudObject.disableSync = function(document, callback) {
+
+    if(CB._isNode)
+        throw "This function is not available on NodeJS";
+
     var def;
     if (!callback)
         def = new CB.Promise();

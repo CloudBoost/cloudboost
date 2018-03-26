@@ -17250,6 +17250,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	        key: 'saveEventually',
 	        value: function saveEventually(callback) {
+
+	            if (_CB2.default._isNode) throw "This function is not available on NodeJS";
+
 	            var thisObj = this;
 	            var def;
 	            if (!callback) {
@@ -17647,6 +17650,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	CloudObject.pin = function (cloudObjects, callback) {
+
+	    if (_CB2.default._isNode) throw "This function is not available on NodeJS";
+
 	    if (!cloudObjects) throw "cloudObject(s) is required.";
 	    var def;
 	    if (!callback) def = new _CB2.default.Promise();
@@ -17688,6 +17694,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	CloudObject.unPin = function (cloudObjects, callback) {
+
+	    if (_CB2.default._isNode) throw "This function is not available on NodeJS";
+
 	    if (!cloudObjects) throw "cloudObject(s) is required.";
 	    var def;
 	    if (!callback) def = new _CB2.default.Promise();
@@ -17776,6 +17785,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	}
 
 	CloudObject.sync = function (callback) {
+
+	    if (_CB2.default._isNode) throw "This function is not available on NodeJS";
+
 	    var def;
 	    if (!callback) def = new _CB2.default.Promise();
 	    _CB2.default._validate();
@@ -17848,6 +17860,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	CloudObject.disableSync = function (document, callback) {
+
+	    if (_CB2.default._isNode) throw "This function is not available on NodeJS";
+
 	    var def;
 	    if (!callback) def = new _CB2.default.Promise();
 	    _CB2.default._validate();
