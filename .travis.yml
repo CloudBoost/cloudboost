@@ -80,9 +80,6 @@ after_deploy:
   sleep 10s
   npm publish
   fi
-branches:
-  except:
-    - /^*-v[0-9]/
 #Notify Team on Slack
 notifications:
   slack: hackerbaycompany:gm7nWJDLDtBRyF75VKLKOoMW
