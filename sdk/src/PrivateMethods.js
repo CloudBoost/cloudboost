@@ -1,6 +1,6 @@
 import CB from './CB'
 if (CB._isNode) {
-    localStorage = require('localStorage')
+    var localStorage = require('localStorage')
 }
 
 /* PRIVATE METHODS */

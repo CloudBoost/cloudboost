@@ -6457,7 +6457,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	if (_CB2.default._isNode) {
-	    localStorage = __webpack_require__(42);
+	    var localStorage = __webpack_require__(42);
 	}
 
 	/* PRIVATE METHODS */
