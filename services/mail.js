@@ -265,15 +265,15 @@ function _mandrill(emailSettings){
         mandrill_client.messages.send({"message": message, "async": async, "ip_pool": null, "send_at": null}, function(result) {
             if(result && result[0]){
                 if(result[0].status=="sent"){ 
-                    console.log("Reset password email sent!.");                   
+                    
                     deferred.resolve(result[0].status);
                 }
                 if(result[0].status=="rejected"){
-                    console.log("Reset password email rejected");
+                    
                     deferred.reject(result[0].status);
                 }
             }else{
-                console.log("Failed to send reset password email!.");
+                
                 deferred.reject("Failed to send!");
             }
             
@@ -317,10 +317,10 @@ function _mailGun(emailSettings){
           html: emailSettings.template        
         }, function (err, info) {
           if (err) {
-            console.log(err);
+            
             deferred.reject(err);
           }else {
-            console.log(info);
+            
             deferred.resolve(info);
           }
         });

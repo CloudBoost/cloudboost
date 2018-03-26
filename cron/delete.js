@@ -44,9 +44,11 @@ function deleteFromQueue(message){
     try{
         global.queue.deleteMessage(global.keys.deleteQueue, message[0].messageid, message[0].popreceipt,function (err,res) {
             if(err){
-                console.log("Unable to delete");
-            }else
-                console.log("Done");
+                
+            }else{
+                
+            }
+                
         });
     } catch(err){           
         global.winston.log('error',{"error":String(err),"stack": new Error().stack});        

@@ -63,8 +63,8 @@ module.exports = function () {
                                 }
                             };
                     } catch (err) {
-                        console.log("+++++++++++++Error in ACL++++++++++++");
-                        console.log(err);
+                        
+                        
                         json.ACL = {
                             "read": {
                                 "allow": {
@@ -137,7 +137,7 @@ module.exports = function () {
                                             try {
                                                 obj['ACL'] = JSON.parse(element.data[i][j]);
                                             } catch (err) {
-                                                console.log("++++++++++Error in ACL++++++++");
+                                                
                                                 obj['ACL'] = {
                                                     "read": {
                                                         "allow": {
@@ -222,8 +222,8 @@ module.exports = function () {
                     });
                     deferred.resolve(xslJsonObj);
                 } catch (err) {
-                    console.log("+++++++++Error in Data+++++++++");
-                    console.log(err);
+                    
+                    
                     deferred.reject(err);
                 }
             });
@@ -301,12 +301,12 @@ module.exports = function () {
                         }
                         deferred.resolve(jSON.data);
                     } catch (error) {
-                        console.log(error);
+                        
                         deferred.reject(error);
                     }
                 } catch (err) {
-                    console.log("+++++++++++Error in Data+++++++++++")
-                    console.log(err);
+                    
+                    
                     deferred.reject(err);
                 }
 
@@ -510,7 +510,7 @@ function detectDataType(data, colProp) {
         try {
             data = JSON.parse(data);
         } catch (e) {
-            console.log(e)
+            
         }
     }
     if (colProp == "relatedTo") {

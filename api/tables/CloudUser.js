@@ -22,7 +22,7 @@ module.exports = function () {
      */
 
     global.app.post('/user/:appId/currentUser', function (req, res) { //for login
-        console.log("CURRENT USER API");
+        
 
         var appId = req.params.appId;
         var appKey = req.body.key || req.param('key');
@@ -61,7 +61,7 @@ module.exports = function () {
      */
 
     global.app.post('/user/:appId/login', function (req, res) { //for login
-        console.log("LOGIN API");
+        
         var appId = req.params.appId;
         var document = req.body.document; //document contains the credentials
         var appKey = req.body.key || req.param('key');
@@ -109,7 +109,7 @@ module.exports = function () {
 
     global.app.post('/user/:appId/loginwithprovider', function (req, res) {
 
-        console.log("LOGIN WITH PROVIDER");
+        
 
         var appId = req.params.appId;
         var appKey = req.body.key || req.param('key');
@@ -216,7 +216,7 @@ module.exports = function () {
      */
 
     global.app.post('/user/:appId/signup', function (req, res) { //for user registeration
-        console.log("SIGNUP API");
+        
         var appId = req.params.appId;
         var document = req.body.document;
         var appKey = req.body.key || req.param('key');
@@ -276,7 +276,7 @@ module.exports = function () {
             req.session.email = null;
             req.session.roles = null;
             global.sessionHelper.saveSession(req.session, function (err, reply) {
-                console.log(reply);
+                
             });
             res.json(req.body.document);
         } else {
@@ -353,7 +353,7 @@ module.exports = function () {
      */
 
     global.app.put('/user/:appId/addToRole', function (req, res) { //for assigning user to a role
-        console.log("ADD TO ROLE API");
+        
         var appId = req.params.appId;
         var user = req.body.user;
         var role = req.body.role;
@@ -372,7 +372,7 @@ module.exports = function () {
     });
 
     global.app.put('/user/:appId/removeFromRole', function (req, res, next) { //for removing role from the user
-        console.log("REMOVE FROM ROLE API");
+        
         var appId = req.params.appId;
         var user = req.body.user;
         var role = req.body.role;

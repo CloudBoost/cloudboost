@@ -41,7 +41,7 @@ module.exports = function() {
 			    global.customService.findOne(appId, collectionName, query, select, sort, skip, accessList, isMasterKey).then(function(document){
 			    	
 			    	if(document){
-			    		console.log("User found with provider:"+provider);
+			    		
 
 			    		for(var i=0;i<document.socialAuth.length;++i){
 			    			if(document.socialAuth[i].provider===provider && document.socialAuth[i].id===providerUserId){			    				
@@ -51,7 +51,7 @@ module.exports = function() {
 
 			    		document._modifiedColumns=["socialAuth"];
 			    	}else{
-			    		console.log("Creating User with new provider:"+provider);
+			    		
 
 			    		var document={};				    	
 				    	document._version=0;			    	

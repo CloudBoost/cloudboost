@@ -27,9 +27,9 @@ var job= new CronJob('00 00 22 * * *', function(){
                     query = {};
                     
                     collection.find(query).toArray().then(function (res) {
-                        console.log(res);
+                        
                         resp = res.length;
-                        console.log(resp);
+                        
                         for (var i = 0; i < resp; i++) {                            
                             var collectionName = res[i].name;
                             if(global.database && global.esClient) {
@@ -41,13 +41,13 @@ var job= new CronJob('00 00 22 * * *', function(){
                             }
                         }
                     },function(error) {
-                        console.log(error);
+                        
                     });
                 }
             }            
 
         },function(error){
-            console.log(error);
+            
         });        
 
     } catch(err){           
@@ -70,9 +70,9 @@ function removeFiles(appId,curr) {
                 promises.push(global.fileService.delete(appId, res[i], null, true));
             }
             global.q.all(promises).then(function(res){
-                console.log(res);
+                
             },function(err){
-                console.log(err);
+                
             });
         }, function () {
 
@@ -88,7 +88,7 @@ function mongodb(appId,collectionName,curr){
         var collection = global.mongoClient.db(appId).collection(collectionId);
         que = {"expires": {"$lt": curr,"$exists":true,"$ne":null}};
         collection.remove(que, function (err, number) {
-            console.log("removed =" + number);
+            
         });
     } catch(err){           
         global.winston.log('error',{"error":String(err),"stack": new Error().stack});               

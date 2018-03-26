@@ -22,12 +22,12 @@ module.exports = function() {
             global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
                 return global.customService.save(appId, "_File", document, customHelper.getAccessList(req), isMasterKey);
             }).then(function(result) {
-                console.log('+++ Save Success +++');
-                console.log(result);
+                
+                
                 res.status(200).send(result);
             }, function(error) {
-                console.log('++++++ Save Error +++++++');
-                console.log(error);
+                
+                
                 res.status(400).send(error);
             });
 
@@ -40,7 +40,7 @@ module.exports = function() {
                 }).then(function(file) {
                     return res.status(200).send(file);
                 }, function(err) {
-                    console.log(err, "++++++++++++++++++++++")
+                    
                     return res.status(500).send(err);
                 });
             });
@@ -54,8 +54,8 @@ module.exports = function() {
     global.app.put('/file/:appId/:fileId', _deleteFile);
 
     function _deleteFile(req, res) {
-        console.log("FILE DELETE");
-        console.log('+++++++++ In File Delete Service API ++++++++');
+        
+        
 
         var appId = req.params.appId;
         var fileObj = req.body.fileObj;
@@ -64,11 +64,11 @@ module.exports = function() {
         global.keys.fileUrl = global.keys.myURL + "/file/";
         global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
             global.fileService.delete(appId, fileObj, customHelper.getAccessList(req), isMasterKey).then(function(file) {
-                console.log("File successfully deleted.");
+                
                 return res.status(200).send(null);
             }, function(err) {
-                console.log("Error deletig file.");
-                console.log(err);
+                
+                
                 return res.status(500).send(err);
             });
         });
@@ -83,7 +83,7 @@ module.exports = function() {
 
 function _getFile(req, res) {
 
-    console.log('+++++++++ In get File Service API ++++++++');
+    
     var appId = req.params.appId;
     var fileId = req.params.fileId;
     var appKey = req.body.key;
@@ -127,7 +127,7 @@ function _getFile(req, res) {
                 fileStream.pipe(res);
 
             } else {
-                console.log('+++++ Proccesing Image ++++++++');
+                
                 global.fileService.processImage(appId, file, resizeWidth, resizeHeight, cropX, cropY, cropW, cropH, quality, opacity, scale, containWidth, containHeight, rDegs, bSigma).then(function(file) {
                     return res.status(200).send(file);
                 }, function(err) {

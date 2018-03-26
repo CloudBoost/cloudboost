@@ -71,7 +71,7 @@ module.exports = function() {
 
             }).then(function(user){
 
-                console.log(user);
+                
 
                 var provider="twitter";
                 var providerUserId=user.id;

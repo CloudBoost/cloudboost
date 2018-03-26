@@ -24,7 +24,6 @@ var slack = require('winston-bishop-slack').Slack;
 var util = require('util');
 
 var CLOUDBOOST_HOSTED = process.env["CLOUDBOOST_HOSTED"]
-console.log('IS CLOUDBOOST RUNNING ON AN HOSTED ENV - ' , CLOUDBOOST_HOSTED)
 
 global.keys = require('./database-connect/keys.js')();
 
@@ -85,7 +84,7 @@ var https = null;
 try {
     if (fs.statSync('./config/cert.crt').isFile() && fs.statSync('./config/key.key').isFile()) {
         //use https
-        console.log("Found HTTPS Certs, adding to https server.");
+        
         var httpsOptions = {
             key: fs.readFileSync('./config/key.key'),
             cert: fs.readFileSync('./config/cert.crt')
@@ -157,7 +156,7 @@ global.app.use(function(req, res, next) {
 //This middleware converts text to JSON.
 global.app.use(function(req, res, next) {
     try {
-        console.log("Middleware to convert text to JSON");
+        
         if (req.text && _isJSON(req.text)) {
             req.body = JSON.parse(req.text);
         }
@@ -166,7 +165,7 @@ global.app.use(function(req, res, next) {
             req.body = JSON.parse(req.body);
         }
 
-        console.log("Middleware to converted text to JSON successfully..");
+        
 
         //INVALIDATE CACHE FOR API
         res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1.
@@ -196,13 +195,13 @@ global.app.use([
 
     try {
 
-        console.log("This is the Middleware for authenticating the app access using appID and key");
+        
 
         if (!global.customService || !global.serverService || !global.mongoService || !global.userService || !global.roleService || !global.appService || !global.fileService) {
             return res.status(400).send("Services Not Loaded");
         }
 
-        console.log('Checking if API Key is valid...');
+        
 
         if (req.text && _isJSON(req.text)) {
             req.body = JSON.parse(req.text);
@@ -223,7 +222,7 @@ global.app.use([
             if (!appKey) {
                 return res.status(401).send({status: 'error', message: "Key not found. You need to have your Client Key or Master Key in the body or url parameter 'key' when you make this request"});
             } else {
-                console.log("check if app is in the plan");
+                
                 //check if app is in the plan.
                 var promises = [];
                 promises.push(global.apiTracker.isInPlanLimit(appId));
@@ -264,26 +263,26 @@ global.app.use(function(req, res, next) {
 
     try {
         // Middleware for retrieving sessions
-        console.log('Session Middleware');
+        
 
         res.header('Access-Control-Expose-Headers', 'sessionID');
 
         if (req.headers.sessionid) {
-            console.log('Session Found.');
+            
             res.header('sessionID', req.headers.sessionid);
             global.sessionHelper.getSession(req.headers.sessionid, function(err, session) {
                 if (!err) {
                     req.session = session;
                     next();
                 } else {
-                    console.log(err);
+                    
                     req.session = {};
                     req.session.id = req.header.sessionid;
                     next();
                 }
             });
         } else {
-            console.log('No Session Found. Creating a new session.');
+            
             _setSession(req, res);
             next();
         }
@@ -300,9 +299,9 @@ global.app.use(function(req, res, next) {
 //Attach services -
 function attachServices() {
     try {
-        console.log("Attach services...");
+        
         if (!global.mongoClient) {
-            console.log("Error : Could Not Attach Services Mongo DB not loaded.");
+            
             return;
         }
 
@@ -340,9 +339,9 @@ function attachServices() {
 function attachAPI() {
 
     try {
-        console.log("Attach API's");
+        
         if (!global.mongoClient || !global.customService || !global.mongoService || !global.userService || !global.roleService || !global.appService || !global.fileService) {
-            console.log("Failed to attach API's because services not loaded properly.");
+            
             return;
         }
 
@@ -392,7 +391,7 @@ function ignoreUrl(requestUrl) {
 
     try {
 
-        console.log("Adding Ingnore URLS....");
+        
         var ignoreUrl = [ //for the routes to check whether the particular service is active/not
         "/api/userService",
         "/api/customService",
@@ -427,13 +426,13 @@ Routes:
 */
 
 app.get('/', function(req, res) {
-    console.log('INDEX PAGE RETURNED.');
+    
     res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify({status: 200, version: pjson.version, message: "This is CloudBoost API. If you're looking for the dashboard. It should be running on port 1440."}));
 });
 
 app.get('/getFile/:filename', function(req, res) { //for getting any file from resources/
-    console.log("Getting any file from resources");
+    
     res.sendFile("resources/" + req.params.filename, {root: __dirname});
 });
 
@@ -459,26 +458,26 @@ http.listen(app.get('port'), function() {
                 global.config = null;
             }
 
-            console.log("Server Init...");
-            console.log("Data Connections Init...");
+            
+            
             addConnections();
-            console.log("Services Init...");
+            
             servicesKickstart();
 
         }, function(error) {
 
             global.config = null;
 
-            console.log("Server Init...");
-            console.log("Data Connections Init...");
+            
+            
             addConnections();
-            console.log("Services Init...");
+            
             servicesKickstart();
         });
 
     } catch (e) {
-        console.log("ERROR : Server init error.");
-        console.log(e);
+        
+        
         global.winston.log('error', e);
     }
 });
@@ -486,7 +485,7 @@ http.listen(app.get('port'), function() {
 // run https only if running in hosted env and certs are found
 if (https && CLOUDBOOST_HOSTED) {
     https.listen(4731, function() {
-        console.log("HTTPS Server started.");
+        
     });
 }
 
@@ -502,10 +501,10 @@ function addConnections() {
 
 function setUpAnalytics() {
     try {
-        console.log("Setting up Analytics...");
+        
         if (process.env["CLOUDBOOST_ANALYTICS_SERVICE_HOST"] || process.env["CLOUDBOOST_ANALYTICS_STAGING_SERVICE_HOST"]) {
             //this is running on Kubernetes
-            console.log("CloudBoost Analytics is running on Kubernetes");
+            
 
             if(process.env["IS_STAGING"]){
                 if (process.env["CLOUDBOOST_ANALYTICS_STAGING_SERVICE_HOST"]) {
@@ -514,12 +513,12 @@ function setUpAnalytics() {
             } else {
                 global.keys.analyticsUrl = "http://" + process.env["CLOUDBOOST_ANALYTICS_SERVICE_HOST"];
             }
-            console.log(global.keys.analyticsUrl);
+            
             
         } else {
-            console.log("Analytics URL : ");
+            
             global.keys.analyticsUrl = "http://localhost:5555"
-            console.log(global.keys.analyticsUrl);
+            
         }
     } catch (err) {
         global.winston.log('error', {
@@ -532,7 +531,7 @@ function setUpAnalytics() {
 function setUpRedis() {
 
     try {
-        console.log("Setting up Redis...");
+        
         //Set up Redis.
         if (!global.config && !process.env["REDIS_1_PORT_6379_TCP_ADDR"] && !process.env["REDIS_SENTINEL_SERVICE_HOST"] && !process.env["REDIS_PORT_6379_TCP_ADDR"]) {
             console.error("FATAL : Redis Cluster Not found. Use docker-compose from https://github.com/cloudboost/docker or Kubernetes from https://github.com/cloudboost/kubernetes");
@@ -558,11 +557,11 @@ function setUpRedis() {
 
         } else {
 
-            console.log("Setting up Redis with no config....");
+            
 
             if (process.env["REDIS_SENTINEL_SERVICE_HOST"] || process.env["KUBERNETES_STATEFUL_REDIS_URL"]) {
                 //this is running on Kubernetes
-                console.log("Redis is running on Kubernetes.");
+                
 
                 if (process.env["KUBERNETES_STATEFUL_REDIS_URL"]) {
 
@@ -589,7 +588,7 @@ function setUpRedis() {
 
             } else {
                 //take from env variables.
-                console.log("Setting up Redis take from env variables");
+                
                 var i = 1;
 
                 if (process.env["REDIS_PORT_6379_TCP_ADDR"] && process.env["REDIS_PORT_6379_TCP_PORT"]) {
@@ -633,14 +632,14 @@ function setUpRedis() {
         if (isCluster) {
             global.redisClient = new Redis.Cluster(hosts);
 
-            console.log("Setting up IO adapter");
+            
             io.adapter(ioRedisAdapter({pubClient: new Redis.Cluster(hosts), subClient: new Redis.Cluster(hosts)}));
 
         } else {
 
             global.redisClient = new Redis(hosts[0]);
 
-            console.log("Setting up IO adapter");
+            
             io.adapter(ioRedisAdapter({host: hosts[0].host, port: hosts[0].port}));
         }
 
@@ -659,7 +658,7 @@ function setUpMongoDB() {
 
     try {
 
-        console.log("Looking for a MongoDB Cluster...");
+        
 
         if ((!global.config && !process.env["MONGO_1_PORT_27017_TCP_ADDR"] && !process.env["KUBERNETES_STATEFUL_MONGO_URL"])) {
             console.error("INFO : Not running on Docker. Use docker-compose (recommended) from https://github.com/cloudboost/docker");
@@ -679,7 +678,7 @@ function setUpMongoDB() {
                 mongoConnectionString += global.config.mongo[0].username + ":" + global.config.mongo[0].password + "@";
             }
 
-            console.log("Setting up MongoDB from config.....");
+            
 
             if (global.config.mongo.length > 1) {
                 isReplicaSet = true;
@@ -698,7 +697,7 @@ function setUpMongoDB() {
             global.config.mongo = [];
 
             if (process.env["KUBERNETES_STATEFUL_MONGO_URL"]) {
-                console.log("MongoDB is running on Kubernetes");
+                
                 
                 global.config.mongo = process.env["KUBERNETES_STATEFUL_MONGO_URL"].split(',').map(function(x,i){
                     return {
@@ -723,7 +722,7 @@ function setUpMongoDB() {
                 } else {
 
                     while (process.env["MONGO_" + i + "_PORT_27017_TCP_ADDR"] && process.env["MONGO_" + i + "_PORT_27017_TCP_PORT"]) {
-                        console.log("Setting up MongoDB from  process.env....");
+                        
                         if (i > 1) {
                             isReplicaSet = true;
                         }
@@ -755,10 +754,10 @@ function setUpMongoDB() {
         mongoConnectionString += "/"; //de limitter.
         global.keys.mongoConnectionString = mongoConnectionString;
 
-        console.log("MongoDb connection string:" + global.keys.mongoConnectionString);
+        
 
         if (isReplicaSet) {
-            console.log("MongoDB is in ReplicaSet");
+            
             var str = "?replicaSet=cloudboost";
             global.keys.mongoConnectionString += str;
         }
@@ -774,7 +773,7 @@ function setUpMongoDB() {
 //to kickstart database services
 function servicesKickstart() {
     try {
-        console.log("Kickstart database services..");
+        
 
         var db = require('./database-connect/mongoConnect.js')().connect();
         db.then(function(db) {
@@ -782,10 +781,11 @@ function servicesKickstart() {
                 global.mongoClient = db;
                 //Init Secure key for this cluster. Secure key is used for Encryption / Creating apps , etc.
                 global.keyService.initSecureKey().then(function(key) {
-                    console.log("Registering Cluster...");
+                    console.log("Secure Key: "+key);
+                    console.log("IMPORTANT: Pleae keep Secure Key private. Revealing it would make your server vulnerable.");
                     global.serverService.registerServer(key);
                 }, function(error) {
-                    console.log("Failed to register the cluster.");
+                    console.log("Failed to initialize Secure Key. Please check if MongoDB is connected and restart server.");
                 });
                 //Cluster Key is used to differentiate which cluster is the request coming from in Analytics.
                 global.keyService.initClusterKey();
@@ -795,15 +795,15 @@ function servicesKickstart() {
                     attachDbDisconnectApi();
                 attachCronJobs();
             } catch (e) {
-                console.log(e);
+                
                 global.winston.log('error', {
                     "error": String(e),
                     "stack": new Error().stack
                 });
             }
         }, function(err) {
-            console.log("Cannot connect to MongoDB.");
-            console.log(err);
+            
+            
             // exit server if connection to mongo was not made
             process.exit(1)
         });
@@ -818,7 +818,6 @@ function servicesKickstart() {
 
 function attachDbDisconnectApi() {
     try {
-        console.log("attachDbDisconnectApi..");
         require('./api/db/mongo.js')();
     } catch (err) {
         global.winston.log('error', {
@@ -830,7 +829,6 @@ function attachDbDisconnectApi() {
 
 function attachCronJobs() {
     try {
-        console.log("attachCronJobs..");
         require('./cron/expire.js');
         app.use(function(req,res,next){
 
@@ -847,13 +845,13 @@ function attachCronJobs() {
 
 function _setSession(req, res) {
     try {
-        console.log("_setSession..");
+        
         if (!req.session) {
             req.session = {};
             req.session.id = global.uuid.v1();
         }
 
-        console.log('Attaching a session to the header ' + req.session.id);
+        
         res.header('sessionID', req.session.id);
 
         var obj = {
@@ -885,7 +883,7 @@ function _checkFileExists(filePath) {
 
         fs.readFile(filePath, function(err, data) {
             if (err) {
-                console.log(err);
+                
                 return deferred.reject(err);
             }
             deferred.resolve(data);

@@ -123,7 +123,7 @@ module.exports = function() {
 
         save: function(appId, collectionName, document, accessList, isMasterKey, opts, encryption_key) {
 
-            console.log("In Custom Save function");
+            
             var deferred = global.q.defer();
 
             try {
@@ -135,7 +135,7 @@ module.exports = function() {
                     for (var i = 0; i < document.length; i++) {
                         document[i] = _checkIdList(document[i], reqType);
                         _generateId(document[i], reqType);
-                        console.log('Saving document...');
+                        
                         promises.push(_save(appId, collectionName, document[i], accessList, isMasterKey, reqType, opts, encryption_key));
                     }
                     global.q.allSettled(promises).then(function(res) {
@@ -160,7 +160,7 @@ module.exports = function() {
                         }
                     });
                 } else {
-                    console.log('Saving document...');
+                    
                     _save(appId, collectionName, document, accessList, isMasterKey, null, opts, encryption_key).then(function(res) {
                         deferred.resolve(res);
                     }, function(err) {
@@ -252,8 +252,8 @@ function _save(appId, collectionName, document, accessList, isMasterKey, reqType
 
     var deferred = q.defer();
     try {
-        console.log("DOCUMENT TO SAVE :");
-        console.log(document)
+        
+        
         var docToSave = document;
 
         var promises = [];
@@ -272,16 +272,16 @@ function _save(appId, collectionName, document, accessList, isMasterKey, reqType
             document = _generateId(document, reqType);
         }
         var parentId = document._id;
-        console.log("Id Generated");
+        
         document = _getModifiedDocs(document, unModDoc);
         if (document && Object.keys(document).length > 0) {
             customHelper.checkWriteAclAndUpdateVersion(appId, document, accessList, isMasterKey).then(function(listOfDocs) {
                 var obj = _seperateDocs(listOfDocs);
                 listOfDocs = obj.newDoc;
                 obj = obj.oldDoc;
-                console.log("ACL checked");
+                
                 _validateSchema(appId, listOfDocs, accessList, isMasterKey, encryption_key).then(function(listOfDocs) {
-                    console.log("Schema checked");
+                    
 
 
                     var mongoDocs = listOfDocs.map(function(doc){
@@ -293,8 +293,8 @@ function _save(appId, collectionName, document, accessList, isMasterKey, reqType
                         if (array[0].state === 'fulfilled') {
                             _sendNotification(appId, array[0], reqType);
                             unModDoc = _merge(parentId, array[0].value, unModDoc);
-                            console.log('SAVED Doc');
-                            console.log(unModDoc);
+                            
+                            
                             deferred.resolve(unModDoc);
                         } else {
                             _rollBack(appId, array, listOfDocs, obj).then(function(res) {
@@ -313,8 +313,8 @@ function _save(appId, collectionName, document, accessList, isMasterKey, reqType
                 deferred.reject("Unauthorized to modify");
             });
         } else {
-            console.log('SAVED Doc - Part B');
-            console.log(docToSave);
+            
+            
             deferred.resolve(docToSave);
         }
 
@@ -450,12 +450,20 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                     document[columns[i].name] = null;
                 }
 
+                //if column datatype is bool, and data is  null, change data to false by default. 
+                if(columns[i].dataType === "Boolean" && !document[columns[i].name]){
+                    document[columns[i].name] = false;
+                }
+
                 if (columns[i].required) {
                     if (document[columns[i].name] === null || document[columns[i].name] === undefined) {
                         mainPromise.reject(columns[i].name + ' is required');
                         return mainPromise.promise;
                     }
                 }
+
+                
+
 
                 //Is Editable only by master key is true?
                 if (columns[i].editableByMasterKey && modifiedDocuments.indexOf(columns[i].name) > -1) {
@@ -494,22 +502,21 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                         temp[columns[i].name] = document[columns[i].name];
                     }
                     query.$or.push(temp);
-                    console.log('OR Query');
-                    console.log(query);
+                    
+                    
                 }
             }
             if (query.$or.length > 0) {
                 var findPromise = q.defer();
                 promises.push(findPromise.promise);
                 global.mongoService.document.find(appId, collectionName, query, null, null, 9999999, 0, null, true).then(function(res) {
-                    console.log('Unique Result');
-                    console.log(res);
+                    
                     if (res.length === 1 && res[0]._id === document._id) {
                         findPromise.resolve('Update the document');
                     } else if (res.length > 0) {
                         findPromise.reject('Unique constraint violated.');
                     } else {
-                        findPromise.resolve('save the document');
+                        findPromise.resolve('Save the document');
                     }
                 }, function(error) {
                     findPromise.reject(error);
@@ -667,7 +674,7 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                         createNewColumnPromise.reject("Error : Failed to update the table with the new column. ");
                     } else if (table) {
                         createNewColumnPromise.resolve();
-                        console.log("Column " + key + " created.");
+                        
                     }
                 })
 
@@ -1351,7 +1358,7 @@ function _encrypt(data, encryption_key) {
         if(encryption_key && encryption_key.iv && encryption_key.key){
             // to decrypt text use this
             // var encryptedText = encryptText(cipher_alg, encryption_key.key, encryption_key.iv, data);
-            // console.log(decryptText(cipher_alg, encryption_key.key, encryption_key.iv, encryptedText));
+            // 
             return encryptText(cipher_alg, encryption_key.key, encryption_key.iv, data);
         } else {
             return crypto.pbkdf2Sync(data, global.keys.secureKey, 10000, 64, 'sha1').toString('base64');

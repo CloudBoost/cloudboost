@@ -10,44 +10,44 @@ module.exports = function () {
     //create a new app.
     global.app.post('/app/:appId', function (req, res) {
 
-        console.log("++++ Create App API ++++++");
+        
 
         try {
-            console.log("SecureKey to create app:" + req.body.secureKey);
+            
 
             var appId = req.params.appId;
-            console.log("App ID : " + appId);
+            
 
             var sdk = req.body.sdk || "REST";
 
             if (global.keys.secureKey === req.body.secureKey) {
-                console.log("Secure Key Valid. Creating app...");
+                
                 global.appService.createApp(appId).then(function (app) {
 
                     global.appService.createDefaultTables(appId).then(function () {
-                        console.log("Success : App Successfully Created.");
+                        
                         delete app.keys.encryption_key;
                         res.status(200).send(app);
                     }, function (err) {
-                        console.log("Error : Cannot create an app.");
-                        console.log(err);
+                        
+                        
                         res.status(500).send(err);
                     });
 
                 }, function (err) {
-                    console.log("Error : Cannot create an app.");
-                    console.log(err);
+                    
+                    
                     res.status(500).send(err);
                 });
             } else {
-                console.log("Unauthorized: Invalid Secure Key ");
+                
                 res.status(401).send("Unauthorized");
             }
 
             global.apiTracker.log(appId, "App / Create", req.url, sdk);
 
         } catch (e) {
-            console.log(e);
+            
         }
     });
 
@@ -56,24 +56,24 @@ module.exports = function () {
     global.app.put('/app/:appId', _deleteApp);
 
     function _deleteApp(req, res) { //delete the app and all of its data.
-        console.log('+++++++++++++ APP DELETE HANDLER +++++++++++');
+        
         var appId = req.params.appId;
         var sdk = req.body.sdk || "REST";
 
         var body = req.body || {};
         var deleteReason = body.deleteReason;
         if (global.keys.secureKey === body.secureKey) {
-            console.log("Authorized");
+            
             //delete all code here.
             global.appService.deleteApp(appId, deleteReason).then(function () {
-                console.log("App deleted");
+                
                 return res.status(200).send({ status: 'Success' });
             }, function () {
-                console.log("Internal Server Error");
+                
                 return res.status(500).send({ status: 'Error' });
             });
         } else {
-            console.log("Unauthorized");
+            
             return res.status(401).send({ status: 'Unauthorized' });
         }
 
@@ -88,7 +88,7 @@ module.exports = function () {
 
         try {
             //this method is to delete a particular collection from an global.app.
-            console.log('++++++ Table Delete API+++++++');
+            
             var appId = req.params.appId;
             var tableName = req.params.tableName;
             var sdk = req.body.sdk || "REST";
@@ -101,8 +101,8 @@ module.exports = function () {
                     global.appService.deleteTable(appId, tableName).then(function (table) {
                         res.status(200).send(table);
                     }, function (error) {
-                        console.log("Table Delete Error");
-                        console.log(error);
+                        
+                        
                         res.status(500).send('Cannot delete table at this point in time. Please try again later.');
                     });
                 } else return res.status(401).send({ status: 'Unauthorized' });
@@ -111,8 +111,8 @@ module.exports = function () {
             })
 
         } catch (e) {
-            console.log("Delete Table Error");
-            console.log(e);
+            
+            
             return res.status(500).send('Cannot delete table.');
         }
 
@@ -122,7 +122,7 @@ module.exports = function () {
     //create a table.
     global.app.put('/app/:appId/:tableName', function (req, res) {
 
-        console.log("Create or Delete table Api...");
+        
 
         if (req.body && req.body.method == "DELETE") {
             /***************************DELETE******************************/
@@ -131,7 +131,7 @@ module.exports = function () {
         } else {
 
             /***************************UPDATE******************************/
-            console.log('++++++++ UPDATE TABLE API +++++++++');
+            
             var appId = req.params.appId;
             var tableName = req.params.tableName;
             var body = req.body || {};
@@ -171,7 +171,7 @@ module.exports = function () {
     global.app.get('/app/:appId/:tableName', _getTable);
 
     function _getTable(req, res) {
-        console.log('++++++++ GET TABLE API +++++++++');
+        
 
         var appId = req.params.appId;
         var tableName = req.params.tableName;
@@ -214,7 +214,7 @@ module.exports = function () {
 
     //Export Database for :appID
     global.app.post('/backup/:appId/exportdb', function (req, res) {
-        console.log("++++ Export Database ++++++");
+        
         try {
             var appKey = req.body.key;
             var appId = req.params.appId;
@@ -229,8 +229,8 @@ module.exports = function () {
                         });
                         res.end(JSON.stringify(data));
                     }, function (err) {
-                        console.log("Error : Exporting Database.");
-                        console.log(err);
+                        
+                        
                         res.status(500).send("Error");
                     });
                 } else {
@@ -240,13 +240,13 @@ module.exports = function () {
                 return res.status(500).send('Cannot retrieve security keys.');
             });
         } catch (e) {
-            console.log(e);
+            
         }
     });
 
     //Import Database for :appID
     global.app.post('/backup/:appId/importdb', function (req, res) {
-        console.log("++++ Import Database ++++++");
+        
         try {
             var appKey = req.body.key;
             var appId = req.params.appId;
@@ -264,8 +264,8 @@ module.exports = function () {
                                 res.status(500).json({ success: false });
                             }
                         }, function (err) {
-                            console.log("Error : Exporting Database.");
-                            console.log(err);
+                            
+                            
                             res.status(500).send("Error");
                         });
                     }
@@ -276,13 +276,13 @@ module.exports = function () {
                 return res.status(500).send('Cannot retrieve security keys.');
             });
         } catch (e) {
-            console.log(e);
+            
         }
     });
 
     //Export Table for :appID
     global.app.post('/export/:appId/:tableName', function (req, res) {
-        console.log("++++ Export Table ++++++");
+        
         try {
             var appKey = req.body.key;
             var appId = req.params.appId;
@@ -308,8 +308,8 @@ module.exports = function () {
                         res.status(200).json(data);
                     } else { res.status(200).send(data); }
                 }, function (err) {
-                    console.log("Error : Exporting Table.");
-                    console.log(err);
+                    
+                    
                     res.status(500).send(err);
                 });
             }, function (error) {
@@ -317,13 +317,13 @@ module.exports = function () {
             });
 
         } catch (e) {
-            console.log(e);
+            
         }
     });
 
     //Import Table for :appID
     global.app.post('/import/:appId', function (req, res, next) {
-        console.log("++++ Import Table ++++++");
+        
         try {
             var appKey = req.body.key;
             var appId = req.params.appId;
@@ -357,7 +357,7 @@ module.exports = function () {
                 return res.status(500).send('Cannot retrieve security keys.');
             });
         } catch (e) {
-            console.log(e);
+            
         }
     });
 };

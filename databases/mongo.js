@@ -162,12 +162,12 @@ module.exports = function() {
                         deferred.resolve(docs);
                     }, function(error) {
                         global.winston.log('error', error);
-                        console.log(error);
+                        
                         deferred.reject(error);
                     });
                 }, function(error) {
                     global.winston.log('error', error);
-                    console.log(error);
+                    
                     deferred.reject();
                 });
 
@@ -216,7 +216,7 @@ module.exports = function() {
 
         find: function(appId, collectionName, query, select, sort, limit, skip, accessList, isMasterKey) {
 
-            console.log('++++++ In find ++++++');
+            
             var deferred = q.defer();
             try {
 
@@ -225,7 +225,7 @@ module.exports = function() {
                     return deferred.promise;
                 }
 
-                console.log(query);
+                
                 var collection = global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));
                 var include = [];
                 /*query for expires*/
@@ -349,8 +349,8 @@ module.exports = function() {
 
                 //check for include.
                 if (query.$include) {
-                    console.log('Include : ');
-                    console.log(query.$include);
+                    
+                    
                     if (query.$include.length > 0) {
                         include = include.concat(query.$include);
                     }
@@ -376,7 +376,7 @@ module.exports = function() {
 
                 findQuery.toArray(function(err, docs) {
                     if (err) {
-                        console.log('error', err);
+                        
                         deferred.reject(err);
                     } else {
                         if (!include || include.length === 0) {
@@ -386,7 +386,7 @@ module.exports = function() {
                             obj.document._include(appId, include, docs).then(function(docs) {
                                 deferred.resolve(docs);
                             }, function(error) {
-                                console.log('error', error);
+                                
                                 deferred.reject(error);
                             });
                         }
@@ -449,7 +449,7 @@ module.exports = function() {
                 }
 
                 var promises = [];
-                console.log('++++++++ MongoDB Database Save ++++++++');
+                
                 for (var i = 0; i < documentArray.length; i++) {
                     promises.push(_save(appId, documentArray[i].document._tableName, documentArray[i].document));
                 }
@@ -481,11 +481,11 @@ module.exports = function() {
                     return deferred.promise;
                 }
 
-                console.log('Creatign a MongoDB collection object.');
+                
 
                 var collection = global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));
 
-                console.log('Collection Object Created.');
+                
 
                 var documentId = document._id;
 
@@ -500,7 +500,7 @@ module.exports = function() {
                         global.winston.log('error', err);
                         deferred.reject(err);
                     } else if (list) {
-                        console.log('++++ Object Updated +++');
+                        
                         deferred.resolve(document);
                     }
 
@@ -791,8 +791,8 @@ module.exports = function() {
                     } else {
                         //elastic search code.
                         document = doc;
-                        console.log('++++ Object Inserted +++');
-                        console.log(document);
+                        
+                        
                         deferred.resolve(document);
                     }
 
@@ -1025,13 +1025,13 @@ module.exports = function() {
 
                 writestream.on('close', function(file) {
                     deferred.resolve(file);
-                    console.log("Successfully saved in gridfs");
+                    
                 });
 
                 writestream.on('error', function(error) {
                     deferred.reject(error);
                     writestream.destroy();
-                    console.log("Failed to saved in gridfs");
+                    
                 });
 
             } catch (err) {
@@ -1077,7 +1077,7 @@ module.exports = function() {
     function _save(appId, collectionName, document) {
         var deferredMain = q.defer();
         try {
-            console.log('In MongoDB provate save function.');
+            
             if (document._isModified) {
                 delete document._isModified;
             }
@@ -1088,7 +1088,7 @@ module.exports = function() {
             //column key array to track sub documents.
             var columns = [];
             global.mongoService.document._update(appId, collectionName, document).then(function(doc) {
-                console.log('Document updated.');
+                
                 doc = _deserialize(doc);
                 deferredMain.resolve(doc);
             }, function(err) {

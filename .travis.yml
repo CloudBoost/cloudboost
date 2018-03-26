@@ -29,12 +29,9 @@ install:
 - docker run --name cloudboost -e  MAIL_PROVIDER=$MAIL_PROVIDER -e  MAIL_PROVIDER_API_KEY=$MAIL_PROVIDER_API_KEY -e  DOMAIN=$DOMAIN -e  FROM_EMAIL=$FROM_EMAIL -e  FROM_NAME=$FROM_NAME -p 4730:4730 -it --link redis:redis --link mongo:mongo -d cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER
 - sleep 30s
 - docker logs cloudboost
-- git clone https://github.com/cloudboost/javascriptsdk
-- cd javascriptsdk
-- npm install
+- webpack
 - grunt
 - npm test
-- cd ..
 after_success:
 - if [ "$TRAVIS_BRANCH" == "staging" ]; then
     docker login --username $DOCKERUSERNAME --password $DOCKERPASSWORD;
@@ -72,10 +69,20 @@ after_deploy:
   mkdir ~/.kube;
   mv config ~/.kube/;
   kubectl rolling-update cloudboost-api --image=cloudboost/cloudboost:latest --image-pull-policy=Always;
+   # publish to npm
+  cd sdk
+  npm install
+  npm set init.author.name $NPM_USERNAME
+  npm set init.author.email $NPM_EMAIL
+  npm set init.author.url "https://cloudboost.io"
+  npm --no-git-tag-version version 2.0.$TRAVIS_BUILD_NUMBER --force
+  echo -e "$NPM_USERNAME\n$NPM_PASSWORD\n$NPM_EMAIL" | npm login
+  sleep 10s
+  npm publish
   fi
 branches:
   except:
     - /^*-v[0-9]/
 #Notify Team on Slack
 notifications:
-  slack: cloudboost:gm7nWJDLDtBRyF75VKLKOoMW
+  slack: hackerbaycompany:gm7nWJDLDtBRyF75VKLKOoMW
