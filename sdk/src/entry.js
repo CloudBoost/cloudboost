@@ -1,6 +1,6 @@
 ///<reference path="./cloudboost.d.ts" />
 
-import CB from './CB'
+import CB from './CB';
 
 try {
     if (window) {

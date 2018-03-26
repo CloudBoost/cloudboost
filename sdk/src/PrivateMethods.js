@@ -1,7 +1,10 @@
 import CB from './CB'
-if (CB._isNode) {
+
+if (typeof localStorage === "undefined" || localStorage === null) {
     var localStorage = require('localStorage')
 }
+
+
 
 /* PRIVATE METHODS */
 CB.toJSON = function(thisObj) {

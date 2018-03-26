@@ -6456,7 +6456,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	if (_CB2.default._isNode) {
+	if (typeof localStorage === "undefined" || localStorage === null) {
 	    var localStorage = __webpack_require__(42);
 	}
 
