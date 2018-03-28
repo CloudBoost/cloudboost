@@ -69,7 +69,7 @@ describe("CloudUser", function () {
         var oldPassword = passwd;
 
         var obj = new CB.CloudUser();
-        obj.set('username', username + "1");
+        obj.set('username', username + "123");
         obj.set('password', oldPassword);
         obj.set('email', util.makeEmail());
         obj.signUp().then(function (list) {
@@ -78,10 +78,11 @@ describe("CloudUser", function () {
                     success: function (user) {
                         CB.CloudUser.current.logOut({
                             success: function () {
-                                CB.CloudUser.logIn(username + "1", 'newPassword', {
+                              obj.set('password','newPassword');
+                               obj.logIn( {
                                     success: function () {
                                         done();
-                                    }, error: function () {
+                                    }, error: function (err) {
                                         done("Error signing in.")
                                     }
                                 });

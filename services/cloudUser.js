@@ -102,9 +102,9 @@ module.exports = function() {
 					}
 					if (encryptedPassword === user.password) { //authenticate user.
 						if(encryption_key && encryption_key.iv && encryption_key.key){
-							user.password = encryptText(cipher_alg, encryption_key.key, encryption_key.iv, oldPassword);
+							user.password = encryptText(cipher_alg, encryption_key.key, encryption_key.iv, newPassword);
 						} else {
-							user.password = crypto.pbkdf2Sync(oldPassword, global.keys.secureKey, 10000, 64, 'sha1').toString('base64');
+							user.password = crypto.pbkdf2Sync(newPassword, global.keys.secureKey, 10000, 64, 'sha1').toString('base64');
 						}
 					    global.mongoService.document.save(appId,  [{document:user}]).then(function(document) {
 	                        deferred.resolve(user); //returns no. of items matched
