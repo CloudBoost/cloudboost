@@ -59,6 +59,13 @@ describe("CloudUser", function () {
     });
 
     it('Should save a CloudUser and then login', function(done){
+
+
+        if (CB._isNode) {
+            done();
+            return;
+        }
+
         this.timeout(50000);
 
         var user = new CB.CloudUser();
