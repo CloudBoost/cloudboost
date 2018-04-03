@@ -35,7 +35,7 @@ module.exports = function() {
 					} else {
 						encryptedPassword = crypto.pbkdf2Sync(password, global.keys.secureKey, 10000, 64, 'sha1').toString('base64');
 					}
-					if (encryptedPassword === user.password) { //authenticate user.
+					if (encryptedPassword === user.password) {
 						isAuthenticatedUser=true;
 					} 
 

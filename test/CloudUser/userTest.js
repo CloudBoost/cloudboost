@@ -58,6 +58,25 @@ describe("CloudUser", function () {
 
     });
 
+    it('Should save a CloudUser and then login', function(done){
+        this.timeout(50000);
+
+        var user = new CB.CloudUser();
+        user.set('username', 'randomUsername');
+        user.set('password', 'password');
+        user.set('email', 'random-email@email.com');
+        user.save().then(function(){
+            user.logIn().then(function(){
+                done();
+            }, function(error){
+                done("Cannot sign up")
+            });
+        }, function(error){
+            done("Cannot save a user.")
+        })
+
+    });
+
     it("Should create new user, change the password and log in.", function (done) {
         if (CB._isNode) {
             done();

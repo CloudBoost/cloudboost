@@ -782,7 +782,7 @@ function servicesKickstart() {
                 //Init Secure key for this cluster. Secure key is used for Encryption / Creating apps , etc.
                 global.keyService.initSecureKey().then(function(key) {
                     console.log("Secure Key: "+key);
-                    console.log("IMPORTANT: Pleae keep Secure Key private. Revealing it would make your server vulnerable.");
+                    console.log("IMPORTANT: Please keep Secure Key private. Revealing it would make your server vulnerable.");
                     global.serverService.registerServer(key);
                 }, function(error) {
                     console.log("Failed to initialize Secure Key. Please check if MongoDB is connected and restart server.");

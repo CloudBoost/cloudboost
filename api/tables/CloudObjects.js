@@ -29,7 +29,11 @@ module.exports = function() {
                 table_event = "Create"
             }
             global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
-                return global.customService.save(appId, collectionName, document, customHelper.getAccessList(req), isMasterKey);
+                global.appService.getApp(appId).then(function (application) {
+                    return global.customService.save(appId, collectionName, document, customHelper.getAccessList(req), isMasterKey, null, application.keys.encryption_key);
+                }, function(){
+                    return res.status(400).send("App not found.");
+                });
             }).then(function(result) {
                 
                 
