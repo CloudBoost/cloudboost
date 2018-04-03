@@ -1328,13 +1328,16 @@ function _modifyFieldsInQuery(appId, collectionName, query) {
                 if (passwordColumnNames.length === 0 && dateTimeColumnNames === 0) {
                     deferred.resolve(query);
                 } else {
-                    //or modify the query and resolve it.
-                    if (passwordColumnNames.length)
-                        query = _recursiveModifyQuery(query, passwordColumnNames, 'encrypt');
-                    if (dateTimeColumnNames.length)
-                        query = _recursiveModifyQuery(query, dateTimeColumnNames, 'datetime');
-
-                    deferred.resolve(query);
+                    global.appService.getApp(appId).then(function (application) {
+                        //or modify the query and resolve it.
+                        if (passwordColumnNames.length)
+                            query = _recursiveModifyQuery(query, passwordColumnNames, 'encrypt',application.keys.encryption_key);
+                        if (dateTimeColumnNames.length)
+                            query = _recursiveModifyQuery(query, dateTimeColumnNames, 'datetime',application.keys.encryption_key);
+                        deferred.resolve(query);
+                    }), function(){
+                        deferred.reject("Cannot find an app wiht AppID "+appId);
+                    };
                 }
             }, function(error) {
                 deferred.reject(error);
@@ -1372,12 +1375,15 @@ function _encrypt(data, encryption_key) {
     }
 }
 
-function _recursiveModifyQuery(query, columnNames, type) {
+function _recursiveModifyQuery(query, columnNames, type, encryptionKey) {
+
+
+
 
     for (var key in query) {
         if (key === '$or') {
             for (var i = 0; i < query[key].length; i++) {
-                query[key][i] = _recursiveModifyQuery(query[key][i], columnNames, type);
+                query[key][i] = _recursiveModifyQuery(query[key][i], columnNames, type, encryptionKey);
             }
         }
     }
@@ -1385,7 +1391,7 @@ function _recursiveModifyQuery(query, columnNames, type) {
         if (columnNames.indexOf(key) > -1) {
             if (typeof val !== 'object') {
                 if (type === 'encrypt') {
-                    return _encrypt(val);
+                    return _encrypt(val, encryptionKey);
                 }
             } else {
                 // for datetime fields convert them to a fomat which mongodb can query
