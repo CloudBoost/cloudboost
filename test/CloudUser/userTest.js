@@ -66,10 +66,14 @@ describe("CloudUser", function () {
         user.set('password', 'password');
         user.set('email', 'random-email@email.com');
         user.save().then(function(){
-            user.logIn().then(function(){
+            var newUser = new CB.CloudUser();
+            newUser.set('username', 'randomUsername');
+            newUser.set('password', 'password');
+            newUser.set('email', 'random-email@email.com');
+            newUser.logIn().then(function(){
                 done();
             }, function(error){
-                done("Cannot sign up")
+                done("Cannot log in")
             });
         }, function(error){
             done("Cannot save a user.")

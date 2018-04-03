@@ -30,20 +30,16 @@ module.exports = function() {
             }
             global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
                 global.appService.getApp(appId).then(function (application) {
-                    return global.customService.save(appId, collectionName, document, customHelper.getAccessList(req), isMasterKey, null, application.keys.encryption_key);
+                     global.customService.save(appId, collectionName, document, customHelper.getAccessList(req), isMasterKey, null, application.keys.encryption_key).then(function(result) {
+                        integrationService.integrationNotification(appId, document, collectionName, table_event);
+                        res.status(200).send(result);
+                    }, function(error) {
+                        res.status(400).send(error);
+                    });
                 }, function(){
-                    return res.status(400).send("App not found.");
+                     res.status(400).send("App not found.");
                 });
-            }).then(function(result) {
-                
-                
-                integrationService.integrationNotification(appId, document, collectionName, table_event);
-                res.status(200).send(result);
-            }, function(error) {
-                
-                
-                res.status(400).send(error);
-            });
+            })
 
             global.apiTracker.log(appId, "Object / Save", req.url, sdk);
             /******************SAVE API*********************/
