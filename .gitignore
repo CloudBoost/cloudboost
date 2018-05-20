@@ -1,0 +1,4 @@
+/production
+/staging
+*.tar
+config
