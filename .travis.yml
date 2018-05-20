@@ -33,17 +33,18 @@ install:
 - grunt
 - npm test
 after_success:
-- if [ "$TRAVIS_BRANCH" == "staging" ]; then
+- if [ "$TRAVIS_BRANCH" == "master" ]; then
     docker login --username $DOCKERUSERNAME --password $DOCKERPASSWORD;
     docker push cloudboost/cloudboost:staging;
     git clone https://github.com/CloudBoost/kube-cred.git;
     cd kube-cred;
-    openssl enc -in config_staging.enc -out config -d -aes256 -k $KUBE_ENC;
+    openssl enc -in config.enc -out config -d -aes256 -k $KUBE_ENC;
     mkdir ~/.kube;
     mv config ~/.kube/;
-    kubectl rolling-update cloudboost-api-staging --image=cloudboost/cloudboost:staging --image-pull-policy=Always;
+    kubectl rolling-update cloudboost-api-staging --image=cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER --image-pull-policy=Always;
+    kubectl config use-context cb-stagingmgmt;
   fi
-- if [ "$TRAVIS_BRANCH" == "master" ]; then
+- if [ "$TRAVIS_BRANCH" == "release" ]; then
     docker login --username $DOCKERUSERNAME --password $DOCKERPASSWORD;
     docker push cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER;
     docker push cloudboost/cloudboost:latest;
@@ -52,7 +53,8 @@ after_success:
     openssl enc -in config.enc -out config -d -aes256 -k $KUBE_ENC;
     mkdir ~/.kube;
     mv config ~/.kube/;
-    kubectl rolling-update cloudboost-api --image=cloudboost/cloudboost:latest --image-pull-policy=Always;
+    kubectl config use-context cb-productionmgmt;
+    kubectl rolling-update cloudboost-api --image=cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER --image-pull-policy=Always;
     cd sdk;
     npm install;
     npm set init.author.name $NPM_USERNAME;
