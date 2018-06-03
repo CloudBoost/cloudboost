@@ -7,7 +7,7 @@
 		exports["cloudboost"] = factory(require("axios"), require("socket.io-client"));
 	else
 		root["cloudboost"] = factory(root["axios"], root["socket.io-client"]);
-})(this, function(__WEBPACK_EXTERNAL_MODULE_43__, __WEBPACK_EXTERNAL_MODULE_67__) {
+})(this, function(__WEBPACK_EXTERNAL_MODULE_46__, __WEBPACK_EXTERNAL_MODULE_70__) {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -79,19 +79,19 @@ return /******/ (function(modules) { // webpackBootstrap
 	} ///<reference path="./cloudboost.d.ts" />
 
 	__webpack_require__(41);
-	__webpack_require__(66);
 	__webpack_require__(69);
-	__webpack_require__(70);
-	__webpack_require__(71);
 	__webpack_require__(72);
 	__webpack_require__(73);
+	__webpack_require__(74);
 	__webpack_require__(75);
 	__webpack_require__(76);
-	__webpack_require__(77);
+	__webpack_require__(78);
 	__webpack_require__(79);
 	__webpack_require__(80);
-	__webpack_require__(81);
 	__webpack_require__(82);
+	__webpack_require__(83);
+	__webpack_require__(84);
+	__webpack_require__(85);
 
 	try {
 	    window.CB = _CB2.default;
@@ -6709,11 +6709,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var def = new _CB2.default.Promise();
 	    var Axios;
 	    var headers = {};
+	    var axiosRetry = __webpack_require__(43);
 
 	    if (_CB2.default._isNode) {
-	        Axios = __webpack_require__(43);
+	        Axios = __webpack_require__(46);
 	    } else {
-	        Axios = __webpack_require__(44);
+	        Axios = __webpack_require__(47);
 	    }
 
 	    if (!isServiceUrl) {
@@ -6724,7 +6725,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (params && (typeof params === 'undefined' ? 'undefined' : _typeof(params)) != "object") {
 	        params = JSON.parse(params);
 	    }
-
+	    axiosRetry(Axios, { retryDelay: axiosRetry.exponentialDelay });
 	    Axios({
 	        method: method,
 	        url: url,
@@ -7270,25 +7271,349 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 43 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __WEBPACK_EXTERNAL_MODULE_43__;
+	module.exports = __webpack_require__(44).default;
 
 /***/ },
 /* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(45);
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.isNetworkError = isNetworkError;
+	exports.isRetryableError = isRetryableError;
+	exports.isSafeRequestError = isSafeRequestError;
+	exports.isIdempotentRequestError = isIdempotentRequestError;
+	exports.isNetworkOrIdempotentRequestError = isNetworkOrIdempotentRequestError;
+	exports.exponentialDelay = exponentialDelay;
+	exports.default = axiosRetry;
+
+	var _isRetryAllowed = __webpack_require__(45);
+
+	var _isRetryAllowed2 = _interopRequireDefault(_isRetryAllowed);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var namespace = 'axios-retry';
+
+	/**
+	 * @param  {Error}  error
+	 * @return {boolean}
+	 */
+	function isNetworkError(error) {
+	  return !error.response && Boolean(error.code) // Prevents retrying cancelled requests
+	  && error.code !== 'ECONNABORTED' // Prevents retrying timed out requests
+	  && (0, _isRetryAllowed2.default)(error); // Prevents retrying unsafe errors
+	}
+
+	var SAFE_HTTP_METHODS = ['get', 'head', 'options'];
+	var IDEMPOTENT_HTTP_METHODS = SAFE_HTTP_METHODS.concat(['put', 'delete']);
+
+	/**
+	 * @param  {Error}  error
+	 * @return {boolean}
+	 */
+	function isRetryableError(error) {
+	  return error.code !== 'ECONNABORTED' && (!error.response || error.response.status >= 500 && error.response.status <= 599);
+	}
+
+	/**
+	 * @param  {Error}  error
+	 * @return {boolean}
+	 */
+	function isSafeRequestError(error) {
+	  if (!error.config) {
+	    // Cannot determine if the request can be retried
+	    return false;
+	  }
+
+	  return isRetryableError(error) && SAFE_HTTP_METHODS.indexOf(error.config.method) !== -1;
+	}
+
+	/**
+	 * @param  {Error}  error
+	 * @return {boolean}
+	 */
+	function isIdempotentRequestError(error) {
+	  if (!error.config) {
+	    // Cannot determine if the request can be retried
+	    return false;
+	  }
+
+	  return isRetryableError(error) && IDEMPOTENT_HTTP_METHODS.indexOf(error.config.method) !== -1;
+	}
+
+	/**
+	 * @param  {Error}  error
+	 * @return {boolean}
+	 */
+	function isNetworkOrIdempotentRequestError(error) {
+	  return isNetworkError(error) || isIdempotentRequestError(error);
+	}
+
+	/**
+	 * @return {number} - delay in milliseconds, always 0
+	 */
+	function noDelay() {
+	  return 0;
+	}
+
+	/**
+	 * @param  {number} [retryNumber=0]
+	 * @return {number} - delay in milliseconds
+	 */
+	function exponentialDelay() {
+	  var retryNumber = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+
+	  var delay = Math.pow(2, retryNumber) * 100;
+	  var randomSum = delay * 0.2 * Math.random(); // 0-20% of the delay
+	  return delay + randomSum;
+	}
+
+	/**
+	 * Initializes and returns the retry state for the given request/config
+	 * @param  {AxiosRequestConfig} config
+	 * @return {Object}
+	 */
+	function getCurrentState(config) {
+	  var currentState = config[namespace] || {};
+	  currentState.retryCount = currentState.retryCount || 0;
+	  config[namespace] = currentState;
+	  return currentState;
+	}
+
+	/**
+	 * Returns the axios-retry options for the current request
+	 * @param  {AxiosRequestConfig} config
+	 * @param  {AxiosRetryConfig} defaultOptions
+	 * @return {AxiosRetryConfig}
+	 */
+	function getRequestOptions(config, defaultOptions) {
+	  return Object.assign({}, defaultOptions, config[namespace]);
+	}
+
+	/**
+	 * @param  {Axios} axios
+	 * @param  {AxiosRequestConfig} config
+	 */
+	function fixConfig(axios, config) {
+	  if (axios.defaults.agent === config.agent) {
+	    delete config.agent;
+	  }
+	  if (axios.defaults.httpAgent === config.httpAgent) {
+	    delete config.httpAgent;
+	  }
+	  if (axios.defaults.httpsAgent === config.httpsAgent) {
+	    delete config.httpsAgent;
+	  }
+	}
+
+	/**
+	 * Adds response interceptors to an axios instance to retry requests failed due to network issues
+	 *
+	 * @example
+	 *
+	 * import axios from 'axios';
+	 *
+	 * axiosRetry(axios, { retries: 3 });
+	 *
+	 * axios.get('http://example.com/test') // The first request fails and the second returns 'ok'
+	 *   .then(result => {
+	 *     result.data; // 'ok'
+	 *   });
+	 *
+	 * // Exponential back-off retry delay between requests
+	 * axiosRetry(axios, { retryDelay : axiosRetry.exponentialDelay});
+	 *
+	 * // Custom retry delay
+	 * axiosRetry(axios, { retryDelay : (retryCount) => {
+	 *   return retryCount * 1000;
+	 * }});
+	 *
+	 * // Also works with custom axios instances
+	 * const client = axios.create({ baseURL: 'http://example.com' });
+	 * axiosRetry(client, { retries: 3 });
+	 *
+	 * client.get('/test') // The first request fails and the second returns 'ok'
+	 *   .then(result => {
+	 *     result.data; // 'ok'
+	 *   });
+	 *
+	 * // Allows request-specific configuration
+	 * client
+	 *   .get('/test', {
+	 *     'axios-retry': {
+	 *       retries: 0
+	 *     }
+	 *   })
+	 *   .catch(error => { // The first request fails
+	 *     error !== undefined
+	 *   });
+	 *
+	 * @param {Axios} axios An axios instance (the axios object or one created from axios.create)
+	 * @param {Object} [defaultOptions]
+	 * @param {number} [defaultOptions.retries=3] Number of retries
+	 * @param {boolean} [defaultOptions.shouldResetTimeout=false]
+	 *        Defines if the timeout should be reset between retries
+	 * @param {Function} [defaultOptions.retryCondition=isNetworkOrIdempotentRequestError]
+	 *        A function to determine if the error can be retried
+	 * @param {Function} [defaultOptions.retryDelay=noDelay]
+	 *        A function to determine the delay between retry requests
+	 */
+	function axiosRetry(axios, defaultOptions) {
+	  axios.interceptors.request.use(function (config) {
+	    var currentState = getCurrentState(config);
+	    currentState.lastRequestTime = Date.now();
+	    return config;
+	  });
+
+	  axios.interceptors.response.use(null, function (error) {
+	    var config = error.config;
+
+	    // If we have no information to retry the request
+	    if (!config) {
+	      return Promise.reject(error);
+	    }
+
+	    var _getRequestOptions = getRequestOptions(config, defaultOptions),
+	        _getRequestOptions$re = _getRequestOptions.retries,
+	        retries = _getRequestOptions$re === undefined ? 3 : _getRequestOptions$re,
+	        _getRequestOptions$re2 = _getRequestOptions.retryCondition,
+	        retryCondition = _getRequestOptions$re2 === undefined ? isNetworkOrIdempotentRequestError : _getRequestOptions$re2,
+	        _getRequestOptions$re3 = _getRequestOptions.retryDelay,
+	        retryDelay = _getRequestOptions$re3 === undefined ? noDelay : _getRequestOptions$re3,
+	        _getRequestOptions$sh = _getRequestOptions.shouldResetTimeout,
+	        shouldResetTimeout = _getRequestOptions$sh === undefined ? false : _getRequestOptions$sh;
+
+	    var currentState = getCurrentState(config);
+
+	    var shouldRetry = retryCondition(error) && currentState.retryCount < retries;
+
+	    if (shouldRetry) {
+	      currentState.retryCount++;
+	      var delay = retryDelay(currentState.retryCount, error);
+
+	      // Axios fails merging this configuration to the default configuration because it has an issue
+	      // with circular structures: https://github.com/mzabriskie/axios/issues/370
+	      fixConfig(axios, config);
+
+	      if (!shouldResetTimeout && config.timeout && currentState.lastRequestTime) {
+	        var lastRequestDuration = Date.now() - currentState.lastRequestTime;
+	        // Minimum 1ms timeout (passing 0 or less to XHR means no timeout)
+	        config.timeout = Math.max(config.timeout - lastRequestDuration - delay, 1);
+	      }
+
+	      return new Promise(function (resolve) {
+	        return setTimeout(function () {
+	          return resolve(axios(config));
+	        }, delay);
+	      });
+	    }
+
+	    return Promise.reject(error);
+	  });
+	}
+
+	// Compatibility with CommonJS
+	axiosRetry.isNetworkError = isNetworkError;
+	axiosRetry.isSafeRequestError = isSafeRequestError;
+	axiosRetry.isIdempotentRequestError = isIdempotentRequestError;
+	axiosRetry.isNetworkOrIdempotentRequestError = isNetworkOrIdempotentRequestError;
+	axiosRetry.exponentialDelay = exponentialDelay;
+	axiosRetry.isRetryableError = isRetryableError;
+	//# sourceMappingURL=index.js.map
 
 /***/ },
 /* 45 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	var WHITELIST = [
+		'ETIMEDOUT',
+		'ECONNRESET',
+		'EADDRINUSE',
+		'ESOCKETTIMEDOUT',
+		'ECONNREFUSED',
+		'EPIPE'
+	];
+
+	var BLACKLIST = [
+		'ENOTFOUND',
+		'ENETUNREACH',
+
+		// SSL errors from https://github.com/nodejs/node/blob/ed3d8b13ee9a705d89f9e0397d9e96519e7e47ac/src/node_crypto.cc#L1950
+		'UNABLE_TO_GET_ISSUER_CERT',
+		'UNABLE_TO_GET_CRL',
+		'UNABLE_TO_DECRYPT_CERT_SIGNATURE',
+		'UNABLE_TO_DECRYPT_CRL_SIGNATURE',
+		'UNABLE_TO_DECODE_ISSUER_PUBLIC_KEY',
+		'CERT_SIGNATURE_FAILURE',
+		'CRL_SIGNATURE_FAILURE',
+		'CERT_NOT_YET_VALID',
+		'CERT_HAS_EXPIRED',
+		'CRL_NOT_YET_VALID',
+		'CRL_HAS_EXPIRED',
+		'ERROR_IN_CERT_NOT_BEFORE_FIELD',
+		'ERROR_IN_CERT_NOT_AFTER_FIELD',
+		'ERROR_IN_CRL_LAST_UPDATE_FIELD',
+		'ERROR_IN_CRL_NEXT_UPDATE_FIELD',
+		'OUT_OF_MEM',
+		'DEPTH_ZERO_SELF_SIGNED_CERT',
+		'SELF_SIGNED_CERT_IN_CHAIN',
+		'UNABLE_TO_GET_ISSUER_CERT_LOCALLY',
+		'UNABLE_TO_VERIFY_LEAF_SIGNATURE',
+		'CERT_CHAIN_TOO_LONG',
+		'CERT_REVOKED',
+		'INVALID_CA',
+		'PATH_LENGTH_EXCEEDED',
+		'INVALID_PURPOSE',
+		'CERT_UNTRUSTED',
+		'CERT_REJECTED'
+	];
+
+	module.exports = function (err) {
+		if (!err || !err.code) {
+			return true;
+		}
+
+		if (WHITELIST.indexOf(err.code) !== -1) {
+			return true;
+		}
+
+		if (BLACKLIST.indexOf(err.code) !== -1) {
+			return false;
+		}
+
+		return true;
+	};
+
+
+/***/ },
+/* 46 */
+/***/ function(module, exports) {
+
+	module.exports = __WEBPACK_EXTERNAL_MODULE_46__;
+
+/***/ },
+/* 47 */
+/***/ function(module, exports, __webpack_require__) {
+
+	module.exports = __webpack_require__(48);
+
+/***/ },
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var utils = __webpack_require__(46);
-	var bind = __webpack_require__(47);
-	var Axios = __webpack_require__(48);
+	var utils = __webpack_require__(49);
+	var bind = __webpack_require__(50);
+	var Axios = __webpack_require__(51);
 
 	/**
 	 * Create an instance of Axios
@@ -7324,7 +7649,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	axios.all = function all(promises) {
 	  return Promise.all(promises);
 	};
-	axios.spread = __webpack_require__(65);
+	axios.spread = __webpack_require__(68);
 
 	module.exports = axios;
 
@@ -7333,12 +7658,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 46 */
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var bind = __webpack_require__(47);
+	var bind = __webpack_require__(50);
 
 	/*global toString:true*/
 
@@ -7638,7 +7963,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 47 */
+/* 50 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -7655,17 +7980,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 48 */
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var defaults = __webpack_require__(49);
-	var utils = __webpack_require__(46);
-	var InterceptorManager = __webpack_require__(51);
-	var dispatchRequest = __webpack_require__(52);
-	var isAbsoluteURL = __webpack_require__(63);
-	var combineURLs = __webpack_require__(64);
+	var defaults = __webpack_require__(52);
+	var utils = __webpack_require__(49);
+	var InterceptorManager = __webpack_require__(54);
+	var dispatchRequest = __webpack_require__(55);
+	var isAbsoluteURL = __webpack_require__(66);
+	var combineURLs = __webpack_require__(67);
 
 	/**
 	 * Create a new instance of Axios
@@ -7746,13 +8071,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 49 */
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var utils = __webpack_require__(46);
-	var normalizeHeaderName = __webpack_require__(50);
+	var utils = __webpack_require__(49);
+	var normalizeHeaderName = __webpack_require__(53);
 
 	var PROTECTION_PREFIX = /^\)\]\}',?\n/;
 	var DEFAULT_CONTENT_TYPE = {
@@ -7824,12 +8149,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 50 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var utils = __webpack_require__(46);
+	var utils = __webpack_require__(49);
 
 	module.exports = function normalizeHeaderName(headers, normalizedName) {
 	  utils.forEach(headers, function processHeader(value, name) {
@@ -7842,12 +8167,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 51 */
+/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var utils = __webpack_require__(46);
+	var utils = __webpack_require__(49);
 
 	function InterceptorManager() {
 	  this.handlers = [];
@@ -7900,13 +8225,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 52 */
+/* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
 
-	var utils = __webpack_require__(46);
-	var transformData = __webpack_require__(53);
+	var utils = __webpack_require__(49);
+	var transformData = __webpack_require__(56);
 
 	/**
 	 * Dispatch a request to the server using whichever adapter
@@ -7947,10 +8272,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	    adapter = config.adapter;
 	  } else if (typeof XMLHttpRequest !== 'undefined') {
 	    // For browsers use XHR adapter
-	    adapter = __webpack_require__(54);
+	    adapter = __webpack_require__(57);
 	  } else if (typeof process !== 'undefined') {
 	    // For node use HTTP adapter
-	    adapter = __webpack_require__(54);
+	    adapter = __webpack_require__(57);
 	  }
 
 	  return Promise.resolve(config)
@@ -7982,12 +8307,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
 
 /***/ },
-/* 53 */
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var utils = __webpack_require__(46);
+	var utils = __webpack_require__(49);
 
 	/**
 	 * Transform the data for a request or a response
@@ -8008,18 +8333,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 54 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
 
-	var utils = __webpack_require__(46);
-	var settle = __webpack_require__(55);
-	var buildURL = __webpack_require__(58);
-	var parseHeaders = __webpack_require__(59);
-	var isURLSameOrigin = __webpack_require__(60);
-	var createError = __webpack_require__(56);
-	var btoa = (typeof window !== 'undefined' && window.btoa) || __webpack_require__(61);
+	var utils = __webpack_require__(49);
+	var settle = __webpack_require__(58);
+	var buildURL = __webpack_require__(61);
+	var parseHeaders = __webpack_require__(62);
+	var isURLSameOrigin = __webpack_require__(63);
+	var createError = __webpack_require__(59);
+	var btoa = (typeof window !== 'undefined' && window.btoa) || __webpack_require__(64);
 
 	module.exports = function xhrAdapter(config) {
 	  return new Promise(function dispatchXhrRequest(resolve, reject) {
@@ -8113,7 +8438,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    // This is only done if running in a standard browser environment.
 	    // Specifically not if we're in a web worker, or react-native.
 	    if (utils.isStandardBrowserEnv()) {
-	      var cookies = __webpack_require__(62);
+	      var cookies = __webpack_require__(65);
 
 	      // Add xsrf header
 	      var xsrfValue = (config.withCredentials || isURLSameOrigin(config.url)) && config.xsrfCookieName ?
@@ -8177,12 +8502,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
 
 /***/ },
-/* 55 */
+/* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var createError = __webpack_require__(56);
+	var createError = __webpack_require__(59);
 
 	/**
 	 * Resolve or reject a Promise based on response status.
@@ -8208,12 +8533,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 56 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var enhanceError = __webpack_require__(57);
+	var enhanceError = __webpack_require__(60);
 
 	/**
 	 * Create an Error with the specified message, config, error code, and response.
@@ -8231,7 +8556,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 57 */
+/* 60 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -8256,12 +8581,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 58 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var utils = __webpack_require__(46);
+	var utils = __webpack_require__(49);
 
 	function encode(val) {
 	  return encodeURIComponent(val).
@@ -8330,12 +8655,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 59 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var utils = __webpack_require__(46);
+	var utils = __webpack_require__(49);
 
 	/**
 	 * Parse headers into an object
@@ -8373,12 +8698,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 60 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var utils = __webpack_require__(46);
+	var utils = __webpack_require__(49);
 
 	module.exports = (
 	  utils.isStandardBrowserEnv() ?
@@ -8447,7 +8772,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 61 */
+/* 64 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -8489,12 +8814,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 62 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var utils = __webpack_require__(46);
+	var utils = __webpack_require__(49);
 
 	module.exports = (
 	  utils.isStandardBrowserEnv() ?
@@ -8548,7 +8873,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 63 */
+/* 66 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -8568,7 +8893,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 64 */
+/* 67 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -8586,7 +8911,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 65 */
+/* 68 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -8619,7 +8944,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 66 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -8676,14 +9001,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	                var socketRelativeUrl = getUrlFromUri(_CB2.default.apiUrl);
 	                var urlWithoutNamespace = getUrlWithoutNsc(_CB2.default.apiUrl, socketRelativeUrl);
 	                if (_CB2.default._isNode) {
-	                    _CB2.default.io = __webpack_require__(67);
+	                    _CB2.default.io = __webpack_require__(70);
 	                    _CB2.default.Socket = _CB2.default.io(urlWithoutNamespace, {
 	                        jsonp: false,
 	                        transports: ['websocket'],
 	                        path: socketRelativeUrl + '/socket.io'
 	                    });
 	                } else {
-	                    _CB2.default.io = __webpack_require__(68);
+	                    _CB2.default.io = __webpack_require__(71);
 	                    _CB2.default.Socket = _CB2.default.io(urlWithoutNamespace, {
 	                        path: socketRelativeUrl + '/socket.io'
 	                    });
@@ -8804,16 +9129,16 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = CloudApp;
 
 /***/ },
-/* 67 */
+/* 70 */
 /***/ function(module, exports) {
 
-	module.exports = __WEBPACK_EXTERNAL_MODULE_67__;
+	module.exports = __WEBPACK_EXTERNAL_MODULE_70__;
 
 /***/ },
-/* 68 */
+/* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var require;var require;/* WEBPACK VAR INJECTION */(function(global) {"use strict";
+	var require;var require;var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(global) {"use strict";
 
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
@@ -16233,7 +16558,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 69 */
+/* 72 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -16417,7 +16742,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = _CB2.default.Column;
 
 /***/ },
-/* 70 */
+/* 73 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -16774,7 +17099,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = _CB2.default.CloudTable;
 
 /***/ },
-/* 71 */
+/* 74 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -16938,7 +17263,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = _CB2.default.ACL;
 
 /***/ },
-/* 72 */
+/* 75 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -17083,7 +17408,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = _CB2.default.CloudGeoPoint;
 
 /***/ },
-/* 73 */
+/* 76 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -17100,7 +17425,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _CB2 = _interopRequireDefault(_CB);
 
-	var _localforage = __webpack_require__(74);
+	var _localforage = __webpack_require__(77);
 
 	var _localforage2 = _interopRequireDefault(_localforage);
 
@@ -17913,12 +18238,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = _CB2.default.CloudObject;
 
 /***/ },
-/* 74 */
+/* 77 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var require;var require;/* WEBPACK VAR INJECTION */(function(global) {/*!
 	    localForage -- Offline Storage, Improved
-	    Version 1.6.0
+	    Version 1.7.1
 	    https://localforage.github.io/localForage
 	    (c) 2013-2017 Mozilla, Apache License 2.0
 	*/
@@ -20713,10 +21038,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	},{"3":3}]},{},[4])(4)
 	});
+
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 75 */
+/* 78 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -21036,7 +21362,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = _CB2.default.CloudFile;
 
 /***/ },
-/* 76 */
+/* 79 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -21089,7 +21415,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = _CB2.default.CloudRole;
 
 /***/ },
-/* 77 */
+/* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -21104,7 +21430,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _CB2 = _interopRequireDefault(_CB);
 
-	var _axios = __webpack_require__(44);
+	var _axios = __webpack_require__(47);
 
 	var _axios2 = _interopRequireDefault(_axios);
 
@@ -21112,7 +21438,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-	var os = __webpack_require__(78);
+	var os = __webpack_require__(81);
 	/*
 	 CloudEvent
 	 */
@@ -21230,7 +21556,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = CloudEvent;
 
 /***/ },
-/* 78 */
+/* 81 */
 /***/ function(module, exports) {
 
 	exports.endianness = function () { return 'LE' };
@@ -21281,7 +21607,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 79 */
+/* 82 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -21788,7 +22114,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = _CB2.default.CloudUser;
 
 /***/ },
-/* 80 */
+/* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -21882,7 +22208,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = _CB2.default.CloudNotification;
 
 /***/ },
-/* 81 */
+/* 84 */
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -22289,7 +22615,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	exports.default = _CB2.default.CloudPush;
 
 /***/ },
-/* 82 */
+/* 85 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -22306,7 +22632,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var _CB2 = _interopRequireDefault(_CB);
 
-	var _localforage = __webpack_require__(74);
+	var _localforage = __webpack_require__(77);
 
 	var _localforage2 = _interopRequireDefault(_localforage);
 
