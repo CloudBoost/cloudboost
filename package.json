@@ -50,7 +50,7 @@
     "mandrill-api": "^1.0.45",
     "mongodb": "^2.2.33",
     "mongoose": "^4.4.10",
-    "node-gcm": "^0.14.0",
+    "node-gcm": "^1.0.0",
     "node-linkedin": "^0.5.3",
     "node-twitter-api": "^1.7.1",
     "node-uuid": "^1.4.7",
