@@ -536,7 +536,7 @@ module.exports = function () {
                                         let generalSetting = settings.filter((function (x) {
                                             return x.category === 'general'
                                         }))
-                                        if (generalSetting[0]) {
+                                        if (generalSetting[0] && generalSetting[0].settings) {
                                             deferred.resolve(!!generalSetting[0].settings.isTableEditableByClientKey)
                                         } else
                                             deferred.resolve(false);
