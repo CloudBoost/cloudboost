@@ -7,6 +7,15 @@ var path = require('path');
 var util = require("../../helpers/util.js");
 module.exports = function () {
 
+    /**
+     * @description Middleware used for zapier application auth using app ID and app secret key
+     * @param {*} req
+     * @param {Object} req.body
+     * @param {String} req.body.appId
+     * @param {String} req.body.appKey
+     * @param {*} res
+     */
+
     global.app.post('/app/token', function (req, res) {
         var appId = req.body.appId;
         var appKey = req.body.appKey;
@@ -30,8 +39,6 @@ module.exports = function () {
 
     //create a new app.
     global.app.post('/app/:appId', function (req, res) {
-
-
 
         try {
 
