@@ -6,16 +6,19 @@
 
 var customHelper = require('../../helpers/custom.js');
 var integrationService = require('../../services/integrationService')();
-module.exports = function() {
 
-    global.app.put('/data/:appId/:tableName', function(req, res) { //save a new document into <tableName> of app
+var apiTracker = require('../../database-connect/apiTracker');
+
+module.exports = function (app) {
+
+    app.put('/data/:appId/:tableName', function (req, res) { //save a new document into <tableName> of app
         if (req.body && req.body.method == "DELETE") {
             /******************DELETE API*********************/
             _deleteApi(req, res);
             /******************DELETE API*********************/
         } else {
             /******************SAVE API*********************/
-            
+
             var appId = req.params.appId;
             var document = req.body.document;
             var collectionName = req.params.tableName;
@@ -23,68 +26,68 @@ module.exports = function() {
             var sdk = req.body.sdk || "REST";
             var table_event = "";
 
-            if(document._id){
+            if (document._id) {
                 table_event = "Update";
             } else {
                 table_event = "Create"
             }
-            global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
+            global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
                 global.appService.getApp(appId).then(function (application) {
-                     global.customService.save(appId, collectionName, document, customHelper.getAccessList(req), isMasterKey, null, application.keys.encryption_key).then(function(result) {
+                    global.customService.save(appId, collectionName, document, customHelper.getAccessList(req), isMasterKey, null, application.keys.encryption_key).then(function (result) {
                         integrationService.integrationNotification(appId, document, collectionName, table_event);
                         res.status(200).send(result);
-                    }, function(error) {
+                    }, function (error) {
                         res.status(400).send(error);
                     });
-                }, function(){
-                     res.status(400).send("App not found.");
+                }, function () {
+                    res.status(400).send("App not found.");
                 });
             })
 
-            global.apiTracker.log(appId, "Object / Save", req.url, sdk);
+            apiTracker.log(appId, "Object / Save", req.url, sdk);
             /******************SAVE API*********************/
         }
     });
 
-    global.app.get('/data/:appId/:tableName/find', _getData);
-    global.app.post('/data/:appId/:tableName/find', _getData);
+    app.get('/data/:appId/:tableName/find', _getData);
+    app.post('/data/:appId/:tableName/find', _getData);
 
-    global.app.get('/data/:appId/:tableName/count', _count);
-    global.app.post('/data/:appId/:tableName/count', _count);
+    app.get('/data/:appId/:tableName/count', _count);
+    app.post('/data/:appId/:tableName/count', _count);
 
-    global.app.get('/data/:appId/:tableName/distinct', _distinct);
-    global.app.post('/data/:appId/:tableName/distinct', _distinct);
+    app.get('/data/:appId/:tableName/distinct', _distinct);
+    app.post('/data/:appId/:tableName/distinct', _distinct);
 
-    global.app.get('/data/:appId/:tableName/findOne', _findOne);
-    global.app.post('/data/:appId/:tableName/findOne', _findOne);
+    app.get('/data/:appId/:tableName/findOne', _findOne);
+    app.post('/data/:appId/:tableName/findOne', _findOne);
 
-    global.app.delete('/data/:appId/:tableName', _deleteApi);
+    app.delete('/data/:appId/:tableName', _deleteApi);
 
     function _deleteApi(req, res) { //delete a document matching the <objectId>
-        
+
         var appId = req.params.appId;
         var collectionName = req.params.tableName;
         var document = req.body.document;
         var appKey = req.body.key || req.param('key');
         var sdk = req.body.sdk || "REST";
 
-        global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
+        global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
             return global.customService.delete(appId, collectionName, document, customHelper.getAccessList(req), isMasterKey);
-        }).then(function(result) {
+        }).then(function (result) {
             integrationService.integrationNotification(appId, document, collectionName, "Delete");
             res.json(result);
-        }, function(error) {
+        }, function (error) {
             res.status(400).send(error);
         });
 
-        global.apiTracker.log(appId, "Object / Delete", req.url, sdk);
+        apiTracker.log(appId, "Object / Delete", req.url, sdk);
 
     }
 
 };
 
 function _getData(req, res) { //get document(s) object based on query and various parameters
-    
+
     var appId = req.params.appId;
     var collectionName = req.params.tableName;
     var query = req.body.query;
@@ -95,19 +98,19 @@ function _getData(req, res) { //get document(s) object based on query and variou
     var appKey = req.body.key || req.param('key');
     var sdk = req.body.sdk || "REST";
 
-    global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
+    global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
         return global.customService.find(appId, collectionName, query, select, sort, limit, skip, customHelper.getAccessList(req), isMasterKey);
-    }).then(function(results) {
+    }).then(function (results) {
         res.json(results);
-    }, function(error) {
+    }, function (error) {
         res.status(400).send(error);
     });
 
-    global.apiTracker.log(appId, "Object / Find", req.url, sdk);
+    apiTracker.log(appId, "Object / Find", req.url, sdk);
 }
 
 function _count(req, res) { //get document(s) object based on query and various parameters
-    
+
     var appId = req.params.appId;
     var collectionName = req.params.tableName;
     var query = req.body.query;
@@ -116,19 +119,19 @@ function _count(req, res) { //get document(s) object based on query and various 
     var appKey = req.body.key || req.param('key');
     var sdk = req.body.sdk || "REST";
 
-    global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
+    global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
         return global.customService.count(appId, collectionName, query, limit, skip, customHelper.getAccessList(req), isMasterKey);
-    }).then(function(result) {
+    }).then(function (result) {
         res.json(result);
-    }, function(error) {
+    }, function (error) {
         res.status(400).send(error);
     });
 
-    global.apiTracker.log(appId, "Object / Count", req.url, sdk);
+    apiTracker.log(appId, "Object / Count", req.url, sdk);
 }
 
 function _distinct(req, res, next) { //get document(s) object based on query and various parameters
-    
+
     var appId = req.params.appId;
     var collectionName = req.params.tableName;
     var onKey = req.body.onKey;
@@ -140,19 +143,19 @@ function _distinct(req, res, next) { //get document(s) object based on query and
     var appKey = req.body.key || req.param('key');
     var sdk = req.body.sdk || "REST";
 
-    global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
+    global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
         return global.customService.distinct(appId, collectionName, onKey, query, select, sort, limit, skip, customHelper.getAccessList(req), isMasterKey);
-    }).then(function(results) {
+    }).then(function (results) {
         res.json(results);
-    }, function(error) {
+    }, function (error) {
         res.status(400).send(error);
     });
 
-    global.apiTracker.log(appId, "Object / Distinct", req.url, sdk);
+    apiTracker.log(appId, "Object / Distinct", req.url, sdk);
 }
 
 function _findOne(req, res) { //get a single document matching the search query
-    
+
     var appId = req.params.appId;
     var collectionName = req.params.tableName;
     var query = req.body.query;
@@ -162,13 +165,13 @@ function _findOne(req, res) { //get a single document matching the search query
     var appKey = req.body.key || req.param('key');
     var sdk = req.body.sdk || "REST";
 
-    global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
+    global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
         return global.customService.findOne(appId, collectionName, query, select, sort, skip, customHelper.getAccessList(req), isMasterKey);
-    }).then(function(result) {
+    }).then(function (result) {
         res.json(result);
-    }, function(error) {
+    }, function (error) {
         res.status(400).send(error);
     });
 
-    global.apiTracker.log(appId, "Object / FindOne", req.url, sdk);
+    apiTracker.log(appId, "Object / FindOne", req.url, sdk);
 }

@@ -19,7 +19,7 @@ var googleHelper = require('../../helpers/google.js');
 var facebookHelper = require('../../helpers/facebook.js');
 
 
-module.exports = function() {  
+module.exports = function(app) {  
 
     app.get("/auth/:appId/twitter", function(req, res) {     
     
@@ -87,7 +87,7 @@ module.exports = function() {
                 var session=setSession(req, appId, sessionLength, result,res);                        
                 return res.redirect(authSettings.general.callbackURL+"?cbtoken="+session.id);
 
-            },function(error){
+            },function(err){
                 delete req.session.twitterReqSecret;
                 res.status(500).send(err);
             });         

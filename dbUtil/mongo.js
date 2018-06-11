@@ -252,7 +252,7 @@ module.exports = function() {
                 }
 
                 if(Object.keys(obj).length > 0){
-                    var collection = global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));
+                    var collection = global.mongoClient.db(appId).collection(obj.collection.getId(appId, collectionName));
                     collection.createIndex(obj, function(err, res) {
                         if (err) {
                             
@@ -288,7 +288,7 @@ module.exports = function() {
                 /**
                     Creating a wild card index , instaed of creating individual $text index on each column seperately
                 **/
-                var collection = global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));
+                var collection = global.mongoClient.db(appId).collection(obj.collection.getId(appId, collectionName));
                 collection.createIndex({
                     "$**": "text"
                 }, function(err, res) {
@@ -322,7 +322,7 @@ module.exports = function() {
                     return deferred.promise;
                 }
 
-                var collection = global.mongoClient.db(appId).collection(global.mongoUtil.collection.getId(appId, collectionName));
+                var collection = global.mongoClient.db(appId).collection(obj.collection.getId(appId, collectionName));
                 collection.indexInformation(function(err, res) {
                     if (err) {
                         

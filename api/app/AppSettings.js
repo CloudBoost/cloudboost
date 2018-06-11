@@ -8,10 +8,12 @@ var q = require("q");
 var util = require("../../helpers/util.js");
 var _ = require('underscore');
 
-module.exports = function() {
+ var apiTracker = require('../../database-connect/apiTracker');
+
+module.exports = function(app) {
 
     //Update Settings for the App
-    global.app.put('/settings/:appId/:category', function(req, res) {
+    app.put('/settings/:appId/:category', function(req, res) {
 
         
 
@@ -45,15 +47,13 @@ module.exports = function() {
             return res.status(500).send('Cannot retrieve security keys.');
         });
 
-        global.apiTracker.log(appId, "App / Settings", req.url, sdk);
+        apiTracker.log(appId, "App / Settings", req.url, sdk);
 
     });
 
     //Get Settings for the App
-    global.app.post('/settings/:appId', function(req, res) {
-
+    app.post('/settings/:appId', function(req, res) {
         
-
         var appId = req.params.appId;
         var sdk = req.body.sdk || "REST";
         var appKey = req.body.key || req.params.key;
@@ -78,7 +78,7 @@ module.exports = function() {
             return res.status(500).send('Cannot retrieve security keys.');
         });
 
-        global.apiTracker.log(appId, "App / Settings", req.url, sdk);
+        apiTracker.log(appId, "App / Settings", req.url, sdk);
 
     });
 
@@ -89,7 +89,7 @@ module.exports = function() {
         4.Get ServerUrl to make fileUri
         5.Save current file to gridfs
     */
-    global.app.put('/settings/:appId/file/:category', function(req, res) {
+    app.put('/settings/:appId/file/:category', function(req, res) {
 
         
 
@@ -165,7 +165,7 @@ module.exports = function() {
     });
 
     //get file from gridfs
-    global.app.get('/settings/:appId/file/:fileName', function(req, res) {
+    app.get('/settings/:appId/file/:fileName', function(req, res) {
 
         
 

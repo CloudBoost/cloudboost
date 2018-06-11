@@ -7,9 +7,11 @@
 var q = require("q");
 var customHelper = require('../../helpers/custom.js');
 
-module.exports = function() {
+var apiTracker = require('../../database-connect/apiTracker');
 
-    global.app.post('/file/:appId', function(req, res) {
+module.exports = function(app) {
+
+    app.post('/file/:appId', function(req, res) {
         var appId = req.params.appId;
         var document = {};
         try {
@@ -31,7 +33,7 @@ module.exports = function() {
                 res.status(400).send(error);
             });
 
-            global.apiTracker.log(appId, "File / Save", req.url, sdk);
+            apiTracker.log(appId, "File / Save", req.url, sdk);
         } else {
             global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
                 _getFileStream(req).then(function(result) {
@@ -45,13 +47,13 @@ module.exports = function() {
                 });
             });
 
-            global.apiTracker.log(appId, "File / Upload", req.url, sdk);
+            apiTracker.log(appId, "File / Upload", req.url, sdk);
         }
     });
 
     //Delete File
-    global.app.delete('/file/:appId/:fileId', _deleteFile);
-    global.app.put('/file/:appId/:fileId', _deleteFile);
+    app.delete('/file/:appId/:fileId', _deleteFile);
+    app.put('/file/:appId/:fileId', _deleteFile);
 
     function _deleteFile(req, res) {
         
@@ -73,12 +75,12 @@ module.exports = function() {
             });
         });
 
-        global.apiTracker.log(appId, "File / Delete", req.url, sdk);
+        apiTracker.log(appId, "File / Delete", req.url, sdk);
 
     }
 
-    global.app.get('/file/:appId/:fileId', _getFile);
-    global.app.post('/file/:appId/:fileId', _getFile);
+    app.get('/file/:appId/:fileId', _getFile);
+    app.post('/file/:appId/:fileId', _getFile);
 };
 
 function _getFile(req, res) {
@@ -142,7 +144,7 @@ function _getFile(req, res) {
         return res.status(500).send(err);
     })
 
-    global.apiTracker.log(appId, "File / Get", req.url, sdk);
+    apiTracker.log(appId, "File / Get", req.url, sdk);
 }
 
 /*Desc   : Get file params from upload request

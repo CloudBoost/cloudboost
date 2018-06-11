@@ -6,10 +6,10 @@
 */
 
 
-module.exports = function(){
+module.exports = function(app){
 	try{	
 	  var cors = require('cors');
-	  global.app.use(cors());
+	  app.use(cors());
  	} catch(err){           
         global.winston.log('error',{"error":String(err),"stack": new Error().stack});                      
     }

@@ -19,6 +19,9 @@ var fs = require('fs');
 var path = require('path');
 var customHelper = require('../helpers/custom.js');
 
+
+var mongoUtil = require('../dbUtil/mongo')();
+
 module.exports = function () {
 
     return {
@@ -216,7 +219,7 @@ module.exports = function () {
                                 } else if (project) {
                                     
                                     //create a mongodb app.
-                                    promises.push(global.mongoUtil.app.create(appId));
+                                    promises.push(mongoUtil.app.create(appId));
                                     global.q.all(promises).then(function (res) {
                                         deferred.resolve(document);
                                     }, function (err) {
@@ -268,7 +271,7 @@ module.exports = function () {
                             global.redisClient.del(global.keys.cacheAppPrefix + ':' + appId); //delete the app from redis.
 
                             //delete  the app databases.
-                            promises.push(global.mongoUtil.app.drop(appId)); //delete all mongo app data.
+                            promises.push(mongoUtil.app.drop(appId)); //delete all mongo app data.
 
                             q.allSettled(promises).then(function (res) {
                                 if (res[0].state === 'fulfilled') {
@@ -401,7 +404,7 @@ module.exports = function () {
                             //call
                             var promises = [];
 
-                            promises.push(global.mongoUtil.collection.dropCollection(appId, tableName)); //delete all mongo app data.
+                            promises.push(mongoUtil.collection.dropCollection(appId, tableName)); //delete all mongo app data.
                             q.allSettled(promises).then(function (res) {
                                 if (res[0].state === 'fulfilled')
                                     deferred.resolve(doc);
@@ -433,7 +436,7 @@ module.exports = function () {
             try {
                 var promises = [];
 
-                promises.push(global.mongoUtil.collection.dropColumn(appId, collectionName, columnName, columnType));
+                promises.push(mongoUtil.collection.dropColumn(appId, collectionName, columnName, columnType));
                 q.allSettled(promises).then(function (res) {
                     if (res[0].state === 'fulfilled')
                         deferred.resolve("Success");
@@ -745,9 +748,9 @@ module.exports = function () {
                                 var cloneOldColumns = [].concat(oldColumns || []);
 
                                 if (isNewTable) {
-                                    var mongoPromise = global.mongoUtil.collection.create(appId, tableName, schema);
+                                    var mongoPromise = mongoUtil.collection.create(appId, tableName, schema);
                                     //Index all text fields
-                                    var mongoIndexTextPromise = global.mongoUtil.collection.deleteAndCreateTextIndexes(appId, tableName, cloneOldColumns, schema);
+                                    var mongoIndexTextPromise = mongoUtil.collection.deleteAndCreateTextIndexes(appId, tableName, cloneOldColumns, schema);
 
                                     q.allSettled([mongoPromise, mongoIndexTextPromise]).then(function (res) {
                                         if (res[0].state === 'fulfilled' && res[1].state === 'fulfilled') {
@@ -780,7 +783,7 @@ module.exports = function () {
                                         }
 
                                         //Index all text fields
-                                        promises.push(global.mongoUtil.collection.deleteAndCreateTextIndexes(appId, tableName, cloneOldColumns, schema));
+                                        promises.push(mongoUtil.collection.deleteAndCreateTextIndexes(appId, tableName, cloneOldColumns, schema));
                                         //updateColumnNameOfOldRecordsPromises stores the promises for updating previous records.
                                         q.all(promises.concat(updateColumnNameOfOldRecordsPromises)).then(function (res) {
                                             //confirm all colums are updated 
@@ -821,7 +824,7 @@ module.exports = function () {
             var deferred = global.q.defer();
 
             try {
-                var mongoPromise = global.mongoUtil.collection.addColumn(appId, collectionName, column);
+                var mongoPromise = mongoUtil.collection.addColumn(appId, collectionName, column);
                 q.allSettled([mongoPromise]).then(function (res) {
                     if (res[0].state === 'fulfilled') {
                         deferred.resolve("Success");

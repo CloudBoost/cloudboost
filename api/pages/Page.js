@@ -10,11 +10,12 @@
 var _ = require('underscore');
 var customHelper = require('../../helpers/custom.js');
 var q = require('q');
+var apiTracker = require('../../database-connect/apiTracker');
 
-module.exports = function() {
+module.exports = function(app) {
     
 
-    global.app.get('/page/:appId/reset-password', function(req, res) {
+    app.get('/page/:appId/reset-password', function(req, res) {
        
            
         var appId = req.params.appId || null;      
@@ -57,14 +58,14 @@ module.exports = function() {
             res.status(400).send(error);
         });   
             
-        global.apiTracker.log(appId,"User / Reset User Password", req.url,sdk);
+        apiTracker.log(appId,"User / Reset User Password", req.url,sdk);
        
     });
 
     /*
     Reset Password : This API is used from CloudBoost Reset Password Page. 
     */    
-    global.app.post('/page/:appId/reset-user-password', function(req, res) { 
+    app.post('/page/:appId/reset-user-password', function(req, res) { 
         var appId = req.params.appId || null;
         var username = req.body.username || null;
         var sdk = req.body.sdk || "REST";
@@ -88,14 +89,14 @@ module.exports = function() {
             });
         });
         
-        global.apiTracker.log(appId,"User / Reset User Password", req.url,sdk);
+        apiTracker.log(appId,"User / Reset User Password", req.url,sdk);
     });
 
     /*Desc   : Render Authentication Page
       Params : appId
       Returns: Authentication html page
     */
-    global.app.get('/page/:appId/authentication', function(req, res) { 
+    app.get('/page/:appId/authentication', function(req, res) { 
 
         
 
@@ -142,7 +143,7 @@ module.exports = function() {
         });   
         
         
-        global.apiTracker.log(appId,"User / Reset User Password", req.url,sdk);
+        apiTracker.log(appId,"User / Reset User Password", req.url,sdk);
     });
 
 
@@ -150,7 +151,7 @@ module.exports = function() {
       Params : appId
       Returns: Activation html page
     */
-    global.app.get('/page/:appId/verify', function(req, res) { 
+    app.get('/page/:appId/verify', function(req, res) { 
 
         
 
@@ -189,6 +190,6 @@ module.exports = function() {
             });
         });
         
-        global.apiTracker.log(appId,"User / Reset User Password", req.url,sdk);
+        apiTracker.log(appId,"User / Reset User Password", req.url,sdk);
     });
 };

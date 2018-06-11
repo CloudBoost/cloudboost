@@ -4,67 +4,52 @@
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
-module.exports = function() {   
+module.exports = function (app) {
 
     //Change MasterKey/ClientKey
-    global.app.put('/admin/:appId/clientkey',function(req, res) { 
-        
+    app.put('/admin/:appId/clientkey', function (req, res) {
 
-        try{          
-
-            var appId = req.params.appId;   
+        try {
+            var appId = req.params.appId;
 
             if (global.keys.secureKey === req.body.secureKey) {
-                
 
-                global.appService.changeAppClientKey(appId,req.body.value).then(function (app){
-                    
+                global.appService.changeAppClientKey(appId, req.body.value).then(function (app) {
                     res.status(200).json(app);
-                }, function (err){
-                    
-                    
+                }, function (err) {
                     res.status(500).send("Error");
                 });
 
             } else {
-                
                 res.status(401).send("Unauthorized");
-            }        
-            
+            }
+        } catch (e) {
 
-        }catch(e){
-            
         }
     });
 
     //Change MasterKey/ClientKey
-    global.app.put('/admin/:appId/masterkey',function(req, res) {
-        
+    app.put('/admin/:appId/masterkey', function (req, res) {
 
-        try{          
 
-            var appId = req.params.appId;   
+        try {
+
+            var appId = req.params.appId;
 
             if (global.keys.secureKey === req.body.secureKey) {
-                
-
-                global.appService.changeAppMasterKey(appId,req.body.value).then(function (app){
-                    
+                global.appService.changeAppMasterKey(appId, req.body.value).then(function (app) {
                     res.status(200).json(app);
-                }, function (err){
-                    
-                    
+                }, function (err) {
                     res.status(500).send("Error");
                 });
 
             } else {
-                
                 res.status(401).send("Unauthorized");
-            }        
-            
+            }
 
-        }catch(e){
-            
+
+        } catch (e) {
+
         }
     });
 
@@ -77,22 +62,22 @@ module.exports = function() {
     -Success : User data (username,password)
     -Error : Error Data( 'Server Error' : status 500 )
     */
-    global.app.post('/admin/dbaccess/enable/:appId',function(req, res) {
-        
+    app.post('/admin/dbaccess/enable/:appId', function (req, res) {
         try {
             if (global.keys.secureKey === req.body.secureKey) {
-                global.appService.createDatabaseUser(req.params.appId).then(function (userData){
-                    res.status(200).json({user:userData});
-                }, function (err){
+                global.appService.createDatabaseUser(req.params.appId).then(function (userData) {
+                    res.status(200).json({
+                        user: userData
+                    });
+                }, function (err) {
                     res.status(500).send("Server Erorr");
                 });
             } else {
-                
+
                 res.status(401).send("Unauthorized");
-            } 
-  
-        } catch(e){
-            
+            }
+        } catch (e) {
+
         }
     });
 };

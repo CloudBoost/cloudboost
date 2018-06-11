@@ -4,10 +4,10 @@
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
-module.exports = function() {
+module.exports = function(app) {
 
     //get file from gridfs
-    global.app.get('/appfile/:appId/icon', function(req, res) {
+    app.get('/appfile/:appId/icon', function(req, res) {
 
         
 

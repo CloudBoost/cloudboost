@@ -7,73 +7,69 @@
 
 
 var q = require("q");
+var mongoUrl = require('../config/mongo').url;
 
-module.exports = function () {
+module.exports = {
 
-    var obj = {
-
-        dbConnect: function (appId) {
-            try {
-                return global.mongoClient.db(appId);
-            } catch (e) {
-                global.winston.log('error', { "error": String(e), "stack": new Error().stack });
-            }
-
-        },
-
-        replSet: function () {
-
-            try {
-
-                var ReplSet = require('mongodb').ReplSet,
-                    Server = require('mongodb').Server;
-
-                var servers = [];
-
-                if (global.config.mongo.length === 0) {
-                    return null;
-                }
-
-                if (global.config.mongo.length === 1) {
-                    return new Server(global.config.mongo[0].host, global.config.mongo[0].port);
-                }
-
-                for (var i = 0; i < global.config.mongo.length; i++) {
-                    servers.push(new Server(global.config.mongo[i].host, parseInt(global.config.mongo[i].port)));
-                }
-
-                var replSet = new ReplSet(servers);
-
-                return replSet;
-
-            } catch (e) {
-                global.winston.log('error', { "error": String(e), "stack": new Error().stack });
-                return [];
-            }
-        },
-
-        connect: function () {
-
-            var deferred = q.defer();
-            try {
-                var mongoClient = require('mongodb').MongoClient;
-                mongoClient.connect(global.keys.mongoConnectionString, {
-                    poolSize: 200
-                  }, function (err, db) {
-                    if (err) {
-                        deferred.reject(err);
-                    } else {
-                        deferred.resolve(db);
-                    }
-                });
-
-            } catch (e) {
-                global.winston.log('error', { "error": String(e), "stack": new Error().stack });
-                deferred.reject(e);
-            }
-            return deferred.promise;
+    dbConnect: function (appId) {
+        try {
+            return global.mongoClient.db(appId);
+        } catch (e) {
+            global.winston.log('error', { "error": String(e), "stack": new Error().stack });
         }
-    };
 
-    return obj;
+    },
+
+    replSet: function () {
+
+        try {
+
+            var ReplSet = require('mongodb').ReplSet,
+                Server = require('mongodb').Server;
+
+            var servers = [];
+
+            if (global.config.mongo.length === 0) {
+                return null;
+            }
+
+            if (global.config.mongo.length === 1) {
+                return new Server(global.config.mongo[0].host, global.config.mongo[0].port);
+            }
+
+            for (var i = 0; i < global.config.mongo.length; i++) {
+                servers.push(new Server(global.config.mongo[i].host, parseInt(global.config.mongo[i].port)));
+            }
+
+            var replSet = new ReplSet(servers);
+
+            return replSet;
+
+        } catch (e) {
+            global.winston.log('error', { "error": String(e), "stack": new Error().stack });
+            return [];
+        }
+    },
+
+    connect: function () {
+
+        var deferred = q.defer();
+        try {
+            var mongoClient = require('mongodb').MongoClient;
+            mongoClient.connect(mongoUrl, {
+                poolSize: 200
+              }, function (err, db) {
+                if (err) {
+                    deferred.reject(err);
+                } else {
+                    deferred.resolve(db);
+                }
+            });
+
+        } catch (e) {
+            global.winston.log('error', { "error": String(e), "stack": new Error().stack });
+            deferred.reject(e);
+        }
+        return deferred.promise;
+    }
 };

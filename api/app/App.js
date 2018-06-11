@@ -5,19 +5,17 @@
 */
 var path = require('path');
 var util = require("../../helpers/util.js");
-module.exports = function () {
+var apiTracker = require('../../database-connect/apiTracker');
+
+module.exports = function (app) {
 
     //create a new app.
-    global.app.post('/app/:appId', function (req, res) {
-
-        
+    app.post('/app/:appId', function (req, res) {
 
         try {
             
-
             var appId = req.params.appId;
             
-
             var sdk = req.body.sdk || "REST";
 
             if (global.keys.secureKey === req.body.secureKey) {
@@ -44,7 +42,7 @@ module.exports = function () {
                 res.status(401).send("Unauthorized");
             }
 
-            global.apiTracker.log(appId, "App / Create", req.url, sdk);
+    apiTracker.log(appId, "App / Create", req.url, sdk);
 
         } catch (e) {
             
@@ -52,8 +50,8 @@ module.exports = function () {
     });
 
     //delete app.
-    global.app.delete('/app/:appId', _deleteApp);
-    global.app.put('/app/:appId', _deleteApp);
+    app.delete('/app/:appId', _deleteApp);
+    app.put('/app/:appId', _deleteApp);
 
     function _deleteApp(req, res) { //delete the app and all of its data.
         
@@ -77,17 +75,17 @@ module.exports = function () {
             return res.status(401).send({ status: 'Unauthorized' });
         }
 
-        global.apiTracker.log(appId, "App / Delete", req.url, sdk);
+    apiTracker.log(appId, "App / Delete", req.url, sdk);
 
     }
 
     //delete a table.
-    global.app.delete('/app/:appId/:tableName', _deleteTable);
+    app.delete('/app/:appId/:tableName', _deleteTable);
 
     function _deleteTable(req, res) { //delete the app and all of its data.
 
         try {
-            //this method is to delete a particular collection from an global.app.
+            //this method is to delete a particular collection from an app.
             
             var appId = req.params.appId;
             var tableName = req.params.tableName;
@@ -116,11 +114,11 @@ module.exports = function () {
             return res.status(500).send('Cannot delete table.');
         }
 
-        global.apiTracker.log(appId, "App / Table / Delete", req.url, sdk);
+    apiTracker.log(appId, "App / Table / Delete", req.url, sdk);
     }
 
     //create a table.
-    global.app.put('/app/:appId/:tableName', function (req, res) {
+    app.put('/app/:appId/:tableName', function (req, res) {
 
         
 
@@ -162,17 +160,15 @@ module.exports = function () {
                 return res.status(500).send(err);
             });
 
-            global.apiTracker.log(appId, "App / Table / Create", req.url, sdk);
+    apiTracker.log(appId, "App / Table / Create", req.url, sdk);
         }
     });
 
     //get a table.
-    global.app.post('/app/:appId/:tableName', _getTable);
-    global.app.get('/app/:appId/:tableName', _getTable);
+    app.post('/app/:appId/:tableName', _getTable);
+    app.get('/app/:appId/:tableName', _getTable);
 
     function _getTable(req, res) {
-        
-
         var appId = req.params.appId;
         var tableName = req.params.tableName;
         var sdk = req.body.sdk || "REST";
@@ -209,11 +205,11 @@ module.exports = function () {
             });
         }
 
-        global.apiTracker.log(appId, "App / Table / Get", req.url, sdk);
+    apiTracker.log(appId, "App / Table / Get", req.url, sdk);
     }
 
     //Export Database for :appID
-    global.app.post('/backup/:appId/exportdb', function (req, res) {
+    app.post('/backup/:appId/exportdb', function (req, res) {
         
         try {
             var appKey = req.body.key;
@@ -245,7 +241,7 @@ module.exports = function () {
     });
 
     //Import Database for :appID
-    global.app.post('/backup/:appId/importdb', function (req, res) {
+    app.post('/backup/:appId/importdb', function (req, res) {
         
         try {
             var appKey = req.body.key;
@@ -281,7 +277,7 @@ module.exports = function () {
     });
 
     //Export Table for :appID
-    global.app.post('/export/:appId/:tableName', function (req, res) {
+    app.post('/export/:appId/:tableName', function (req, res) {
         
         try {
             var appKey = req.body.key;
@@ -322,7 +318,7 @@ module.exports = function () {
     });
 
     //Import Table for :appID
-    global.app.post('/import/:appId', function (req, res, next) {
+    app.post('/import/:appId', function (req, res, next) {
         
         try {
             var appKey = req.body.key;

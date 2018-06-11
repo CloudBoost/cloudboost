@@ -9,14 +9,14 @@
 var util = require('../../helpers/util.js');
 var request = require('request');
 
-module.exports = function() {
+module.exports = function(app) {
 
     //Description : Used to change server URL form localhost to any DNS. 
     //Params : secureKey : Used to validate the request. 
     //         url : New Server URL. 
     //Returns : 200 - success
     //          400 - Invalid URL, 401 - Unauthoroized, 500 - Internal Server Error.     
-    global.app.post('/server/url', function(req, res) {
+    app.post('/server/url', function(req, res) {
         try {
             
             
@@ -45,7 +45,7 @@ module.exports = function() {
     });
 
 
-    global.app.get('/status', function(req,res) {
+    app.get('/status', function(req,res) {
 
                 
 

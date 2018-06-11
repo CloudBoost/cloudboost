@@ -14,15 +14,17 @@ var linkedinHelper = require('../../helpers/linkedin.js');
 var googleHelper = require('../../helpers/google.js');
 var facebookHelper = require('../../helpers/facebook.js');
 
-module.exports = function () {
+var apiTracker = require('../../database-connect/apiTracker');
+
+module.exports = function (app) {
 
     /**
      * Get User from Sessions
      *
      */
 
-    global.app.post('/user/:appId/currentUser', function (req, res) { //for login
-        
+    app.post('/user/:appId/currentUser', function (req, res) { //for login
+
 
         var appId = req.params.appId;
         var appKey = req.body.key || req.param('key');
@@ -52,7 +54,7 @@ module.exports = function () {
             res.status(400).send(error);
         });
 
-        global.apiTracker.log(appId, "User / CurrentUser", req.url, sdk);
+        apiTracker.log(appId, "User / CurrentUser", req.url, sdk);
     });
 
     /**
@@ -60,8 +62,8 @@ module.exports = function () {
      *
      */
 
-    global.app.post('/user/:appId/login', function (req, res) { //for login
-        
+    app.post('/user/:appId/login', function (req, res) { //for login
+
         var appId = req.params.appId;
         var document = req.body.document; //document contains the credentials
         var appKey = req.body.key || req.param('key');
@@ -80,7 +82,9 @@ module.exports = function () {
 
                 //Check Session Length from app Settings
                 if (list[0] && list[0].length > 0) {
-                    var auth = _.first(_.where(list[0], { category: "auth" }));
+                    var auth = _.first(_.where(list[0], {
+                        category: "auth"
+                    }));
                     if (auth && auth.settings && auth.settings.sessions && auth.settings.sessions.sessionLength) {
                         var temp = Number(auth.settings.sessions.sessionLength);
                         if (!isNaN(temp)) {
@@ -96,10 +100,12 @@ module.exports = function () {
                 setSession(req, appId, sessionLength, result, res);
                 res.json(result);
             }, function (error) {
-                res.status(401).json({ error: error });
+                res.status(401).json({
+                    error: error
+                });
             });
 
-            global.apiTracker.log(appId, "User / Login", req.url, sdk);
+            apiTracker.log(appId, "User / Login", req.url, sdk);
         });
     });
     /**
@@ -107,9 +113,9 @@ module.exports = function () {
      *
      */
 
-    global.app.post('/user/:appId/loginwithprovider', function (req, res) {
+    app.post('/user/:appId/loginwithprovider', function (req, res) {
 
-        
+
 
         var appId = req.params.appId;
         var appKey = req.body.key || req.param('key');
@@ -122,19 +128,25 @@ module.exports = function () {
         var sessionLength = 30; //Default
 
         if (!provider) {
-            res.status(400).json({ "message": "provider is required." });
+            res.status(400).json({
+                "message": "provider is required."
+            });
             return;
         }
 
         provider = provider.toLowerCase();
 
         if (!accessToken) {
-            res.status(400).json({ "message": "accessToken is required." });
+            res.status(400).json({
+                "message": "accessToken is required."
+            });
             return;
         }
 
         if (provider === "twitter" && !accessSecret) {
-            res.status(400).json({ "message": "accessSecret is required for given provider." });
+            res.status(400).json({
+                "message": "accessSecret is required for given provider."
+            });
             return;
         }
 
@@ -150,7 +162,9 @@ module.exports = function () {
                 return res.status(400).send("App Settings not found.");
             }
 
-            var auth = _.first(_.where(list[0], { category: "auth" }));
+            var auth = _.first(_.where(list[0], {
+                category: "auth"
+            }));
             if (auth) {
                 var authSettings = auth.settings;
             }
@@ -208,15 +222,15 @@ module.exports = function () {
             return res.status(400).send(error);
         });
 
-        global.apiTracker.log(appId, "User / Login with provider", req.url, sdk);
+        apiTracker.log(appId, "User / Login with provider", req.url, sdk);
     });
 
     /**
      * User SignUp API
      */
 
-    global.app.post('/user/:appId/signup', function (req, res) { //for user registeration
-        
+    app.post('/user/:appId/signup', function (req, res) { //for user registeration
+
         var appId = req.params.appId;
         var document = req.body.document;
         var appKey = req.body.key || req.param('key');
@@ -234,7 +248,9 @@ module.exports = function () {
 
                 //Check Session Length from app Settings
                 if (list[0] && list[0].length > 0) {
-                    var auth = _.first(_.where(list[0], { category: "auth" }));
+                    var auth = _.first(_.where(list[0], {
+                        category: "auth"
+                    }));
                     if (auth && auth.settings && auth.settings.sessions && auth.settings.sessions.sessionLength) {
                         var temp = Number(auth.settings.sessions.sessionLength);
                         if (!isNaN(temp)) {
@@ -254,18 +270,20 @@ module.exports = function () {
                     res.send(null);
                 }
             }, function (error) {
-                res.status(400).json({ error: error });
+                res.status(400).json({
+                    error: error
+                });
             });
         });
 
-        global.apiTracker.log(appId, "User / Signup", req.url, sdk);
+        apiTracker.log(appId, "User / Signup", req.url, sdk);
     });
 
     /**
      * User Logout Api
      */
 
-    global.app.post('/user/:appId/logout', function (req, res) { //for logging user out
+    app.post('/user/:appId/logout', function (req, res) { //for logging user out
         var appId = req.params.appId || null;
         var userId = req.session.userId || null;
         var sdk = req.body.sdk || "REST";
@@ -276,20 +294,22 @@ module.exports = function () {
             req.session.email = null;
             req.session.roles = null;
             global.sessionHelper.saveSession(req.session, function (err, reply) {
-                
+
             });
             res.json(req.body.document);
         } else {
-            res.status(400).json({ "message": "You are not logged in" });
+            res.status(400).json({
+                "message": "You are not logged in"
+            });
         }
-        global.apiTracker.log(appId, "User / Logout", req.url, sdk);
+        apiTracker.log(appId, "User / Logout", req.url, sdk);
     });
 
     /*
-    * Change Password.
-    */
+     * Change Password.
+     */
 
-    global.app.put('/user/:appId/changePassword', function (req, res) { //for logging user out
+    app.put('/user/:appId/changePassword', function (req, res) { //for logging user out
         var appId = req.params.appId || null;
         var userId = req.session.userId || null;
         var sdk = req.body.sdk || "REST";
@@ -298,15 +318,21 @@ module.exports = function () {
         var appKey = req.body.key || "";
 
         if (!oldPassword || oldPassword === "") {
-            res.status(400).json({ "message": "Old Password is required." });
+            res.status(400).json({
+                "message": "Old Password is required."
+            });
         }
 
         if (!newPassword || newPassword === "") {
-            res.status(400).json({ "message": "New Password is required." });
+            res.status(400).json({
+                "message": "New Password is required."
+            });
         }
 
         if (req.session.loggedIn === false) {
-            res.status(400).json({ "message": "User should be logged in to change the password." });
+            res.status(400).json({
+                "message": "User should be logged in to change the password."
+            });
         } else {
             var userId = req.session.userId;
             global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
@@ -315,45 +341,55 @@ module.exports = function () {
                 }).then(function (result) {
                     res.json(result);
                 }, function (error) {
-                    res.json(400, { error: error });
+                    res.json(400, {
+                        error: error
+                    });
                 });
             });
         }
-        global.apiTracker.log(appId, "User / Logout", req.url, sdk);
+        apiTracker.log(appId, "User / Logout", req.url, sdk);
     });
 
     /**
      * User Reset Password
      */
 
-    global.app.post('/user/:appId/resetPassword', function (req, res) {
+    app.post('/user/:appId/resetPassword', function (req, res) {
         var appId = req.params.appId || null;
         var email = req.body.email || null;
         var sdk = req.body.sdk || "REST";
 
         if (!email) {
-            return res.status(400).json({ "message": "Email not found." });
+            return res.status(400).json({
+                "message": "Email not found."
+            });
         }
 
         if (req.session.loggedIn === true) {
-            return res.status(400).json({ "message": "Password cannot be reset because the user is already logged in. Use change password instead." });
+            return res.status(400).json({
+                "message": "Password cannot be reset because the user is already logged in. Use change password instead."
+            });
         }
 
         global.userService.resetPassword(appId, email, customHelper.getAccessList(req), true).then(function (result) {
-            res.status(200).json({ "message": "Password reset email sent." });
+            res.status(200).json({
+                "message": "Password reset email sent."
+            });
         }, function (error) {
-            res.json(400, { error: error });
+            res.json(400, {
+                error: error
+            });
         });
 
-        global.apiTracker.log(appId, "User / ResetPassword", req.url, sdk);
+        apiTracker.log(appId, "User / ResetPassword", req.url, sdk);
     });
 
     /**
      * Add To Role Api
      */
 
-    global.app.put('/user/:appId/addToRole', function (req, res) { //for assigning user to a role
-        
+    app.put('/user/:appId/addToRole', function (req, res) { //for assigning user to a role
+
         var appId = req.params.appId;
         var user = req.body.user;
         var role = req.body.role;
@@ -366,13 +402,15 @@ module.exports = function () {
         }).then(function (result) {
             res.json(result);
         }, function (error) {
-            res.json(400, { error: error });
+            res.json(400, {
+                error: error
+            });
         });
-        global.apiTracker.log(appId, "User / Role / Add", req.url, sdk);
+        apiTracker.log(appId, "User / Role / Add", req.url, sdk);
     });
 
-    global.app.put('/user/:appId/removeFromRole', function (req, res, next) { //for removing role from the user
-        
+    app.put('/user/:appId/removeFromRole', function (req, res, next) { //for removing role from the user
+
         var appId = req.params.appId;
         var user = req.body.user;
         var role = req.body.role;
@@ -384,10 +422,12 @@ module.exports = function () {
         }).then(function (result) {
             res.json(result);
         }, function (error) {
-            res.status(400).json({ error: error });
+            res.status(400).json({
+                error: error
+            });
         });
 
-        global.apiTracker.log(appId, "User / Role / Remove", req.url, sdk);
+        apiTracker.log(appId, "User / Role / Remove", req.url, sdk);
     });
 
     /* Private Methods */

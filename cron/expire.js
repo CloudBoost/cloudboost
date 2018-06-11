@@ -6,6 +6,7 @@
 */
 
 var q = require('q');
+var mongoUtil = require('../dbUtil/mongo')();
 
 var CronJob = require('cron').CronJob;
 var job= new CronJob('00 00 22 * * *', function(){
@@ -61,7 +62,7 @@ var job= new CronJob('00 00 22 * * *', function(){
 function removeFiles(appId,curr) {
     try{
         var collectionName = "File";
-        var collectionId = global.mongoUtil.collection.getId(appId, collectionName);
+        var collectionId = mongoUtil.collection.getId(appId, collectionName);
         var collection = global.mongoClient.db(appId).collection(collectionId);
         query = {"expires": {"$lt": curr, "$exists": true, "$ne": null}};
         var promises = [];
@@ -84,7 +85,7 @@ function removeFiles(appId,curr) {
 
 function mongodb(appId,collectionName,curr){
     try{
-        var collectionId = global.mongoUtil.collection.getId(appId, collectionName);
+        var collectionId = mongoUtil.collection.getId(appId, collectionName);
         var collection = global.mongoClient.db(appId).collection(collectionId);
         que = {"expires": {"$lt": curr,"$exists":true,"$ne":null}};
         collection.remove(que, function (err, number) {

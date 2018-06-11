@@ -11,7 +11,9 @@ var crypto = require('crypto');
 var customHelper = require('../helpers/custom.js');
 var type = require("../helpers/dataType");
 
-var databaseDriver = global.mongoService.document;
+var databaseDriver = require('../databases/mongo').document;
+var mongoUtil = require('../dbUtil/mongo')();
+
 module.exports = function() {
 
     return {
@@ -423,7 +425,7 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
             return mainPromise.promise;
         }
         var modifiedDocuments = document._modifiedColumns;
-        global.mongoUtil.collection.getSchema(appId, collectionName).then(function(table) {
+        mongoUtil.collection.getSchema(appId, collectionName).then(function(table) {
             columns = table.columns
             //check for required.
             if (!document['_tableName'] || !document['_type']) {
@@ -1284,7 +1286,7 @@ function _getSchema(appId, collectionName) {
     var deferred = global.q.defer();
 
     try {
-        global.mongoUtil.collection.getSchema(appId, collectionName).then(function(table) {
+        mongoUtil.collection.getSchema(appId, collectionName).then(function(table) {
             deferred.resolve(table.columns);
         }, function(error) {
             deferred.reject(error);

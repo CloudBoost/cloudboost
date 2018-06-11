@@ -6,7 +6,7 @@
 */
 
 
-module.exports = function () {
+module.exports = function (app) {
 
     /**
      *Description : Send Email to all users in the selected aplication
@@ -16,7 +16,7 @@ module.exports = function () {
      -Success : success on emails sent
      -Error : Error Data( 'Server Error' : status 500 )
      */
-    global.app.post('/email/:appId/campaign', function (req, res) {
+    app.post('/email/:appId/campaign', function (req, res) {
         
         try {
             var appId = req.params.appId;
