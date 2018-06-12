@@ -5,15 +5,14 @@
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
-
 var q = require("q");
-var mongoUrl = require('../config/mongo').url;
+var config = require('../config/config');
 
 module.exports = {
 
     dbConnect: function (appId) {
         try {
-            return global.mongoClient.db(appId);
+            return config.mongoClient.db(appId);
         } catch (e) {
             global.winston.log('error', { "error": String(e), "stack": new Error().stack });
         }
@@ -28,26 +27,28 @@ module.exports = {
                 Server = require('mongodb').Server;
 
             var servers = [];
-
-            if (global.config.mongo.length === 0) {
+            if(config.loadedConfig && config.loadedConfig.mongo) {
+                if (config.loadedConfig.mongo.length === 0) {
+                    return null;
+                }
+    
+                if (config.loadedConfig.mongo.length === 1) {
+                    return new Server(config.loadedConfig.mongo[0].host, config.loadedConfig.mongo[0].port);
+                }
+    
+                for (var i = 0; i < config.loadedConfig.mongo.length; i++) {
+                    servers.push(new Server(config.loadedConfig.mongo[i].host, parseInt(config.loadedConfig.mongo[i].port)));
+                }
+            } else {
                 return null;
-            }
-
-            if (global.config.mongo.length === 1) {
-                return new Server(global.config.mongo[0].host, global.config.mongo[0].port);
-            }
-
-            for (var i = 0; i < global.config.mongo.length; i++) {
-                servers.push(new Server(global.config.mongo[i].host, parseInt(global.config.mongo[i].port)));
             }
 
             var replSet = new ReplSet(servers);
 
             return replSet;
-
         } catch (e) {
             global.winston.log('error', { "error": String(e), "stack": new Error().stack });
-            return [];
+            return null;
         }
     },
 
@@ -56,7 +57,7 @@ module.exports = {
         var deferred = q.defer();
         try {
             var mongoClient = require('mongodb').MongoClient;
-            mongoClient.connect(mongoUrl, {
+            mongoClient.connect(config.mongoConnectionString, {
                 poolSize: 200
               }, function (err, db) {
                 if (err) {

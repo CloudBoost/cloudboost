@@ -4,6 +4,7 @@
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 var config = require('../../config/config');
+var appService = require('../../services/app');
 
 module.exports = function (app) {
 
@@ -15,7 +16,7 @@ module.exports = function (app) {
 
             if (config.secureKey === req.body.secureKey) {
 
-                global.appService.changeAppClientKey(appId, req.body.value).then(function (app) {
+                appService.changeAppClientKey(appId, req.body.value).then(function (app) {
                     res.status(200).json(app);
                 }, function (err) {
                     res.status(500).send("Error");
@@ -38,7 +39,7 @@ module.exports = function (app) {
             var appId = req.params.appId;
 
             if (config.secureKey === req.body.secureKey) {
-                global.appService.changeAppMasterKey(appId, req.body.value).then(function (app) {
+                appService.changeAppMasterKey(appId, req.body.value).then(function (app) {
                     res.status(200).json(app);
                 }, function (err) {
                     res.status(500).send("Error");
@@ -66,7 +67,7 @@ module.exports = function (app) {
     app.post('/admin/dbaccess/enable/:appId', function (req, res) {
         try {
             if (config.secureKey === req.body.secureKey) {
-                global.appService.createDatabaseUser(req.params.appId).then(function (userData) {
+                appService.createDatabaseUser(req.params.appId).then(function (userData) {
                     res.status(200).json({
                         user: userData
                     });

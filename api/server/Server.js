@@ -7,8 +7,9 @@
 
 
 var util = require('../../helpers/util.js');
-var request = require('request');
 var config = require('../../config/config');
+var serverService = require('../../services/server');
+var keyService = require('../../database-connect/keyService');
 
 module.exports = function(app) {
 
@@ -27,12 +28,10 @@ module.exports = function(app) {
 
             if (config.secureKey === req.body.secureKey) {
                 
-                global.keyService.changeUrl(req.body.url).then(function (url) {
+                keyService.changeUrl(req.body.url).then(function (url) {
                     
                     res.status(200).send({status : "success", message : "Cluster URL Updated to "+url});
                 }, function (err) {
-                    
-                    
                     res.status(500).send("Error, Cannot change the cluster URL at this time.");
                 });
             } else {
@@ -47,10 +46,7 @@ module.exports = function(app) {
 
 
     app.get('/status', function(req,res) {
-
-                
-
-        global.serverService.getDBStatuses().then(function(response){           
+        serverService.getDBStatuses().then(function(response){           
             return res.status(200).json({status:200, message : "Service Status : OK"});            
         },function(error){
             return res.status(500).send(error);

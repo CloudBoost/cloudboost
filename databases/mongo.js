@@ -8,9 +8,9 @@ var q = require("q");
 var _ = require('underscore');
 var util = require('../helpers/util.js');
 var Grid = require('gridfs-stream');
+var config = require('../config/config');
 
-
-var mongoUtil = require('../dbUtil/mongo')();
+var mongoUtil = require('../services/mongo');
 
 var obj = {};
 
@@ -44,7 +44,7 @@ obj.document = {
         //This function is for joins. :)
         var _self = obj;
         var join = [];
-        var deferred = global.q.defer();
+        var deferred = q.defer();
         try {
             //include and merge all the documents.
             var promises = [];
@@ -97,7 +97,7 @@ obj.document = {
                 //}
             }
 
-            global.q.all(promises).then(function(arrayOfDocs) {
+            q.all(promises).then(function(arrayOfDocs) {
                 var pr = [];
                 var r_include = [];
                 for (var i = 0; i < join.length; i++) {
@@ -117,14 +117,14 @@ obj.document = {
                     if (r_include.length > 0) {
                         pr.push(_self.document._include(appId, r_include, arrayOfDocs[i]));
                     } else {
-                        var new_promise = global.q.defer();
+                        var new_promise = q.defer();
                         new_promise.resolve(arrayOfDocs[i]);
                         pr.push(new_promise.promise);
                     }
 
                 }
 
-                global.q.all(pr).then(function(arrayOfDocs) {
+                q.all(pr).then(function(arrayOfDocs) {
                     for (var i = 0; i < docs.length; i++) {
                         for (var j = 0; j < join.length; j++) {
                             //if the doc contains an relation with a columnName.
@@ -183,7 +183,7 @@ obj.document = {
     },
 
     fetch_data: function(appId, collectionName, q, promises) {
-        var includeDeferred = global.q.defer();
+        var includeDeferred = q.defer();
 
         try {
             if (global.mongoDisconnected) {
@@ -196,7 +196,7 @@ obj.document = {
                 return includeDeferred.promise;
             }
 
-            global.mongoClient.db(appId).collection(mongoUtil.collection.getId(appId, collectionName)).find(q).toArray(function(err, includeDocs) {
+            config.mongoClient.db(appId).collection(mongoUtil.collection.getId(appId, collectionName)).find(q).toArray(function(err, includeDocs) {
                 if (err) {
                     global.winston.log('error', err);
                     includeDeferred.reject(err);
@@ -227,7 +227,7 @@ obj.document = {
             }
 
             
-            var collection = global.mongoClient.db(appId).collection(mongoUtil.collection.getId(appId, collectionName));
+            var collection = config.mongoClient.db(appId).collection(mongoUtil.collection.getId(appId, collectionName));
             var include = [];
             /*query for expires*/
 
@@ -454,7 +454,7 @@ obj.document = {
             for (var i = 0; i < documentArray.length; i++) {
                 promises.push(_save(appId, documentArray[i].document._tableName, documentArray[i].document));
             }
-            global.q.allSettled(promises).then(function(docs) {
+            q.allSettled(promises).then(function(docs) {
                 deferred.resolve(docs);
             }, function(err) {
                 global.winston.log('error', err);
@@ -485,7 +485,7 @@ obj.document = {
 
             
 
-            var collection = global.mongoClient.db(appId).collection(mongoUtil.collection.getId(appId, collectionName));
+            var collection = config.mongoClient.db(appId).collection(mongoUtil.collection.getId(appId, collectionName));
 
             
 
@@ -531,7 +531,7 @@ obj.document = {
                 skip = parseInt(skip);
             }
 
-            var collection = global.mongoClient.db(appId).collection(mongoUtil.collection.getId(appId, collectionName));
+            var collection = config.mongoClient.db(appId).collection(mongoUtil.collection.getId(appId, collectionName));
 
             //delete $include and $includeList recursively
             query = _sanitizeQuery(query);
@@ -570,7 +570,7 @@ obj.document = {
                 return deferred.promise;
             }
 
-            var collection = global.mongoClient.db(appId).collection(mongoUtil.collection.getId(appId, collectionName));
+            var collection = config.mongoClient.db(appId).collection(mongoUtil.collection.getId(appId, collectionName));
 
             var include = [];
 
@@ -685,7 +685,7 @@ obj.document = {
                 return deferred.promise;
             }
 
-            var collection = global.mongoClient.db(appId).collection(mongoUtil.collection.getId(appId, collectionName));
+            var collection = config.mongoClient.db(appId).collection(mongoUtil.collection.getId(appId, collectionName));
 
             var query = {};
             if (pipeline.length > 0 && pipeline[0] && pipeline[0]["$match"]) {
@@ -784,7 +784,7 @@ obj.document = {
                 return deferred.promise;
             }
 
-            var collection = global.mongoClient.db(appId).collection(mongoUtil.collection.getId(appId, collectionName));
+            var collection = config.mongoClient.db(appId).collection(mongoUtil.collection.getId(appId, collectionName));
 
             collection.save(document, function(err, doc) {
                 if (err) {
@@ -825,7 +825,7 @@ obj.document = {
             if (!document._id) {
                 deferred.reject('You cant delete an unsaved object');
             } else {
-                var collection = global.mongoClient.db(appId).collection(mongoUtil.collection.getId(appId, collectionName));
+                var collection = config.mongoClient.db(appId).collection(mongoUtil.collection.getId(appId, collectionName));
                 var query = {
                     _id: documentId
                 };
@@ -876,7 +876,7 @@ obj.document = {
                 return deferred.promise;
             }
 
-            var collection = global.mongoClient.db(appId).collection(mongoUtil.collection.getId(appId, collectionName));
+            var collection = config.mongoClient.db(appId).collection(mongoUtil.collection.getId(appId, collectionName));
 
             collection.remove(query, {
                 w: 1 //returns the number of documents removed
@@ -908,10 +908,10 @@ obj.document = {
     */
     getFile: function(appId, filename) {
 
-        var deferred = global.q.defer();
+        var deferred = q.defer();
 
         try {
-            var gfs = Grid(global.mongoClient.db(appId), require('mongodb'));
+            var gfs = Grid(config.mongoClient.db(appId), require('mongodb'));
 
             gfs.findOne({
                 filename: filename
@@ -942,7 +942,7 @@ obj.document = {
     */
     getFileStreamById: function(appId, fileId) {
         try {
-            var gfs = Grid(global.mongoClient.db(appId), require('mongodb'));
+            var gfs = Grid(config.mongoClient.db(appId), require('mongodb'));
 
             var readstream = gfs.createReadStream({_id: fileId});
 
@@ -964,10 +964,10 @@ obj.document = {
     */
     deleteFileFromGridFs: function(appId, filename) {
 
-        var deferred = global.q.defer();
+        var deferred = q.defer();
 
         try {
-            var gfs = Grid(global.mongoClient.db(appId), require('mongodb'));
+            var gfs = Grid(config.mongoClient.db(appId), require('mongodb'));
 
             //File existence checking
             gfs.exist({
@@ -1015,10 +1015,10 @@ obj.document = {
     */
     saveFileStream: function(appId, fileStream, fileName, contentType) {
 
-        var deferred = global.q.defer();
+        var deferred = q.defer();
 
         try {
-            var gfs = Grid(global.mongoClient.db(appId), require('mongodb'));
+            var gfs = Grid(config.mongoClient.db(appId), require('mongodb'));
 
             //streaming to gridfs
             var writestream = gfs.createWriteStream({filename: fileName, mode: 'w', content_type: contentType});
@@ -1091,7 +1091,7 @@ function _save(appId, collectionName, document) {
         document = _serialize(document);
         //column key array to track sub documents.
         var columns = [];
-        global.mongoService.document._update(appId, collectionName, document).then(function(doc) {
+        obj.document._update(appId, collectionName, document).then(function(doc) {
             
             doc = _deserialize(doc);
             deferredMain.resolve(doc);

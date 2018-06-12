@@ -21,6 +21,13 @@ module.exports = function (app) {
         });
     });
 
+    app.use(function (req, res, next) {
+        console.log(req.method);
+        console.log(req.url);
+        console.log(req.path);
+        next();
+    });
+
     require('./api/tables/CloudObjects.js')(app);
     require('./api/tables/CloudUser.js')(app);
     require('./api/tables/CloudRole.js')(app);
@@ -53,7 +60,7 @@ module.exports = function (app) {
             res.status(500).json({
                 message: err.message,
                 error: err.stack
-            })
+            });
         } else {
             res.status(500).send({
                 status: "500",

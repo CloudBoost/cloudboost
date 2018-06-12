@@ -5,6 +5,8 @@ var Redis = require('ioredis');
 
 var ioRedisAdapter = require('socket.io-redis');
 
+var appConfig = require('./config');
+
 function constructUrl () {
     var config = loadConfig();
 
@@ -58,40 +60,40 @@ function constructUrl () {
                     isCluster = true;
 
                 } else {
-                    var obj = {
+                    var redis_obj = {
                         host: process.env["REDIS_SENTINEL_SERVICE_HOST"],
                         port: process.env["REDIS_SENTINEL_SERVICE_PORT"],
                         enableReadyCheck: false
                     };
-                    hosts.push(obj);
+                    hosts.push(redis_obj);
                 }
 
             } else {
                 //take from env variables.
 
-                var i = 1;
+                var count = 1;
 
                 if (process.env["REDIS_PORT_6379_TCP_ADDR"] && process.env["REDIS_PORT_6379_TCP_PORT"]) {
-                    var obj = {
+                    var redis_port_obj = {
                         host: process.env["REDIS_PORT_6379_TCP_ADDR"],
                         port: process.env["REDIS_PORT_6379_TCP_PORT"],
                         enableReadyCheck: false
                     };
 
-                    hosts.push(obj);
+                    hosts.push(redis_port_obj);
 
                 } else {
-                    while (process.env["REDIS_" + i + "_PORT_6379_TCP_ADDR"] && process.env["REDIS_" + i + "_PORT_6379_TCP_PORT"]) {
-                        if (i > 1) {
+                    while (process.env["REDIS_" + count + "_PORT_6379_TCP_ADDR"] && process.env["REDIS_" + count + "_PORT_6379_TCP_PORT"]) {
+                        if (count > 1) {
                             isCluster = true;
                         }
-                        var obj = {
-                            host: process.env["REDIS_" + i + "_PORT_6379_TCP_ADDR"],
-                            port: process.env["REDIS_" + i + "_PORT_6379_TCP_PORT"],
+                        var redis_replica = {
+                            host: process.env["REDIS_" + count + "_PORT_6379_TCP_ADDR"],
+                            port: process.env["REDIS_" + count + "_PORT_6379_TCP_PORT"],
                             enableReadyCheck: false
                         };
-                        hosts.push(obj);
-                        i++;
+                        hosts.push(redis_replica);
+                        count++;
                     }
 
                 }
@@ -100,17 +102,17 @@ function constructUrl () {
 
         //If everything else failsm then try local redis.
         if (hosts.length === 0) {
-            var obj = {
+            var redis_raw = {
                 host: "127.0.0.1",
                 port: "6379",
                 enableReadyCheck: false
             };
 
-            hosts.push(obj);
+            hosts.push(redis_raw);
         }
 
         if (isCluster) {
-            global.redisClient = new Redis.Cluster(hosts);
+            appConfig.redisClient = new Redis.Cluster(hosts);
 
 
             io.adapter(ioRedisAdapter({
@@ -120,7 +122,7 @@ function constructUrl () {
 
         } else {
 
-            global.redisClient = new Redis(hosts[0]);
+            appConfig.redisClient = new Redis(hosts[0]);
 
 
             io.adapter(ioRedisAdapter({
@@ -129,7 +131,7 @@ function constructUrl () {
             }));
         }
 
-        global.realTime = require('./database-connect/realTime')(io);
+        appConfig.realTime = require('../database-connect/realTime')(io);
 
     } catch (err) {
         global.winston.log('error', {
@@ -137,7 +139,7 @@ function constructUrl () {
             "stack": new Error().stack
         });
     }
-};
+}
 
 function loadConfig () {
     try {
@@ -146,6 +148,6 @@ function loadConfig () {
     } catch (e) {
         return {};
     }
-};
+}
 
-module.exports = constructUrl();
+module.exports = constructUrl;

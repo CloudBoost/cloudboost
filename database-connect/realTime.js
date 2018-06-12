@@ -6,6 +6,8 @@
 var socketSessionHelper = require('../helpers/socketSession');
 var socketQueryHelper = require('../helpers/socketQuery');
 var aclHelper = require('../helpers/ACL');
+var appService = require('../services/app');
+var q = require('q');
 
 module.exports = function (io) {
 
@@ -192,7 +194,7 @@ module.exports = function (io) {
                     }
                 }
 
-                global.q.all(promises).then(function () {
+                q.all(promises).then(function () {
                     
                 }, function () {
                     
@@ -214,7 +216,7 @@ module.exports = function (io) {
  */
 
 function _sendNotification(appId, document, socket, eventType) {
-    var deferred = global.q.defer();
+    var deferred = q.defer();
     try {
         socketSessionHelper.getSession(socket.id, function (err, session) {
             if (err) {
@@ -241,7 +243,7 @@ function _sendNotification(appId, document, socket, eventType) {
                     } else {
                         // if no access then only emit if listen is using master key
                         if (socketData.appKey) {
-                            global.appService.isMasterKey(appId, socketData.appKey).then(( isMaster ) => {
+                            appService.isMasterKey(appId, socketData.appKey).then(( isMaster ) => {
                                 if(isMaster){
                                     
                                     socket.emit(appId.toLowerCase() + 'table' + document._tableName.toLowerCase() + eventType.toLowerCase() + socketData.timestamp, JSON.stringify(document));

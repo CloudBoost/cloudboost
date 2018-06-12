@@ -1,12 +1,13 @@
+var appConfig = require('./config');
 
-module.exports = {
-    url: constructUrl()
-};
+module.exports = constructUrl;
 
 function constructUrl () {
     var config = loadConfig();
     var mongoConnectionString = "mongodb://";
     var isReplicaSet = false;
+
+    appConfig.loadedConfig = config;
 
     if ((!config.mongo && !process.env["MONGO_1_PORT_27017_TCP_ADDR"] && !process.env["KUBERNETES_STATEFUL_MONGO_URL"])) {
         console.error("INFO : Not running on Docker. Use docker-compose (recommended) from https://github.com/cloudboost/docker");
@@ -104,8 +105,10 @@ function constructUrl () {
             _mongoConnectionString += str;
         }
 
+        appConfig.mongoConnectionString = _mongoConnectionString;
+
         return _mongoConnectionString;
-};
+}
 
 
 function loadConfig () {

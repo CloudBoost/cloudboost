@@ -16,6 +16,10 @@ var facebookHelper = require('../../helpers/facebook.js');
 
 var apiTracker = require('../../database-connect/apiTracker');
 var sessionHelper = require('../../helpers/session');
+var customService = require('../../services/cloudObjects');
+var userService = require('../../services/cloudUser');
+var appService = require('../../services/app');
+var authService = require('../../services/auth');
 
 module.exports = function (app) {
 
@@ -47,8 +51,8 @@ module.exports = function (app) {
         query.$includeList = [];
         query["_id"] = accessList.userId;
 
-        global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
-            return global.customService.findOne(appId, collectionName, query, select, sort, skip, accessList, isMasterKey);
+        appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
+            return customService.findOne(appId, collectionName, query, select, sort, skip, accessList, isMasterKey);
         }).then(function (result) {
             res.json(result);
         }, function (error) {
@@ -73,10 +77,10 @@ module.exports = function (app) {
         var isMasterKey = false;
         var sessionLength = 30; //Default
 
-        global.appService.getApp(appId).then(function (application) {
+        appService.getApp(appId).then(function (application) {
             var promises = [];
-            promises.push(global.appService.getAllSettings(appId));
-            promises.push(global.appService.isMasterKey(appId, appKey));
+            promises.push(appService.getAllSettings(appId));
+            promises.push(appService.isMasterKey(appId, appKey));
 
             q.all(promises).then(function (list) {
                 isMasterKey = list[1];
@@ -95,7 +99,7 @@ module.exports = function (app) {
                 }
 
                 //Make request
-                return global.userService.login(appId, document.username, document.password, customHelper.getAccessList(req), isMasterKey, application.keys.encryption_key);
+                return userService.login(appId, document.username, document.password, customHelper.getAccessList(req), isMasterKey, application.keys.encryption_key);
             }).then(function (result) {
                 //create sessions
                 setSession(req, appId, sessionLength, result, res);
@@ -152,8 +156,8 @@ module.exports = function (app) {
         }
 
         var promises = [];
-        promises.push(global.appService.getAllSettings(appId));
-        promises.push(global.appService.isMasterKey(appId, appKey));
+        promises.push(appService.getAllSettings(appId));
+        promises.push(appService.isMasterKey(appId, appKey));
 
         q.all(promises).then(function (list) {
 
@@ -204,9 +208,9 @@ module.exports = function (app) {
 
                 if (user && user.length > 0 && user[0].id) {
                     var providerUserId = user[0].id;
-                    return global.authService.upsertUserWithProvider(appId, customHelper.getAccessList(req), provider, providerUserId, accessToken, accessSecret);
+                    return authService.upsertUserWithProvider(appId, customHelper.getAccessList(req), provider, providerUserId, accessToken, accessSecret);
                 } else {
-                    var deferred = global.q.defer();
+                    var deferred = q.defer();
                     deferred.reject("Invalid accessToken");
                     return deferred.promise;
                 }
@@ -240,9 +244,9 @@ module.exports = function (app) {
         var sessionLength = 30; //Default
 
         var promises = [];
-        global.appService.getApp(appId).then(function (application) {
-            promises.push(global.appService.getAllSettings(appId));
-            promises.push(global.appService.isMasterKey(appId, appKey));
+        appService.getApp(appId).then(function (application) {
+            promises.push(appService.getAllSettings(appId));
+            promises.push(appService.isMasterKey(appId, appKey));
 
             q.all(promises).then(function (list) {
                 isMasterKey = list[1];
@@ -261,7 +265,7 @@ module.exports = function (app) {
                 }
 
                 //Make request
-                return global.userService.signup(appId, document, customHelper.getAccessList(req), isMasterKey, application.keys.encryption_key);
+                return userService.signup(appId, document, customHelper.getAccessList(req), isMasterKey, application.keys.encryption_key);
             }).then(function (result) {
                 if (result) {
                     //create sessions
@@ -336,9 +340,9 @@ module.exports = function (app) {
             });
         } else {
             var userId = req.session.userId;
-            global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
-                global.appService.getApp(appId).then(function (application) {
-                    return global.userService.changePassword(appId, userId, oldPassword, newPassword, customHelper.getAccessList(req), isMasterKey, application.keys.encryption_key)
+            appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
+                appService.getApp(appId).then(function (application) {
+                    return userService.changePassword(appId, userId, oldPassword, newPassword, customHelper.getAccessList(req), isMasterKey, application.keys.encryption_key)
                 }).then(function (result) {
                     res.json(result);
                 }, function (error) {
@@ -372,7 +376,7 @@ module.exports = function (app) {
             });
         }
 
-        global.userService.resetPassword(appId, email, customHelper.getAccessList(req), true).then(function (result) {
+        userService.resetPassword(appId, email, customHelper.getAccessList(req), true).then(function (result) {
             res.status(200).json({
                 "message": "Password reset email sent."
             });
@@ -398,8 +402,8 @@ module.exports = function (app) {
         var appKey = req.body.key || req.param('key');
         var sdk = req.body.sdk || "REST";
 
-        global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
-            return global.userService.addToRole(appId, user._id, role._id, customHelper.getAccessList(req), isMasterKey);
+        appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
+            return userService.addToRole(appId, user._id, role._id, customHelper.getAccessList(req), isMasterKey);
         }).then(function (result) {
             res.json(result);
         }, function (error) {
@@ -418,8 +422,8 @@ module.exports = function (app) {
         var appKey = req.body.key || req.param('key');
         var sdk = req.body.sdk || "REST";
 
-        global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
-            return global.userService.removeFromRole(appId, user._id, role._id, customHelper.getAccessList(req), isMasterKey);
+        appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
+            return userService.removeFromRole(appId, user._id, role._id, customHelper.getAccessList(req), isMasterKey);
         }).then(function (result) {
             res.json(result);
         }, function (error) {

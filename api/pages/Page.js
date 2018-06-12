@@ -11,6 +11,8 @@ var _ = require('underscore');
 var customHelper = require('../../helpers/custom.js');
 var q = require('q');
 var apiTracker = require('../../database-connect/apiTracker');
+var userService = require('../../services/cloudUser');
+var appService = require('../../services/app');
 
 module.exports = function(app) {
     
@@ -22,8 +24,8 @@ module.exports = function(app) {
         var sdk = req.body.sdk || "REST";     
         
         var promises=[];
-        promises.push(global.appService.getApp(appId));
-        promises.push(global.appService.getAllSettings(appId));        
+        promises.push(appService.getApp(appId));
+        promises.push(appService.getAllSettings(appId));        
 
         q.all(promises).then(function(list){            
 
@@ -78,8 +80,8 @@ module.exports = function(app) {
             });
         }
         
-        global.appService.getApp(appId).then(function (application) {
-            global.userService.resetUserPassword(appId, username, newPassword, resetKey, customHelper.getAccessList(req), true, application.keys.encryption_key)
+        appService.getApp(appId).then(function (application) {
+            userService.resetUserPassword(appId, username, newPassword, resetKey, customHelper.getAccessList(req), true, application.keys.encryption_key)
             .then(function(result) {
                 res.json({message : "Password changed successfully."});
             }, function(error) {
@@ -104,8 +106,8 @@ module.exports = function(app) {
         var sdk = req.body.sdk || "REST";     
 
         var promises=[];
-        promises.push(global.appService.getApp(appId));
-        promises.push(global.appService.getAllSettings(appId));        
+        promises.push(appService.getApp(appId));
+        promises.push(appService.getAllSettings(appId));        
 
         q.all(promises).then(function(list){            
 
@@ -165,8 +167,8 @@ module.exports = function(app) {
         
 
         var promises=[];
-        promises.push(global.userService.verifyActivateCode(appId, activateCode, customHelper.getAccessList(req)));
-        promises.push(global.appService.getAllSettings(appId));        
+        promises.push(userService.verifyActivateCode(appId, activateCode, customHelper.getAccessList(req)));
+        promises.push(appService.getAllSettings(appId));        
 
         q.all(promises).then(function(list){            
            

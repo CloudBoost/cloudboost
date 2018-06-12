@@ -9,6 +9,10 @@ var customHelper = require('../../helpers/custom.js');
 
 var apiTracker = require('../../database-connect/apiTracker');
 var config = require('../../config/config');
+var mongoService = require('../../databases/mongo');
+var customService = require('../../services/cloudObjects');
+var appService = require('../../services/app');
+var fileService = require('../../services/cloudFiles');
 
 module.exports = function(app) {
 
@@ -22,8 +26,8 @@ module.exports = function(app) {
 
         var sdk = req.body.sdk || "REST";
         if (document._id) {
-            global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
-                return global.customService.save(appId, "_File", document, customHelper.getAccessList(req), isMasterKey);
+            appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
+                return customService.save(appId, "_File", document, customHelper.getAccessList(req), isMasterKey);
             }).then(function(result) {
                 
                 
@@ -36,10 +40,10 @@ module.exports = function(app) {
 
             apiTracker.log(appId, "File / Save", req.url, sdk);
         } else {
-            global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
+            appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
                 _getFileStream(req).then(function(result) {
                     config.fileUrl = config.myURL + "/file/";
-                    return global.fileService.upload(appId, result.fileStream, result.contentType, result.fileObj, customHelper.getAccessList(req), isMasterKey);
+                    return fileService.upload(appId, result.fileStream, result.contentType, result.fileObj, customHelper.getAccessList(req), isMasterKey);
                 }).then(function(file) {
                     return res.status(200).send(file);
                 }, function(err) {
@@ -65,8 +69,8 @@ module.exports = function(app) {
         var appKey = req.body.key;
         var sdk = req.body.sdk || "REST";
         config.fileUrl = config.myURL + "/file/";
-        global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
-            global.fileService.delete(appId, fileObj, customHelper.getAccessList(req), isMasterKey).then(function(file) {
+        appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
+            fileService.delete(appId, fileObj, customHelper.getAccessList(req), isMasterKey).then(function(file) {
                 
                 return res.status(200).send(null);
             }, function(err) {
@@ -108,12 +112,12 @@ function _getFile(req, res) {
     if (!fileId) {
         return res.status(400).send("File ID is Required");
     }
-    global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
-        global.fileService.getFile(appId, fileId, customHelper.getAccessList(req), isMasterKey).then(function(file) {
+    appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
+        fileService.getFile(appId, fileId, customHelper.getAccessList(req), isMasterKey).then(function(file) {
 
             if (typeof resizeWidth === 'undefined' && typeof resizeHeight === 'undefined' && typeof quality === 'undefined' && typeof opacity === 'undefined' && typeof scale === 'undefined' && typeof containWidth === 'undefined' && typeof containHeight === 'undefined' && typeof rDegs === 'undefined' && typeof bSigma === 'undefined') {
 
-                var fileStream = global.mongoService.document.getFileStreamById(appId, file._id);
+                var fileStream = mongoService.document.getFileStreamById(appId, file._id);
 
                 res.set('Content-Type', file.contentType);
                 res.set('Content-Disposition', 'inline; filename="' + file.filename + '"');
@@ -131,7 +135,7 @@ function _getFile(req, res) {
 
             } else {
                 
-                global.fileService.processImage(appId, file, resizeWidth, resizeHeight, cropX, cropY, cropW, cropH, quality, opacity, scale, containWidth, containHeight, rDegs, bSigma).then(function(file) {
+                fileService.processImage(appId, file, resizeWidth, resizeHeight, cropX, cropY, cropW, cropH, quality, opacity, scale, containWidth, containHeight, rDegs, bSigma).then(function(file) {
                     return res.status(200).send(file);
                 }, function(err) {
                     return res.status(500).send(err);

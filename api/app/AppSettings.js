@@ -10,6 +10,8 @@ var _ = require('underscore');
 
  var apiTracker = require('../../database-connect/apiTracker');
 var mongoService = require('../../databases/mongo');
+var appService = require('../../services/app');
+var keyService = require('../../database-connect/keyService');
 
 module.exports = function(app) {
 
@@ -28,14 +30,14 @@ module.exports = function(app) {
             settings = JSON.parse(settings);
         }
 
-        global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
+        appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
             if (isMasterKey) {
 
                 if (global.mongoDisconnected) {
                     return res.status(500).send('Storage / Cache Backend are temporarily down.');
                 }
 
-                global.appService.updateSettings(appId, category, settings).then(function(settings) {
+                appService.updateSettings(appId, category, settings).then(function(settings) {
                     return res.status(200).send(settings);
                 }, function(err) {
                     return res.status(500).send('Error');
@@ -59,14 +61,14 @@ module.exports = function(app) {
         var sdk = req.body.sdk || "REST";
         var appKey = req.body.key || req.params.key;
 
-        global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
+        appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
             if (isMasterKey) {
 
                 if (global.mongoDisconnected) {
                     return res.status(500).send('Storage / Cache Backend are temporarily down.');
                 }
 
-                global.appService.getAllSettings(appId).then(function(settings) {
+                appService.getAllSettings(appId).then(function(settings) {
                     return res.status(200).send(settings);
                 }, function(err) {
                     return res.status(500).send('Error');
@@ -102,9 +104,9 @@ module.exports = function(app) {
         var promises = [];
 
         promises.push(_getFileStream(req));
-        promises.push(global.appService.isMasterKey(appId, appKey));
-        promises.push(global.appService.getAllSettings(appId));
-        promises.push(global.keyService.getMyUrl());
+        promises.push(appService.isMasterKey(appId, appKey));
+        promises.push(appService.getAllSettings(appId));
+        promises.push(keyService.getMyUrl());
 
         q.all(promises).then(function(resultList) {
 
@@ -178,10 +180,10 @@ module.exports = function(app) {
             return res.status(500).send("Unauthorized");
         }
 
-        global.appService.isMasterKey(appId, appKey).then(function(masterKey) {
+        appService.isMasterKey(appId, appKey).then(function(masterKey) {
 
             if (!masterKey) {
-                var unathorizedPromise = global.q.defer();
+                var unathorizedPromise = q.defer();
                 unathorizedPromise.reject("Unauthorized.");
                 return unathorizedPromise.promise;
             } else {

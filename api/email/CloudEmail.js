@@ -5,6 +5,8 @@
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
+var appService = require('../../services/app');
+var emailService = require('../../services/cloudEmail');
 
 module.exports = function (app) {
 
@@ -25,9 +27,9 @@ module.exports = function (app) {
             var emailBody = req.body.emailBody;
             var emailSubject = req.body.emailSubject;
 
-            global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
+            appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
                 if (isMasterKey) {
-                    global.emailService.sendEmail(appId, emailBody, emailSubject, query, isMasterKey).then(function (data) {
+                    emailService.sendEmail(appId, emailBody, emailSubject, query, isMasterKey).then(function (data) {
                         res.status(200).send(null);
                     }, function (err) {
                         if (err === "Email Configuration is not found." || err === "No users found") {

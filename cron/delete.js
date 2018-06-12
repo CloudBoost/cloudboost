@@ -4,7 +4,8 @@
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
-var mongoUtil = require('../dbUtil/mongo')();
+var q = require('q');
+var mongoUtil = require('../services/mongo');
 var config = require('../config/config');
 var CronJob = require('cron').CronJob;
 var job = new CronJob('15 * * * * *', function () {
@@ -65,7 +66,7 @@ function deleteFromQueue(message) {
 }
 
 function _delete(message) {
-    var deferred = global.q.defer();
+    var deferred = q.defer();
     try {
         var promise = null;
         if (message) {
@@ -94,7 +95,7 @@ function _delete(message) {
 }
 
 function _appDelete(appId, db) {
-    var deferred = global.q.defer();
+    var deferred = q.defer();
     try {
         var promises = [];
         if (db.length > 0) {
@@ -102,7 +103,7 @@ function _appDelete(appId, db) {
                 promises.push(mongoUtil.app.drop(appId));
         }
         if (promises.length > 0) {
-            global.q.all(promises).then(function () {
+            q.all(promises).then(function () {
                 deferred.resolve();
             }, function () {
                 deferred.reject();
@@ -121,7 +122,7 @@ function _appDelete(appId, db) {
 }
 
 function _tableDelete(appId, tableName, db) {
-    var deferred = global.q.defer();
+    var deferred = q.defer();
 
     try {
         var promises = [];
@@ -130,7 +131,7 @@ function _tableDelete(appId, tableName, db) {
                 promises.push(mongoUtil.collection.dropCollection(appId, tableName));
         }
         if (promises.length > 0) {
-            global.q.all(promises).then(function () {
+            q.all(promises).then(function () {
                 deferred.resolve();
             }, function () {
                 deferred.reject();
@@ -149,7 +150,7 @@ function _tableDelete(appId, tableName, db) {
 }
 
 function _columnDelete(appId, tableName, columnName, db) {
-    var deferred = global.q.defer();
+    var deferred = q.defer();
     try {
         var promises = [];
         if (db.length > 0) {
@@ -157,7 +158,7 @@ function _columnDelete(appId, tableName, columnName, db) {
                 promises.push(mongoUtil.collection.dropColumn(appId, tableName, columnName));
         }
         if (promises.length > 0) {
-            global.q.all(promises).then(function () {
+            q.all(promises).then(function () {
                 deferred.resolve();
             }, function () {
                 deferred.reject();

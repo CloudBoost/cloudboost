@@ -7,6 +7,7 @@ var path = require('path');
 var util = require("../../helpers/util.js");
 var apiTracker = require('../../database-connect/apiTracker');
 var config = require('../../config/config');
+var appService = require('../../services/app');
 
 module.exports = function (app) {
 
@@ -21,9 +22,9 @@ module.exports = function (app) {
 
             if (config.secureKey === req.body.secureKey) {
                 
-                global.appService.createApp(appId).then(function (app) {
+                appService.createApp(appId).then(function (app) {
 
-                    global.appService.createDefaultTables(appId).then(function () {
+                    appService.createDefaultTables(appId).then(function () {
                         
                         delete app.keys.encryption_key;
                         res.status(200).send(app);
@@ -66,7 +67,7 @@ module.exports = function (app) {
         if (config.secureKey === body.secureKey) {
             
             //delete all code here.
-            global.appService.deleteApp(appId, deleteReason).then(function () {
+            appService.deleteApp(appId, deleteReason).then(function () {
                 
                 return res.status(200).send({ status: 'Success' });
             }, function () {
@@ -97,9 +98,9 @@ module.exports = function (app) {
             var appKey = req.body.key || req.params.key;
 
             // to delete table authorize on app level
-            global.appService.isClientAuthorized(appId, appKey, 'app', null).then(function (isAuthorized) {
+            appService.isClientAuthorized(appId, appKey, 'app', null).then(function (isAuthorized) {
                 if (isAuthorized) {
-                    global.appService.deleteTable(appId, tableName).then(function (table) {
+                    appService.deleteTable(appId, tableName).then(function (table) {
                         res.status(200).send(table);
                     }, function (error) {
                         
@@ -144,12 +145,12 @@ module.exports = function (app) {
             }
 
             // check if table already exists
-            global.appService.getTable(appId, tableName).then(function (table) {
+            appService.getTable(appId, tableName).then(function (table) {
                 // authorize client for table level, if table found then authorize on table level else on app level for creating new table.
-                let authorizationLevel = table ? 'table' : 'app'
-                global.appService.isClientAuthorized(appId, appKey, authorizationLevel, table).then(function (isAuthorized) {
+                var authorizationLevel = table ? 'table' : 'app';
+                appService.isClientAuthorized(appId, appKey, authorizationLevel, table).then(function (isAuthorized) {
                     if (isAuthorized) {
-                        global.appService.upsertTable(appId, tableName, body.data.columns, body.data).then(function (table) {
+                        appService.upsertTable(appId, tableName, body.data.columns, body.data).then(function (table) {
                             return res.status(200).send(table);
                         }, function (err) {
                             return res.status(500).send(err);
@@ -157,7 +158,7 @@ module.exports = function (app) {
                     } else return res.status(401).send({ status: 'Unauthorized' });
                 }, function (error) {
                     return res.status(401).send({ status: 'Unauthorized', message: error });
-                })
+                });
 
             }, function (err) {
                 return res.status(500).send(err);
@@ -179,9 +180,9 @@ module.exports = function (app) {
 
         if (tableName === "_getAll") {
             // to get all tables authorize on app level;
-            global.appService.isClientAuthorized(appId, appKey, 'app', null).then(function (isAuthorized) {
+            appService.isClientAuthorized(appId, appKey, 'app', null).then(function (isAuthorized) {
                 if (isAuthorized) {
-                    global.appService.getAllTables(appId).then(function (tables) {
+                    appService.getAllTables(appId).then(function (tables) {
                         return res.status(200).send(tables);
                     }, function (err) {
                         return res.status(500).send('Error');
@@ -193,9 +194,9 @@ module.exports = function (app) {
 
         } else {
 
-            global.appService.getTable(appId, tableName).then(function (table) {
+            appService.getTable(appId, tableName).then(function (table) {
                 // to get a tables authorize on table level;
-                global.appService.isClientAuthorized(appId, appKey, 'table', table).then(function (isAuthorized) {
+                appService.isClientAuthorized(appId, appKey, 'table', table).then(function (isAuthorized) {
                     if (isAuthorized) {
                         return res.status(200).send(table);
                     } else return res.status(401).send({ status: 'Unauthorized' });
@@ -218,10 +219,10 @@ module.exports = function (app) {
             var appKey = req.body.key;
             var appId = req.params.appId;
 
-            global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
+            appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
 
                 if (isMasterKey) {
-                    global.appService.exportDatabase(appId).then(function (data) {
+                    appService.exportDatabase(appId).then(function (data) {
                         res.writeHead(200, {
                             "Content-Type": "application/octet-stream",
                             "Content-Disposition": "attachment; filename=dump" + (new Date()) + ".json"
@@ -249,14 +250,14 @@ module.exports = function (app) {
         try {
             var appKey = req.body.key;
             var appId = req.params.appId;
-            global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
+            appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
                 if (isMasterKey) {
                     var file;
                     if (req.files && req.files.file) {
                         file = req.files.file.data;
                     }
                     if (file) {
-                        global.appService.importDatabase(appId, file).then(function (data) {
+                        appService.importDatabase(appId, file).then(function (data) {
                             if (data) {
                                 res.status(200).json({ Success: true });
                             } else {
@@ -301,8 +302,8 @@ module.exports = function (app) {
             if (!exportType) {
                 res.status(400).send("exportType is missing");
             }
-            global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
-                global.appService.exportTable(appId, tableName, exportType.toLowerCase(), isMasterKey, accessList).then(function (data) {
+            appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
+                appService.exportTable(appId, tableName, exportType.toLowerCase(), isMasterKey, accessList).then(function (data) {
                     if (exportType.toLowerCase() === 'json') {
                         res.status(200).json(data);
                     } else { res.status(200).send(data); }
@@ -346,8 +347,8 @@ module.exports = function (app) {
             if (fileExt != ".csv" && fileExt != '.json' && fileExt != '.xls' && fileExt != '.xlsx') {
                 return res.status(400).send(fileExt + " is not allowed");
             }
-            global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
-                global.appService.importTable(req, isMasterKey).then(function(result){
+            appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
+                appService.importTable(req, isMasterKey).then(function(result){
                     return res.status(200).json(result);
                 }, function(error){
                     return res.status(500).send(error);

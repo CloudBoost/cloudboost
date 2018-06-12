@@ -1,8 +1,9 @@
-var apiTracker = require('../../database-connect/apiTracker');
+var q = require('q');
+var apiTracker = require('./database-connect/apiTracker');
 var utilHelper = require('./helpers/util');
 // var util = require('util');
 var sessionHelper = require('./helpers/session');
-
+var appService = require('./services/app');
 module.exports = function (app) {
 
     app.use(function(req, res, next) {
@@ -57,10 +58,6 @@ module.exports = function (app) {
     
         try {
     
-            if (!global.customService || !global.serverService || !global.mongoService || !global.userService || !global.roleService || !global.appService || !global.fileService) {
-                return res.status(400).send("Services Not Loaded");
-            }
-    
             if (req.text && utilHelper._isJSON(req.text)) {
                 req.body = JSON.parse(req.text);
             }
@@ -84,8 +81,8 @@ module.exports = function (app) {
                     //check if app is in the plan.
                     var promises = [];
                     promises.push(apiTracker.isInPlanLimit(appId));
-                    promises.push(global.appService.isKeyValid(appId, appKey));
-                    global.q.all(promises).then(function(result) {
+                    promises.push(appService.isKeyValid(appId, appKey));
+                    q.all(promises).then(function(result) {
                         var isAppKeyValid = result[1];
                         var isInPlan = result[0];
                         if (!isInPlan) {

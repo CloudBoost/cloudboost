@@ -157,7 +157,7 @@ function _redisDbStatus() {
 		responseJson.error = null;
 
 		//Simple ping/pong with callback
-		global.redisClient.call('PING', function (error, result) {
+		appConfig.redisClient.call('PING', function (error, result) {
 			if (error) {
 
 				responseJson.error = "Unable to know CBEngine Redisdb status";

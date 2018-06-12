@@ -16,10 +16,9 @@ global.winston = require('winston');
 require('winston-loggly');
 var slack = require('winston-bishop-slack').Slack;
 
-// config = require('./database-connect/keys.js')();
 var config = require('./config/config');
-
 var logglyTags = config.logglyTags ? config.logglyTags.split(',') : [];
+var port = config.port || 4730;
 
 global.winston.add(global.winston.transports.Loggly, {
     inputToken: config.logToken,
@@ -49,9 +48,9 @@ if (config.slackWebHook) {
                         short: false
                     }]
                 }]
-            }
+            };
         }
-    })
+    });
 }
 
 app.use(cors());
@@ -64,8 +63,9 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(bodyParser.json());
 app.use(busboyBodyParser());
-var port = config.port || 4730;
 app.set('port', port); //SET THE DEFAULT PORT.
+
+require('./middlewares')(app); //Setup middlewares
 
 // var http = null;
 var https = null;
@@ -96,50 +96,20 @@ if (https) {
     io.attach(https);
 }
 
-//Attach services -
-function attachServices() {
-    try {
-
-        //loading utils
-
-        //loading services.
-        global.mongoService = require('./databases/mongo.js');
-        global.customService = require('./services/cloudObjects.js')();
-        global.userService = require('./services/cloudUser.js')();
-        global.roleService = require('./services/cloudRole.js')();
-        global.appService = require('./services/app.js')();
-        global.fileService = require('./services/cloudFiles.js')();
-        global.serverService = require('./services/server.js');
-        global.mailService = require('./services/mail.js')();
-        global.emailService = require('./services/cloudEmail.js')();
-        global.authService = require('./services/auth.js')();
-        global.importHelpers = require('./services/importHelpers.js')();
-
-        console.log('+++++++++++ Services Status : OK. ++++++++++++++++++');
-    } catch (e) {
-        console.log("FATAL : Cannot attach services");
-        console.log(e);
-        global.winston.log('error', {
-            "error": String(e),
-            "stack": new Error().stack
-        });
-    }
-}
-
-
-
 //Server kickstart:
 http.listen(app.get('port'), function () {
     try {
         
-        require('./routes')(app);
-        require('./config/setup')();
-        attachServices();
-
         if (!process.env.CBENV || process.env.CBENV === 'STAGING'){
             require('./api/db/mongo.js')(app);            
         }
-        
+
+        require('./config/redis')(); // Setup redis server
+        require('./config/mongo')(); // Setup mongo server
+        require('./config/analytics')(); // Setup the analytics server               
+        require('./config/setup')(); // Setup cloudboost server
+
+        require('./routes')(app); //Setup routes
     } catch (e) {
         console.log(e);
         global.winston.log('error', e);
