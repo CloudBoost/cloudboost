@@ -3,6 +3,9 @@
 #     (c) 2014 HackerBay, Inc.
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
+var socketSessionHelper = require('../helpers/socketSession');
+var socketQueryHelper = require('../helpers/socketQuery');
+var aclHelper = require('../helpers/ACL');
 
 module.exports = function (io) {
 
@@ -107,8 +110,8 @@ module.exports = function (io) {
                         tableSocketId.splice(-8,8)
                         tableSocketId = socket.id + tableSocketId.join('')
 
-                        global.socketQueryHelper.setData(tableSocketId, data.data);
-                        global.socketSessionHelper.saveSession(socket.id, data.sessionId);
+                        socketQueryHelper.setData(tableSocketId, data.data);
+                        socketSessionHelper.saveSession(socket.id, data.sessionId);
                     }
                 } catch (e) {
                     global.winston.log('error', {
@@ -124,13 +127,13 @@ module.exports = function (io) {
                     
                     // build socketid specefic to table
                     var tableSocketId = socket.id + data.event
-                    global.socketQueryHelper.getData(tableSocketId, data.eventType, function (err, socketData) {
+                    socketQueryHelper.getData(tableSocketId, data.eventType, function (err, socketData) {
                         if (err)
                             throw err;
                         else {
                             socket.leave(data.event + socketData.timestamp);
                             socket.emit('leave' + data.event + data.timestamp, socketData.timestamp); //to removeAlListeners
-                            global.socketQueryHelper.deleteData(tableSocketId, data.event);
+                            socketQueryHelper.deleteData(tableSocketId, data.event);
                         }
                     });
                 } catch (e) {
@@ -143,7 +146,7 @@ module.exports = function (io) {
 
             socket.on('disconnect', function () {
                 try {
-                    global.socketSessionHelper.deleteSession(socket.id); //deletes the lnk between this socket and session.
+                    socketSessionHelper.deleteSession(socket.id); //deletes the lnk between this socket and session.
                 } catch (e) {
                     global.winston.log('error', {
                         "error": String(e),
@@ -213,24 +216,24 @@ module.exports = function (io) {
 function _sendNotification(appId, document, socket, eventType) {
     var deferred = global.q.defer();
     try {
-        global.socketSessionHelper.getSession(socket.id, function (err, session) {
+        socketSessionHelper.getSession(socket.id, function (err, session) {
             if (err) {
                 deferred.reject();
             }
 
             session = session || {}
 
-            global.socketQueryHelper.getData(_buildSocketId(socket.id,appId,document._tableName,eventType), eventType, function (err, socketData) {
+            socketQueryHelper.getData(_buildSocketId(socket.id,appId,document._tableName,eventType), eventType, function (err, socketData) {
 
                 socketData = socketData || { timestamp: '' };
                 var socketQueryValidate = true;
                 if (socketData.query) {
-                    socketQueryValidate = global.socketQueryHelper.validateSocketQuery(document, socketData.query.query);
+                    socketQueryValidate = socketQueryHelper.validateSocketQuery(document, socketData.query.query);
                 }
 
                 if (socketQueryValidate) {
                     // check if public access is enabled or the current session user is allowed
-                    if (global.aclHelper.isAllowedReadAccess(session.userId, session.roles, document.ACL)) {
+                    if (aclHelper.isAllowedReadAccess(session.userId, session.roles, document.ACL)) {
                         
                         socket.emit(appId.toLowerCase() + 'table' + document._tableName.toLowerCase() + eventType.toLowerCase() + socketData.timestamp, JSON.stringify(document));
                         

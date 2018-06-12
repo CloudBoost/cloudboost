@@ -6,7 +6,7 @@
 */
 
 
-var smtpConfig = null;
+var smtpConfig = require('../config/config').smtp;
 var defaultTransporter = null;
 var mandrill = require('mandrill-api/mandrill');
 var _ = require('underscore');
@@ -377,14 +377,8 @@ function _getEmailSettings(settings,returnDefault){
                 emailConfig.fromEmail=emailSettings[0].settings.fromEmail;
             }
         } else if ( returnDefault == true ) {
-
-            try{
-                var smtpConfig = require('../config/smtp.js');
-            }catch(e){
-                return deferred.reject("SMTP Configuration file not found.");
-            }
                  
-            if(!smtpConfig){
+            if(!smtpConfig.provider){
                 deferred.reject("SMTP Configuration file not found.");
             } else {
                 emailConfig=smtpConfig;

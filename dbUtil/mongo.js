@@ -6,6 +6,7 @@
 
 var q = require("q");
 var tablesData = require('../helpers/cloudTable');
+var config = require('../config/config');
 
 module.exports = function() {
 
@@ -556,7 +557,7 @@ module.exports = function() {
             var deferred = q.defer();
 
             try {
-                global.redisClient.get(global.keys.cacheSchemaPrefix + '-' + appId + ':' + collectionName, function(err, res) {
+                global.redisClient.get(config.cacheSchemaPrefix + '-' + appId + ':' + collectionName, function(err, res) {
                     if (res) {
                         deferred.resolve(JSON.parse(res));
                     } else {
@@ -572,7 +573,7 @@ module.exports = function() {
                                 // No table found. Create new table
                                 var defaultSchema = tablesData.Custom;
                                 global.appService.upsertTable(appId, collectionName, defaultSchema).then(function(table) {
-                                        global.redisClient.setex(global.keys.cacheSchemaPrefix + '-' + appId + ':' + collectionName, global.keys.schemaExpirationTimeFromCache, JSON.stringify(table._doc));
+                                        global.redisClient.setex(config.cacheSchemaPrefix + '-' + appId + ':' + collectionName, config.schemaExpirationTimeFromCache, JSON.stringify(table._doc));
                                         deferred.resolve(table);
                                     },function(err){
                                         deferred.reject(err);
@@ -580,7 +581,7 @@ module.exports = function() {
                                 );
 
                             } else {
-                                global.redisClient.setex(global.keys.cacheSchemaPrefix + '-' + appId + ':' + collectionName, global.keys.schemaExpirationTimeFromCache, JSON.stringify(res._doc));
+                                global.redisClient.setex(config.cacheSchemaPrefix + '-' + appId + ':' + collectionName, config.schemaExpirationTimeFromCache, JSON.stringify(res._doc));
                                 deferred.resolve(res);
                             }
 

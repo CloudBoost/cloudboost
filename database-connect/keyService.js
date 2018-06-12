@@ -17,13 +17,13 @@ module.exports = {
 
 			var key = null;
 
-			if (global.keys.secureKey) {
+			if (config.secureKey) {
 
-				deferred.resolve(global.keys.secureKey);
+				deferred.resolve(config.secureKey);
 			} else {
 
 				//get it from mongodb, If does not exist, create a new random key and return;
-				var collection = config.mongoClient.db(global.keys.globalDb).collection(global.keys.globalSettings);
+				var collection = config.mongoClient.db(config.globalDb).collection(config.globalSettings);
 
 				collection.find({}).toArray(function (err, docs) {
 					if (err) {
@@ -36,9 +36,9 @@ module.exports = {
 
 						if (docs.length >= 1) {
 							if (docs[0].secureKey) {
-								global.keys.secureKey = docs[0].secureKey;
+								config.secureKey = docs[0].secureKey;
 
-								deferred.resolve(global.keys.secureKey);
+								deferred.resolve(config.secureKey);
 							} else {
 
 								//save in mongodb.
@@ -56,7 +56,7 @@ module.exports = {
 										deferred.reject(err);
 									} else {
 										//resolve if not an error
-										global.keys.secureKey = key;
+										config.secureKey = key;
 
 										deferred.resolve(key);
 									}
@@ -66,7 +66,7 @@ module.exports = {
 							//create a new document.
 							var doc = {};
 							doc.secureKey = key;
-							global.keys.secureKey = key;
+							config.secureKey = key;
 							collection.save(doc, function (err, doc) {
 								if (err) {
 
@@ -102,15 +102,15 @@ module.exports = {
 
 			var key = null;
 
-			if (global.keys.secureKey) {
+			if (config.secureKey) {
 
-				deferred.resolve(global.keys.clusterKey);
+				deferred.resolve(config.clusterKey);
 			} else {
 
 				//get it from mongodb, If does not exist, create a new random key and return;
 				var deferred = q.defer();
 
-				var collection = config.mongoClient.db(global.keys.globalDb).collection(global.keys.globalSettings);
+				var collection = config.mongoClient.db(config.globalDb).collection(config.globalSettings);
 
 				collection.find({}).toArray(function (err, docs) {
 					if (err) {
@@ -123,9 +123,9 @@ module.exports = {
 
 						if (docs.length >= 1) {
 							if (docs[0].clusterKey) {
-								global.keys.clusterKey = docs[0].clusterKey;
+								config.clusterKey = docs[0].clusterKey;
 
-								deferred.resolve(global.keys.clusterKey);
+								deferred.resolve(config.clusterKey);
 							} else {
 
 								//save in mongodb.
@@ -141,7 +141,7 @@ module.exports = {
 										deferred.reject(err);
 									} else {
 										//resolve if not an error
-										global.keys.clusterKey = key;
+										config.clusterKey = key;
 
 										deferred.resolve(key);
 									}
@@ -151,7 +151,7 @@ module.exports = {
 							//create a new document.
 							var doc = {};
 							doc.clusterKey = key;
-							global.keys.clusterKey = key;
+							config.clusterKey = key;
 							collection.save(doc, function (err, doc) {
 								if (err) {
 
@@ -182,14 +182,14 @@ module.exports = {
 		var deferred = q.defer();
 
 		try {
-			if (global.keys.myURL) {
-				deferred.resolve(global.keys.myURL);
+			if (config.myURL) {
+				deferred.resolve(config.myURL);
 			} else {
 
 				//get it from mongodb, If does not exist, create a new random key and return; 
 				var _deferred = q.defer();
 
-				var collection = config.mongoClient.db(global.keys.globalDb).collection(global.keys.globalSettings);
+				var collection = config.mongoClient.db(config.globalDb).collection(config.globalSettings);
 
 				collection.find({}).toArray(function (err, docs) {
 					if (err) {
@@ -201,8 +201,8 @@ module.exports = {
 						if (docs.length >= 1) {
 							if (docs[0].myURL) {
 
-								global.keys.myURL = docs[0].myURL;
-								_deferred.resolve(global.keys.myURL);
+								config.myURL = docs[0].myURL;
+								_deferred.resolve(config.myURL);
 							} else {
 								// FOR TESTING, FIX LATER
 								_deferred.resolve("http://localhost:4730");
@@ -232,7 +232,7 @@ module.exports = {
 		var deferred = q.defer();
 
 		try {
-			var collection = config.mongoClient.db(global.keys.globalDb).collection(global.keys.globalSettings);
+			var collection = config.mongoClient.db(config.globalDb).collection(config.globalSettings);
 
 			collection.find({}).toArray(function (err, docs) {
 				if (err) {
@@ -252,7 +252,7 @@ module.exports = {
 								deferred.reject("Error, cannot change the cluster URL.");
 							} else {
 
-								global.keys.myURL = url;
+								config.myURL = url;
 								deferred.resolve(url);
 							}
 						});

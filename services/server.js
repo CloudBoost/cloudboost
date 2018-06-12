@@ -68,7 +68,7 @@ function _registerServerAnalytics(secureKey) {
 		post_data.secureKey = secureKey;
 		post_data = JSON.stringify(post_data);
 
-		var url = global.keys.analyticsUrl + '/server/register';
+		var url = appConfig.analyticsUrl + '/server/register';
 		request.post(url, {
 			headers: {
 				'content-type': 'application/json',

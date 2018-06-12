@@ -43,7 +43,6 @@ module.exports = function (app) {
             status: 404,
             message: 'The endpoint was not found. Please check again.'
         });
-
     });
 
     app.use(function (err, req, res, next) {

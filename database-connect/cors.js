@@ -8,8 +8,7 @@
 
 module.exports = function(app){
 	try{	
-	  var cors = require('cors');
-	  app.use(cors());
+
  	} catch(err){           
         global.winston.log('error',{"error":String(err),"stack": new Error().stack});                      
     }

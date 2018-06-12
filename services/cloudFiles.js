@@ -8,6 +8,7 @@ var q = require("q");
 var Grid = require('gridfs-stream');
 var util = require("../helpers/util.js");
 var jimp = require("jimp");
+var config = require('../config/config');
 
 module.exports = function() {
 
@@ -26,7 +27,7 @@ module.exports = function() {
                 var promises = [];
                 var newFileName = '';
 
-                global.keyService.getMyUrl().then(function(url) {
+                configervice.getMyUrl().then(function(url) {
 
                     if (!fileObj._id) {
                         fileObj._id = util.getId();
@@ -73,7 +74,7 @@ module.exports = function() {
             var deferred = q.defer();
             try {
                 var collectionName = "_File";
-                var fileUrl = global.keys.fileUrl + appId + "/";
+                var fileUrl = config.fileUrl + appId + "/";
                 var filename = fileObj.url.substr(fileUrl.length, fileObj.url.length + 1);
                 
 

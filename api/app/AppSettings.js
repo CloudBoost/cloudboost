@@ -9,6 +9,7 @@ var util = require("../../helpers/util.js");
 var _ = require('underscore');
 
  var apiTracker = require('../../database-connect/apiTracker');
+var mongoService = require('../../databases/mongo');
 
 module.exports = function(app) {
 
@@ -53,7 +54,7 @@ module.exports = function(app) {
 
     //Get Settings for the App
     app.post('/settings/:appId', function(req, res) {
-        
+
         var appId = req.params.appId;
         var sdk = req.body.sdk || "REST";
         var appKey = req.body.key || req.params.key;
@@ -133,7 +134,7 @@ module.exports = function(app) {
 
                     //Delete from gridFs
                     if (fileName) {
-                        global.mongoService.document.deleteFileFromGridFs(appId, fileName);
+                        mongoService.document.deleteFileFromGridFs(appId, fileName);
                     }
 
                 }
@@ -147,7 +148,7 @@ module.exports = function(app) {
             if (category == "general") {
                 fileName = appId;
             }
-            return global.mongoService.document.saveFileStream(appId, resultList[0].fileStream, fileName, resultList[0].contentType);
+            return mongoService.document.saveFileStream(appId, resultList[0].fileStream, fileName, resultList[0].contentType);
 
         }).then(function(savedFile) {
             var fileUri = null;
@@ -184,12 +185,12 @@ module.exports = function(app) {
                 unathorizedPromise.reject("Unauthorized.");
                 return unathorizedPromise.promise;
             } else {
-                return global.mongoService.document.getFile(appId, fileName.split('.')[0]);
+                return mongoService.document.getFile(appId, fileName.split('.')[0]);
             }
 
         }).then(function(file) {
 
-            var fileStream = global.mongoService.document.getFileStreamById(appId, file._id);
+            var fileStream = mongoService.document.getFileStreamById(appId, file._id);
 
             res.set('Content-Type', file.contentType);
             res.set('Content-Disposition', 'attachment; filename="' + file.filename + '"');

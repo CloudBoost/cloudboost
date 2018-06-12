@@ -8,6 +8,7 @@
 
 var util = require('../../helpers/util.js');
 var request = require('request');
+var config = require('../../config/config');
 
 module.exports = function(app) {
 
@@ -24,7 +25,7 @@ module.exports = function(app) {
                 return res.status(400).send("Invalid URL");
             }
 
-            if (global.keys.secureKey === req.body.secureKey) {
+            if (config.secureKey === req.body.secureKey) {
                 
                 global.keyService.changeUrl(req.body.url).then(function (url) {
                     

@@ -4,7 +4,7 @@
 #     (c) 2014 HackerBay, Inc. 
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
-
+var sessionHelper = require('../helpers/session');
 
 module.exports = {
     
@@ -18,7 +18,7 @@ module.exports = {
         try{    
             global.redisClient.get('cb-socket-'+socketId, function (err, reply) {
                 if (reply) {
-                    global.sessionHelper.getSession(reply, callback);
+                    sessionHelper.getSession(reply, callback);
                 } else { 
                     if (callback) {
                         callback(err, null);

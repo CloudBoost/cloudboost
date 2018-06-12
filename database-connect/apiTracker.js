@@ -8,18 +8,19 @@
 var q = require('q');
 
 var obj = {};
+var config = require('../config/config');
 
 obj.log = function(appId, actionName, url,sdk, checkReleaseRequest){   
 
     try{  
         var url = null;
         if(checkReleaseRequest){
-            url= global.keys.analyticsUrl+"/app/isReleased";
+            url= config.analyticsUrl+"/app/isReleased";
         }else{
-            url= global.keys.analyticsUrl+"/api/store";
+            url= config.analyticsUrl+"/api/store";
         } 
         var post_data = JSON.stringify({
-            host : global.keys.secureKey,
+            host : config.secureKey,
             appId : appId, 
             category : actionName.split('/')[0] || null,
             subCategory : actionName.split('/')[1] || null,

@@ -15,6 +15,7 @@ var googleHelper = require('../../helpers/google.js');
 var facebookHelper = require('../../helpers/facebook.js');
 
 var apiTracker = require('../../database-connect/apiTracker');
+var sessionHelper = require('../../helpers/session');
 
 module.exports = function (app) {
 
@@ -293,7 +294,7 @@ module.exports = function (app) {
             req.session.appId = null;
             req.session.email = null;
             req.session.roles = null;
-            global.sessionHelper.saveSession(req.session, function (err, reply) {
+            sessionHelper.saveSession(req.session, function (err, reply) {
 
             });
             res.json(req.body.document);
@@ -452,6 +453,6 @@ module.exports = function (app) {
 
         req.session = obj;
 
-        global.sessionHelper.saveSession(obj, sessionLength);
+        sessionHelper.saveSession(obj, sessionLength);
     }
 };

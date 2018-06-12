@@ -18,7 +18,8 @@ var jsonXlsxWriteFile = require('icg-json-to-xlsx');
 var fs = require('fs');
 var path = require('path');
 var customHelper = require('../helpers/custom.js');
-
+var config = require('../config/config');
+var cloudBoostHelper = require('../helpers/cloudboost')();
 
 var mongoUtil = require('../dbUtil/mongo')();
 
@@ -104,7 +105,7 @@ module.exports = function () {
             try {
                 //check redis cache first.
                 
-                global.redisClient.get(global.keys.cacheAppPrefix + ':' + appId, function (err, res) {
+                global.redisClient.get(config.cacheAppPrefix + ':' + appId, function (err, res) {
 
                     if (res) {
                         res = JSON.parse(res);
@@ -115,7 +116,7 @@ module.exports = function () {
                         
                         //if not found in cache then hit the Db.
 
-                        var collection = global.mongoClient.db(global.keys.globalDb).collection("projects");
+                        var collection = global.mongoClient.db(config.globalDb).collection("projects");
                         var findQuery = collection.find({ appId: appId });
                         findQuery.toArray(function (err, docs) {
                             if (err) {
@@ -125,7 +126,7 @@ module.exports = function () {
                                 deferred.reject("App Not found");
                             } else if (docs.length > 0) {
                                 
-                                global.redisClient.setex(global.keys.cacheAppPrefix + ':' + appId, global.keys.appExpirationTimeFromCache, JSON.stringify(docs[0]));
+                                global.redisClient.setex(config.cacheAppPrefix + ':' + appId, config.appExpirationTimeFromCache, JSON.stringify(docs[0]));
                                 deferred.resolve(docs[0]);
                             }
                         });
@@ -150,7 +151,7 @@ module.exports = function () {
 
             try {
 
-                var collection = global.mongoClient.db(global.keys.globalDb).collection("projects");
+                var collection = global.mongoClient.db(config.globalDb).collection("projects");
                 var findQuery = collection.find({});
                 findQuery.toArray(function (err, docs) {
                     if (err) {
@@ -182,7 +183,7 @@ module.exports = function () {
                 var promises = [];
 
                 
-                var collection = global.mongoClient.db(global.keys.globalDb).collection("projects");
+                var collection = global.mongoClient.db(config.globalDb).collection("projects");
                 var findQuery = collection.find({ appId: appId });
                 findQuery.toArray(function (err, projects) {
                     if (err) {
@@ -206,7 +207,7 @@ module.exports = function () {
 
                             document.keys.encryption_key = data;
 
-                            var collection = global.mongoClient.db(global.keys.globalDb).collection("projects");
+                            var collection = global.mongoClient.db(config.globalDb).collection("projects");
 
                             
     
@@ -253,7 +254,7 @@ module.exports = function () {
             try {
                 var promises = [];
 
-                var collection = global.mongoClient.db(global.keys.globalDb).collection("projects");
+                var collection = global.mongoClient.db(config.globalDb).collection("projects");
                 collection.findOneAndUpdate({
                     appId: appId
                 }, {
@@ -268,7 +269,7 @@ module.exports = function () {
                             global.winston.log('error', err);
                             deferred.reject(err);
                         } else {
-                            global.redisClient.del(global.keys.cacheAppPrefix + ':' + appId); //delete the app from redis.
+                            global.redisClient.del(config.cacheAppPrefix + ':' + appId); //delete the app from redis.
 
                             //delete  the app databases.
                             promises.push(mongoUtil.app.drop(appId)); //delete all mongo app data.
@@ -398,7 +399,7 @@ module.exports = function () {
                             
 
                             //delete table from cache.
-                            global.redisClient.del(global.keys.cacheSchemaPrefix + '-' + appId + ':' + tableName);
+                            global.redisClient.del(config.cacheSchemaPrefix + '-' + appId + ':' + tableName);
 
                             //delete this from all the databases as well.
                             //call
@@ -743,7 +744,7 @@ module.exports = function () {
                                 deferred.reject("Error : Failed to save the table. ");
                             } else if (table) {
                                 //clear the cache.
-                                global.redisClient.del(global.keys.cacheSchemaPrefix + '-' + appId + ':' + tableName);
+                                global.redisClient.del(config.cacheSchemaPrefix + '-' + appId + ':' + tableName);
 
                                 var cloneOldColumns = [].concat(oldColumns || []);
 
@@ -865,7 +866,7 @@ module.exports = function () {
                     appId: appId
                 };
 
-                // var newClientkey = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), global.keys.secureKey, 100, 16).toString("base64");
+                // var newClientkey = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), config.secureKey, 100, 16).toString("base64");
                 var newClientkey = _generateKey()
                 if (value) {
                     newClientkey = value;
@@ -875,7 +876,7 @@ module.exports = function () {
                     "keys.js": newClientkey
                 };
 
-                var collection = global.mongoClient.db(global.keys.globalDb).collection("projects");
+                var collection = global.mongoClient.db(config.globalDb).collection("projects");
                 collection.findOneAndUpdate(query, {
                     $set: setJSON
                 }, {
@@ -917,7 +918,7 @@ module.exports = function () {
                     appId: appId
                 };
 
-                //var newMasterkey = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), global.keys.secureKey, 100, 16).toString("base64");
+                //var newMasterkey = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), config.secureKey, 100, 16).toString("base64");
                 var newMasterkey = _generateKey();
                 if (value) {
                     newMasterkey = value;
@@ -927,7 +928,7 @@ module.exports = function () {
                     "keys.master": newMasterkey
                 };
 
-                var collection = global.mongoClient.db(global.keys.globalDb).collection("projects");
+                var collection = global.mongoClient.db(config.globalDb).collection("projects");
                 collection.findOneAndUpdate(query, {
                     $set: setJSON
                 }, {
@@ -1228,7 +1229,7 @@ function _updateColumnNameOfOldRecords(tableName, appId, renameColumnObject) {
 
 function _isBasicDataType(dataType) {
     try {
-        var types = global.cloudBoostHelper.getBasicDataTypes();
+        var types = cloudBoostHelper.getBasicDataTypes();
 
         if (types.indexOf(dataType) > -1) {
             return true;
@@ -1666,7 +1667,7 @@ function deleteAppFromRedis(appId) {
 
     try {
         //check redis cache first.
-        global.redisClient.del(global.keys.cacheAppPrefix + ':' + appId, function (err, caches) {
+        global.redisClient.del(config.cacheAppPrefix + ':' + appId, function (err, caches) {
             if (err) {
                 deferred.reject(err);
             } else {

@@ -5,7 +5,7 @@
 */
 var util = require('../helpers/util.js');
 
-module.exports = {
+var obj = {
 
     /* Gets the query connected to a socketId.
      * @socketId : Its a string.
@@ -71,7 +71,7 @@ module.exports = {
                         if (query[key].length > 0) {
                             var isTrue = false;
                             for (var i = 0; i < query[key].length; i++) {
-                                if (global.socketQueryHelper.validateSocketQuery(cloudObject, query[key][i])) {
+                                if (obj.validateSocketQuery(cloudObject, query[key][i])) {
                                     isTrue = true;
                                     break;
                                 }
@@ -320,3 +320,5 @@ module.exports = {
         return true;
     }
 };
+
+module.exports = obj;

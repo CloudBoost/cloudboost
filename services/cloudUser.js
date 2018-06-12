@@ -11,6 +11,7 @@ var q = require('q');
 var Collections = require('../database-connect/collections.js');
 var _ = require('underscore');
 var cipher_alg = 'aes-256-ctr';
+var config = require('../config/config');
 
 module.exports = function() {
 
@@ -33,7 +34,7 @@ module.exports = function() {
 					if(encryption_key && encryption_key.iv && encryption_key.key){
 						encryptedPassword = encryptText(cipher_alg, encryption_key.key, encryption_key.iv, password);
 					} else {
-						encryptedPassword = crypto.pbkdf2Sync(password, global.keys.secureKey, 10000, 64, 'sha1').toString('base64');
+						encryptedPassword = crypto.pbkdf2Sync(password, config.secureKey, 10000, 64, 'sha1').toString('base64');
 					}
 					if (encryptedPassword === user.password) {
 						isAuthenticatedUser=true;
@@ -98,13 +99,13 @@ module.exports = function() {
 					if(encryption_key && encryption_key.iv && encryption_key.key){
 						encryptedPassword = encryptText(cipher_alg, encryption_key.key, encryption_key.iv, oldPassword);
 					} else {
-						encryptedPassword = crypto.pbkdf2Sync(oldPassword, global.keys.secureKey, 10000, 64, 'sha1').toString('base64');
+						encryptedPassword = crypto.pbkdf2Sync(oldPassword, config.secureKey, 10000, 64, 'sha1').toString('base64');
 					}
 					if (encryptedPassword === user.password) { //authenticate user.
 						if(encryption_key && encryption_key.iv && encryption_key.key){
 							user.password = encryptText(cipher_alg, encryption_key.key, encryption_key.iv, newPassword);
 						} else {
-							user.password = crypto.pbkdf2Sync(newPassword, global.keys.secureKey, 10000, 64, 'sha1').toString('base64');
+							user.password = crypto.pbkdf2Sync(newPassword, config.secureKey, 10000, 64, 'sha1').toString('base64');
 						}
 					    global.mongoService.document.save(appId,  [{document:user}]).then(function(document) {
 	                        deferred.resolve(user); //returns no. of items matched
@@ -146,7 +147,7 @@ module.exports = function() {
 					
 	            
 	                //Send an email to reset user password here. 
-	                var passwordResetKey = crypto.createHmac('sha256', global.keys.secureKey)
+	                var passwordResetKey = crypto.createHmac('sha256', config.secureKey)
 	                                        .update(user.password)
 	                                        .digest('hex');
 	                                      
@@ -181,7 +182,7 @@ module.exports = function() {
 						return;
 					}
 	                //Send an email to reset user password here. 
-	                var passwordResetKey = crypto.createHmac('sha256', global.keys.secureKey)
+	                var passwordResetKey = crypto.createHmac('sha256', config.secureKey)
 	                   .update(user.password)
 	                   .digest('hex');
 	                
@@ -189,7 +190,7 @@ module.exports = function() {
 						if(encryption_key && encryption_key.iv && encryption_key.key){
 							user.password = encryptText(cipher_alg, encryption_key.key, encryption_key.iv, newPassword);
 						} else {
-							user.password = crypto.pbkdf2Sync(newPassword, global.keys.secureKey, 10000, 64, 'sha1').toString('base64');
+							user.password = crypto.pbkdf2Sync(newPassword, config.secureKey, 10000, 64, 'sha1').toString('base64');
 						}
 	                    global.mongoService.document.save(appId,  [{document:user}]).then(function(user) {
 	                        deferred.resolve(); //returns no. of items matched
@@ -224,7 +225,7 @@ module.exports = function() {
 	                global.customService.save(appId, Collections.User, document,accessList,isMasterKey, null, encryption_key).then(function(user) {
 						            
 		                //Send an email to activate account. 
-	                    var cipher = crypto.createCipher('aes192', global.keys.secureKey);
+	                    var cipher = crypto.createCipher('aes192', config.secureKey);
 						var activateKey = cipher.update(user._id, 'utf8', 'hex');
 						activateKey += cipher.final('hex');
 	                                      
@@ -279,7 +280,7 @@ module.exports = function() {
 
 			try{				
 
-				var decipher = crypto.createDecipher('aes192', global.keys.secureKey);				
+				var decipher = crypto.createDecipher('aes192', config.secureKey);				
 				var userId = decipher.update(activateCode, 'hex', 'utf8');
 				userId += decipher.final('utf8');
 

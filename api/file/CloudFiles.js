@@ -8,6 +8,7 @@ var q = require("q");
 var customHelper = require('../../helpers/custom.js');
 
 var apiTracker = require('../../database-connect/apiTracker');
+var config = require('../../config/config');
 
 module.exports = function(app) {
 
@@ -37,7 +38,7 @@ module.exports = function(app) {
         } else {
             global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
                 _getFileStream(req).then(function(result) {
-                    global.keys.fileUrl = global.keys.myURL + "/file/";
+                    config.fileUrl = config.myURL + "/file/";
                     return global.fileService.upload(appId, result.fileStream, result.contentType, result.fileObj, customHelper.getAccessList(req), isMasterKey);
                 }).then(function(file) {
                     return res.status(200).send(file);
@@ -63,7 +64,7 @@ module.exports = function(app) {
         var fileObj = req.body.fileObj;
         var appKey = req.body.key;
         var sdk = req.body.sdk || "REST";
-        global.keys.fileUrl = global.keys.myURL + "/file/";
+        config.fileUrl = config.myURL + "/file/";
         global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
             global.fileService.delete(appId, fileObj, customHelper.getAccessList(req), isMasterKey).then(function(file) {
                 

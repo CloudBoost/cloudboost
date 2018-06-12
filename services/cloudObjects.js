@@ -13,6 +13,7 @@ var type = require("../helpers/dataType");
 
 var databaseDriver = require('../databases/mongo').document;
 var mongoUtil = require('../dbUtil/mongo')();
+var config = require('../config/config');
 
 module.exports = function() {
 
@@ -1366,7 +1367,7 @@ function _encrypt(data, encryption_key) {
             // 
             return encryptText(cipher_alg, encryption_key.key, encryption_key.iv, data);
         } else {
-            return crypto.pbkdf2Sync(data, global.keys.secureKey, 10000, 64, 'sha1').toString('base64');
+            return crypto.pbkdf2Sync(data, config.secureKey, 10000, 64, 'sha1').toString('base64');
         }
     } catch (err) {
         global.winston.log('error', {

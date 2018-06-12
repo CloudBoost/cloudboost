@@ -18,6 +18,7 @@ var linkedinHelper = require('../../helpers/linkedin.js');
 var googleHelper = require('../../helpers/google.js');
 var facebookHelper = require('../../helpers/facebook.js');
 
+var sessionHelper = require('../../helpers/session');
 
 module.exports = function(app) {  
 
@@ -367,7 +368,7 @@ function setSession(req, appId, sessionLength, result,res) {
 
     req.session = obj;
     
-    global.sessionHelper.saveSession(obj,sessionLength);
+    sessionHelper.saveSession(obj,sessionLength);
     return req.session;
 }
 

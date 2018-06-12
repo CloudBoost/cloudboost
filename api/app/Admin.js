@@ -3,6 +3,7 @@
 #     (c) 2014 HackerBay, Inc. 
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
+var config = require('../../config/config');
 
 module.exports = function (app) {
 
@@ -12,7 +13,7 @@ module.exports = function (app) {
         try {
             var appId = req.params.appId;
 
-            if (global.keys.secureKey === req.body.secureKey) {
+            if (config.secureKey === req.body.secureKey) {
 
                 global.appService.changeAppClientKey(appId, req.body.value).then(function (app) {
                     res.status(200).json(app);
@@ -36,7 +37,7 @@ module.exports = function (app) {
 
             var appId = req.params.appId;
 
-            if (global.keys.secureKey === req.body.secureKey) {
+            if (config.secureKey === req.body.secureKey) {
                 global.appService.changeAppMasterKey(appId, req.body.value).then(function (app) {
                     res.status(200).json(app);
                 }, function (err) {
@@ -64,7 +65,7 @@ module.exports = function (app) {
     */
     app.post('/admin/dbaccess/enable/:appId', function (req, res) {
         try {
-            if (global.keys.secureKey === req.body.secureKey) {
+            if (config.secureKey === req.body.secureKey) {
                 global.appService.createDatabaseUser(req.params.appId).then(function (userData) {
                     res.status(200).json({
                         user: userData

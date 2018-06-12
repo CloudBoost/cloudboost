@@ -6,6 +6,7 @@
 var path = require('path');
 var util = require("../../helpers/util.js");
 var apiTracker = require('../../database-connect/apiTracker');
+var config = require('../../config/config');
 
 module.exports = function (app) {
 
@@ -18,7 +19,7 @@ module.exports = function (app) {
             
             var sdk = req.body.sdk || "REST";
 
-            if (global.keys.secureKey === req.body.secureKey) {
+            if (config.secureKey === req.body.secureKey) {
                 
                 global.appService.createApp(appId).then(function (app) {
 
@@ -45,7 +46,9 @@ module.exports = function (app) {
     apiTracker.log(appId, "App / Create", req.url, sdk);
 
         } catch (e) {
-            
+            return res.status(500).json({
+                error: e
+            })
         }
     });
 
@@ -60,7 +63,7 @@ module.exports = function (app) {
 
         var body = req.body || {};
         var deleteReason = body.deleteReason;
-        if (global.keys.secureKey === body.secureKey) {
+        if (config.secureKey === body.secureKey) {
             
             //delete all code here.
             global.appService.deleteApp(appId, deleteReason).then(function () {

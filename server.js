@@ -4,52 +4,44 @@
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
-var env = process.env.NODE_ENV || 'development';
-
-var express = require('express');
-var util = require('./helpers/util');
-var pjson = require('./package.json');
 var fs = require('fs');
 var busboyBodyParser = require('busboy-body-parser');
 var path = require('path');
+var cors = require('cors');
+var express = require('express');
+var app = express();
+var bodyParser = require('body-parser');
 
-global.mongoDisconnected = false;
 global.winston = require('winston');
 require('winston-loggly');
 var slack = require('winston-bishop-slack').Slack;
 
-var CLOUDBOOST_HOSTED = process.env["CLOUDBOOST_HOSTED"]
+// config = require('./database-connect/keys.js')();
+var config = require('./config/config');
 
-global.keys = require('./database-connect/keys.js')();
-
-if (env === "development") {
-    //Loggly Development Keys
-    global.keys.logToken = "f0ebeed1-6c71-47b8-9014-e9ca69a2b114";
-    global.keys.logglySubDomain = "cloudboostdev";
-}
+var logglyTags = config.logglyTags ? config.logglyTags.split(',') : [];
 
 global.winston.add(global.winston.transports.Loggly, {
-    inputToken: global.keys.logToken,
-    subdomain: global.keys.logglySubDomain,
-    tags: ["cloudboost-server"],
+    inputToken: config.logToken,
+    subdomain: config.logglySubDomain,
+    tags: logglyTags,
     json: true
 });
 
 // add slack transport if API key found
-if (global.keys.slackWebHook) {
-    var envVal = process.env["IS_STAGING"] ? 'STAGING' : 'PRODUCTION'
+if (config.slackWebHook) {
     global.winston.add(slack, {
-        webhook_url: global.keys.slackWebHook,
-        icon_url: "https://cdn2.iconfinder.com/data/icons/circle-icons-1/64/caution-128.png",
-        channel: "#devlogs",
-        username: "API ERROR BOT - " + envVal,
+        webhook_url: config.slackWebHook,
+        icon_url: config.slackIconUrl,
+        channel: config.slackChannel,
+        username: "API ERROR BOT - " + config.env,
         level: 'error',
         handleExceptions: true,
         customFormatter: function (level, message, meta) {
             return {
                 attachments: [{
-                    fallback: "An Error occured on API POD in - " + envVal,
-                    pretext: "An Error occured on API POD in - " + envVal,
+                    fallback: "An Error occured on API POD in - " + config.env,
+                    pretext: "An Error occured on API POD in - " + config.env,
                     color: '#D00000',
                     fields: [{
                         title: meta.error,
@@ -62,13 +54,7 @@ if (global.keys.slackWebHook) {
     })
 }
 
-
-
-global.q = require('q');
-global.uuid = require('uuid');
-var bodyParser = require('body-parser');
-var app = express();
-
+app.use(cors());
 //For pages in cloudboost
 app.set('view engine', 'ejs');
 app.use('*/assets', express.static(path.join(__dirname, 'page-templates/assets')));
@@ -78,7 +64,8 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(bodyParser.json());
 app.use(busboyBodyParser());
-app.set('port', 4730); //SET THE DEFAULT PORT.
+var port = config.port || 4730;
+app.set('port', port); //SET THE DEFAULT PORT.
 
 // var http = null;
 var https = null;
@@ -105,20 +92,9 @@ var io = require('socket.io')();
 
 io.attach(http);
 // attach io to https, only if running in hosted env and certs are found
-if (https && CLOUDBOOST_HOSTED) {
+if (https) {
     io.attach(https);
 }
-
-global.sessionHelper = require('./helpers/session.js');
-global.socketSessionHelper = require('./helpers/socketSession.js');
-global.socketQueryHelper = require('./helpers/socketQuery.js');
-global.cloudBoostHelper = require('./helpers/cloudboost.js')();
-global.aclHelper = require('./helpers/ACL.js');
-
-global.cacheItems = [];
-global.apiTracker = null;
-global.socketQueries = [];
-global.model = {};
 
 //Attach services -
 function attachServices() {
@@ -167,5 +143,6 @@ http.listen(app.get('port'), function () {
     } catch (e) {
         console.log(e);
         global.winston.log('error', e);
+        process.exit(1);
     }
 });

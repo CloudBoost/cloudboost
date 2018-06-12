@@ -1,6 +1,7 @@
 var apiTracker = require('../../database-connect/apiTracker');
 var utilHelper = require('./helpers/util');
 // var util = require('util');
+var sessionHelper = require('./helpers/session');
 
 module.exports = function (app) {
 
@@ -125,7 +126,7 @@ module.exports = function (app) {
             if (req.headers.sessionid) {
                 
                 res.header('sessionID', req.headers.sessionid);
-                global.sessionHelper.getSession(req.headers.sessionid, function(err, session) {
+                sessionHelper.getSession(req.headers.sessionid, function(err, session) {
                     if (!err) {
                         req.session = session;
                         next();
@@ -202,7 +203,7 @@ function _setSession(req, res) {
 
         req.session = obj;
         var expireDays = 30; //Default
-        global.sessionHelper.saveSession(obj, expireDays);
+        sessionHelper.saveSession(obj, expireDays);
     } catch (err) {
         global.winston.log('error', {
             "error": String(err),

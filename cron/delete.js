@@ -5,7 +5,7 @@
 */
 
 var mongoUtil = require('../dbUtil/mongo')();
-
+var config = require('../config/config');
 var CronJob = require('cron').CronJob;
 var job = new CronJob('15 * * * * *', function () {
         getMessages();
@@ -19,7 +19,7 @@ function getMessages() {
 
         if (global.mongoDisconnected)
             return "";
-        global.queue.getMessages(global.keys.deleteQueue, function (error, message) {
+        global.queue.getMessages(config.deleteQueue, function (error, message) {
             if (!error) {
                 if (message.length > 0) {
                     _delete(message[0].messagetext).then(function () {
@@ -48,7 +48,7 @@ function getMessages() {
 
 function deleteFromQueue(message) {
     try {
-        global.queue.deleteMessage(global.keys.deleteQueue, message[0].messageid, message[0].popreceipt, function (err, res) {
+        global.queue.deleteMessage(config.deleteQueue, message[0].messageid, message[0].popreceipt, function (err, res) {
             if (err) {
 
             } else {
