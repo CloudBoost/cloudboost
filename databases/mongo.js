@@ -4,7 +4,7 @@
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
-var q = require("q");
+const q = require('q');
 var _ = require('underscore');
 var util = require('../helpers/util.js');
 var Grid = require('gridfs-stream');
@@ -90,10 +90,10 @@ obj.document = {
                 }, null);
 
                 // if(idList.length >0 && collectionName) {
-                var q = {};
-                q['_id'] = {};
-                q['_id']['$in'] = idList;
-                promises.push(_self.document.fetch_data(appId, collectionName, q));
+                var qry = {};
+                qry['_id'] = {};
+                qry['_id']['$in'] = idList;
+                promises.push(_self.document.fetch_data(appId, collectionName, qry));
                 //}
             }
 
@@ -182,7 +182,7 @@ obj.document = {
         return deferred.promise;
     },
 
-    fetch_data: function(appId, collectionName, q, promises) {
+    fetch_data: function(appId, collectionName, qry) {
         var includeDeferred = q.defer();
 
         try {
@@ -191,12 +191,12 @@ obj.document = {
                 return includeDeferred.promise;
             }
 
-            if (!collectionName || !q._id['$in']) {
+            if (!collectionName || !qry._id['$in']) {
                 includeDeferred.resolve([]);
                 return includeDeferred.promise;
             }
 
-            config.mongoClient.db(appId).collection(mongoUtil.collection.getId(appId, collectionName)).find(q).toArray(function(err, includeDocs) {
+            config.mongoClient.db(appId).collection(mongoUtil.collection.getId(appId, collectionName)).find(qry).toArray(function(err, includeDocs) {
                 if (err) {
                     global.winston.log('error', err);
                     includeDeferred.reject(err);

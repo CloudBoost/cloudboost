@@ -12,22 +12,13 @@ var _ = require('underscore');
 var util = require('../helpers/util.js');
 
 var tablesData = require('../helpers/cloudTable');
-var json2csv = require('json2csv');
-var jsonToXlsx = require('json2xlsx');
-var jsonXlsxWriteFile = require('icg-json-to-xlsx');
-var fs = require('fs');
-var path = require('path');
-var customHelper = require('../helpers/custom.js');
 var config = require('../config/config');
 var cloudBoostHelper = require('../helpers/cloudboost')();
 
-// var mongoUtil = require('./index').mongo;
+var mongoUtil = require('./mongo');
 var mongoService = require('../databases/mongo');
-var customService = require('../services/cloudObjects');
-var fileService = require('../services/cloudFiles');
-var importHelpers = require('../services/importHelpers');
 
-var appService = {
+module.exports = {
     /*Desc   : Update Settings
       Params : appId,categoryName,SettingsObject
       Returns: Promise
@@ -176,7 +167,6 @@ var appService = {
     },
 
     createApp: function (appId, userId, appName) {
-        var mongoUtil = require('./mongo');
         var deferred = q.defer();
         try {
             var promises = [];            
@@ -235,7 +225,6 @@ var appService = {
     },
 
     deleteApp: function (appId, deleteReason) {
-        var mongoUtil = require('./mongo');
 
         var deferred = q.defer();
         if (!deleteReason)
@@ -359,7 +348,6 @@ var appService = {
     },
 
     deleteTable: function (appId, tableName) {
-        var mongoUtil = require('./mongo');
 
         var deferred = q.defer();
 
@@ -421,7 +409,6 @@ var appService = {
     },
 
     deleteColumn: function (appId, collectionName, columnName, columnType) {
-        var mongoUtil = require('./mongo');
 
         var deferred = q.defer();
 
@@ -507,13 +494,13 @@ var appService = {
 
     isClientAuthorized: function (appId, appKey, level, table) {
         var deferred = q.defer();
-        var self = this
+        var self = this;
         self.isKeyValid(appId, appKey).then(function (isValidKey) {
             if (isValidKey) {
                 self.isMasterKey(appId, appKey).then(function (isMasterKey) {
                     // resolve if masterKey
                     if (isMasterKey) {
-                        deferred.resolve(true)
+                        deferred.resolve(true);
                     } else {
                         // else check with client keys acc to auth level
                         // levels = table level or app level
@@ -528,9 +515,9 @@ var appService = {
                             self.getAllSettings(appId).then(function (settings) {
                                 if (settings) {
                                     // check for clientkey flag in genral settings
-                                    let generalSetting = settings.filter((function (x) {
-                                        return x.category === 'general'
-                                    }))
+                                    var generalSetting = settings.filter((function (x) {
+                                        return x.category === 'general';
+                                    }));
                                     if (generalSetting[0]) {
                                         deferred.resolve(!!generalSetting[0].settings.isTableEditableByClientKey)
                                     } else
@@ -553,19 +540,17 @@ var appService = {
             }
         }, function (err) {
             deferred.reject(err);
-        })
+        });
 
         return deferred.promise;
     },
 
     upsertTable: function (appId, tableName, schema, tableProps) {
-        var mongoUtil = require('./mongo');
-
         var deferred = q.defer();
         tableProps = tableProps || {
             isEditableByClientKey: false
-        }
-        var updateColumnNameOfOldRecordsPromises = []
+        };
+        var updateColumnNameOfOldRecordsPromises = [];
 
         try {
 
@@ -573,7 +558,6 @@ var appService = {
             var isNewTable = false;
             var tableType = null;
             var maxCount = null; //How many tables of this type can be in an app.
-            var originalTable = null;
 
             if (!tableName) {
                 deferred.reject("Table name is empty");
@@ -671,7 +655,7 @@ var appService = {
 
                     table.columns = schema;
                     // update table props
-                    table.isEditableByClientKey = !!tableProps.isEditableByClientKey
+                    table.isEditableByClientKey = !!tableProps.isEditableByClientKey;
 
                 } else {
 
@@ -684,7 +668,7 @@ var appService = {
                     table.name = tableName;
                     table.type = tableType;
                     table._type = "table";
-                    table.isEditableByClientKey = !!tableProps.isEditableByClientKey
+                    table.isEditableByClientKey = !!tableProps.isEditableByClientKey;
                 }
 
                 var collection = config.mongoClient.db(appId).collection("_Schema");
@@ -709,14 +693,12 @@ var appService = {
                                             renameColumnObject[oldColumnObj.name] = newColumnObj.name;
                                         }
                                     }
-                                })
-                            })
+                                });
+                            });
                             updateColumnNameOfOldRecordsPromises.push(_updateColumnNameOfOldRecords(tableName, appId, renameColumnObject));
 
                         }
-                    })
-
-                
+                    });
 
                 collection.findOneAndUpdate({
                     name: tableName
@@ -813,7 +795,6 @@ var appService = {
     },
 
     createColumn: function (appId, collectionName, column) {
-        var mongoUtil = require('./mongo');
 
         var deferred = q.defer();
 
@@ -839,6 +820,7 @@ var appService = {
     },
 
     createDefaultTables: function (appId) {
+        var appService = this;
         return q.all([
             appService.upsertTable(appId, 'Role', tablesData.Role),
             appService.upsertTable(appId, 'Device', tablesData.Device),
@@ -847,6 +829,55 @@ var appService = {
             appService.upsertTable(appId, '_Event', tablesData._Event),
             appService.upsertTable(appId, '_Funnel', tablesData._Funnel)
         ]);
+    },
+
+    getSchema: function(appId, collectionName) {
+        var deferred = q.defer();
+        const appService = this;
+
+        try {
+            config.redisClient.get(config.cacheSchemaPrefix + '-' + appId + ':' + collectionName, function(err, res) {
+                if (res) {
+                    deferred.resolve(JSON.parse(res));
+                } else {
+                    var collection = config.mongoClient.db(appId).collection("_Schema");
+                    var findQuery = collection.find({name: collectionName});
+                    findQuery.toArray(function(err, tables) {
+                        var res = tables[0];
+                        if (err) {
+                            global.winston.log('error', err);
+                            deferred.reject(err);
+                        } else if (!res) {
+
+                            // No table found. Create new table
+                            var defaultSchema = tablesData.Custom;
+                            console.log(appService);
+                            appService.upsertTable(appId, collectionName, defaultSchema).then(function(table) {
+                                    config.redisClient.setex(config.cacheSchemaPrefix + '-' + appId + ':' + collectionName, config.schemaExpirationTimeFromCache, JSON.stringify(table._doc));
+                                    deferred.resolve(table);
+                                },function(err){
+                                    deferred.reject(err);
+                                }
+                            );
+
+                        } else {
+                            config.redisClient.setex(config.cacheSchemaPrefix + '-' + appId + ':' + collectionName, config.schemaExpirationTimeFromCache, JSON.stringify(res._doc));
+                            deferred.resolve(res);
+                        }
+
+                    });
+                }
+            });
+
+        } catch (err) {
+            global.winston.log('error', {
+                "error": String(err),
+                "stack": new Error().stack
+            });
+            deferred.reject(err);
+        }
+
+        return deferred.promise;
     },
 
     changeAppClientKey: function (appId, value) {
@@ -1078,132 +1109,131 @@ var appService = {
         return deferred.promise;
     },
 
-    exportTable: function (appId, tableName, exportType, isMasterKey, accessList) {
+    // exportTable: function (appId, tableName, exportType, isMasterKey, accessList) {
 
-        var deferred = q.defer();
-        customService.find(appId, tableName, {}, null, null, 999999, null, accessList, isMasterKey).then(function (tables) {
-            tables.map(function (docs) {
-                docs.createdAt ? delete docs.createdAt : null;
-                docs.updatedAt ? delete docs.updatedAt : null;
-                docs._tableName ? delete docs._tableName : null;
-                delete docs.expires;
-                docs._id ? delete docs._id : null;
-                delete docs._version;
-                docs.ACL ? delete docs.ACL : null;
-                docs._type ? delete docs._type : null;
-            });
-            if (exportType === 'csv') {
-                var result = json2csv({ data: tables });
-                deferred.resolve(result);
-            } else if (exportType === 'xlsx' || exportType === 'xls') {
-                var random = util.getId();
-                var fileName = '/tmp/tempfile' + random + '.xlsx';
-                var converted = convertObjectToString(tables);
-                var outputFile = jsonXlsxWriteFile.writeFile(fileName, converted);
+    //     var deferred = q.defer();
+    //     customService.find(appId, tableName, {}, null, null, 999999, null, accessList, isMasterKey).then(function (tables) {
+    //         tables.map(function (docs) {
+    //             docs.createdAt ? delete docs.createdAt : null;
+    //             docs.updatedAt ? delete docs.updatedAt : null;
+    //             docs._tableName ? delete docs._tableName : null;
+    //             delete docs.expires;
+    //             docs._id ? delete docs._id : null;
+    //             delete docs._version;
+    //             docs.ACL ? delete docs.ACL : null;
+    //             docs._type ? delete docs._type : null;
+    //         });
+    //         if (exportType === 'csv') {
+    //             var result = json2csv({ data: tables });
+    //             deferred.resolve(result);
+    //         } else if (exportType === 'xlsx' || exportType === 'xls') {
+    //             var random = util.getId();
+    //             var fileName = '/tmp/tempfile' + random + '.xlsx';
+    //             var converted = convertObjectToString(tables);
+    //             var outputFile = jsonXlsxWriteFile.writeFile(fileName, converted);
 
-                fs.readFile(fileName, function read(err, data) {
-                    if (err) {
-                        deferred.reject("Error : Failed to convert the table.");
-                    }
-                    fs.unlink(fileName, function (err) {
-                        if (err) {
-                            deferred.reject(err);
-                        }
-                        deferred.resolve(data);
-                    });
-                });
-            } else if (exportType === 'json') {
-                deferred.resolve(tables);
-            } else {
-                deferred.reject('Invalid exportType ,exportType should be csv,xls,xlsx,json')
-            }
-        }, function (err) {
-            deferred.reject(err);
-        });
-        return deferred.promise;
-    },
+    //             fs.readFile(fileName, function read(err, data) {
+    //                 if (err) {
+    //                     deferred.reject("Error : Failed to convert the table.");
+    //                 }
+    //                 fs.unlink(fileName, function (err) {
+    //                     if (err) {
+    //                         deferred.reject(err);
+    //                     }
+    //                     deferred.resolve(data);
+    //                 });
+    //             });
+    //         } else if (exportType === 'json') {
+    //             deferred.resolve(tables);
+    //         } else {
+    //             deferred.reject('Invalid exportType ,exportType should be csv,xls,xlsx,json')
+    //         }
+    //     }, function (err) {
+    //         deferred.reject(err);
+    //     });
+    //     return deferred.promise;
+    // },
 
-    importTable: function (req, isMasterKey) {
-        var deferred = q.defer();
-        var appId = req.params.appId;
-        var appKey = req.body.key;
-        var fileId = req.body.fileId;
-        var table = req.body.tableName;
-        var tableName = table.replace(/\s/g, '');
-        var fileName = req.body.fileName;
-        var fileExt = path.extname(fileName);
+    // importTable: function (req, isMasterKey) {
+    //     var deferred = q.defer();
+    //     var appId = req.params.appId;
+    //     var appKey = req.body.key;
+    //     var fileId = req.body.fileId;
+    //     var table = req.body.tableName;
+    //     var tableName = table.replace(/\s/g, '');
+    //     var fileName = req.body.fileName;
+    //     var fileExt = path.extname(fileName);
+    //     var appService = this;
 
-        fileService.getFile(appId, fileId, customHelper.getAccessList(req), isMasterKey).then(function (file) {
-            var fileStream = mongoService.document.getFileStreamById(appId, file._id);
-            var parseFile = null;
-            var importType;
-            if (fileExt == ".csv") {
-                parseFile = importHelpers.importCSVFile;
-                importType = "csv";
-            } else if (fileExt == '.xls' || fileExt == '.xlsx') {
-                parseFile = importHelpers.importXLSFile;
-                importType = "xls";
-            } else {
-                parseFile = importHelpers.importJSONFile;
-                importType = "json";
-            }
+    //     fileService.getFile(appId, fileId, customHelper.getAccessList(req), isMasterKey).then(function (file) {
+    //         var fileStream = mongoService.document.getFileStreamById(appId, file._id);
+    //         var parseFile = null;
+    //         var importType;
+    //         if (fileExt == ".csv") {
+    //             parseFile = importHelpers.importCSVFile;
+    //             importType = "csv";
+    //         } else if (fileExt == '.xls' || fileExt == '.xlsx') {
+    //             parseFile = importHelpers.importXLSFile;
+    //             importType = "xls";
+    //         } else {
+    //             parseFile = importHelpers.importJSONFile;
+    //             importType = "json";
+    //         }
 
-            if (parseFile) {
-                parseFile(fileStream, tableName).then(function (document) {
-                    var body = importHelpers.generateSchema(document, importType);
-                    appService.getTable(appId, tableName).then(function (table) {
-                        if (table == null) {
-                            deferred.reject("Table doesn't exists");
-                        } else {
-                            importHelpers.compareSchema(document, table, body).then(function (schema) {
-                                // check if table already exists
-                                appService.getTable(appId, tableName).then(function (table) {
-                                    // authorize client for table level, if table found then authorize on table level else on app level for creating new table.
-                                    let authorizationLevel = table ? 'table' : 'app'
-                                    appService.isClientAuthorized(appId, appKey, authorizationLevel, table).then(function (isAuthorized) {
-                                        if (isAuthorized) {
-                                            appService.upsertTable(appId, tableName, schema.data.columns, schema.data).then(function (table) {
-                                                customService.save(appId, tableName, document, customHelper.getAccessList(req), isMasterKey).then(function (result) {
+    //         if (parseFile) {
+    //             parseFile(fileStream, tableName).then(function (document) {
+    //                 var body = importHelpers.generateSchema(document, importType);
+    //                 appService.getTable(appId, tableName).then(function (table) {
+    //                     if (table == null) {
+    //                         deferred.reject("Table doesn't exists");
+    //                     } else {
+    //                         importHelpers.compareSchema(document, table, body).then(function (schema) {
+    //                             // check if table already exists
+    //                             appService.getTable(appId, tableName).then(function (table) {
+    //                                 // authorize client for table level, if table found then authorize on table level else on app level for creating new table.
+    //                                 var authorizationLevel = table ? 'table' : 'app'
+    //                                 appService.isClientAuthorized(appId, appKey, authorizationLevel, table).then(function (isAuthorized) {
+    //                                     if (isAuthorized) {
+    //                                         appService.upsertTable(appId, tableName, schema.data.columns, schema.data).then(function (table) {
+    //                                             customService.save(appId, tableName, document, customHelper.getAccessList(req), isMasterKey).then(function (result) {
                                                     
                                                     
-                                                    deferred.resolve(result);
-                                                }, function (error) {
+    //                                                 deferred.resolve(result);
+    //                                             }, function (error) {
                                                     
                                                     
-                                                    deferred.reject(error);
-                                                });
-                                            }, function (err) {
+    //                                                 deferred.reject(error);
+    //                                             });
+    //                                         }, function (err) {
                                                 
-                                                return deferred.reject(err);
-                                            });
-                                        } else return deferred.reject({ status: 'Unauthorized' });
-                                    }, function (error) {
-                                        return deferred.reject({ status: 'Unauthorized', message: error });
-                                    })
+    //                                             return deferred.reject(err);
+    //                                         });
+    //                                     } else return deferred.reject({ status: 'Unauthorized' });
+    //                                 }, function (error) {
+    //                                     return deferred.reject({ status: 'Unauthorized', message: error });
+    //                                 })
 
-                                }, function (err) {
-                                    return deferred.reject(err);
-                                });
-                            }, function (err) {
+    //                             }, function (err) {
+    //                                 return deferred.reject(err);
+    //                             });
+    //                         }, function (err) {
                                 
                                 
-                                deferred.reject(err);
-                            });
+    //                             deferred.reject(err);
+    //                         });
 
-                        }
-                    }, function (err) {
-                        deferred.reject(err);
-                    });
-                }, function (error) {
-                    deferred.reject(error);
-                });
-            }
-        });
-        return deferred.promise;
-    }
+    //                     }
+    //                 }, function (err) {
+    //                     deferred.reject(err);
+    //                 });
+    //             }, function (error) {
+    //                 deferred.reject(error);
+    //             });
+    //         }
+    //     });
+    //     return deferred.promise;
+    // }
 };
-
-module.exports = appService;
 
 function _updateColumnNameOfOldRecords(tableName, appId, renameColumnObject) {
 

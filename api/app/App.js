@@ -8,6 +8,7 @@ var util = require("../../helpers/util.js");
 var apiTracker = require('../../database-connect/apiTracker');
 var config = require('../../config/config');
 var appService = require('../../services/app');
+var otherService = require('../../services/other');
 
 module.exports = function (app) {
 
@@ -49,7 +50,7 @@ module.exports = function (app) {
         } catch (e) {
             return res.status(500).json({
                 error: e
-            })
+            });
         }
     });
 
@@ -110,7 +111,7 @@ module.exports = function (app) {
                 } else return res.status(401).send({ status: 'Unauthorized' });
             }, function (error) {
                 return res.status(401).send({ status: 'Unauthorized', message: error });
-            })
+            });
 
         } catch (e) {
             
@@ -164,7 +165,7 @@ module.exports = function (app) {
                 return res.status(500).send(err);
             });
 
-    apiTracker.log(appId, "App / Table / Create", req.url, sdk);
+            apiTracker.log(appId, "App / Table / Create", req.url, sdk);
         }
     });
 
@@ -240,7 +241,7 @@ module.exports = function (app) {
                 return res.status(500).send('Cannot retrieve security keys.');
             });
         } catch (e) {
-            
+            console.log(e);
         }
     });
 
@@ -303,7 +304,7 @@ module.exports = function (app) {
                 res.status(400).send("exportType is missing");
             }
             appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
-                appService.exportTable(appId, tableName, exportType.toLowerCase(), isMasterKey, accessList).then(function (data) {
+                otherService.exportTable(appId, tableName, exportType.toLowerCase(), isMasterKey, accessList).then(function (data) {
                     if (exportType.toLowerCase() === 'json') {
                         res.status(200).json(data);
                     } else { res.status(200).send(data); }
@@ -348,7 +349,7 @@ module.exports = function (app) {
                 return res.status(400).send(fileExt + " is not allowed");
             }
             appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
-                appService.importTable(req, isMasterKey).then(function(result){
+                otherService.importTable(req, isMasterKey).then(function(result){
                     return res.status(200).json(result);
                 }, function(error){
                     return res.status(500).send(error);

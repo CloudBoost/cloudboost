@@ -1,5 +1,5 @@
 describe("Cloud Objects Notification", function () {
-
+	debugger
 	var obj = new CB.CloudObject('Student');
 	var obj1 = new CB.CloudObject('student4');
 

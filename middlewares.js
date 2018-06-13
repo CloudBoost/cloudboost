@@ -10,8 +10,7 @@ var uuid = require('uuid');
 module.exports = function (app) {
     
     app.use(mung.json(
-        function transform(body, req, res) {
-            console.log(body, req.url, res.status);
+        function transform(body) {
             global.winston.log('info', {Message:'API REQUEST RESPONSE LOG',  responseBody:JSON.stringify(body)});
             return body;
         }

@@ -5,15 +5,14 @@
 */
 
 var q = require("q");
-var Grid = require('gridfs-stream');
 var util = require("../helpers/util.js");
 var jimp = require("jimp");
 var config = require('../config/config');
 var mongoService = require('../databases/mongo');
-var customService = require('../services/cloudObjects');
+var customService = require('./cloudObjects');
 var keyService = require('../database-connect/keyService');
 
-var fileService = {
+module.exports = {
     /*Desc   : Save FileStream & CloudBoostFileObject
       Params : appId,fileStream,fileContentType,CloudBoostFileObj
       Returns: Promise
@@ -41,8 +40,14 @@ var fileService = {
                     fileObj._version = fileObj._version + 1;
                 }
                 var collectionName = "_File";
-                promises.push(mongoService.document.saveFileStream(appId, fileStream, fileObj._id, contentType));
-                promises.push(customService.save(appId, collectionName, fileObj, accessList, isMasterKey));
+                try {
+                    promises.push(mongoService.document.saveFileStream(appId, fileStream, fileObj._id, contentType));
+                    promises.push(customService.save(appId, collectionName, fileObj, accessList, isMasterKey));
+                } catch (error) {
+                    console.log(error);
+                }
+                // promises.push(mongoService.document.saveFileStream(appId, fileStream, fileObj._id, contentType));
+                // promises.push(customService.save(appId, collectionName, fileObj, accessList, isMasterKey));
                 q.all(promises).then(function(array) {
                     deferred.resolve(array[1]);
                 }, function(err) {
@@ -156,8 +161,6 @@ var fileService = {
         return deferred.promise;
     }
 };
-
-module.exports = fileService;
 
 function _processImage(appId, fileName, resizeWidth, resizeHeight, cropX, cropY, cropW, cropH, quality, opacity, scale, containWidth, containHeight, rDegs, bSigma) {
     var deferred = q.defer();

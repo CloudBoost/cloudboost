@@ -31,7 +31,7 @@ module.exports = function (app) {
             if (document._id) {
                 table_event = "Update";
             } else {
-                table_event = "Create"
+                table_event = "Create";
             }
             appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
                 appService.getApp(appId).then(function (application) {
@@ -44,7 +44,7 @@ module.exports = function (app) {
                 }, function () {
                     res.status(400).send("App not found.");
                 });
-            })
+            });
 
             apiTracker.log(appId, "Object / Save", req.url, sdk);
             /******************SAVE API*********************/

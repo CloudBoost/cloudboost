@@ -18,10 +18,12 @@ module.exports = function(app) {
 
     app.post('/file/:appId', function(req, res) {
         var appId = req.params.appId;
-        var document = {};
-        try {
+        var document = req.body.fileObj;
+
+        if(typeof req.body.fileObj === 'string'){
             document = JSON.parse(req.body.fileObj);
-        } catch (e) {}
+        }
+
         var appKey = req.body.key;
 
         var sdk = req.body.sdk || "REST";
@@ -29,7 +31,6 @@ module.exports = function(app) {
             appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
                 return customService.save(appId, "_File", document, customHelper.getAccessList(req), isMasterKey);
             }).then(function(result) {
-                
                 
                 res.status(200).send(result);
             }, function(error) {

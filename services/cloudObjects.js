@@ -8,31 +8,31 @@ var q = require("q");
 var util = require("../helpers/util.js");
 var _ = require('underscore');
 var crypto = require('crypto');
-var customHelper = require('../helpers/custom.js');
+var customHelper = require('../helpers/custom');
 var type = require("../helpers/dataType");
 
-var databaseDriver = require('../databases/mongo').document;
-var mongoUtil = require('../services/mongo');
 var config = require('../config/config');
 var mongoService = require('../databases/mongo');
-var appService = require('../services/app');
+var appService = require('./app');
+var tableService = require('./table');
 
-var customService =  {
+module.exports = {
 
     find: function(appId, collectionName, query, select, sort, limit, skip, accessList, isMasterKey, opts) {
         var deferred = q.defer();
 
         try {
             if (opts && opts.ignoreSchema || collectionName === "_File") {
-                databaseDriver.find(appId, collectionName, query, select, sort, limit, skip, accessList, isMasterKey).then(function(doc) {
+                mongoService.document.find(appId, collectionName, query, select, sort, limit, skip, accessList, isMasterKey).then(function(doc) {
                     deferred.resolve(doc);
                 }, function(err) {
                     deferred.reject(err);
                 });
             } else {
 
-                _modifyFieldsInQuery(appId, collectionName, query).then(function(query) {
-                    databaseDriver.find(appId, collectionName, query, select, sort, limit, skip, accessList, isMasterKey).then(function(doc) {
+                _modifyFieldsInQuery(appId, collectionName, query)
+                .then(function(query) {
+                    mongoService.document.find(appId, collectionName, query, select, sort, limit, skip, accessList, isMasterKey).then(function(doc) {
                         deferred.resolve(doc);
                     }, function(err) {
                         deferred.reject(err);
@@ -58,7 +58,7 @@ var customService =  {
 
         try {
             _modifyFieldsInQuery(appId, collectionName, query).then(function(query) {
-                databaseDriver.count(appId, collectionName, query, limit, skip, accessList, isMasterKey).then(function(doc) {
+                mongoService.document.count(appId, collectionName, query, limit, skip, accessList, isMasterKey).then(function(doc) {
                     deferred.resolve(doc);
                 }, function(err) {
                     deferred.reject(err);
@@ -81,7 +81,7 @@ var customService =  {
 
         try {
             _modifyFieldsInQuery(appId, collectionName, query).then(function(query) {
-                databaseDriver.distinct(appId, collectionName, onKey, query, select, sort, limit, skip, accessList, isMasterKey).then(function(doc) {
+                mongoService.document.distinct(appId, collectionName, onKey, query, select, sort, limit, skip, accessList, isMasterKey).then(function(doc) {
                     deferred.resolve(doc);
                 }, function(err) {
                     deferred.reject(err);
@@ -105,7 +105,7 @@ var customService =  {
 
         try {
             _modifyFieldsInQuery(appId, collectionName, query).then(function(query) {
-                databaseDriver.findOne(appId, collectionName, query, select, sort, skip, accessList, isMasterKey).then(function(doc) {
+                mongoService.document.findOne(appId, collectionName, query, select, sort, skip, accessList, isMasterKey).then(function(doc) {
                     deferred.resolve(doc);
                 }, function(err) {
                     deferred.reject(err);
@@ -164,7 +164,8 @@ var customService =  {
                 });
             } else {
                 
-                _save(appId, collectionName, document, accessList, isMasterKey, null, opts, encryption_key).then(function(res) {
+                _save(appId, collectionName, document, accessList, isMasterKey, null, opts, encryption_key)
+                .then(function(res) {
                     deferred.resolve(res);
                 }, function(err) {
                     deferred.reject(err);
@@ -234,7 +235,7 @@ var customService =  {
         var deferred = q.defer();
 
         try {
-            databaseDriver.createIndex(appId, collectionName, columnName).then(function(doc) {
+            mongoService.document.createIndex(appId, collectionName, columnName).then(function(doc) {
                 deferred.resolve(doc);
             }, function(error) {
                 deferred.reject(error);
@@ -250,7 +251,6 @@ var customService =  {
     }
 };
 
-module.exports = customService;
 
 function _save(appId, collectionName, document, accessList, isMasterKey, reqType, opts, encryption_key) {
 
@@ -285,14 +285,11 @@ function _save(appId, collectionName, document, accessList, isMasterKey, reqType
                 obj = obj.oldDoc;
                 
                 _validateSchema(appId, listOfDocs, accessList, isMasterKey, encryption_key).then(function(listOfDocs) {
-                    
-
-
                     var mongoDocs = listOfDocs.map(function(doc){
-                        return Object.assign({},doc)
-                    })
+                        return Object.assign({},doc);
+                    });
 
-                    promises.push(databaseDriver.save(appId, mongoDocs));
+                    promises.push(mongoService.document.save(appId, mongoDocs));
                     q.allSettled(promises).then(function(array) {
                         if (array[0].state === 'fulfilled') {
                             _sendNotification(appId, array[0], reqType);
@@ -339,7 +336,7 @@ function _delete(appId, collectionName, document, accessList, isMasterKey) {
         var promises = [];
         if (document._id) {
             customHelper.verifyWriteACLAndUpdateVersion(appId, collectionName, document, accessList, isMasterKey).then(function(doc) {
-                promises.push(databaseDriver.delete(appId, collectionName, document, accessList, isMasterKey));
+                promises.push(mongoService.document.delete(appId, collectionName, document, accessList, isMasterKey));
                 if (promises.length > 0) {
                     q.allSettled(promises).then(function(res) {
                         if (res[0].state === 'fulfilled') {
@@ -416,7 +413,7 @@ function _sendNotification(appId, res, reqType) {
     }
 }
 
-var _isSchemaValid = function(appId, collectionName, document, accessList, isMasterKey, encryption_key) {
+function _isSchemaValid (appId, collectionName, document, accessList, isMasterKey, encryption_key) {
     var mainPromise = q.defer();
     var columnNotFound = false
 
@@ -427,8 +424,8 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
             return mainPromise.promise;
         }
         var modifiedDocuments = document._modifiedColumns;
-        mongoUtil.collection.getSchema(appId, collectionName).then(function(table) {
-            columns = table.columns
+        tableService.getSchema(appId, collectionName).then(function(table) {
+            var columns = table.columns
             //check for required.
             if (!document['_tableName'] || !document['_type']) {
                 mainPromise.reject('Not a type of table');
@@ -586,9 +583,9 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                             //Relation check.
                             if (document[key] && datatype === 'Relation' && typeof document[key] !== 'object') {
                                 //data passed is id of the relatedObject
-                                var objectId = document[key]
+                                var objectId = document[key];
                                 if (_validateObjectId(objectId)) {
-                                    document[key] = {}
+                                    document[key] = {};
                                     document[key]._id = objectId;
                                     document[key]._tableName = col.relatedTo;
                                     document[key]._type = _getTableType(col.relatedTo);
@@ -1288,7 +1285,7 @@ function _getSchema(appId, collectionName) {
     var deferred = q.defer();
 
     try {
-        mongoUtil.collection.getSchema(appId, collectionName).then(function(table) {
+        tableService.getSchema(appId, collectionName).then(function(table) {
             deferred.resolve(table.columns);
         }, function(error) {
             deferred.reject(error);
