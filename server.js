@@ -11,7 +11,6 @@ var cors = require('cors');
 var express = require('express');
 var app = express();
 var bodyParser = require('body-parser');
-var mung = require('express-mung');
 
 global.winston = require('winston');
 require('winston-loggly');
@@ -66,16 +65,6 @@ app.use(bodyParser.json());
 app.use(busboyBodyParser());
 app.set('port', port); //SET THE DEFAULT PORT.
 
-app.use(mung.json(
-    function transform(body, req, res) {
-        console.log(body, req.url, res.status);
-        global.winston.log('info', {Message:'API REQUEST RESPONSE LOG',  responseBody:JSON.stringify(body)});
-        body.mungMessage = "I intercepted you!";
-        return body;
-    }
-));
-
-require('./middlewares')(app); //Setup middlewares
 
 // var http = null;
 var https = null;
@@ -116,8 +105,9 @@ http.listen(app.get('port'), function () {
 
         require('./config/redis')(); // Setup redis server
         require('./config/mongo')(); // Setup mongo server
-        require('./config/analytics')(); // Setup the analytics server               
+        require('./config/analytics')(); // Setup the analytics server
         require('./config/setup')(); // Setup cloudboost server
+        require('./middlewares')(app); //Setup middlewares               
 
         require('./routes')(app); //Setup routes
     } catch (e) {

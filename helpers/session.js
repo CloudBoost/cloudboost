@@ -6,6 +6,7 @@
 */
 
 var config = require('../config/config');
+var uuid = require('uuid');
 
 module.exports = {
 
@@ -41,7 +42,7 @@ module.exports = {
     /*Saves the user session into Redis.
      * @session : Object
      *  {
-            id : global.uuid.v1(),
+            id : uuid.v1(),
             userId : result._id,
             loggedIn : true,
             appId : appId,

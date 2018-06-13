@@ -4,7 +4,18 @@ var utilHelper = require('./helpers/util');
 // var util = require('util');
 var sessionHelper = require('./helpers/session');
 var appService = require('./services/app');
+var mung = require('express-mung');
+var uuid = require('uuid');
+
 module.exports = function (app) {
+    
+    app.use(mung.json(
+        function transform(body, req, res) {
+            console.log(body, req.url, res.status);
+            global.winston.log('info', {Message:'API REQUEST RESPONSE LOG',  responseBody:JSON.stringify(body)});
+            return body;
+        }
+    ));
 
     app.use(function(req, res, next) {
         if (req.is('text/*')) {
@@ -184,7 +195,7 @@ function _setSession(req, res) {
         
         if (!req.session) {
             req.session = {};
-            req.session.id = global.uuid.v1();
+            req.session.id = uuid.v1();
         }
 
         res.header('sessionID', req.session.id);

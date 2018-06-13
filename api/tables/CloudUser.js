@@ -6,6 +6,7 @@
 
 var q = require("q");
 var _ = require('underscore');
+var uuid = require('uuid');
 var customHelper = require('../../helpers/custom.js');
 
 var twitterHelper = require('../../helpers/twitter.js');
@@ -440,7 +441,7 @@ module.exports = function (app) {
     function setSession(req, appId, sessionLength, result, res) {
         if (!req.session.id) {
             req.session = {};
-            req.session.id = global.uuid.v1();
+            req.session.id = uuid.v1();
         }
         res.header('sessionID', req.session.id);
 
