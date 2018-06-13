@@ -190,7 +190,7 @@ module.exports = function (app) {
                 } else return res.status(401).send({ status: 'Unauthorized' });
             }, function (error) {
                 return res.status(401).send({ status: 'Unauthorized', message: error });
-            })
+            });
 
         } else {
 
@@ -202,7 +202,7 @@ module.exports = function (app) {
                     } else return res.status(401).send({ status: 'Unauthorized' });
                 }, function (error) {
                     return res.status(401).send({ status: 'Unauthorized', message: error });
-                })
+                });
 
             }, function (err) {
                 return res.status(500).send('Error');

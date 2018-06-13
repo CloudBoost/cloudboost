@@ -5,6 +5,7 @@
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 var sessionHelper = require('../helpers/session');
+var config = require('../config/config');
 
 module.exports = {
     
@@ -16,7 +17,7 @@ module.exports = {
      */ 
     getSession : function (socketId, callback) {    
         try{    
-            global.redisClient.get('cb-socket-'+socketId, function (err, reply) {
+            config.redisClient.get('cb-socket-'+socketId, function (err, reply) {
                 if (reply) {
                     sessionHelper.getSession(reply, callback);
                 } else { 
@@ -36,8 +37,8 @@ module.exports = {
      */ 
     saveSession : function (socketId, sessionId, callback) {
         try{
-            global.redisClient.set('cb-socket-' + socketId, sessionId, function (err, reply) {
-                global.redisClient.expire('cb-socket-' + socketId, 30 * 24 * 60 * 60);
+            config.redisClient.set('cb-socket-' + socketId, sessionId, function (err, reply) {
+                config.redisClient.expire('cb-socket-' + socketId, 30 * 24 * 60 * 60);
                 if (callback)
                     callback(err, reply);
             });
@@ -49,7 +50,7 @@ module.exports = {
 
     deleteSession : function (socketId, callback) {
         try{
-            global.redisClient.set('cb-socket-' + socketId, null, function (err, reply) { 
+            config.redisClient.set('cb-socket-' + socketId, null, function (err, reply) { 
                 if(callback)
                     callback(err, reply);
             });

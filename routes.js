@@ -22,9 +22,7 @@ module.exports = function (app) {
     });
 
     app.use(function (req, res, next) {
-        console.log(req.method);
-        console.log(req.url);
-        console.log(req.path);
+        console.log(req.method, req.url);
         next();
     });
 

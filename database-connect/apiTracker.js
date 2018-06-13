@@ -80,7 +80,7 @@ obj.isInPlanLimit = function(appId){
 var deferred = q.defer();
  
 try{ 
-    global.redisClient.hget("_CB_API_PLAN", appId, function (err,res) {
+    config.redisClient.hget("_CB_API_PLAN", appId, function (err,res) {
            if (err)
                deferred.reject(err);
            else{
@@ -111,7 +111,7 @@ obj.blockApp = function(appId){
  var deferred = q.defer();
  
 try{
-    global.redisClient.hset("_CB_API_PLAN", appId, false, function (err) {
+    config.redisClient.hset("_CB_API_PLAN", appId, false, function (err) {
         if (err)
             deferred.reject(err);
         deferred.resolve();
@@ -130,7 +130,7 @@ return deferred.promise;
 obj.releaseApp = function(appId){
 var deferred = q.defer();
 try{ 
-    global.redisClient.hset("_CB_API_PLAN", appId, true, function (err) {
+    config.redisClient.hset("_CB_API_PLAN", appId, true, function (err) {
        if (err)
            deferred.reject(err);
        deferred.resolve();

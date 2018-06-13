@@ -7,7 +7,7 @@
 var q = require("q");
 var tablesData = require('../helpers/cloudTable');
 var config = require('../config/config');
-var appService = require('../services').app;
+var appService = require('../services/app');
 
 var obj = {};
 
@@ -550,7 +550,7 @@ obj.collection = {
         var deferred = q.defer();
 
         try {
-            global.redisClient.get(config.cacheSchemaPrefix + '-' + appId + ':' + collectionName, function(err, res) {
+            config.redisClient.get(config.cacheSchemaPrefix + '-' + appId + ':' + collectionName, function(err, res) {
                 if (res) {
                     deferred.resolve(JSON.parse(res));
                 } else {
@@ -566,7 +566,7 @@ obj.collection = {
                             // No table found. Create new table
                             var defaultSchema = tablesData.Custom;
                             appService.upsertTable(appId, collectionName, defaultSchema).then(function(table) {
-                                    global.redisClient.setex(config.cacheSchemaPrefix + '-' + appId + ':' + collectionName, config.schemaExpirationTimeFromCache, JSON.stringify(table._doc));
+                                    config.redisClient.setex(config.cacheSchemaPrefix + '-' + appId + ':' + collectionName, config.schemaExpirationTimeFromCache, JSON.stringify(table._doc));
                                     deferred.resolve(table);
                                 },function(err){
                                     deferred.reject(err);
@@ -574,7 +574,7 @@ obj.collection = {
                             );
 
                         } else {
-                            global.redisClient.setex(config.cacheSchemaPrefix + '-' + appId + ':' + collectionName, config.schemaExpirationTimeFromCache, JSON.stringify(res._doc));
+                            config.redisClient.setex(config.cacheSchemaPrefix + '-' + appId + ':' + collectionName, config.schemaExpirationTimeFromCache, JSON.stringify(res._doc));
                             deferred.resolve(res);
                         }
 

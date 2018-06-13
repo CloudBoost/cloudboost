@@ -4,6 +4,7 @@
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 var util = require('../helpers/util.js');
+var config = require('../config/config');
 
 var obj = {
 
@@ -14,7 +15,7 @@ var obj = {
      */
     getData: function(socketId, eventType, callback) {
         try {
-            global.redisClient.get('cb-socket-' + socketId + '-data' + eventType, function(err, reply) {
+            config.redisClient.get('cb-socket-' + socketId + '-data' + eventType, function(err, reply) {
                 callback(err, JSON.parse(reply));
             });
 
@@ -31,7 +32,7 @@ var obj = {
     setData: function(socketId, data, callback) {
         try {
             data = data || {}
-            global.redisClient.set('cb-socket-' + socketId + '-data' + data.eventType, JSON.stringify(data), function(err, reply) {
+            config.redisClient.set('cb-socket-' + socketId + '-data' + data.eventType, JSON.stringify(data), function(err, reply) {
                 if (callback)
                     callback(err, reply);
                 }
@@ -47,7 +48,7 @@ var obj = {
 
     deleteData: function(socketId, eventType, callback) {
         try {
-            global.redisClient.set('cb-socket-' + socketId + '-data' + eventType, null, function(err, reply) {
+            config.redisClient.set('cb-socket-' + socketId + '-data' + eventType, null, function(err, reply) {
                 if (callback)
                     callback(err, reply);
                 }

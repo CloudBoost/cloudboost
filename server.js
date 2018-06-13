@@ -11,6 +11,7 @@ var cors = require('cors');
 var express = require('express');
 var app = express();
 var bodyParser = require('body-parser');
+var mung = require('express-mung');
 
 global.winston = require('winston');
 require('winston-loggly');
@@ -64,6 +65,15 @@ app.use(bodyParser.urlencoded({
 app.use(bodyParser.json());
 app.use(busboyBodyParser());
 app.set('port', port); //SET THE DEFAULT PORT.
+
+app.use(mung.json(
+    function transform(body, req, res) {
+        console.log(body, req.url, res.status);
+        global.winston.log('info', {Message:'API REQUEST RESPONSE LOG',  responseBody:JSON.stringify(body)});
+        body.mungMessage = "I intercepted you!";
+        return body;
+    }
+));
 
 require('./middlewares')(app); //Setup middlewares
 
