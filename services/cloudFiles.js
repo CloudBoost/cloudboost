@@ -11,6 +11,7 @@ var jimp = require("jimp");
 var config = require('../config/config');
 var mongoService = require('../databases/mongo');
 var customService = require('../services/cloudObjects');
+var keyService = require('../database-connect/keyService');
 
 var fileService = {
     /*Desc   : Save FileStream & CloudBoostFileObject
@@ -27,7 +28,7 @@ var fileService = {
             var promises = [];
             var newFileName = '';
 
-            configervice.getMyUrl().then(function(url) {
+            keyService.getMyUrl().then(function(url) {
 
                 if (!fileObj._id) {
                     fileObj._id = util.getId();
