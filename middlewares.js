@@ -9,12 +9,12 @@ var uuid = require('uuid');
 
 module.exports = function (app) {
     
-    app.use(mung.json(
-        function transform(body) {
-            global.winston.log('info', {Message:'API REQUEST RESPONSE LOG',  responseBody:JSON.stringify(body)});
-            return body;
-        }
-    ));
+    // app.use(mung.json(
+    //     function transform(body) {
+    //         console.log(body);
+    //         return body;
+    //     }
+    // ));
 
     app.use(function(req, res, next) {
         if (req.is('text/*')) {

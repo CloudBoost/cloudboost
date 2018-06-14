@@ -578,14 +578,13 @@ describe("CloudQuery", function(done) {
 
     it("should find item by id", function(done) {
         this.timeout(30000);
-
         var query = new CB.CloudQuery('student1');
         query.equalTo('id', obj.get('id'));
         query.find().then(function(list) {
             if (list.length > 0)
                 done();
             else
-                throw "object could not saved properly";
+                done (new Error("object could not saved properly"));
             }
         , function(err) {
             done(err);
@@ -1622,7 +1621,7 @@ describe("CloudQuery", function(done) {
         obj.doesNotExists('age');
         obj.find().then(function(list) {
             if (list.length > 0) {
-                done("Reciveing data");
+                done(new Error("Recieving data"));
             } else {
                 done();
             }
