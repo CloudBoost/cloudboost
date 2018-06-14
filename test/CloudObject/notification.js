@@ -1,12 +1,11 @@
 describe("Cloud Objects Notification", function () {
-	debugger
+
 	var obj = new CB.CloudObject('Student');
 	var obj1 = new CB.CloudObject('student4');
 
 	it("should alert when the object is created.", function (done) {
 
 		this.timeout(40000);
-
 		CB.CloudObject.on('Student', 'created', function (data) {
 			if (data.get('name') === 'sample') {
 				done();

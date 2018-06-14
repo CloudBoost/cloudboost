@@ -32,7 +32,6 @@ describe("Export & Import Database", function () {
     it("should add data to table", function (done) {
 
         this.timeout(50000);
-        console.log('Running')
         var obj = new CB.CloudObject('Hospital');
         obj.set('Revenue', 1234);
         obj.set('Name', 'kashish');

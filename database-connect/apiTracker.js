@@ -6,6 +6,7 @@
 */
 
 var q = require('q');
+var request = require('request');
 
 var obj = {};
 var config = require('../config/config');
@@ -27,7 +28,7 @@ obj.log = function(appId, actionName, url,sdk, checkReleaseRequest){
             sdk : sdk || "REST"
         });
         
-        global.request.post({
+        request.post({
             url: url, 
             headers: {
                 'content-type': 'application/json',

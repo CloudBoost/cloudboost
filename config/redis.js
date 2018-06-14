@@ -1,5 +1,4 @@
 
-var io = require('socket.io')();
 
 var Redis = require('ioredis');
 
@@ -7,7 +6,7 @@ var ioRedisAdapter = require('socket.io-redis');
 
 var appConfig = require('./config');
 
-function constructUrl () {
+function constructUrl (io) {
     var config = loadConfig();
 
     try {

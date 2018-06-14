@@ -103,7 +103,7 @@ http.listen(app.get('port'), function () {
             require('./api/db/mongo.js')(app);            
         }
 
-        require('./config/redis')(); // Setup redis server
+        require('./config/redis')(io); // Setup redis server
         require('./config/mongo')(); // Setup mongo server
         require('./config/analytics')(); // Setup the analytics server
         require('./config/setup')(); // Setup cloudboost server

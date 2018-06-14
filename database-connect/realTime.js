@@ -98,9 +98,6 @@ module.exports = function (io) {
             /* CloudObject Channel Listeners. */
             socket.on('join-object-channel', function (data) {
                 try {
-                    
-                    
-
                     if (typeof data === 'string') { // Backward Compatibility : data only has the room id
                         socket.join(data);
                     } else { //data has both the room id and the sessionId.
@@ -108,9 +105,9 @@ module.exports = function (io) {
                         //connect socket.id and sessionId together
 
                         // build socketid specefic to table
-                        var tableSocketId = data.room.split('')
-                        tableSocketId.splice(-8,8)
-                        tableSocketId = socket.id + tableSocketId.join('')
+                        var tableSocketId = data.room.split('');
+                        tableSocketId.splice(-8,8);
+                        tableSocketId = socket.id + tableSocketId.join('');
 
                         socketQueryHelper.setData(tableSocketId, data.data);
                         socketSessionHelper.saveSession(socket.id, data.sessionId);
@@ -128,7 +125,7 @@ module.exports = function (io) {
                     
                     
                     // build socketid specefic to table
-                    var tableSocketId = socket.id + data.event
+                    var tableSocketId = socket.id + data.event;
                     socketQueryHelper.getData(tableSocketId, data.eventType, function (err, socketData) {
                         if (err)
                             throw err;
@@ -250,7 +247,7 @@ function _sendNotification(appId, document, socket, eventType) {
                                     
                                 }
                                 deferred.resolve();
-                            })
+                            });
                         } else {
                             
                             deferred.resolve();

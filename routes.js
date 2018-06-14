@@ -1,6 +1,7 @@
 
 // var pjson = require('./package.json');
 var config = require('./config/config');
+var pjson = require('./package.json');
 
 config.env = process.env.NODE_ENV || 'development';
 
