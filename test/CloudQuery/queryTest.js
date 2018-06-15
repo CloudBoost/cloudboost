@@ -1615,13 +1615,18 @@ describe("CloudQuery", function(done) {
         });
     });
 
-    it("Should not get any element if queried with a valid column name to not to exist", function(done) {
+    it("Should not get elements that exist will non-null value if queried with a valid column name", function(done) {
         this.timeout(30000);
         var obj = new CB.CloudQuery('student4');
         obj.doesNotExists('age');
         obj.find().then(function(list) {
             if (list.length > 0) {
-                done(new Error("Recieving data"));
+                for (var i = 0; i < list.length; i++) {
+                    if (list[i].get('age')) {
+                        done(new Error("Recieving data"));                     
+                    }
+                }
+                done();
             } else {
                 done();
             }

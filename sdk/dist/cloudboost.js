@@ -119,7 +119,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 	var CloudBoost = function () {
-	    function CloudBoost() {
+	    function CloudBoost(serverUrl, zapier) {
 	        _classCallCheck(this, CloudBoost);
 
 	        // to check if the env is node
@@ -128,7 +128,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this._isNative = false;
 	        this.Socket = null;
 	        this.io = null; //socket.io library is saved here.
-	        this.apiUrl = 'https://api.cloudboost.io';
+	        this.apiUrl = serverUrl || 'https://api.cloudboost.io';
+	        this.z = zapier || null;
+
 	        if (typeof process !== "undefined" && process.versions && process.versions.node) {
 	            this._isNode = true;
 	        } else {
@@ -6694,27 +6696,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    _CB2.default._validate();
 
-	    // if(!params){
-	    //     var params = {};
-	    // }
-	    // if(typeof params != "object"){
-	    //     params = JSON.parse(params);
-	    // }
-
-	    // params.sdk = "JavaScript"
-	    // params = JSON.stringify(params)
-
 	    if (!_CB2.default.CloudApp._isConnected) throw "Your CloudApp is disconnected. Please use CB.CloudApp.connect() and try again.";
 
 	    var def = new _CB2.default.Promise();
-	    var Axios;
+	    var Request;
 	    var headers = {};
 	    var axiosRetry = __webpack_require__(43);
 
 	    if (_CB2.default._isNode) {
-	        Axios = __webpack_require__(46);
+	        Request = __webpack_require__(46);
 	    } else {
-	        Axios = __webpack_require__(47);
+	        Request = __webpack_require__(47);
 	    }
 
 	    if (!isServiceUrl) {
@@ -6725,8 +6717,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (params && (typeof params === 'undefined' ? 'undefined' : _typeof(params)) != "object") {
 	        params = JSON.parse(params);
 	    }
-	    axiosRetry(Axios, { retryDelay: axiosRetry.exponentialDelay });
-	    Axios({
+
+	    axiosRetry(Request, { retryDelay: axiosRetry.exponentialDelay });
+	    Request({
 	        method: method,
 	        url: url,
 	        data: params,
@@ -6746,7 +6739,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, function (err) {
 	        def.reject(err);
 	    });
-
 	    return def.promise;
 	};
 
@@ -9138,7 +9130,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;var require;var require;/* WEBPACK VAR INJECTION */(function(global) {"use strict";
+	var require;var require;var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/* WEBPACK VAR INJECTION */(function(global) {"use strict";
 
 	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
@@ -17575,7 +17567,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }, {
 	        key: 'saveEventually',
 	        value: function saveEventually(callback) {
-
 	            var thisObj = this;
 	            var def;
 	            if (!callback) {
