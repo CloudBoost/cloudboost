@@ -7,9 +7,9 @@
 var q = require("q");
 var config = require('../config/config');
 
-var obj = {};
+var mongoService = {};
 
-obj.app = {
+mongoService.app = {
 
     drop: function(appId) {
 
@@ -18,7 +18,7 @@ obj.app = {
         var deferred = q.defer();
 
         try {
-            var _self = obj;
+            var _self = mongoService;
 
             if (global.mongoDisconnected) {
                 deferred.reject("Database Not Connected");
@@ -79,11 +79,11 @@ obj.app = {
     }
 }
 
-obj.document = {
+mongoService.document = {
 
     getSearchableDocuments: function(appId, collectionName) {
 
-        var _self = obj;
+        var _self = mongoService;
         var deferred = q.defer();
 
         try {
@@ -119,7 +119,7 @@ obj.document = {
 
 //Database related processings
 
-obj.database = {
+mongoService.database = {
 
     dropDatabase: function(appId) {
 
@@ -155,7 +155,7 @@ obj.database = {
 };
 
 //Collection related processings:
-obj.collection = {
+mongoService.collection = {
 
     addColumn: function(appId, collectionName, column) {
         var deferred = q.defer();
@@ -167,7 +167,7 @@ obj.collection = {
             }
 
             if (column.dataType === 'GeoPoint' || column.dataType === 'Text') {
-                obj.collection.createIndex(appId, collectionName, column.name, column.dataType).then(function() {
+                mongoService.collection.createIndex(appId, collectionName, column.name, column.dataType).then(function() {
                     deferred.resolve("Index Created");
                 }, function(err) {
                     global.winston.log('error', err);
@@ -199,7 +199,7 @@ obj.collection = {
             var promises = [];
             for (var i = 0; i < schema.length; i++) {
                 if (schema[i].dataType === 'GeoPoint') {
-                    promises.push(obj.collection.createIndex(appId, collectionName, schema[i].name, schema[i].dataType));
+                    promises.push(mongoService.collection.createIndex(appId, collectionName, schema[i].name, schema[i].dataType));
                 }
             }
             if (promises.length > 0) {
@@ -244,7 +244,7 @@ obj.collection = {
             }
 
             if(Object.keys(obj).length > 0){
-                var collection = config.mongoClient.db(appId).collection(obj.collection.getId(appId, collectionName));
+                var collection = config.mongoClient.db(appId).collection(mongoService.collection.getId(appId, collectionName));
                 collection.createIndex(obj, function(err, res) {
                     if (err) {
                         
@@ -280,7 +280,7 @@ obj.collection = {
             /**
                 Creating a wild card index , instaed of creating individual $text index on each column seperately
             **/
-            var collection = config.mongoClient.db(appId).collection(obj.collection.getId(appId, collectionName));
+            var collection = config.mongoClient.db(appId).collection(mongoService.collection.getId(appId, collectionName));
             collection.createIndex({
                 "$**": "text"
             }, function(err, res) {
@@ -314,7 +314,7 @@ obj.collection = {
                 return deferred.promise;
             }
 
-            var collection = config.mongoClient.db(appId).collection(obj.collection.getId(appId, collectionName));
+            var collection = config.mongoClient.db(appId).collection(mongoService.collection.getId(appId, collectionName));
             collection.indexInformation(function(err, res) {
                 if (err) {
                     
@@ -339,12 +339,7 @@ obj.collection = {
         var deferred = q.defer();
 
         try {
-            
-            
-            
-            
-
-            var _self = obj;
+            var _self = mongoService;
 
             var collection = config.mongoClient.db(appId).collection(_self.collection.getId(appId, collectionName));
 
@@ -388,7 +383,7 @@ obj.collection = {
             
             
 
-            var _self = obj;
+            var _self = mongoService;
 
             if (global.mongoDisconnected) {
                 deferred.reject("Database Not Connected");
@@ -459,7 +454,7 @@ obj.collection = {
                 deferred.reject("Database Not Connected");
                 return deferred.promise;
             }
-            var _self = obj;
+            var _self = mongoService;
 
             var collection = config.mongoClient.db(appId).collection(_self.collection.getId(appId, collectionName));
 
@@ -496,10 +491,8 @@ obj.collection = {
         var deferred = q.defer();
 
         try {
-            
-            
-
-            var _self = obj;
+        
+            var _self = mongoService;
 
             var collection = config.mongoClient.db(appId).collection(_self.collection.getId(appId, oldCollectionName));
 
@@ -574,7 +567,7 @@ obj.collection = {
 
 };
 
-module.exports = obj;
+module.exports = mongoService;
 
 //Private Functions
 function _dropIndex(appId, collectionName, indexString) {
