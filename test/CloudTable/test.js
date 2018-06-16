@@ -1,7 +1,11 @@
 describe("Table Tests", function (done) {
 
-    before(function(){
+    before(function(done){
         CB.appKey = CB.masterKey;
+        var table = new CB.CloudTable('Employee');
+        table.save().then(function(){
+            return done();
+        }, done);
     });
 
     it("Should Give all the tables", function (done) {
@@ -35,7 +39,7 @@ describe("Table Tests", function (done) {
             if(res){
                 done();
             }else
-                done("Unable to Get table by name");                
+                done(new Error("Unable to Get table by name"));
         },function(err){
             done(err);           
         });
@@ -73,8 +77,12 @@ describe("Table Tests", function (done) {
 
     });
 
-    after(function() {
-        CB.appKey = CB.jsKey;
+    after(function(done) {
+        var table = new CB.CloudTable('Employee');
+        table.delete().then(function(){
+            CB.appKey = CB.jsKey;
+            return done();
+        }, done);
     });
 
 });

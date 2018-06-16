@@ -287,7 +287,7 @@ module.exports = {
                 if (err) {
                     deferred.reject("Error : Failed to retrieve the table.");
                     
-                    
+
                 }
                 if (tables && tables.length > 0) {
                     deferred.resolve(tables[0]);
