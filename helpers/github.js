@@ -5,13 +5,14 @@
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
+var q = require('q');
 var oauth = require("oauth").OAuth2;
 var github = require('octonode');
 
 module.exports = {
 
 	getLoginUrl : function(req, appId, authSettings){
-		var deferred = global.q.defer();
+		var deferred = q.defer();
 
 		try{			          
             
@@ -37,7 +38,7 @@ module.exports = {
 	},
 
     getOAuthAccessToken : function(req, appId, authSettings, code){
-        var deferred = global.q.defer();
+        var deferred = q.defer();
 
         try{                      
             
@@ -64,7 +65,7 @@ module.exports = {
 
     getUserByAccessToken : function(req, appId, authSettings, accessToken){
 
-        var deferred = global.q.defer();
+        var deferred = q.defer();
 
         try{                      
             

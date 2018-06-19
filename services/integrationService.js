@@ -2,45 +2,43 @@ var Slack = require('slack-node');
 var http = require("https");
 var querystring = require('querystring');
 var request = require('request');
+var appService = require('../services/app');
 
-module.exports = function () {
-
-
-    return {
-        integrationNotification: function (appId, document, collection_name, table_event) {
-            var integration_api = ["slack", "zapier"];
-            global.appService.getApp(appId).then(function (application) {
-                var appName = application.name;
-                global.appService.getAllSettings(appId).then(function (settings) {
-                    var integrationSettings;
-                    settings.forEach(function (element) {
-                        if (element.category == "integrations") {
-                            integrationSettings = element.settings;
-                        }
-                    }, this);
-                    if (integrationSettings) {
-                        for (var i = 0; i < integration_api.length; i++) {
-                            switch (integration_api[i]) {
-                                case "slack":
-                                    if (collection_name == "_Event" && integrationSettings.slack.enabled) {
-                                        notifyOnSlack(integrationSettings.slack, document, appName);
-                                    }
-                                    break;
-                                case "zapier":
-                                    if (integrationSettings.zapier.enabled) {
-                                        notifyOnZapier(integrationSettings.zapier, document, collection_name, table_event, appName);
-                                    }
-                                    break;
-                            }
+var integrationService = {
+    integrationNotification: function (appId, document, collection_name, table_event) {
+        var integration_api = ["slack", "zapier"];
+        appService.getApp(appId).then(function (application) {
+            var appName = application.name;
+            appService.getAllSettings(appId).then(function (settings) {
+                var integrationSettings;
+                settings.forEach(function (element) {
+                    if (element.category == "integrations") {
+                        integrationSettings = element.settings;
+                    }
+                }, this);
+                if (integrationSettings) {
+                    for (var i = 0; i < integration_api.length; i++) {
+                        switch (integration_api[i]) {
+                            case "slack":
+                                if (collection_name == "_Event" && integrationSettings.slack.enabled) {
+                                    notifyOnSlack(integrationSettings.slack, document, appName);
+                                }
+                                break;
+                            case "zapier":
+                                if (integrationSettings.zapier.enabled) {
+                                    notifyOnZapier(integrationSettings.zapier, document, collection_name, table_event, appName);
+                                }
+                                break;
                         }
                     }
+                }
 
-                });
             });
-        }
+        });
     }
+};
 
-}
+module.exports = integrationService;
 
 function notifyOnSlack(integrationSettings, document, appName) {
     var apiToken;

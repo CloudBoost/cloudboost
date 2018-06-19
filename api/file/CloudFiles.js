@@ -7,22 +7,30 @@
 var q = require("q");
 var customHelper = require('../../helpers/custom.js');
 
-module.exports = function() {
+var apiTracker = require('../../database-connect/apiTracker');
+var config = require('../../config/config');
+var mongoService = require('../../databases/mongo');
+var customService = require('../../services/cloudObjects');
+var appService = require('../../services/app');
+var fileService = require('../../services/cloudFiles');
 
-    global.app.post('/file/:appId', function(req, res) {
+module.exports = function(app) {
+
+    app.post('/file/:appId', function(req, res) {
         var appId = req.params.appId;
-        var document = {};
-        try {
+        var document = req.body.fileObj;
+
+        if(typeof req.body.fileObj === 'string'){
             document = JSON.parse(req.body.fileObj);
-        } catch (e) {}
+        }
+
         var appKey = req.body.key;
 
         var sdk = req.body.sdk || "REST";
         if (document._id) {
-            global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
-                return global.customService.save(appId, "_File", document, customHelper.getAccessList(req), isMasterKey);
+            appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
+                return customService.save(appId, "_File", document, customHelper.getAccessList(req), isMasterKey);
             }).then(function(result) {
-                
                 
                 res.status(200).send(result);
             }, function(error) {
@@ -31,12 +39,12 @@ module.exports = function() {
                 res.status(400).send(error);
             });
 
-            global.apiTracker.log(appId, "File / Save", req.url, sdk);
+            apiTracker.log(appId, "File / Save", req.url, sdk);
         } else {
-            global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
+            appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
                 _getFileStream(req).then(function(result) {
-                    global.keys.fileUrl = global.keys.myURL + "/file/";
-                    return global.fileService.upload(appId, result.fileStream, result.contentType, result.fileObj, customHelper.getAccessList(req), isMasterKey);
+                    config.fileUrl = config.myURL + "/file/";
+                    return fileService.upload(appId, result.fileStream, result.contentType, result.fileObj, customHelper.getAccessList(req), isMasterKey);
                 }).then(function(file) {
                     return res.status(200).send(file);
                 }, function(err) {
@@ -45,13 +53,13 @@ module.exports = function() {
                 });
             });
 
-            global.apiTracker.log(appId, "File / Upload", req.url, sdk);
+            apiTracker.log(appId, "File / Upload", req.url, sdk);
         }
     });
 
     //Delete File
-    global.app.delete('/file/:appId/:fileId', _deleteFile);
-    global.app.put('/file/:appId/:fileId', _deleteFile);
+    app.delete('/file/:appId/:fileId', _deleteFile);
+    app.put('/file/:appId/:fileId', _deleteFile);
 
     function _deleteFile(req, res) {
         
@@ -61,9 +69,9 @@ module.exports = function() {
         var fileObj = req.body.fileObj;
         var appKey = req.body.key;
         var sdk = req.body.sdk || "REST";
-        global.keys.fileUrl = global.keys.myURL + "/file/";
-        global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
-            global.fileService.delete(appId, fileObj, customHelper.getAccessList(req), isMasterKey).then(function(file) {
+        config.fileUrl = config.myURL + "/file/";
+        appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
+            fileService.delete(appId, fileObj, customHelper.getAccessList(req), isMasterKey).then(function(file) {
                 
                 return res.status(200).send(null);
             }, function(err) {
@@ -73,12 +81,12 @@ module.exports = function() {
             });
         });
 
-        global.apiTracker.log(appId, "File / Delete", req.url, sdk);
+        apiTracker.log(appId, "File / Delete", req.url, sdk);
 
     }
 
-    global.app.get('/file/:appId/:fileId', _getFile);
-    global.app.post('/file/:appId/:fileId', _getFile);
+    app.get('/file/:appId/:fileId', _getFile);
+    app.post('/file/:appId/:fileId', _getFile);
 };
 
 function _getFile(req, res) {
@@ -105,12 +113,12 @@ function _getFile(req, res) {
     if (!fileId) {
         return res.status(400).send("File ID is Required");
     }
-    global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
-        global.fileService.getFile(appId, fileId, customHelper.getAccessList(req), isMasterKey).then(function(file) {
+    appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
+        fileService.getFile(appId, fileId, customHelper.getAccessList(req), isMasterKey).then(function(file) {
 
             if (typeof resizeWidth === 'undefined' && typeof resizeHeight === 'undefined' && typeof quality === 'undefined' && typeof opacity === 'undefined' && typeof scale === 'undefined' && typeof containWidth === 'undefined' && typeof containHeight === 'undefined' && typeof rDegs === 'undefined' && typeof bSigma === 'undefined') {
 
-                var fileStream = global.mongoService.document.getFileStreamById(appId, file._id);
+                var fileStream = mongoService.document.getFileStreamById(appId, file._id);
 
                 res.set('Content-Type', file.contentType);
                 res.set('Content-Disposition', 'inline; filename="' + file.filename + '"');
@@ -128,7 +136,7 @@ function _getFile(req, res) {
 
             } else {
                 
-                global.fileService.processImage(appId, file, resizeWidth, resizeHeight, cropX, cropY, cropW, cropH, quality, opacity, scale, containWidth, containHeight, rDegs, bSigma).then(function(file) {
+                fileService.processImage(appId, file, resizeWidth, resizeHeight, cropX, cropY, cropW, cropH, quality, opacity, scale, containWidth, containHeight, rDegs, bSigma).then(function(file) {
                     return res.status(200).send(file);
                 }, function(err) {
                     return res.status(500).send(err);
@@ -140,9 +148,9 @@ function _getFile(req, res) {
         });
     }, function(err) {
         return res.status(500).send(err);
-    })
+    });
 
-    global.apiTracker.log(appId, "File / Get", req.url, sdk);
+    apiTracker.log(appId, "File / Get", req.url, sdk);
 }
 
 /*Desc   : Get file params from upload request

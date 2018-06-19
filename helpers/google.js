@@ -6,6 +6,7 @@
 */
 
 
+var q = require('q');
 var google = require('googleapis');
 var OAuth2Client = google.auth.OAuth2;
 var plus = google.plus('v1');
@@ -13,7 +14,7 @@ var plus = google.plus('v1');
 module.exports = {
 
 	getLoginUrl : function(req, appId, authSettings){
-		var deferred = global.q.defer();
+		var deferred = q.defer();
 
 		try{           
 
@@ -40,7 +41,7 @@ module.exports = {
 
 
 	getToken : function(req, appId, authSettings, code){
-		var deferred = global.q.defer();
+		var deferred = q.defer();
 
 		try{           
 
@@ -68,7 +69,7 @@ module.exports = {
 
 
 	getUserByTokens: function(req, appId, authSettings, accessToken, refreshToken){
-		var deferred = global.q.defer();
+		var deferred = q.defer();
 
 		try{           
 

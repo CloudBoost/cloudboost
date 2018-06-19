@@ -4,13 +4,13 @@
 #     (c) 2014 HackerBay, Inc. 
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
-
+var q = require('q');
 var FB = require('fb');
 
 module.exports = {
 
 	getLoginUrl : function(req, appId, authSettings){
-		var deferred = global.q.defer();
+		var deferred = q.defer();
 
 		try{           
 
@@ -36,7 +36,7 @@ module.exports = {
 	},
 
 	getAccessToken : function(req, appId, authSettings, code){
-		var deferred = global.q.defer();
+		var deferred = q.defer();
 
 		try{           
 
@@ -71,7 +71,7 @@ module.exports = {
 	},
 
 	getUserByAccessToken : function(req, appId, authSettings, accessToken){
-		var deferred = global.q.defer();
+		var deferred = q.defer();
 
 		try{           
 

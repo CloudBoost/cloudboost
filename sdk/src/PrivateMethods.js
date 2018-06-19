@@ -1,9 +1,34 @@
 import CB from './CB'
+import { log } from 'util';
 
 if (typeof localStorage === "undefined" || localStorage === null) {
     var localStorage = require('localStorage')
 }
 
+function lsWrapper() {
+    if (typeof localStorage === "undefined" || localStorage === null) {
+        var localStorage = require('localStorage');
+        var nodeLocalStorage = true;
+    }
+
+    return {
+        setItem: function(key, value){
+            if(nodeLocalStorage){
+                localStorage.setItem(key, value).catch(errorCB);
+            } else {
+                localStorage.setItem(key, value);
+            }
+        },
+
+        removeItem: function (key) {
+            if(nodeLocalStorage) {
+                localStorage.getItem(key)
+            }
+        }
+
+    }
+    
+}
 
 
 /* PRIVATE METHODS */
@@ -291,7 +316,7 @@ CB._request = function(method, url, params, isServiceUrl, isFile, progressCallba
 
     if (params && typeof params != "object") {
         params = JSON.parse(params);
-    }
+    } 
     axiosRetry(Axios, { retryDelay: axiosRetry.exponentialDelay });
     Axios({
         method: method,

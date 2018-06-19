@@ -63,7 +63,7 @@ class CloudQuery {
         if (columnName === 'id')
             columnName = '_' + columnName;
 
-        if (data !== null) {
+        if (!!data) {
             if (data.constructor === CB.CloudObject) {
                 columnName = columnName + '._id';
                 data = data.get('id');

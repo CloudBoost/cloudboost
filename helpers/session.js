@@ -5,13 +5,15 @@
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
+var config = require('../config/config');
+var uuid = require('uuid');
 
 module.exports = {
 
     getSession : function (sessionId, callback) {
         
         try{
-            global.redisClient.get(sessionId, function (err, reply) {
+            config.redisClient.get(sessionId, function (err, reply) {
                 if (!err) {
                     if (reply) {
                         if (callback)
@@ -40,7 +42,7 @@ module.exports = {
     /*Saves the user session into Redis.
      * @session : Object
      *  {
-            id : global.uuid.v1(),
+            id : uuid.v1(),
             userId : result._id,
             loggedIn : true,
             appId : appId,
@@ -51,9 +53,9 @@ module.exports = {
      */ 
     saveSession : function (session, expireDays, callback) {
         try{
-            global.redisClient.set(session.id, JSON.stringify(session), function (err, reply) {
+            config.redisClient.set(session.id, JSON.stringify(session), function (err, reply) {
                 //ttl time 30 * 24 * 60 * 60 for 30 days
-                global.redisClient.expire(session.id,  expireDays * 24 * 60 * 60);
+                config.redisClient.expire(session.id,  expireDays * 24 * 60 * 60);
                 if (callback){
                     callback(err, reply);
                 }

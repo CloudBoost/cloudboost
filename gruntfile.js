@@ -20,7 +20,7 @@ module.exports = function (grunt) {
             },
          },
          eslint : {
-            all:["*.js","**/*.js","api/**/*.js","!node_modules/**/*.js"]
+            target:["*.js","**/*.js","api/**/*.js","!node_modules/**/*.js"]
          },
 
         concat: {
@@ -64,7 +64,6 @@ module.exports = function (grunt) {
                     'test/CloudTable/acl.js',
                     'test/CloudApp/connected.js',
                     'test/CloudApp/acl.js',
-                    'test/CloudApp/authPage.js',
                     'test/AtomicityTests/atomicity.js',
                     'test/CloudTable/deleteTestTables.js',
                     'test/CloudApp/deleteApp.js',
