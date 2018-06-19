@@ -8,7 +8,8 @@ var q = require("q");
 var util = require("../../helpers/util.js");
 var _ = require('underscore');
 
- var apiTracker = require('../../database-connect/apiTracker');
+const config = require('../../config/config');
+var apiTracker = require('../../database-connect/apiTracker');
 var mongoService = require('../../databases/mongo');
 var appService = require('../../services/app');
 var keyService = require('../../database-connect/keyService');
@@ -33,7 +34,7 @@ module.exports = function(app) {
         appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
             if (isMasterKey) {
 
-                if (global.mongoDisconnected) {
+                if (config.mongoDisconnected) {
                     return res.status(500).send('Storage / Cache Backend are temporarily down.');
                 }
 
@@ -64,7 +65,7 @@ module.exports = function(app) {
         appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
             if (isMasterKey) {
 
-                if (global.mongoDisconnected) {
+                if (config.mongoDisconnected) {
                     return res.status(500).send('Storage / Cache Backend are temporarily down.');
                 }
 
@@ -111,7 +112,7 @@ module.exports = function(app) {
         q.all(promises).then(function(resultList) {
 
             //Check database connectivity
-            if (global.mongoDisconnected) {
+            if (config.mongoDisconnected) {
                 return res.status(500).send('Storage / Cache Backend are temporarily down.');
             }
             //Check if masterKey is false

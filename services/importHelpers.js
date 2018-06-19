@@ -1,13 +1,12 @@
-
+var q = require('q');
 var util = require('../helpers/util.js');
 var csv = require('csvtojson');
 var xlsx = require('node-xlsx');
-var tablesData = require('../helpers/cloudTable');
 
 var importHelpers =  {
     importCSVFile: function (fileStream, table) {
         var deferred = q.defer();
-        var tableName = table.replace(/\s/g, '')
+        var tableName = table.replace(/\s/g, '');
         var csvJson = [];
         csv()
             .fromStream(fileStream)

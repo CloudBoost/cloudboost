@@ -725,8 +725,6 @@ describe("Cloud Object", function() {
                     done();
                 }
 
-                throw "Wrong Relationship retrieved.";
-
             },
             error: function(error) {
                 throw "Error saving object. ";

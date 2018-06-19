@@ -1,3 +1,5 @@
+
+import localforage from 'localforage'
 import CB from './CB'
 /*
  CloudApp

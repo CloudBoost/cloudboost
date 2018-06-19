@@ -148,7 +148,7 @@ function _getFile(req, res) {
         });
     }, function(err) {
         return res.status(500).send(err);
-    })
+    });
 
     apiTracker.log(appId, "File / Get", req.url, sdk);
 }

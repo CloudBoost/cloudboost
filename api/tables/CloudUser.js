@@ -162,8 +162,6 @@ module.exports = function (app) {
 
         q.all(promises).then(function (list) {
 
-            var isMasterKey = list[1];
-
             if (!list[0] || list[0].length == 0) {
                 return res.status(400).send("App Settings not found.");
             }
@@ -291,7 +289,6 @@ module.exports = function (app) {
 
     app.post('/user/:appId/logout', function (req, res) { //for logging user out
         var appId = req.params.appId || null;
-        var userId = req.session.userId || null;
         var sdk = req.body.sdk || "REST";
         if (req.session.loggedIn === true) {
             req.session.userId = null;
@@ -299,9 +296,7 @@ module.exports = function (app) {
             req.session.appId = null;
             req.session.email = null;
             req.session.roles = null;
-            sessionHelper.saveSession(req.session, function (err, reply) {
-
-            });
+            sessionHelper.saveSession(req.session);
             res.json(req.body.document);
         } else {
             res.status(400).json({
@@ -340,10 +335,10 @@ module.exports = function (app) {
                 "message": "User should be logged in to change the password."
             });
         } else {
-            var userId = req.session.userId;
+            userId = req.session.userId;
             appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
                 appService.getApp(appId).then(function (application) {
-                    return userService.changePassword(appId, userId, oldPassword, newPassword, customHelper.getAccessList(req), isMasterKey, application.keys.encryption_key)
+                    return userService.changePassword(appId, userId, oldPassword, newPassword, customHelper.getAccessList(req), isMasterKey, application.keys.encryption_key);
                 }).then(function (result) {
                     res.json(result);
                 }, function (error) {
@@ -377,7 +372,7 @@ module.exports = function (app) {
             });
         }
 
-        userService.resetPassword(appId, email, customHelper.getAccessList(req), true).then(function (result) {
+        userService.resetPassword(appId, email, customHelper.getAccessList(req), true).then(function () {
             res.status(200).json({
                 "message": "Password reset email sent."
             });
@@ -399,7 +394,6 @@ module.exports = function (app) {
         var appId = req.params.appId;
         var user = req.body.user;
         var role = req.body.role;
-        var userId = req.session.userId || "";
         var appKey = req.body.key || req.param('key');
         var sdk = req.body.sdk || "REST";
 
@@ -415,7 +409,7 @@ module.exports = function (app) {
         apiTracker.log(appId, "User / Role / Add", req.url, sdk);
     });
 
-    app.put('/user/:appId/removeFromRole', function (req, res, next) { //for removing role from the user
+    app.put('/user/:appId/removeFromRole', function (req, res) { //for removing role from the user
 
         var appId = req.params.appId;
         var user = req.body.user;
@@ -452,7 +446,7 @@ module.exports = function (app) {
             appId: appId,
             email: result.email,
             roles: _.map(result.roles, function (role) {
-                return role._id
+                return role._id;
             })
         };
 

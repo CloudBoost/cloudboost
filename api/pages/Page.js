@@ -13,6 +13,8 @@ var q = require('q');
 var apiTracker = require('../../database-connect/apiTracker');
 var userService = require('../../services/cloudUser');
 var appService = require('../../services/app');
+var config = require('../../config/config');
+
 
 module.exports = function(app) {
     
@@ -50,7 +52,7 @@ module.exports = function(app) {
                 authSettings=auth.settings;
             }
 
-            res.render(global.rootPath+'/page-templates/user/password-reset',{
+            res.render(config.rootPath+'/page-templates/user/password-reset',{
                 appKeys:appKeys,
                 generalSettings: generalSettings,
                 authSettings: authSettings,                       
@@ -100,8 +102,6 @@ module.exports = function(app) {
     */
     app.get('/page/:appId/authentication', function(req, res) { 
 
-        
-
         var appId = req.params.appId || null;      
         var sdk = req.body.sdk || "REST";     
 
@@ -110,9 +110,6 @@ module.exports = function(app) {
         promises.push(appService.getAllSettings(appId));        
 
         q.all(promises).then(function(list){            
-
-            
-            
             var appKeys={};
             appKeys.appId=appId;
 
@@ -131,13 +128,18 @@ module.exports = function(app) {
                 authSettings=auth.settings;
             }
 
-            delete authSettings.resetPasswordEmail.template;
-            delete authSettings.signupEmail.template;
+            if(authSettings && authSettings.resetPasswordEmail && authSettings.resetPasswordEmail.template){
+                delete authSettings.resetPasswordEmail.template;
+            }
 
-            res.render(global.rootPath+'/page-templates/user/login',{
-                appKeys:appKeys,
+            if(authSettings && authSettings.signupEmail && authSettings.signupEmail.template){
+                delete authSettings.signupEmail.template;
+            }
+            
+            res.render(config.rootPath+'/page-templates/user/login',{
+                appKeys: appKeys,
                 generalSettings: generalSettings,
-                authSettings: authSettings                    
+                authSettings: authSettings     
             });
 
         },function(error){
@@ -181,13 +183,13 @@ module.exports = function(app) {
                 generalSettings=general.settings;
             }            
 
-            res.render(global.rootPath+'/page-templates/user/signup-activate',{               
+            res.render(config.rootPath+'/page-templates/user/signup-activate',{               
                 generalSettings: generalSettings,
                 verified:true                                   
             });
 
         },function(error){
-            res.render(global.rootPath+'/page-templates/user/signup-activate',{               
+            res.render(config.rootPath+'/page-templates/user/signup-activate',{               
                 verified:false                                   
             });
         });

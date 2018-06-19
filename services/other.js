@@ -1,4 +1,5 @@
 
+var q = require('q');
 var json2csv = require('json2csv');
 var jsonXlsxWriteFile = require('icg-json-to-xlsx');
 var fs = require('fs');
@@ -10,6 +11,8 @@ var customService = require('./cloudObjects');
 var fileService = require('./cloudFiles');
 var importHelpers = require('./importHelpers');
 var mongoService = require('../databases/mongo');
+var appService = require('./app');
+
 
 function convertObjectToString(arr) {
     for (let j in arr) {
@@ -80,7 +83,6 @@ module.exports = {
         var tableName = table.replace(/\s/g, '');
         var fileName = req.body.fileName;
         var fileExt = path.extname(fileName);
-        var appService = this;
 
         fileService.getFile(appId, fileId, customHelper.getAccessList(req), isMasterKey).then(function (file) {
             var fileStream = mongoService.document.getFileStreamById(appId, file._id);
@@ -108,13 +110,11 @@ module.exports = {
                                 // check if table already exists
                                 appService.getTable(appId, tableName).then(function (table) {
                                     // authorize client for table level, if table found then authorize on table level else on app level for creating new table.
-                                    var authorizationLevel = table ? 'table' : 'app'
+                                    var authorizationLevel = table ? 'table' : 'app';
                                     appService.isClientAuthorized(appId, appKey, authorizationLevel, table).then(function (isAuthorized) {
                                         if (isAuthorized) {
                                             appService.upsertTable(appId, tableName, schema.data.columns, schema.data).then(function (table) {
                                                 customService.save(appId, tableName, document, customHelper.getAccessList(req), isMasterKey).then(function (result) {
-                                                    
-                                                    
                                                     deferred.resolve(result);
                                                 }, function (error) {
                                                     
@@ -146,6 +146,8 @@ module.exports = {
                 }, function (error) {
                     deferred.reject(error);
                 });
+            } else {
+                deferred.reject({ message: 'Unparsed file error'});
             }
         });
         return deferred.promise;

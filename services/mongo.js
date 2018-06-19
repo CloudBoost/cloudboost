@@ -20,7 +20,7 @@ mongoService.app = {
         try {
             var _self = mongoService;
 
-            if (global.mongoDisconnected) {
+            if (config.mongoDisconnected) {
                 deferred.reject("Database Not Connected");
                 return deferred.promise;
             }
@@ -47,7 +47,7 @@ mongoService.app = {
         var deferred = q.defer();
 
         try {
-            if (global.mongoDisconnected) {
+            if (config.mongoDisconnected) {
                 deferred.reject("Error : Storage is not connected.");
                 return deferred.promise;
             }
@@ -87,12 +87,11 @@ mongoService.document = {
         var deferred = q.defer();
 
         try {
-            if (global.mongoDisconnected || !global.database) {
+            if (config.mongoDisconnected || !global.database) {
                 deferred.reject("Database Not Connected");
                 return deferred.promise;
             }
 
-            // var collection = global.database.collection(_self.collection.getId(appId, collectionName));
             var collection = config.mongoClient.db(appId).collection(_self.collection.getId(appId, collectionName));
             var findQuery = collection.find();
 
@@ -126,7 +125,7 @@ mongoService.database = {
         var deferred = q.defer();
 
         try {
-            if (global.mongoDisconnected) {
+            if (config.mongoDisconnected) {
                 deferred.reject("Database Not Connected");
                 return deferred.promise;
             }
@@ -161,7 +160,7 @@ mongoService.collection = {
         var deferred = q.defer();
 
         try {
-            if (global.mongoDisconnected) {
+            if (config.mongoDisconnected) {
                 deferred.reject("Database Not Connected");
                 return deferred.promise;
             }
@@ -191,7 +190,7 @@ mongoService.collection = {
         var deferred = q.defer();
 
         try {
-            if (global.mongoDisconnected) {
+            if (config.mongoDisconnected) {
                 deferred.reject("Database Not Connected");
                 return deferred.promise;
             }
@@ -227,7 +226,7 @@ mongoService.collection = {
         var deferred = q.defer();
 
         try {
-            if (global.mongoDisconnected) {
+            if (config.mongoDisconnected) {
                 deferred.reject("Database Not Connected");
                 return deferred.promise;
             }
@@ -273,7 +272,7 @@ mongoService.collection = {
         var deferred = q.defer();
 
         try {
-            if (global.mongoDisconnected) {
+            if (config.mongoDisconnected) {
                 deferred.reject("Database Not Connected");
                 return deferred.promise;
             }
@@ -309,7 +308,7 @@ mongoService.collection = {
         var deferred = q.defer();
 
         try {
-            if (global.mongoDisconnected) {
+            if (config.mongoDisconnected) {
                 deferred.reject("Database Not Connected");
                 return deferred.promise;
             }
@@ -385,7 +384,7 @@ mongoService.collection = {
 
             var _self = mongoService;
 
-            if (global.mongoDisconnected) {
+            if (config.mongoDisconnected) {
                 deferred.reject("Database Not Connected");
                 return deferred.promise;
             }
@@ -450,7 +449,7 @@ mongoService.collection = {
             
             
 
-            if (global.mongoDisconnected) {
+            if (config.mongoDisconnected) {
                 deferred.reject("Database Not Connected");
                 return deferred.promise;
             }

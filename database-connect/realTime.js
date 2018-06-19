@@ -220,7 +220,7 @@ function _sendNotification(appId, document, socket, eventType) {
                 deferred.reject();
             }
 
-            session = session || {}
+            session = session || {};
 
             socketQueryHelper.getData(_buildSocketId(socket.id,appId,document._tableName,eventType), eventType, function (err, socketData) {
 
@@ -272,5 +272,5 @@ function _sendNotification(appId, document, socket, eventType) {
 }
 
 function _buildSocketId(socketId, appId,tableName,eventType){
-    return socketId + (appId + 'table' + tableName + eventType).toLowerCase()
+    return socketId + (appId + 'table' + tableName + eventType).toLowerCase();
 }

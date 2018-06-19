@@ -22,11 +22,6 @@ module.exports = function (app) {
         });
     });
 
-    app.use(function (req, res, next) {
-        console.log(req.method, req.url);
-        next();
-    });
-
     require('./api/tables/CloudObjects.js')(app);
     require('./api/tables/CloudUser.js')(app);
     require('./api/tables/CloudRole.js')(app);

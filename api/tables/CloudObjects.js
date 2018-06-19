@@ -132,7 +132,7 @@ function _count(req, res) { //get document(s) object based on query and various 
     apiTracker.log(appId, "Object / Count", req.url, sdk);
 }
 
-function _distinct(req, res, next) { //get document(s) object based on query and various parameters
+function _distinct(req, res) { //get document(s) object based on query and various parameters
 
     var appId = req.params.appId;
     var collectionName = req.params.tableName;

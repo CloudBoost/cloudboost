@@ -18,7 +18,7 @@ job.start();
 function getMessages() {
     try {
 
-        if (global.mongoDisconnected)
+        if (config.mongoDisconnected)
             return "";
         global.queue.getMessages(config.deleteQueue, function (error, message) {
             if (!error) {

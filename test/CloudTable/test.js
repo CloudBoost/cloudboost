@@ -1,20 +1,17 @@
 describe("Table Tests", function (done) {
 
-    before(function(done){
+    before(function (done) {
         CB.appKey = CB.masterKey;
-        var table = new CB.CloudTable('Employee');
-        table.save().then(function(){
-            return done();
-        }, done);
+        done();
     });
 
     it("Should Give all the tables", function (done) {
 
         this.timeout(30000);
 
-        CB.CloudTable.getAll().then(function(res){
+        CB.CloudTable.getAll().then(function (res) {
             done();
-        },function(){
+        }, function () {
             throw "Unable to get tables";
         });
     });
@@ -24,65 +21,62 @@ describe("Table Tests", function (done) {
         this.timeout(10000);
 
         var obj = new CB.CloudTable('Role');
-        CB.CloudTable.get(obj).then(function(res){
+        CB.CloudTable.get(obj).then(function (res) {
             done();
-        },function(){
+        }, function () {
             throw "Unable to get tables";
         });
     });
 
-    it("Should give table with tableName",function(done){
+    it("Should give table with tableName", function (done) {
 
         this.timeout(10000);
 
-        CB.CloudTable.get('Employee').then(function(res) {
-            if(res){
+        CB.CloudTable.get('Employee').then(function (res) {
+            if (res) {
                 done();
-            }else
+            } else
                 done(new Error("Unable to Get table by name"));
-        },function(err){
-            done(err);           
-        });
-    });
-
-    it("should create a column and then delete it",function(done){
-
-        this.timeout(20000);
-
-        CB.CloudTable.get('Employee').then(function(emp){
-            var column = new CB.Column('Test2');
-            emp.addColumn(column);
-            emp.save().then(function(emp){
-                emp.deleteColumn('Test2');
-                emp.save().then(function(){
-                    done();
-                },function(err){
-                   done(err);
-                });
-            },function(err){
-                done(err);
-            });
-        },function(err){
+        }, function (err) {
             done(err);
         });
     });
 
-    it("Should wait for other tests to run",function(done){
+    it("should create a column and then delete it", function (done) {
+
+        this.timeout(20000);
+
+        CB.CloudTable.get('Employee').then(function (emp) {
+            var column = new CB.Column('Test2');
+            emp.addColumn(column);
+            emp.save().then(function (emp) {
+                emp.deleteColumn('Test2');
+                emp.save().then(function () {
+                    done();
+                }, function (err) {
+                    done(err);
+                });
+            }, function (err) {
+                done(err);
+            });
+        }, function (err) {
+            done(err);
+        });
+    });
+
+    it("Should wait for other tests to run", function (done) {
 
         this.timeout(100000);
 
-        setTimeout(function(){
+        setTimeout(function () {
             done();
-        },10000);
+        }, 10000);
 
     });
 
-    after(function(done) {
-        var table = new CB.CloudTable('Employee');
-        table.delete().then(function(){
-            CB.appKey = CB.jsKey;
-            return done();
-        }, done);
+    after(function (done) {
+        CB.appKey = CB.jsKey;
+        done();
     });
 
 });

@@ -1,6 +1,6 @@
 {
   "name": "cloudboost-server",
-  "version": "1.0.130",
+  "version": "1.0.132",
   "main": "server.js",
   "engines": {
     "node": ">=5.0.0"

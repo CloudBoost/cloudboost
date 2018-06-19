@@ -186,7 +186,7 @@ obj.document = {
         var includeDeferred = q.defer();
 
         try {
-            if (global.mongoDisconnected) {
+            if (config.mongoDisconnected) {
                 includeDeferred.reject("Database Not Connected");
                 return includeDeferred.promise;
             }
@@ -221,7 +221,7 @@ obj.document = {
         var deferred = q.defer();
         try {
 
-            if (global.mongoDisconnected) {
+            if (config.mongoDisconnected) {
                 deferred.reject("Database Not Connected");
                 return deferred.promise;
             }
@@ -410,7 +410,7 @@ obj.document = {
         var mainPromise = q.defer();
 
         try {
-            if (global.mongoDisconnected) {
+            if (config.mongoDisconnected) {
                 mainPromise.reject("Database Not Connected");
                 return mainPromise.promise;
             }
@@ -444,7 +444,7 @@ obj.document = {
         var deferred = q.defer();
 
         try {
-            if (global.mongoDisconnected) {
+            if (config.mongoDisconnected) {
                 deferred.reject("Database Not Connected");
                 return deferred.promise;
             }
@@ -478,7 +478,7 @@ obj.document = {
 
         try {
 
-            if (global.mongoDisconnected) {
+            if (config.mongoDisconnected) {
                 deferred.reject("Database Not Connected");
                 return deferred.promise;
             }
@@ -522,7 +522,7 @@ obj.document = {
         var deferred = q.defer();
 
         try {
-            if (global.mongoDisconnected) {
+            if (config.mongoDisconnected) {
                 deferred.reject("Database Not Connected");
                 return deferred.promise;
             }
@@ -565,7 +565,7 @@ obj.document = {
         var deferred = q.defer();
 
         try {
-            if (global.mongoDisconnected) {
+            if (config.mongoDisconnected) {
                 deferred.reject("Database Not Connected");
                 return deferred.promise;
             }
@@ -680,7 +680,7 @@ obj.document = {
         var deferred = q.defer();
 
         try {
-            if (global.mongoDisconnected) {
+            if (config.mongoDisconnected) {
                 deferred.reject("Database Not Connected");
                 return deferred.promise;
             }
@@ -779,7 +779,7 @@ obj.document = {
         var deferred = q.defer();
 
         try {
-            if (global.mongoDisconnected) {
+            if (config.mongoDisconnected) {
                 deferred.reject("Database Not Connected");
                 return deferred.promise;
             }
@@ -817,7 +817,7 @@ obj.document = {
         var deferred = q.defer();
 
         try {
-            if (global.mongoDisconnected) {
+            if (config.mongoDisconnected) {
                 deferred.reject("Database Not Connected");
                 return deferred.promise;
             }
@@ -871,7 +871,7 @@ obj.document = {
         var deferred = q.defer();
 
         try {
-            if (global.mongoDisconnected) {
+            if (config.mongoDisconnected) {
                 deferred.reject("Database Not Connected");
                 return deferred.promise;
             }

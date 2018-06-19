@@ -4,11 +4,11 @@
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 var path = require('path');
-var util = require("../../helpers/util.js");
 var apiTracker = require('../../database-connect/apiTracker');
 var config = require('../../config/config');
 var appService = require('../../services/app');
 var otherService = require('../../services/other');
+var customHelper = require('../../helpers/custom.js');
 
 module.exports = function (app) {
 
@@ -141,7 +141,7 @@ module.exports = function (app) {
             var sdk = req.body.sdk || "REST";
             var appKey = req.body.key || req.params.key;
 
-            if (global.mongoDisconnected) {
+            if (config.mongoDisconnected) {
                 return res.status(500).send('Storage / Cache Backend are temporarily down.');
             }
 
@@ -283,82 +283,71 @@ module.exports = function (app) {
 
     //Export Table for :appID
     app.post('/export/:appId/:tableName', function (req, res) {
-        
-        try {
-            var appKey = req.body.key;
-            var appId = req.params.appId;
-            var tableName = req.params.tableName;
-            var exportType = req.body.exportType;
-            var customHelper = require('../../helpers/custom.js');
-            var accessList = customHelper.getAccessList(req)
-            if (!appKey) {
-                res.status(400).send("key is missing");
-            }
-            if (!appId) {
-                res.status(400).send("appId is missing");
-            }
-            if (!tableName) {
-                res.status(400).send("tableName is missing");
-            }
-            if (!exportType) {
-                res.status(400).send("exportType is missing");
-            }
-            appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
-                otherService.exportTable(appId, tableName, exportType.toLowerCase(), isMasterKey, accessList).then(function (data) {
-                    if (exportType.toLowerCase() === 'json') {
-                        res.status(200).json(data);
-                    } else { res.status(200).send(data); }
-                }, function (err) {
-                    
-                    
-                    res.status(500).send(err);
-                });
-            }, function (error) {
-                return res.status(500).send('Cannot retrieve security keys.');
-            });
-
-        } catch (e) {
-            
+        var appKey = req.body.key;
+        var appId = req.params.appId;
+        var tableName = req.params.tableName;
+        var exportType = req.body.exportType;
+        var accessList = customHelper.getAccessList(req);
+        if (!appKey) {
+            res.status(400).send("key is missing");
         }
+        if (!appId) {
+            res.status(400).send("appId is missing");
+        }
+        if (!tableName) {
+            res.status(400).send("tableName is missing");
+        }
+        if (!exportType) {
+            res.status(400).send("exportType is missing");
+        }
+        appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
+            otherService.exportTable(appId, tableName, exportType.toLowerCase(), isMasterKey, accessList).then(function (data) {
+                if (exportType.toLowerCase() === 'json') {
+                    res.status(200).json(data);
+                } else { res.status(200).send(data); }
+            }, function (err) {
+                
+                
+                res.status(500).send(err);
+            });
+        }, function (error) {
+            return res.status(500).send('Cannot retrieve security keys.');
+        });
     });
 
     //Import Table for :appID
     app.post('/import/:appId', function (req, res, next) {
         
-        try {
-            var appKey = req.body.key;
-            var appId = req.params.appId;
-            var fileId = req.body.fileId;
-            var tableName = req.body.tableName;
-            var fileName = req.body.fileName;
-            var fileExt = path.extname(fileName);
-            
-            if (!appKey) {
-                return res.status(400).send("key is missing");
-            }
-            if (!appId) {
-                return res.status(400).send("appId is missing");
-            }
-            if (!tableName) {
-                return res.status(400).send("tableName is missing");
-            }
-            if (!fileId) {
-                return res.status(400).send("fileId is missing");
-            }
-            if (fileExt != ".csv" && fileExt != '.json' && fileExt != '.xls' && fileExt != '.xlsx') {
-                return res.status(400).send(fileExt + " is not allowed");
-            }
-            appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
-                otherService.importTable(req, isMasterKey).then(function(result){
-                    return res.status(200).json(result);
-                }, function(error){
-                    return res.status(500).send(error);
-                })
-            }, function (error) {
-                return res.status(500).send('Cannot retrieve security keys.');
-            });
-        } catch (e) {
-            
+        var appKey = req.body.key;
+        var appId = req.params.appId;
+        var fileId = req.body.fileId;
+        var tableName = req.body.tableName;
+        var fileName = req.body.fileName;
+        var fileExt = path.extname(fileName);
+        
+        if (!appKey) {
+            return res.status(400).send("key is missing");
         }
+        if (!appId) {
+            return res.status(400).send("appId is missing");
+        }
+        if (!tableName) {
+            return res.status(400).send("tableName is missing");
+        }
+        if (!fileId) {
+            return res.status(400).send("fileId is missing");
+        }
+        if (fileExt != ".csv" && fileExt != '.json' && fileExt != '.xls' && fileExt != '.xlsx') {
+            return res.status(400).send(fileExt + " is not allowed");
+        }
+        appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
+            otherService.importTable(req, isMasterKey).then(function(result){
+                return res.status(200).json(result);
+            }, function(error){
+                return res.status(500).send(error);
+            });
+        }, function () {
+            return res.status(500).send('Cannot retrieve security keys.');
+        });
     });
 };

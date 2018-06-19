@@ -26,7 +26,17 @@ install:
 - if [ "$TRAVIS_BRANCH" == "staging" ]; then
     docker build -t cloudboost/cloudboost:staging .;
   fi
-- docker run --name cloudboost -e  MAIL_PROVIDER=$MAIL_PROVIDER -e  MAIL_PROVIDER_API_KEY=$MAIL_PROVIDER_API_KEY -e  DOMAIN=$DOMAIN -e  FROM_EMAIL=$FROM_EMAIL -e  FROM_NAME=$FROM_NAME -p 4730:4730 -it --link redis:redis --link mongo:mongo -d cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER
+- docker run --name cloudboost 
+    -e  ANALYTICS_URL=$ANALYTICS_URL 
+    -e  ANALYTICS_KEY=$ANALYTICS_KEY 
+    -e  LOGGLY_TOKEN=$LOGGLY_TOKEN
+    -e  LOGGLY_SUBDOMAIN=$LOGGLY_SUBDOMAIN
+    -e  LOGGLY_TAGS=$LOGGLY_TAGS
+    -e  MAIL_PROVIDER_API_KEY=$MAIL_PROVIDER_API_KEY
+    -e  DOMAIN=$DOMAIN
+    -e  FROM_EMAIL=$FROM_EMAIL
+    -e  FROM_NAME=$FROM_NAME
+    -p 4730:4730 -it --link redis:redis --link mongo:mongo -d cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER
 - sleep 30s
 - docker logs cloudboost
 - webpack
