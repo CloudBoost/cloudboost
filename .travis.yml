@@ -36,8 +36,8 @@ after_success:
 - if [ "$TRAVIS_BRANCH" == "master" ]; then
     docker login --username $DOCKERUSERNAME --password $DOCKERPASSWORD;
     docker push cloudboost/cloudboost:staging;
-    git clone https://github.com/CloudBoost/kube-cred.git;
-    cd kube-cred;
+    git clone https://github.com/CloudBoost/cloudboost.git;
+    cd cloudboost;
     openssl enc -in config.enc -out config -d -aes256 -k $KUBE_ENC;
     mkdir ~/.kube;
     mv config ~/.kube/;
@@ -48,8 +48,8 @@ after_success:
     docker login --username $DOCKERUSERNAME --password $DOCKERPASSWORD;
     docker push cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER;
     docker push cloudboost/cloudboost:latest;
-    git clone https://github.com/CloudBoost/kube-cred.git;
-    cd kube-cred;
+    git clone https://github.com/CloudBoost/cloudboost.git;
+    cd cloudboost;
     openssl enc -in config.enc -out config -d -aes256 -k $KUBE_ENC;
     mkdir ~/.kube;
     mv config ~/.kube/;
