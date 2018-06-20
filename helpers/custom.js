@@ -5,6 +5,9 @@
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
+var mongoService = require('../databases/mongo');
+var q = require('q');
+
 module.exports = {
 	
 	getAccessList : function(req){
@@ -33,13 +36,13 @@ module.exports = {
     },
 
      checkWriteAclAndUpdateVersion : function(appId,documents,accessList,isMasterKey) {
-        var deferred = global.q.defer();
+        var deferred = q.defer();
 
         try{
             var promises = [];
             for (var i = 0; i < documents.length; i++)
                 promises.push(this.verifyWriteACLAndUpdateVersion(appId, documents[i]._tableName, documents[i], accessList, isMasterKey));
-            global.q.all(promises).then(function (docs) {
+            q.all(promises).then(function (docs) {
                 deferred.resolve(docs);
             }, function (err) {
                 deferred.reject(err);
@@ -94,11 +97,11 @@ module.exports = {
     },
 
      verifyWriteACLAndUpdateVersion : function(appId,collectionName,document,accessList,isMasterKey){
-        var deferred = global.q.defer();
+        var deferred = q.defer();
 
         try{
             var status = false;
-            global.mongoService.document.get(appId, collectionName, document._id, accessList, isMasterKey).then(function (doc) {
+            mongoService.document.get(appId, collectionName, document._id, accessList, isMasterKey).then(function (doc) {
                 if (doc) {
                     if (document._version > 0) {
                         if (document._version >= doc._version) {

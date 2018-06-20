@@ -1,5 +1,19 @@
 describe("Cloud GeoPoint Test", function() {
+    
+    before(function(){
+        CB.appKey = CB.masterKey;
+    });
 
+    it('should create table with Geo point', function (done) {
+        this.timeout(80000);
+        var table = new CB.CloudTable('Custom5');
+        var columnGeoPoint = new CB.Column('location', 'GeoPoint', true, false);   
+        table.addColumn(columnGeoPoint);
+        table.save().then(function(){
+            return done();
+        }, done);
+    });
+    
     it("should save a latitude and longitude when passing data are number type", function(done) {
 
         this.timeout(30000);
@@ -70,7 +84,7 @@ describe("Cloud GeoPoint Test", function() {
         var obj = new CB.CloudObject('Custom5');
      	var loc = new CB.CloudGeoPoint("17.19","79.3");
 		loc.latitude = 78;
-        loc.longitude = 17;
+        loc.longitude = 17; 
         obj.set("location", loc);
 		obj.save({
      		success : function(newObj){
@@ -86,19 +100,15 @@ describe("Cloud GeoPoint Test", function() {
      	this.timeout(20000);
         var loc = new CB.CloudGeoPoint("17.7","80.3");
         var query = new CB.CloudQuery('Custom5');
-		query.near("location", loc, 400000);
+        query.near("location", loc, 400000);
 		query.find().then(function(list) {
             if(list.length>0){
-                for(var i=0;i<list.length;i++)
-                {
-                
-                }
+                done();
             } else{
-                throw "should retrieve saved data with particular value ";
+                done(new Error("should retrieve saved data with particular value "));
             }
-            done();
-        }, function () {
-            throw "find data error";
+        }, function (err) {
+            done(err);
         })
 	});
 	
@@ -141,7 +151,7 @@ describe("Cloud GeoPoint Test", function() {
         })
 	});
 	
-	/*it("1. should get list of CloudGeoPoint Object from server for Circle type geoWithin", function(done) {
+	it("1. should get list of CloudGeoPoint Object from server for Circle type geoWithin", function(done) {
      	this.timeout(40000);
         var loc = new CB.CloudGeoPoint(17.3, 78.3);
         var query = new CB.CloudQuery('Custom5');
@@ -156,7 +166,7 @@ describe("Cloud GeoPoint Test", function() {
             
             done(error);
         });
-	});*/
+	});
 	
 	it("1. should get list of CloudGeoPoint Object from server for Circle type geoWithin + equal to + limit", function(done) {
      	this.timeout(40000);

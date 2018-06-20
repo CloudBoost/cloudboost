@@ -5,8 +5,10 @@
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
+var appService = require('../../services/app');
+var emailService = require('../../services/cloudEmail');
 
-module.exports = function () {
+module.exports = function (app) {
 
     /**
      *Description : Send Email to all users in the selected aplication
@@ -16,7 +18,7 @@ module.exports = function () {
      -Success : success on emails sent
      -Error : Error Data( 'Server Error' : status 500 )
      */
-    global.app.post('/email/:appId/campaign', function (req, res) {
+    app.post('/email/:appId/campaign', function (req, res) {
         
         try {
             var appId = req.params.appId;
@@ -25,9 +27,9 @@ module.exports = function () {
             var emailBody = req.body.emailBody;
             var emailSubject = req.body.emailSubject;
 
-            global.appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
+            appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
                 if (isMasterKey) {
-                    global.emailService.sendEmail(appId, emailBody, emailSubject, query, isMasterKey).then(function (data) {
+                    emailService.sendEmail(appId, emailBody, emailSubject, query, isMasterKey).then(function (data) {
                         res.status(200).send(null);
                     }, function (err) {
                         if (err === "Email Configuration is not found." || err === "No users found") {

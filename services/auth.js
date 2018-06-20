@@ -4,98 +4,96 @@
 #     (c) 2014 HackerBay, Inc. 
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
+var q = require('q');
+var customService = require('../services/cloudObjects');
 
+var authService = {
 
-module.exports = function() {
+	/*Desc   : Upsert user with provider
+	  Params : appId, accessList, provider, providerUserId, providerAccessToken, providerAccessSecret
+	  Returns: Promise
+			   Resolve->user object
+			   Reject->Error on findOne()  or save()
+	*/
+	upsertUserWithProvider: function(appId, accessList, provider, providerUserId, providerAccessToken, providerAccessSecret){
+				
+		var deferred = q.defer();
 
-	return {
+		try{
 
-		/*Desc   : Upsert user with provider
-		  Params : appId, accessList, provider, providerUserId, providerAccessToken, providerAccessSecret
-		  Returns: Promise
-		           Resolve->user object
-		           Reject->Error on findOne()  or save()
-		*/
-		upsertUserWithProvider: function(appId, accessList, provider, providerUserId, providerAccessToken, providerAccessSecret){
+			var isMasterKey=true;
+			var collectionName = "User";			    
+			var select = {};
+			var sort = {};
+			var skip = 0;			    
+
+			var query = {};
+			query.$include = [];
+			query.$includeList = [];
+			query["socialAuth"] = {
+				$elemMatch: {
+					provider:provider,
+					id:providerUserId
+				}
+			};
+
+			customService.findOne(appId, collectionName, query, select, sort, skip, accessList, isMasterKey).then(function(document){
+				
+				if(document){
 					
-			var deferred = global.q.defer();
 
-			try{
+					for(var i=0;i<document.socialAuth.length;++i){
+						if(document.socialAuth[i].provider===provider && document.socialAuth[i].id===providerUserId){			    				
+							document.socialAuth[i].accessToken=providerAccessToken;			    				
+						}
+					}
 
-				var isMasterKey=true;
-			    var collectionName = "User";			    
-			    var select = {};
-			    var sort = {};
-			    var skip = 0;			    
+					document._modifiedColumns=["socialAuth"];
+				}else{
+					
 
-			    var query = {};
-			    query.$include = [];
-    			query.$includeList = [];
-    			query["socialAuth"] = {
-		            $elemMatch: {
-		            	provider:provider,
-		            	id:providerUserId
-		            }
-		        };
+					var document={};				    	
+					document._version=0;			    	
 
-			    global.customService.findOne(appId, collectionName, query, select, sort, skip, accessList, isMasterKey).then(function(document){
-			    	
-			    	if(document){
-			    		
+					document.ACL={};				    	
+					document.ACL['read'] = {"allow":{"user":['all'],"role":[]},"deny":{"user":[],"role":[]}}; //by default allow read access to "all"
+					document.ACL['write'] = {"allow":{"user":['all'],"role":[]},"deny":{"user":[],"role":[]}}; //by default allow write access to "all"
+					document.ACL.parent = null;
 
-			    		for(var i=0;i<document.socialAuth.length;++i){
-			    			if(document.socialAuth[i].provider===provider && document.socialAuth[i].id===providerUserId){			    				
-			    				document.socialAuth[i].accessToken=providerAccessToken;			    				
-			    			}
-			    		}
+					document.createdAt= new Date();
+					document.updatedAt= new Date();
+					document.expires= null;
 
-			    		document._modifiedColumns=["socialAuth"];
-			    	}else{
-			    		
+					document.verified=true;
+					document.socialAuth=[{
+						provider:provider,
+						id:providerUserId,
+						accessToken:providerAccessToken,
+						accessSecret:providerAccessSecret		            		
+					}];
 
-			    		var document={};				    	
-				    	document._version=0;			    	
+					document._modifiedColumns=["createdAt","updatedAt","ACL","expires","verified","socialAuth"];
+				}
 
-				    	document.ACL={};				    	
-					    document.ACL['read'] = {"allow":{"user":['all'],"role":[]},"deny":{"user":[],"role":[]}}; //by default allow read access to "all"
-					    document.ACL['write'] = {"allow":{"user":['all'],"role":[]},"deny":{"user":[],"role":[]}}; //by default allow write access to "all"
-					    document.ACL.parent = null;
+				document._isModified=true;			    	
+				document._tableName=collectionName;
+				document._type="user";			    	
+				
+				return customService.save(appId, collectionName, document, accessList, isMasterKey);
 
-					    document.createdAt= new Date();
-					    document.updatedAt= new Date();
-					    document.expires= null;
+			}).then(function(result){		    	
+				deferred.resolve(result);
+			},function(error){
+				deferred.reject(error);
+			});			    						
 
-					    document.verified=true;
-					    document.socialAuth=[{
-					    	provider:provider,
-		            		id:providerUserId,
-		            		accessToken:providerAccessToken,
-		            		accessSecret:providerAccessSecret		            		
-					    }];
+		} catch(err){           
+			global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+			deferred.reject(err);
+		}	
 
-					    document._modifiedColumns=["createdAt","updatedAt","ACL","expires","verified","socialAuth"];
-			    	}
-
-			    	document._isModified=true;			    	
-			    	document._tableName=collectionName;
-			    	document._type="user";			    	
-			    	
-			    	return global.customService.save(appId, collectionName, document, accessList, isMasterKey);
-
-			    }).then(function(result){		    	
-			    	deferred.resolve(result);
-			    },function(error){
-			    	deferred.reject(error);
-			    });			    						
-
-			} catch(err){           
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack});
-                deferred.reject(err);
-            }	
-
-			return deferred.promise;
-		}
-	};
-
+		return deferred.promise;
+	}
 };
 
+module.exports = authService;

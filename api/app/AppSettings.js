@@ -8,10 +8,16 @@ var q = require("q");
 var util = require("../../helpers/util.js");
 var _ = require('underscore');
 
-module.exports = function() {
+const config = require('../../config/config');
+var apiTracker = require('../../database-connect/apiTracker');
+var mongoService = require('../../databases/mongo');
+var appService = require('../../services/app');
+var keyService = require('../../database-connect/keyService');
+
+module.exports = function(app) {
 
     //Update Settings for the App
-    global.app.put('/settings/:appId/:category', function(req, res) {
+    app.put('/settings/:appId/:category', function(req, res) {
 
         
 
@@ -25,14 +31,14 @@ module.exports = function() {
             settings = JSON.parse(settings);
         }
 
-        global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
+        appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
             if (isMasterKey) {
 
-                if (global.mongoDisconnected) {
+                if (config.mongoDisconnected) {
                     return res.status(500).send('Storage / Cache Backend are temporarily down.');
                 }
 
-                global.appService.updateSettings(appId, category, settings).then(function(settings) {
+                appService.updateSettings(appId, category, settings).then(function(settings) {
                     return res.status(200).send(settings);
                 }, function(err) {
                     return res.status(500).send('Error');
@@ -45,27 +51,25 @@ module.exports = function() {
             return res.status(500).send('Cannot retrieve security keys.');
         });
 
-        global.apiTracker.log(appId, "App / Settings", req.url, sdk);
+        apiTracker.log(appId, "App / Settings", req.url, sdk);
 
     });
 
     //Get Settings for the App
-    global.app.post('/settings/:appId', function(req, res) {
-
-        
+    app.post('/settings/:appId', function(req, res) {
 
         var appId = req.params.appId;
         var sdk = req.body.sdk || "REST";
         var appKey = req.body.key || req.params.key;
 
-        global.appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
+        appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
             if (isMasterKey) {
 
-                if (global.mongoDisconnected) {
+                if (config.mongoDisconnected) {
                     return res.status(500).send('Storage / Cache Backend are temporarily down.');
                 }
 
-                global.appService.getAllSettings(appId).then(function(settings) {
+                appService.getAllSettings(appId).then(function(settings) {
                     return res.status(200).send(settings);
                 }, function(err) {
                     return res.status(500).send('Error');
@@ -78,7 +82,7 @@ module.exports = function() {
             return res.status(500).send('Cannot retrieve security keys.');
         });
 
-        global.apiTracker.log(appId, "App / Settings", req.url, sdk);
+        apiTracker.log(appId, "App / Settings", req.url, sdk);
 
     });
 
@@ -89,7 +93,7 @@ module.exports = function() {
         4.Get ServerUrl to make fileUri
         5.Save current file to gridfs
     */
-    global.app.put('/settings/:appId/file/:category', function(req, res) {
+    app.put('/settings/:appId/file/:category', function(req, res) {
 
         
 
@@ -101,14 +105,14 @@ module.exports = function() {
         var promises = [];
 
         promises.push(_getFileStream(req));
-        promises.push(global.appService.isMasterKey(appId, appKey));
-        promises.push(global.appService.getAllSettings(appId));
-        promises.push(global.keyService.getMyUrl());
+        promises.push(appService.isMasterKey(appId, appKey));
+        promises.push(appService.getAllSettings(appId));
+        promises.push(keyService.getMyUrl());
 
         q.all(promises).then(function(resultList) {
 
             //Check database connectivity
-            if (global.mongoDisconnected) {
+            if (config.mongoDisconnected) {
                 return res.status(500).send('Storage / Cache Backend are temporarily down.');
             }
             //Check if masterKey is false
@@ -133,7 +137,7 @@ module.exports = function() {
 
                     //Delete from gridFs
                     if (fileName) {
-                        global.mongoService.document.deleteFileFromGridFs(appId, fileName);
+                        mongoService.document.deleteFileFromGridFs(appId, fileName);
                     }
 
                 }
@@ -147,7 +151,7 @@ module.exports = function() {
             if (category == "general") {
                 fileName = appId;
             }
-            return global.mongoService.document.saveFileStream(appId, resultList[0].fileStream, fileName, resultList[0].contentType);
+            return mongoService.document.saveFileStream(appId, resultList[0].fileStream, fileName, resultList[0].contentType);
 
         }).then(function(savedFile) {
             var fileUri = null;
@@ -165,7 +169,7 @@ module.exports = function() {
     });
 
     //get file from gridfs
-    global.app.get('/settings/:appId/file/:fileName', function(req, res) {
+    app.get('/settings/:appId/file/:fileName', function(req, res) {
 
         
 
@@ -177,19 +181,19 @@ module.exports = function() {
             return res.status(500).send("Unauthorized");
         }
 
-        global.appService.isMasterKey(appId, appKey).then(function(masterKey) {
+        appService.isMasterKey(appId, appKey).then(function(masterKey) {
 
             if (!masterKey) {
-                var unathorizedPromise = global.q.defer();
+                var unathorizedPromise = q.defer();
                 unathorizedPromise.reject("Unauthorized.");
                 return unathorizedPromise.promise;
             } else {
-                return global.mongoService.document.getFile(appId, fileName.split('.')[0]);
+                return mongoService.document.getFile(appId, fileName.split('.')[0]);
             }
 
         }).then(function(file) {
 
-            var fileStream = global.mongoService.document.getFileStreamById(appId, file._id);
+            var fileStream = mongoService.document.getFileStreamById(appId, file._id);
 
             res.set('Content-Type', file.contentType);
             res.set('Content-Disposition', 'attachment; filename="' + file.filename + '"');

@@ -68,7 +68,7 @@
                     <!--Body-->
                     <div style="background-color: white;padding-top: 5px;">
                         <!--Login and Sing Up buttons-->
-                        <% if(!authSettings || (authSettings && authSettings.custom.enabled)){ %>
+                        <% if(!authSettings || (authSettings && authSettings.custom && authSettings.custom.enabled)){ %>
                         <div class="flex-general-column-wrapper-center" style="margin-top: 20px;">
                             <div class="flex-general-row-wrapper">
                                <div class="width:100%;height:30px;">
@@ -87,35 +87,35 @@
                             <div class="flex-general-column-wrapper-center" style="margin-top: 5px;width: 100%;">
                                 <div class="solo-horizontal-center" style="width: 98%;">
                                     <!--facebook-->
-                                    <% if(authSettings && authSettings.facebook.enabled){ %>
+                                    <% if(authSettings && authSettings.facebook && authSettings.facebook.enabled){ %>
                                     <div id="facebook-login-btn" class="social-btns facebook flex-general-column-wrapper-center">
                                         <i class="fa fa-facebook"></i>
                                     </div>
                                     <%}%>
 
                                     <!--twitter-->
-                                    <% if(authSettings && authSettings.twitter.enabled){ %>
+                                    <% if(authSettings && authSettings.twitter && authSettings.twitter.enabled){ %>
                                     <div  id="twittr-login-btn" class="social-btns twitter flex-general-column-wrapper-center">
                                         <i class="fa fa-twitter"></i>
                                     </div>
                                     <%}%>
 
                                     <!--google-->
-                                    <% if(authSettings && authSettings.google.enabled){ %>
+                                    <% if(authSettings && authSettings.google && authSettings.google.enabled){ %>
                                     <div  id="google-login-btn" class="social-btns google flex-general-column-wrapper-center">
                                         <i class="fa fa-google"></i>
                                     </div>
                                     <%}%>
 
                                     <!--linkedin-->
-                                    <% if(authSettings && authSettings.linkedIn.enabled){ %>
+                                    <% if(authSettings && authSettings.linkedIn && authSettings.linkedIn.enabled){ %>
                                     <div  id="linkedin-login-btn" class="social-btns linkedin flex-general-column-wrapper-center">
                                         <i class="fa fa-linkedin" aria-hidden="true"></i>
                                     </div>
                                     <%}%>
 
                                     <!--github-->
-                                    <% if(authSettings && authSettings.github.enabled){ %>
+                                    <% if(authSettings && authSettings.github && authSettings.github.enabled){ %>
                                     <div  id="github-login-btn"  class="social-btns github flex-general-column-wrapper-center">
                                         <i class="fa fa-github"></i>
                                     </div>
@@ -126,13 +126,13 @@
                             
                             <!---OR-->
                             <div style="width: 100%;margin-top: 20px;" class="solo-horizontal-center">
-                                <% if((authSettings && authSettings.custom.enabled) && (authSettings.facebook.enabled || authSettings.twitter.enabled || authSettings.google.enabled || authSettings.linkedIn.enabled || authSettings.github.enabled)){ %>
+                                <% if((authSettings && authSettings.custom && authSettings.custom.enabled) && ((authSettings && authSettings.facebook && authSettings.facebook.enabled) || (authSettings && authSettings.twitter && authSettings.twitter.enabled) || (authSettings && authSettings.google && authSettings.google.enabled) || (authSettings && authSettings.linkedIn && authSettings.linkedIn.enabled) || (authSettings && authSettings.github && authSettings.github.enabled))){ %>
                                 <p id="authenticate-info" style="color:gray">Or</p>
                                 <%}%>
                             </div>                            
 
 
-                            <% if(!authSettings || (authSettings && authSettings.custom.enabled)){ %>
+                            <% if(!authSettings || (authSettings && authSettings.custom && authSettings.custom.enabled)){ %>
                             <!--Login Input Fields-->                        
                             <div id="login-inputfields" style="width: 100%;margin-top: 8px;" class="solo-horizontal-center">                                        
                                 <div style="width: 95%;">
@@ -203,7 +203,7 @@
                     </div>
                     <!--Body-->
 
-                    <% if(!authSettings || (authSettings && authSettings.custom.enabled)){ %>
+                    <% if(!authSettings || (authSettings && authSettings.custom && authSettings.custom.enabled)){ %>
                     <!--Button-->
                     <div class="final-btn" style="">
                        <div style="width: 100%;height: 30px;" class="flex-general-column-wrapper-center">
@@ -258,7 +258,7 @@
                 <!--Main Body Spinner-->
                 <div id="forgetpassword-spinner" style="width: 100%;height: 360px;background-color: white;" class="flex-general-column-wrapper-center">
                     <div style="width: 60px;height: 60px;" class="flex-general-column-wrapper-center">
-                        <div id="req-spinner" style="" class="loader-circle advanced flex-general-column-wrapper-center">       
+                        <div id="req-spinner" class="loader-circle advanced flex-general-column-wrapper-center">       
                         </div>
                         <div id="req-response" style="color:gray;" class="flex-general-column-wrapper-center">                   
                         </div>                       
@@ -344,8 +344,6 @@
         __isDevelopment = true;
         var serverURL="http://localhost:4730"; 
     }
-
-
 
     //This is the fucntion to get querystring, 
     function getParameterByName(name) {

@@ -10,6 +10,8 @@
 var q = require("q");
 var _ = require('underscore');
 var request = require('request');
+var uuid = require('uuid');
+
 var customHelper = require('../../helpers/custom.js');
 
 var twitterHelper = require('../../helpers/twitter.js');
@@ -18,8 +20,11 @@ var linkedinHelper = require('../../helpers/linkedin.js');
 var googleHelper = require('../../helpers/google.js');
 var facebookHelper = require('../../helpers/facebook.js');
 
+var sessionHelper = require('../../helpers/session');
+var appService = require('../../services/app');
+var authService = require('../../services/auth');
 
-module.exports = function() {  
+module.exports = function(app) {  
 
     app.get("/auth/:appId/twitter", function(req, res) {     
     
@@ -79,7 +84,7 @@ module.exports = function() {
                 var providerAccessSecret=twitterTokens.accessSecret;
 
                 //save the user
-                return global.authService.upsertUserWithProvider(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken, providerAccessSecret);
+                return authService.upsertUserWithProvider(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken, providerAccessSecret);
 
             }).then(function(result){
 
@@ -87,7 +92,7 @@ module.exports = function() {
                 var session=setSession(req, appId, sessionLength, result,res);                        
                 return res.redirect(authSettings.general.callbackURL+"?cbtoken="+session.id);
 
-            },function(error){
+            },function(err){
                 delete req.session.twitterReqSecret;
                 res.status(500).send(err);
             });         
@@ -142,7 +147,7 @@ module.exports = function() {
                 var providerAccessToken=githubAccessToken;
                 var providerAccessSecret=null;                
 
-                return global.authService.upsertUserWithProvider(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken,providerAccessSecret);
+                return authService.upsertUserWithProvider(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken,providerAccessSecret);
 
             }).then(function(result){
 
@@ -205,7 +210,7 @@ module.exports = function() {
                     var providerAccessToken=linkedinAccessToken;
                     var providerAccessSecret=null;                    
 
-                    global.authService.upsertUserWithProvider(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken,providerAccessSecret)
+                    authService.upsertUserWithProvider(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken,providerAccessSecret)
                     .then(function(result){
                         //create sessions
                         var session=setSession(req, appId, sessionLength, result,res);                        
@@ -271,7 +276,7 @@ module.exports = function() {
                 var providerAccessToken=googleTokens.access_token;
                 var providerAccessSecret=null;                
 
-                return global.authService.upsertUserWithProvider(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken,providerAccessSecret);
+                return authService.upsertUserWithProvider(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken,providerAccessSecret);
 
             }).then(function(result){
 
@@ -333,7 +338,7 @@ module.exports = function() {
                 var providerAccessToken=fbAccessToken;
                 var providerAccessSecret=null;                
 
-                return global.authService.upsertUserWithProvider(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken,providerAccessSecret);
+                return authService.upsertUserWithProvider(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken,providerAccessSecret);
                         
             }).then(function(result){
 
@@ -353,7 +358,7 @@ module.exports = function() {
 function setSession(req, appId, sessionLength, result,res) {
     if(!req.session.id) {
         req.session = {};
-        req.session.id = global.uuid.v1();
+        req.session.id = uuid.v1();
     }
     res.header('sessionID',req.session.id);     
     
@@ -367,13 +372,13 @@ function setSession(req, appId, sessionLength, result,res) {
 
     req.session = obj;
     
-    global.sessionHelper.saveSession(obj,sessionLength);
+    sessionHelper.saveSession(obj,sessionLength);
     return req.session;
 }
 
 function _getAppSettings(req,res){
 
-    var deferred = global.q.defer();
+    var deferred = q.defer();
 
     var appId = req.params.appId || null; 
 
@@ -383,7 +388,7 @@ function _getAppSettings(req,res){
 
     var promises=[];
 
-    promises.push(global.appService.getAllSettings(appId));    
+    promises.push(appService.getAllSettings(appId));    
     q.all(promises).then(function(list){       
 
         if(!list[0] || list[0].length==0){

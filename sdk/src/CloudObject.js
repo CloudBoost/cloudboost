@@ -128,8 +128,6 @@ class CloudObject {
 
     saveEventually(callback) {
 
-        
-
         var thisObj = this;
         var def;
         if (!callback) {

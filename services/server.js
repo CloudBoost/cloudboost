@@ -1,4 +1,3 @@
-
 /*
 #     CloudBoost - Core Engine that powers Bakend as a Service
 #     (c) 2014 HackerBay, Inc. 
@@ -9,168 +8,178 @@
 var Q = require('q');
 var request = require('request');
 
-module.exports = function() {
-  return {
-    registerServer: function (secureKey) {
+var appConfig = require('../config/config');
 
+module.exports = {
+	registerServer: function (secureKey) {
+		var deferred = Q.defer();
+		try {
+			_registerServerAnalytics(secureKey).then(function (result) {
+				deferred.resolve(result);
+			}, function (error) {
+				deferred.reject(error);
+			});
+		} catch (err) {
+			global.winston.log('error', {
+				"error": String(err),
+				"stack": new Error().stack
+			});
+			deferred.reject(err);
+		}
 
-      var deferred = Q.defer();
+		return deferred.promise;
+	},
+	getDBStatuses: function () {
 
-      try{
+		var deferred = Q.defer();
 
-        _registerServerAnalytics(secureKey).then(function(result) {
-            deferred.resolve(result);
-        },function(error){
-            deferred.reject(error);
-        }); 
+		try {
 
-      } catch(err){           
-          global.winston.log('error',{"error":String(err),"stack": new Error().stack});
-          deferred.reject(err);
-      }          
+			var promises = [];
 
-      return deferred.promise;
-    },
-    getDBStatuses: function () {
+			promises.push(_mongoDbStatus());
+			promises.push(_redisDbStatus());
 
-      var deferred = Q.defer();
+			Q.all(promises).then(function (resultList) {
+				if (resultList && resultList[0] && resultList[1]) {
+					deferred.resolve("All are running..");
+				}
+			}, function (error) {
+				deferred.reject(error.error);
+			});
 
-      try{
+		} catch (err) {
+			global.winston.log('error', {
+				"error": String(err),
+				"stack": new Error().stack
+			});
+			deferred.reject(err);
+		}
 
-        var promises=[];      
-
-        promises.push(_mongoDbStatus());
-        promises.push(_redisDbStatus());        
-
-        Q.all(promises).then(function(resultList){
-            if(resultList && resultList[0] && resultList[1]){
-              deferred.resolve("All are running..");                
-            }
-        },function(error){  
-            deferred.reject(error.error);          
-        }); 
-
-      } catch(err){           
-          global.winston.log('error',{"error":String(err),"stack": new Error().stack});
-          deferred.reject(err);
-      }          
-
-      return deferred.promise;
-    }
-  }; 
+		return deferred.promise;
+	}
 };
 
-function _registerServerAnalytics(secureKey){
-  var deferred = Q.defer();
- 
-  try{
-    var post_data = {};
-    post_data.secureKey = secureKey; 
-    post_data = JSON.stringify(post_data);
+function _registerServerAnalytics(secureKey) {
+	var deferred = Q.defer();
 
-    var url = global.keys.analyticsUrl +'/server/register';  
-    request.post(url,{
-        headers: {
-            'content-type': 'application/json',
-            'content-length': post_data.length
-        },
-        body: post_data
-    },function(err,response,body){
-        if(err || response.statusCode === 500 || body === 'Error'){       
-          deferred.reject(err);
-        }else {  
+	try {
+		var post_data = {};
+		post_data.secureKey = secureKey;
+		post_data = JSON.stringify(post_data);
 
-          try{
-            var respBody=JSON.parse(body);
-            deferred.resolve(respBody);
-          }catch(e){
-            deferred.reject(e);
-          }  
-          
-        }
-    });
+		var url = appConfig.analyticsUrl + '/server/register';
+		request.post(url, {
+			headers: {
+				'content-type': 'application/json',
+				'content-length': post_data.length
+			},
+			body: post_data
+		}, function (err, response, body) {
+			if (err || response.statusCode === 500 || body === 'Error') {
+				deferred.reject(err);
+			} else {
 
-  } catch(err){           
-    global.winston.log('error',{"error":String(err),"stack": new Error().stack});
-    deferred.reject(err);
-  }
+				try {
+					var respBody = JSON.parse(body);
+					deferred.resolve(respBody);
+				} catch (e) {
+					deferred.reject(e);
+				}
 
-  return deferred.promise;
+			}
+		});
+
+	} catch (err) {
+		global.winston.log('error', {
+			"error": String(err),
+			"stack": new Error().stack
+		});
+		deferred.reject(err);
+	}
+
+	return deferred.promise;
 }
 
 
-function _mongoDbStatus(){
+function _mongoDbStatus() {
 
-    
+	var deferred = Q.defer();
 
-    var deferred = Q.defer();
+	try {
 
-    try{
+		var responseJson = {};
+		responseJson.serviceName = "mongodb";
+		responseJson.success = null;
+		responseJson.error = null;
 
-        var responseJson={};
-        responseJson.serviceName="mongodb";
-        responseJson.success=null;
-        responseJson.error=null;
+		appConfig.mongoClient.command({
+			serverStatus: 1
+		}, function (err, status) {
+			if (err) {
 
-        global.mongoClient.command({ serverStatus: 1},function(err, status){
-          if(err) { 
-            
-            responseJson.error="Unable to know CBEngine Mongodb status";
-            deferred.reject(responseJson);                                    
-          }
+				responseJson.error = "Unable to know CBEngine Mongodb status";
+				deferred.reject(responseJson);
+			}
 
-          
-          if(status && status.ok===1){ 
-            responseJson.success="CBEngine Mongodb status is okay";          
-            deferred.resolve(responseJson);                                               
-          }else{        
-            responseJson.error="CBEngine Mongodb status is failed";
-            deferred.reject(responseJson);
-          }
-        });
 
-    }catch(err){
-      global.winston.log('error',{"error":String(err),"stack": new Error().stack});
-      deferred.reject(err);
-    }
+			if (status && status.ok === 1) {
+				responseJson.success = "CBEngine Mongodb status is okay";
+				deferred.resolve(responseJson);
+			} else {
+				responseJson.error = "CBEngine Mongodb status is failed";
+				deferred.reject(responseJson);
+			}
+		});
 
-    return deferred.promise;
+	} catch (err) {
+		global.winston.log('error', {
+			"error": String(err),
+			"stack": new Error().stack
+		});
+		deferred.reject(err);
+	}
+
+	return deferred.promise;
 }
 
-function _redisDbStatus(){
+function _redisDbStatus() {
 
-    
 
-    var deferred = Q.defer();
 
-    try{
-        
-        var responseJson={};
-        responseJson.serviceName="redisdb";
-        responseJson.success=null;
-        responseJson.error=null;
+	var deferred = Q.defer();
 
-        //Simple ping/pong with callback
-        global.redisClient.call('PING', function (error, result) {                
-            if(error){
-                
-                responseJson.error="Unable to know CBEngine Redisdb status";
-                deferred.reject(responseJson);
-            }
-            
-            if(result==="PONG"){
-              responseJson.success="CBEngine Redisdb PING is successfull";
-              deferred.resolve(responseJson); 
-            }else{
-              responseJson.error="CBEngine Redisdb PING is failed";
-              deferred.reject(responseJson);
-            }
-        });        
+	try {
 
-    }catch(err){
-      global.winston.log('error',{"error":String(err),"stack": new Error().stack});
-      deferred.reject(err);
-    }
+		var responseJson = {};
+		responseJson.serviceName = "redisdb";
+		responseJson.success = null;
+		responseJson.error = null;
 
-    return deferred.promise;
+		//Simple ping/pong with callback
+		appConfig.redisClient.call('PING', function (error, result) {
+			if (error) {
+
+				responseJson.error = "Unable to know CBEngine Redisdb status";
+				deferred.reject(responseJson);
+			}
+
+			if (result === "PONG") {
+				responseJson.success = "CBEngine Redisdb PING is successfull";
+				deferred.resolve(responseJson);
+			} else {
+				responseJson.error = "CBEngine Redisdb PING is failed";
+				deferred.reject(responseJson);
+			}
+		});
+
+	} catch (err) {
+		global.winston.log('error', {
+			"error": String(err),
+			"stack": new Error().stack
+		});
+		deferred.reject(err);
+	}
+
+	return deferred.promise;
 }

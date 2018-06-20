@@ -6,39 +6,121 @@
 */
 
 
-var smtpConfig = null;
-var defaultTransporter = null;
-var mandrill = require('mandrill-api/mandrill');
+var smtpConfig = require('../config/config').smtp;
 var _ = require('underscore');
 var jsdom = require("jsdom");
 var fs = require("fs");
+var appService = require('../services/app');
+var keyService = require('../database-connect/keyService');
+var q = require('q');
 
-module.exports = function(){
-         
-    var mail = {}; 
+var mail = {}; 
 
-    /*Desc   : Send Reset Password Email
-      Params : appId, email, user, passwordResetKey
-      Returns: Promise
-               Resolve->Success Message
-               Reject->Error on getAllSettings() or _getEmailSettings() or _getEmailTemplate() or getMyUrl() or _mergeVariablesInTemplate() or sendMail
-    */
-    mail.sendResetPasswordMail = function(appId, email, user, passwordResetKey){
+/*Desc   : Send Reset Password Email
+  Params : appId, email, user, passwordResetKey
+  Returns: Promise
+           Resolve->Success Message
+           Reject->Error on getAllSettings() or _getEmailSettings() or _getEmailTemplate() or getMyUrl() or _mergeVariablesInTemplate() or sendMail
+*/
+mail.sendResetPasswordMail = function(appId, email, user, passwordResetKey){
 
-        var deferred = q.defer();
+    var deferred = q.defer();
 
-        try{         
+    try{         
 
-            var emailSettings=null;
-            var emailTemplate=null;
-            var serverUrl=null;
+        var emailSettings=null;
+        var emailTemplate=null;
+        var serverUrl=null;
 
-            global.appService.getAllSettings(appId).then(function(settings){
+        appService.getAllSettings(appId).then(function(settings){
 
+            var promises=[];
+            promises.push(_getEmailSettings(settings,true));
+            promises.push(_getEmailTemplate(settings,"reset-password"));
+            promises.push(keyService.getMyUrl());
+
+            q.all(promises).then(function(list){
+
+                //Resolved data
+                emailSettings=list[0];
+                emailTemplate=list[1];
+                serverUrl=list[2];
+
+                var username= user.name || user.firstName || user.username || " ";
+
+                var variableArray=[{
+                    "domClass": "username",
+                    "content": username,
+                    "contentType": "text"
+                },{
+                    "domClass": "link",
+                    "content": encodeURI(serverUrl+"/page/"+appId+"/reset-password?user="+username+"&resetKey="+passwordResetKey),
+                    "contentType": "anchortag"
+                }];
+
+                return _mergeVariablesInTemplate(emailTemplate, variableArray);
+
+            }).then(function(mergedTemplate){
+
+                emailSettings.emailTo=email;
+                emailSettings.subject="Reset Password";
+                emailSettings.template=mergedTemplate;
+
+                if(emailSettings.provider=="mandrill"){
+                    return _mandrill(emailSettings);
+                }else if(emailSettings.provider=="mailgun"){
+                    return _mailGun(emailSettings);
+                }
+
+            }).then(function(response){
+                deferred.resolve(response);
+            },function(error){
+                deferred.reject(error);
+            });              
+
+        },function(error){
+            deferred.reject(error);
+        });    
+
+    } catch(err){           
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+        deferred.reject(err);
+    }
+
+    return deferred.promise;
+     
+};
+
+/*Desc   : Send Sign Email
+  Params : appId, user, activateKey
+  Returns: Promise
+           Resolve->Success Message
+           Reject->Error on getAllSettings() or _getEmailSettings() or _getEmailTemplate() or getMyUrl() or _mergeVariablesInTemplate() or sendMail
+*/
+mail.sendSignupMail = function(appId, user, activateKey){
+
+    var deferred = q.defer();
+
+    try{         
+
+        var emailSettings=null;
+        var emailTemplate=null;
+        var serverUrl=null;
+
+        appService.getAllSettings(appId).then(function(settings){
+
+            //Check email on sign up enabled
+            var emailOnSignupEnabled=false;
+            var auth=_.first(_.where(settings, {category: "auth"}));
+            if(auth && auth.settings && auth.settings.signupEmail && auth.settings.signupEmail.enabled){
+                emailOnSignupEnabled=true;
+            }
+            
+            if(emailOnSignupEnabled){
                 var promises=[];
                 promises.push(_getEmailSettings(settings,true));
-                promises.push(_getEmailTemplate(settings,"reset-password"));
-                promises.push(global.keyService.getMyUrl());
+                promises.push(_getEmailTemplate(settings,"sign-up"));
+                promises.push(keyService.getMyUrl());
 
                 q.all(promises).then(function(list){
 
@@ -55,7 +137,7 @@ module.exports = function(){
                         "contentType": "text"
                     },{
                         "domClass": "link",
-                        "content": encodeURI(serverUrl+"/page/"+appId+"/reset-password?user="+username+"&resetKey="+passwordResetKey),
+                        "content": encodeURI(serverUrl+"/page/"+appId+"/verify?activateKey="+activateKey),
                         "contentType": "anchortag"
                     }];
 
@@ -63,8 +145,8 @@ module.exports = function(){
 
                 }).then(function(mergedTemplate){
 
-                    emailSettings.emailTo=email;
-                    emailSettings.subject="Reset Password";
+                    emailSettings.emailTo=user.email;
+                    emailSettings.subject="Activate Account";
                     emailSettings.template=mergedTemplate;
 
                     if(emailSettings.provider=="mandrill"){
@@ -77,163 +159,78 @@ module.exports = function(){
                     deferred.resolve(response);
                 },function(error){
                     deferred.reject(error);
-                });              
+                });
+            }else{
+                deferred.resolve("Email on signup not enabled.");
+            }                              
 
-            },function(error){
-                deferred.reject(error);
-            });    
+        },function(error){
+            deferred.reject(error);
+        });     
 
-        } catch(err){           
-            global.winston.log('error',{"error":String(err),"stack": new Error().stack});
-            deferred.reject(err);
-        }
+    } catch(err){           
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+        deferred.reject(err);
+    }
 
-        return deferred.promise;
-         
-    };
-
-    /*Desc   : Send Sign Email
-      Params : appId, user, activateKey
-      Returns: Promise
-               Resolve->Success Message
-               Reject->Error on getAllSettings() or _getEmailSettings() or _getEmailTemplate() or getMyUrl() or _mergeVariablesInTemplate() or sendMail
-    */
-    mail.sendSignupMail = function(appId, user, activateKey){
-
-        var deferred = q.defer();
-
-        try{         
-
-            var emailSettings=null;
-            var emailTemplate=null;
-            var serverUrl=null;
-
-            global.appService.getAllSettings(appId).then(function(settings){
-
-                //Check email on sign up enabled
-                var emailOnSignupEnabled=false;
-                var auth=_.first(_.where(settings, {category: "auth"}));
-                if(auth && auth.settings && auth.settings.signupEmail && auth.settings.signupEmail.enabled){
-                    emailOnSignupEnabled=true;
-                }
-                
-                if(emailOnSignupEnabled){
-                    var promises=[];
-                    promises.push(_getEmailSettings(settings,true));
-                    promises.push(_getEmailTemplate(settings,"sign-up"));
-                    promises.push(global.keyService.getMyUrl());
-
-                    q.all(promises).then(function(list){
-
-                        //Resolved data
-                        emailSettings=list[0];
-                        emailTemplate=list[1];
-                        serverUrl=list[2];
-
-                        var username= user.name || user.firstName || user.username || " ";
-
-                        var variableArray=[{
-                            "domClass": "username",
-                            "content": username,
-                            "contentType": "text"
-                        },{
-                            "domClass": "link",
-                            "content": encodeURI(serverUrl+"/page/"+appId+"/verify?activateKey="+activateKey),
-                            "contentType": "anchortag"
-                        }];
-
-                        return _mergeVariablesInTemplate(emailTemplate, variableArray);
-
-                    }).then(function(mergedTemplate){
-
-                        emailSettings.emailTo=user.email;
-                        emailSettings.subject="Activate Account";
-                        emailSettings.template=mergedTemplate;
-
-                        if(emailSettings.provider=="mandrill"){
-                            return _mandrill(emailSettings);
-                        }else if(emailSettings.provider=="mailgun"){
-                            return _mailGun(emailSettings);
-                        }
-
-                    }).then(function(response){
-                        deferred.resolve(response);
-                    },function(error){
-                        deferred.reject(error);
-                    });
-                }else{
-                    deferred.resolve("Email on signup not enabled.");
-                }                              
-
-            },function(error){
-                deferred.reject(error);
-            });     
-
-        } catch(err){           
-            global.winston.log('error',{"error":String(err),"stack": new Error().stack});
-            deferred.reject(err);
-        }
-
-        return deferred.promise;
-         
-    };
-
-    /*Desc   : Send Push Campaign Email
-      Params : appId,user, email body
-      Returns: Promise
-               Resolve->Success Message
-               Reject->Error on getAllSettings() or _getEmailSettings() or sendMail
-    */
-    mail.emailCampaign = function(appId,userEmail,emailBody,emailSubject){
-        var deferred = q.defer();
-
-        try{         
-
-            var emailSettings=null;
-            var emailTemplate=null;
-            var serverUrl=null;
-
-            global.appService.getAllSettings(appId).then(function(settings){
-
-                var promises=[];
-                promises.push(_getEmailSettings(settings,false));
-
-                q.all(promises).then(function(list){
-
-                    //Resolved data
-                    emailSettings=list[0];
-                   
-                    emailSettings.emailTo=userEmail;
-                    emailSettings.subject=emailSubject;
-                    emailSettings.template=emailBody;
-
-                    if(emailSettings.provider=="mandrill"){
-                        return _mandrill(emailSettings);
-                    }else if(emailSettings.provider=="mailgun"){
-                        return _mailGun(emailSettings);
-                    }
-
-                }).then(function(response){
-                    deferred.resolve(response);
-                },function(error){
-                    deferred.reject(error);
-                });                             
-
-            },function(error){
-                deferred.reject(error);
-            });     
-
-        } catch(err){           
-            global.winston.log('error',{"error":String(err),"stack": new Error().stack});
-            deferred.reject(err);
-        }
-
-        return deferred.promise;
-    };
-  
-    return mail;
-
+    return deferred.promise;
+     
 };
+
+/*Desc   : Send Push Campaign Email
+  Params : appId,user, email body
+  Returns: Promise
+           Resolve->Success Message
+           Reject->Error on getAllSettings() or _getEmailSettings() or sendMail
+*/
+mail.emailCampaign = function(appId,userEmail,emailBody,emailSubject){
+    var deferred = q.defer();
+
+    try{         
+
+        var emailSettings=null;
+        var emailTemplate=null;
+        var serverUrl=null;
+
+        appService.getAllSettings(appId).then(function(settings){
+
+            var promises=[];
+            promises.push(_getEmailSettings(settings,false));
+
+            q.all(promises).then(function(list){
+
+                //Resolved data
+                emailSettings=list[0];
+               
+                emailSettings.emailTo=userEmail;
+                emailSettings.subject=emailSubject;
+                emailSettings.template=emailBody;
+
+                if(emailSettings.provider=="mandrill"){
+                    return _mandrill(emailSettings);
+                }else if(emailSettings.provider=="mailgun"){
+                    return _mailGun(emailSettings);
+                }
+
+            }).then(function(response){
+                deferred.resolve(response);
+            },function(error){
+                deferred.reject(error);
+            });                             
+
+        },function(error){
+            deferred.reject(error);
+        });     
+
+    } catch(err){           
+        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+        deferred.reject(err);
+    }
+
+    return deferred.promise;
+};
+
+module.exports = mail;
 
 
 /*Desc   : Send Email through Mandrill
@@ -377,14 +374,8 @@ function _getEmailSettings(settings,returnDefault){
                 emailConfig.fromEmail=emailSettings[0].settings.fromEmail;
             }
         } else if ( returnDefault == true ) {
-
-            try{
-                var smtpConfig = require('../config/smtp.js');
-            }catch(e){
-                return deferred.reject("SMTP Configuration file not found.");
-            }
                  
-            if(!smtpConfig){
+            if(!smtpConfig.provider){
                 deferred.reject("SMTP Configuration file not found.");
             } else {
                 emailConfig=smtpConfig;

@@ -5,159 +5,165 @@
 */
 
 var q = require("q");
-var Grid = require('gridfs-stream');
 var util = require("../helpers/util.js");
 var jimp = require("jimp");
+var config = require('../config/config');
+var mongoService = require('../databases/mongo');
+var customService = require('./cloudObjects');
+var keyService = require('../database-connect/keyService');
 
-module.exports = function() {
+module.exports = {
+    /*Desc   : Save FileStream & CloudBoostFileObject
+      Params : appId,fileStream,fileContentType,CloudBoostFileObj
+      Returns: Promise
+               Resolve->cloudBoostFileObj
+               Reject->Error on getMyUrl() or saving filestream or saving cloudBoostFileObject
+    */
+    upload: function(appId, fileStream, contentType, fileObj, accessList, isMasterKey) {
+        
+        var deferred = q.defer();
 
-    return {
-        /*Desc   : Save FileStream & CloudBoostFileObject
-          Params : appId,fileStream,fileContentType,CloudBoostFileObj
-          Returns: Promise
-                   Resolve->cloudBoostFileObj
-                   Reject->Error on getMyUrl() or saving filestream or saving cloudBoostFileObject
-        */
-        upload: function(appId, fileStream, contentType, fileObj, accessList, isMasterKey) {
+        try {
+            var promises = [];
+            var newFileName = '';
+
+            keyService.getMyUrl().then(function(url) {
+
+                if (!fileObj._id) {
+                    fileObj._id = util.getId();
+                    fileObj._version = 0;
+                    newFileName = fileObj._id + fileObj.name.slice(fileObj.name.indexOf('.'), fileObj.name.length);
+                    fileObj.url = url + "/file/" + appId + "/" + fileObj._id + fileObj.name.slice(fileObj.name.indexOf('.'), fileObj.name.length);
+                    
+                    
+                } else {
+                    fileObj._version = fileObj._version + 1;
+                }
+                var collectionName = "_File";
+                try {
+                    promises.push(mongoService.document.saveFileStream(appId, fileStream, fileObj._id, contentType));
+                    promises.push(customService.save(appId, collectionName, fileObj, accessList, isMasterKey));
+                } catch (error) {
+                    console.log(error);
+                }
+                // promises.push(mongoService.document.saveFileStream(appId, fileStream, fileObj._id, contentType));
+                // promises.push(customService.save(appId, collectionName, fileObj, accessList, isMasterKey));
+                q.all(promises).then(function(array) {
+                    deferred.resolve(array[1]);
+                }, function(err) {
+                    deferred.reject(err);
+                });
+            }, function(error) {
+                deferred.reject(error);
+            });
+
+        } catch (err) {
+            global.winston.log('error', {
+                "error": String(err),
+                "stack": new Error().stack
+            });
+            deferred.reject(err);
+        }
+
+        return deferred.promise;
+    },
+
+    /*Desc   : delete file from gridFs & delete CloudBoostFileObj
+      Params : appId,cloudBoostFileObj,accessList,masterKey
+      Returns: Promise
+               Resolve->cloudBoostFileObj
+               Reject->Error on getMyUrl() or saving filestream or saving cloudBoostFileObject
+    */
+    delete: function(appId, fileObj, accessList, isMasterKey) {
+        
+        var collectionName = '_File';
+        var deferred = q.defer();
+        try {
+            var collectionName = "_File";
+            var fileUrl = config.fileUrl + appId + "/";
+            var filename = fileObj.url.substr(fileUrl.length, fileObj.url.length + 1);
             
-            var deferred = q.defer();
 
-            try {
-                var promises = [];
-                var newFileName = '';
+            var promises = [];
+            promises.push(mongoService.document.deleteFileFromGridFs(appId, fileObj._id));
+            promises.push(customService.delete(appId, collectionName, fileObj, accessList, isMasterKey));
+            q.all(promises).then(function() {
+                deferred.resolve();
+            }, function(err) {
+                deferred.reject(err);
+            });
 
-                global.keyService.getMyUrl().then(function(url) {
+        } catch (err) {
+            global.winston.log('error', {
+                "error": String(err),
+                "stack": new Error().stack
+            });
+            deferred.reject(err);
+        }
+        return deferred.promise;
+    },
 
-                    if (!fileObj._id) {
-                        fileObj._id = util.getId();
-                        fileObj._version = 0;
-                        newFileName = fileObj._id + fileObj.name.slice(fileObj.name.indexOf('.'), fileObj.name.length);
-                        fileObj.url = url + "/file/" + appId + "/" + fileObj._id + fileObj.name.slice(fileObj.name.indexOf('.'), fileObj.name.length);
-                        
-                        
-                    } else {
-                        fileObj._version = fileObj._version + 1;
-                    }
-                    var collectionName = "_File";
-                    promises.push(global.mongoService.document.saveFileStream(appId, fileStream, fileObj._id, contentType));
-                    promises.push(global.customService.save(appId, collectionName, fileObj, accessList, isMasterKey));
-                    global.q.all(promises).then(function(array) {
-                        deferred.resolve(array[1]);
+    /*Desc   : get File
+      Params : appId,fileName,accessList,masterKey
+      Returns: Promise
+               Resolve->gridFsFileObject
+               Reject->Error on _readFileACL() or getFile from gridFs
+    */
+    getFile: function(appId, filename, accessList, isMasterKey) {
+        
+        var deferred = q.defer();
+
+        try {
+            var collectionName = "_File";
+            customService.find(appId, collectionName, {
+                _id: filename.split('.')[0]
+            }, null, null, 1, 0, accessList, isMasterKey, null).then(function(file) {
+                if (file.length == 1) {
+                    
+                    mongoService.document.getFile(appId, filename.split('.')[0]).then(function(res) {
+                        deferred.resolve(res);
                     }, function(err) {
                         deferred.reject(err);
                     });
-                }, function(error) {
-                    deferred.reject(error);
-                });
-
-            } catch (err) {
-                global.winston.log('error', {
-                    "error": String(err),
-                    "stack": new Error().stack
-                });
-                deferred.reject(err);
-            }
-
-            return deferred.promise;
-        },
-
-        /*Desc   : delete file from gridFs & delete CloudBoostFileObj
-          Params : appId,cloudBoostFileObj,accessList,masterKey
-          Returns: Promise
-                   Resolve->cloudBoostFileObj
-                   Reject->Error on getMyUrl() or saving filestream or saving cloudBoostFileObject
-        */
-        delete: function(appId, fileObj, accessList, isMasterKey) {
-            
-            var collectionName = '_File';
-            var deferred = q.defer();
-            try {
-                var collectionName = "_File";
-                var fileUrl = global.keys.fileUrl + appId + "/";
-                var filename = fileObj.url.substr(fileUrl.length, fileObj.url.length + 1);
-                
-
-                var promises = [];
-                promises.push(global.mongoService.document.deleteFileFromGridFs(appId, fileObj._id));
-                promises.push(global.customService.delete(appId, collectionName, fileObj, accessList, isMasterKey));
-                global.q.all(promises).then(function() {
-                    deferred.resolve();
-                }, function(err) {
-                    deferred.reject(err);
-                });
-
-            } catch (err) {
-                global.winston.log('error', {
-                    "error": String(err),
-                    "stack": new Error().stack
-                });
-                deferred.reject(err);
-            }
-            return deferred.promise;
-        },
-
-        /*Desc   : get File
-          Params : appId,fileName,accessList,masterKey
-          Returns: Promise
-                   Resolve->gridFsFileObject
-                   Reject->Error on _readFileACL() or getFile from gridFs
-        */
-        getFile: function(appId, filename, accessList, isMasterKey) {
-            
-            var deferred = q.defer();
-
-            try {
-                var collectionName = "_File";
-                global.customService.find(appId, collectionName, {
-                    _id: filename.split('.')[0]
-                }, null, null, 1, 0, accessList, isMasterKey, null).then(function(file) {
-                    if (file.length == 1) {
-                        
-                        global.mongoService.document.getFile(appId, filename.split('.')[0]).then(function(res) {
-                            deferred.resolve(res);
-                        }, function(err) {
-                            deferred.reject(err);
-                        });
-                    } else {
-                        
-                        deferred.reject("Unauthorized");
-                    }
-                }, function() {
+                } else {
+                    
                     deferred.reject("Unauthorized");
-                });
+                }
+            }, function() {
+                deferred.reject("Unauthorized");
+            });
 
-            } catch (err) {
-                global.winston.log('error', {
-                    "error": String(err),
-                    "stack": new Error().stack
-                });
-                deferred.reject(err);
-            }
-            return deferred.promise;
-        },
-
-        processImage: function(appId, fileName, resizeWidth, resizeHeight, cropX, cropY, cropW, cropH, quality, opacity, scale, containWidth, containHeight, rDegs, bSigma) {
-            var deferred = q.defer();
-            try {
-                _processImage(appId, fileName, resizeWidth, resizeHeight, cropX, cropY, cropW, cropH, quality, opacity, scale, containWidth, containHeight, rDegs, bSigma).then(function(image) {
-                    deferred.resolve(image);
-                }, function(err) {
-                    deferred.reject(err);
-                });
-            } catch (err) {
-                global.winston.log('error', {
-                    "error": String(err),
-                    "stack": new Error().stack
-                });
-                deferred.reject(err);
-            }
-            return deferred.promise;
+        } catch (err) {
+            global.winston.log('error', {
+                "error": String(err),
+                "stack": new Error().stack
+            });
+            deferred.reject(err);
         }
-    };
+        return deferred.promise;
+    },
+
+    processImage: function(appId, fileName, resizeWidth, resizeHeight, cropX, cropY, cropW, cropH, quality, opacity, scale, containWidth, containHeight, rDegs, bSigma) {
+        var deferred = q.defer();
+        try {
+            _processImage(appId, fileName, resizeWidth, resizeHeight, cropX, cropY, cropW, cropH, quality, opacity, scale, containWidth, containHeight, rDegs, bSigma).then(function(image) {
+                deferred.resolve(image);
+            }, function(err) {
+                deferred.reject(err);
+            });
+        } catch (err) {
+            global.winston.log('error', {
+                "error": String(err),
+                "stack": new Error().stack
+            });
+            deferred.reject(err);
+        }
+        return deferred.promise;
+    }
 };
 
 function _processImage(appId, fileName, resizeWidth, resizeHeight, cropX, cropY, cropW, cropH, quality, opacity, scale, containWidth, containHeight, rDegs, bSigma) {
-    var deferred = global.q.defer();
+    var deferred = q.defer();
 
     try {
         var promises = [];

@@ -12,1206 +12,1234 @@ var _ = require('underscore');
 var util = require('../helpers/util.js');
 
 var tablesData = require('../helpers/cloudTable');
-var json2csv = require('json2csv');
-var jsonToXlsx = require('json2xlsx');
-var jsonXlsxWriteFile = require('icg-json-to-xlsx');
-var fs = require('fs');
-var path = require('path');
-var customHelper = require('../helpers/custom.js');
+var config = require('../config/config');
+var cloudBoostHelper = require('../helpers/cloudboost')();
 
-module.exports = function () {
+var mongoUtil = require('./mongo');
+var mongoService = require('../databases/mongo');
 
-    return {
-        /*Desc   : Update Settings
-          Params : appId,categoryName,SettingsObject
-          Returns: Promise
-                   Resolve->saved Settings Object
-                   Reject->Error on findOne() or failed to update
-        */
-        updateSettings: function (appId, category, settings) {
-            var deferred = q.defer();
+module.exports = {
+    /*Desc   : Update Settings
+      Params : appId,categoryName,SettingsObject
+      Returns: Promise
+               Resolve->saved Settings Object
+               Reject->Error on findOne() or failed to update
+    */
+    updateSettings: function (appId, category, settings) {
+        var deferred = q.defer();
 
-            try {
+        try {
 
-                global.mongoService.document.findOne(appId, "_Settings", {
-                    category: category
-                }, null, null, 0, null, true).then(function (document) {
-                    if (!document) {
-                        document = {};
-                        document._id = util.getId();
-                        document.category = category;
+            mongoService.document.findOne(appId, config.globalSettings, {
+                category: category
+            }, null, null, 0, null, true).then(function (document) {
+                if (!document) {
+                    document = {};
+                    document._id = util.getId();
+                    document.category = category;
+                }
+                document.settings = settings;
+                document._tableName = config.globalSettings;
+
+                mongoService.document.save(appId, [
+                    {
+                        document: document
                     }
-                    document.settings = settings;
-                    document._tableName = "_Settings";
+                ]).then(function (documents) {
+                    deferred.resolve(documents[0].value);
+                }, function (error) {
+                    deferred.reject(error);
+                });
+            }, function (error) {
+                deferred.reject(error);
+            });
 
-                    global.mongoService.document.save(appId, [
-                        {
-                            document: document
+        } catch (err) {
+            global.winston.log('error', {
+                "error": String(err),
+                "stack": new Error().stack
+            });
+            deferred.reject(err);
+        }
+
+        return deferred.promise;
+    },
+
+    /*Desc   : get Settings
+      Params : appId
+      Returns: Promise
+               Resolve->Array of Setting JSON Objects
+               Reject->Error on find
+    */
+    getAllSettings: function (appId) {
+        var deferred = q.defer();
+
+        try {
+            //check redis cache first.
+            mongoService.document.find(appId, config.globalSettings, {}, null, null, 9999, 0, null, true).then(function (documents) {
+                deferred.resolve(documents);
+            }, function (error) {
+                deferred.reject(error);
+            });
+
+        } catch (err) {
+            global.winston.log('error', {
+                "error": String(err),
+                "stack": new Error().stack
+            });
+            deferred.reject(err);
+        }
+        return deferred.promise;
+    },
+
+    getApp: function (appId) {
+        var deferred = q.defer();
+
+        try {
+            //check redis cache first.
+            
+            config.redisClient.get(config.cacheAppPrefix + ':' + appId, function (err, res) {
+
+                if (res) {
+                    res = JSON.parse(res);
+                    
+                    
+                    deferred.resolve(res);
+                } else {
+                    
+                    //if not found in cache then hit the Db.
+
+                    var collection = config.mongoClient.db(config.globalDb).collection("projects");
+                    var findQuery = collection.find({ appId: appId });
+                    findQuery.toArray(function (err, docs) {
+                        if (err) {
+                            global.winston.log('error', err);
+                            deferred.reject(err);
+                        } else if (!docs || docs.length == 0) {
+                            deferred.reject("App Not found");
+                        } else if (docs.length > 0) {
+                            
+                            config.redisClient.setex(config.cacheAppPrefix + ':' + appId, config.appExpirationTimeFromCache, JSON.stringify(docs[0]));
+                            deferred.resolve(docs[0]);
                         }
-                    ]).then(function (documents) {
-                        deferred.resolve(documents[0].value);
-                    }, function (error) {
-                        deferred.reject(error);
                     });
-                }, function (error) {
-                    deferred.reject(error);
-                });
+                }
 
-            } catch (err) {
-                global.winston.log('error', {
-                    "error": String(err),
-                    "stack": new Error().stack
-                });
-                deferred.reject(err);
-            }
+            });
 
-            return deferred.promise;
-        },
+        } catch (err) {
+            global.winston.log('error', {
+                "error": String(err),
+                "stack": new Error().stack
+            });
+            deferred.reject(err);
+        }
 
-        /*Desc   : get Settings
-          Params : appId
-          Returns: Promise
-                   Resolve->Array of Setting JSON Objects
-                   Reject->Error on find
-        */
-        getAllSettings: function (appId) {
-            var deferred = q.defer();
+        return deferred.promise;
+    },
 
-            try {
-                //check redis cache first.
-                global.mongoService.document.find(appId, "_Settings", {}, null, null, 9999, 0, null, true).then(function (documents) {
-                    deferred.resolve(documents);
-                }, function (error) {
-                    deferred.reject(error);
-                });
+    getAppList: function () {
 
-            } catch (err) {
-                global.winston.log('error', {
-                    "error": String(err),
-                    "stack": new Error().stack
-                });
-                deferred.reject(err);
-            }
-            return deferred.promise;
-        },
+        var deferred = q.defer();
 
-        getApp: function (appId) {
-            var deferred = q.defer();
+        try {
 
-            try {
-                //check redis cache first.
-                
-                global.redisClient.get(global.keys.cacheAppPrefix + ':' + appId, function (err, res) {
+            var collection = config.mongoClient.db(config.globalDb).collection("projects");
+            var findQuery = collection.find({});
+            findQuery.toArray(function (err, docs) {
+                if (err) {
+                    global.winston.log('error', err);
+                    deferred.reject(err);
+                } else {
+                    deferred.resolve(docs);
+                }
+            });
 
-                    if (res) {
-                        res = JSON.parse(res);
-                        
-                        
-                        deferred.resolve(res);
-                    } else {
-                        
-                        //if not found in cache then hit the Db.
+        } catch (err) {
+            global.winston.log('error', {
+                "error": String(err),
+                "stack": new Error().stack
+            });
+            deferred.reject(err);
+        }
 
-                        var collection = global.mongoClient.db(global.keys.globalDb).collection("projects");
-                        var findQuery = collection.find({ appId: appId });
-                        findQuery.toArray(function (err, docs) {
+        return deferred.promise;
+    },
+
+    createApp: function (appId, userId, appName) {
+        var deferred = q.defer();
+        try {
+            var promises = [];            
+            var collection = config.mongoClient.db(config.globalDb).collection("projects");
+            var findQuery = collection.find({ appId: appId });
+            findQuery.toArray(function (err, projects) {
+                if (err) {
+                    global.winston.log('error', err);
+                    deferred.reject(err);
+                }
+                if (projects.length > 0) {
+                    deferred.reject('AppID already exists');
+                } else {
+
+                    var document = {};
+                    document.appId = appId;
+                    document.keys = {};
+                    document.keys.js = _generateKey();
+                    document.keys.master = _generateKey();
+
+                    getKeyAndIV(function (data) { //using 64 byte key
+                        document.keys.encryption_key = data;
+
+                        var collection = config.mongoClient.db(config.globalDb).collection("projects");
+
+                        collection.save(document, function (err, project) {
                             if (err) {
-                                global.winston.log('error', err);
-                                deferred.reject(err);
-                            } else if (!docs || docs.length == 0) {
-                                deferred.reject("App Not found");
-                            } else if (docs.length > 0) {
                                 
-                                global.redisClient.setex(global.keys.cacheAppPrefix + ':' + appId, global.keys.appExpirationTimeFromCache, JSON.stringify(docs[0]));
-                                deferred.resolve(docs[0]);
+                                deferred.reject("Cannot create a new app now.");
+
+                            } else if (project) {
+                                //create a mongodb app.
+                                promises.push(mongoUtil.app.create(appId));
+                                q.all(promises).then(function (res) {
+                                    deferred.resolve(document);
+                                }, function (err) {
+                                    deferred.reject(err);
+                                });
                             }
+
                         });
+                    });
+                }
+            });
+
+        } catch (e) {
+            global.winston.log('error', {
+                "error": String(e),
+                "stack": new Error().stack
+            });
+            
+            deferred.reject("Cannot create an app right now.");
+        }
+
+        return deferred.promise;
+    },
+
+    deleteApp: function (appId, deleteReason) {
+
+        var deferred = q.defer();
+        if (!deleteReason)
+            deleteReason = 'userInitiatedDeleteFromDashboard';
+        try {
+            var promises = [];
+
+            var collection = config.mongoClient.db(config.globalDb).collection("projects");
+            collection.findOneAndUpdate({
+                appId: appId
+            }, {
+                    $set: {
+                        deleted: true,
+                        deleteReason: deleteReason
                     }
-
-                });
-
-            } catch (err) {
-                global.winston.log('error', {
-                    "error": String(err),
-                    "stack": new Error().stack
-                });
-                deferred.reject(err);
-            }
-
-            return deferred.promise;
-        },
-
-        getAppList: function () {
-
-            var deferred = q.defer();
-
-            try {
-
-                var collection = global.mongoClient.db(global.keys.globalDb).collection("projects");
-                var findQuery = collection.find({});
-                findQuery.toArray(function (err, docs) {
+                }, {
+                    new: true
+                }, function (err, doc) {
                     if (err) {
                         global.winston.log('error', err);
                         deferred.reject(err);
                     } else {
-                        deferred.resolve(docs);
+                        config.redisClient.del(config.cacheAppPrefix + ':' + appId); //delete the app from redis.
+
+                        //delete  the app databases.
+                        promises.push(mongoUtil.app.drop(appId)); //delete all mongo app data.
+
+                        q.allSettled(promises).then(function (res) {
+                            if (res[0].state === 'fulfilled') {
+                                deferred.resolve();
+                            } else {
+                                //TODO : Something wrong happened. Roll back.
+                                deferred.resolve();
+                            }
+                        });
                     }
+
+                    
                 });
+        } catch (err) {
+            global.winston.log('error', {
+                "error": String(err),
+                "stack": new Error().stack
+            });
+            deferred.reject(err);
+        }
 
-            } catch (err) {
-                global.winston.log('error', {
-                    "error": String(err),
-                    "stack": new Error().stack
-                });
-                deferred.reject(err);
-            }
+        //delete app from cache
+        return deferred.promise;
+    },
 
-            return deferred.promise;
-        },
+    getTable: function (appId, tableName) {
 
-        createApp: function (appId, userId, appName) {
+        var deferred = q.defer();
 
-            
+        try {
+            var collection = config.mongoClient.db(appId).collection("_Schema");
+            var findQuery = collection.find({ name: tableName });
+            findQuery.toArray(function (err, tables) {
+                if (err) {
+                    deferred.reject("Error : Failed to retrieve the table.");
+                    
 
-            var deferred = q.defer();
-            try {
+                }
+                if (tables && tables.length > 0) {
+                    deferred.resolve(tables[0]);
+                } else {
+                    deferred.resolve(null);
+                }
+            });
 
-                var promises = [];
+        } catch (err) {
+            global.winston.log('error', {
+                "error": String(err),
+                "stack": new Error().stack
+            });
+            deferred.reject(err);
+        }
 
-                
-                var collection = global.mongoClient.db(global.keys.globalDb).collection("projects");
-                var findQuery = collection.find({ appId: appId });
-                findQuery.toArray(function (err, projects) {
+        return deferred.promise;
+    },
+
+    getAllTables: function (appId) {
+
+        
+
+        var deferred = q.defer();
+
+        try {
+
+            var collection = config.mongoClient.db(appId).collection("_Schema");
+            var findQuery = collection.find({});
+            findQuery.toArray(function (err, tables) {
+                if (err) {
+                    deferred.reject("Error : Failed to retrieve the table.");
+                    
+                    
+                }
+                if (tables.length > 0) {
+                    // filtering out private '_Tables'
+                    tables = tables.filter(function (table) {
+                        return table.name[0] !== '_';
+                    });
+                    
+                    deferred.resolve(tables);
+                } else {
+                    
+                    deferred.resolve([]);
+                }
+            });
+
+        } catch (err) {
+            global.winston.log('error', {
+                "error": String(err),
+                "stack": new Error().stack
+            });
+            deferred.reject(err);
+        }
+
+        return deferred.promise;
+    },
+
+    deleteTable: function (appId, tableName) {
+
+        var deferred = q.defer();
+
+        try {
+            var collection = config.mongoClient.db(appId).collection("_Schema");
+
+            collection.deleteOne({
+                name: tableName
+            }, {
+                    w: 1 //returns the number of documents removed
+                }, function (err, doc) {
+                    if (err || doc.result.n === 0) {
+                        if (doc.result.n === 0) {
+                            err = {
+                                "code": 401,
+                                "message": "You do not have permission to delete"
+                            };
+                            global.winston.log('error', err);
+                            deferred.reject(err);
+                        }
+                    }
                     if (err) {
                         global.winston.log('error', err);
                         deferred.reject(err);
-                    }
-                    if (projects.length > 0) {
-                        deferred.reject('AppID already exists');
-                    } else {
-
+                    } else if (doc.result.n !== 0) {
+                        //send a post request to DataServices.
                         
 
-                        var document = {};
-                        document.appId = appId;
-                        document.keys = {};
-                        document.keys.js = _generateKey();
-                        document.keys.master = _generateKey();
+                        //delete table from cache.
+                        config.redisClient.del(config.cacheSchemaPrefix + '-' + appId + ':' + tableName);
 
-                        getKeyAndIV(function (data) { //using 64 byte key
-                            
+                        //delete this from all the databases as well.
+                        //call
+                        var promises = [];
 
-                            document.keys.encryption_key = data;
-
-                            var collection = global.mongoClient.db(global.keys.globalDb).collection("projects");
-
-                            
-    
-                            collection.save(document, function (err, project) {
-                                if (err) {
-                                    
-                                    
-                                    deferred.reject("Cannot create a new app now.");
-    
-                                } else if (project) {
-                                    
-                                    //create a mongodb app.
-                                    promises.push(global.mongoUtil.app.create(appId));
-                                    global.q.all(promises).then(function (res) {
-                                        deferred.resolve(document);
-                                    }, function (err) {
-                                        deferred.reject(err);
-                                    });
-                                }
-    
-                            });
-                        });
-                    }
-                });
-
-            } catch (e) {
-                global.winston.log('error', {
-                    "error": String(e),
-                    "stack": new Error().stack
-                });
-                
-                
-                deferred.reject("Cannot create an app right now.");
-            }
-
-            return deferred.promise;
-        },
-
-        deleteApp: function (appId, deleteReason) {
-
-            var deferred = q.defer();
-            if (!deleteReason)
-                deleteReason = 'userInitiatedDeleteFromDashboard';
-            try {
-                var promises = [];
-
-                var collection = global.mongoClient.db(global.keys.globalDb).collection("projects");
-                collection.findOneAndUpdate({
-                    appId: appId
-                }, {
-                        $set: {
-                            deleted: true,
-                            deleteReason: deleteReason
-                        }
-                    }, {
-                        new: true
-                    }, function (err, doc) {
-                        if (err) {
-                            global.winston.log('error', err);
-                            deferred.reject(err);
-                        } else {
-                            global.redisClient.del(global.keys.cacheAppPrefix + ':' + appId); //delete the app from redis.
-
-                            //delete  the app databases.
-                            promises.push(global.mongoUtil.app.drop(appId)); //delete all mongo app data.
-
-                            q.allSettled(promises).then(function (res) {
-                                if (res[0].state === 'fulfilled') {
-                                    deferred.resolve();
-                                } else {
-                                    //TODO : Something wrong happened. Roll back.
-                                    deferred.resolve();
-                                }
-                            });
-                        }
-
-                        
-                    });
-            } catch (err) {
-                global.winston.log('error', {
-                    "error": String(err),
-                    "stack": new Error().stack
-                });
-                deferred.reject(err);
-            }
-
-            //delete app from cache
-            return deferred.promise;
-        },
-
-        getTable: function (appId, tableName) {
-
-            var deferred = q.defer();
-
-            try {
-                var collection = global.mongoClient.db(appId).collection("_Schema");
-                var findQuery = collection.find({ name: tableName });
-                findQuery.toArray(function (err, tables) {
-                    if (err) {
-                        deferred.reject("Error : Failed to retrieve the table.");
-                        
-                        
-                    }
-                    if (tables && tables.length > 0) {
-                        deferred.resolve(tables[0]);
-                    } else {
-                        deferred.resolve(null);
-                    }
-                });
-
-            } catch (err) {
-                global.winston.log('error', {
-                    "error": String(err),
-                    "stack": new Error().stack
-                });
-                deferred.reject(err);
-            }
-
-            return deferred.promise;
-        },
-
-        getAllTables: function (appId) {
-
-            
-
-            var deferred = q.defer();
-
-            try {
-
-                var collection = global.mongoClient.db(appId).collection("_Schema");
-                var findQuery = collection.find({});
-                findQuery.toArray(function (err, tables) {
-                    if (err) {
-                        deferred.reject("Error : Failed to retrieve the table.");
-                        
-                        
-                    }
-                    if (tables.length > 0) {
-                        // filtering out private '_Tables'
-                        tables = tables.filter(function (table) {
-                            return table.name[0] !== '_';
-                        });
-                        
-                        deferred.resolve(tables);
-                    } else {
-                        
-                        deferred.resolve([]);
-                    }
-                });
-
-            } catch (err) {
-                global.winston.log('error', {
-                    "error": String(err),
-                    "stack": new Error().stack
-                });
-                deferred.reject(err);
-            }
-
-            return deferred.promise;
-        },
-
-        deleteTable: function (appId, tableName) {
-
-            var deferred = q.defer();
-
-            try {
-                var collection = global.mongoClient.db(appId).collection("_Schema");
-
-                collection.deleteOne({
-                    name: tableName
-                }, {
-                        w: 1 //returns the number of documents removed
-                    }, function (err, doc) {
-                        if (err || doc.result.n === 0) {
-                            if (doc.result.n === 0) {
-                                err = {
-                                    "code": 401,
-                                    "message": "You do not have permission to delete"
-                                };
-                                global.winston.log('error', err);
-                                deferred.reject(err);
+                        promises.push(mongoUtil.collection.dropCollection(appId, tableName)); //delete all mongo app data.
+                        q.allSettled(promises).then(function (res) {
+                            if (res[0].state === 'fulfilled')
+                                deferred.resolve(doc);
+                            else {
+                                //TODO : Something went wrong. Roll back code required.
+                                deferred.resolve(doc);
                             }
-                        }
-                        if (err) {
-                            global.winston.log('error', err);
-                            deferred.reject(err);
-                        } else if (doc.result.n !== 0) {
-                            //send a post request to DataServices.
-                            
-
-                            //delete table from cache.
-                            global.redisClient.del(global.keys.cacheSchemaPrefix + '-' + appId + ':' + tableName);
-
-                            //delete this from all the databases as well.
-                            //call
-                            var promises = [];
-
-                            promises.push(global.mongoUtil.collection.dropCollection(appId, tableName)); //delete all mongo app data.
-                            q.allSettled(promises).then(function (res) {
-                                if (res[0].state === 'fulfilled')
-                                    deferred.resolve(doc);
-                                else {
-                                    //TODO : Something went wrong. Roll back code required.
-                                    deferred.resolve(doc);
-                                }
-                            });
-                        } else {
-                            deferred.reject({ "code": 500, "message": "Server Error" });
-                        }
-                    });
-
-            } catch (err) {
-                global.winston.log('error', {
-                    "error": String(err),
-                    "stack": new Error().stack
-                });
-                deferred.reject(err);
-            }
-
-            return deferred.promise;
-        },
-
-        deleteColumn: function (appId, collectionName, columnName, columnType) {
-
-            var deferred = q.defer();
-
-            try {
-                var promises = [];
-
-                promises.push(global.mongoUtil.collection.dropColumn(appId, collectionName, columnName, columnType));
-                q.allSettled(promises).then(function (res) {
-                    if (res[0].state === 'fulfilled')
-                        deferred.resolve("Success");
-                    else {
-                        //TODO : Soemthing went wrong. Rollback immediately.
-                        deferred.resolve("Success");
-                    }
-                });
-
-            } catch (err) {
-                global.winston.log('error', {
-                    "error": String(err),
-                    "stack": new Error().stack
-                });
-                deferred.reject(err);
-            }
-
-            return deferred.promise;
-        },
-
-        isMasterKey: function (appId, key) {
-            var deferred = q.defer();
-
-            try {
-                var _self = this;
-
-                _self.getApp(appId).then(function (project) {
-                    if (project.keys.master === key) {
-                        deferred.resolve(true);
+                        });
                     } else {
-                        if (project.keys.js === key) {
-                            deferred.resolve(false);
-                        } else {
-                            deferred.resolve(false);
-                        }
+                        deferred.reject({ "code": 500, "message": "Server Error" });
                     }
-                }, function () { });
-
-            } catch (err) {
-                global.winston.log('error', {
-                    "error": String(err),
-                    "stack": new Error().stack
                 });
-                deferred.reject(err);
-            }
 
-            return deferred.promise;
-        },
+        } catch (err) {
+            global.winston.log('error', {
+                "error": String(err),
+                "stack": new Error().stack
+            });
+            deferred.reject(err);
+        }
 
-        isKeyValid: function (appId, key) {
-            var deferred = q.defer();
+        return deferred.promise;
+    },
 
-            try {
-                var _self = this;
+    deleteColumn: function (appId, collectionName, columnName, columnType) {
 
-                _self.getApp(appId).then(function (project) {
-                    if (project.keys.master === key || project.keys.js === key) {
-                        deferred.resolve(true);
+        var deferred = q.defer();
+
+        try {
+            var promises = [];
+
+            promises.push(mongoUtil.collection.dropColumn(appId, collectionName, columnName, columnType));
+            q.allSettled(promises).then(function (res) {
+                if (res[0].state === 'fulfilled')
+                    deferred.resolve("Success");
+                else {
+                    //TODO : Soemthing went wrong. Rollback immediately.
+                    deferred.resolve("Success");
+                }
+            });
+
+        } catch (err) {
+            global.winston.log('error', {
+                "error": String(err),
+                "stack": new Error().stack
+            });
+            deferred.reject(err);
+        }
+
+        return deferred.promise;
+    },
+
+    isMasterKey: function (appId, key) {
+        var deferred = q.defer();
+
+        try {
+            var _self = this;
+
+            _self.getApp(appId).then(function (project) {
+                if (project.keys.master === key) {
+                    deferred.resolve(true);
+                } else {
+                    if (project.keys.js === key) {
+                        deferred.resolve(false);
                     } else {
                         deferred.resolve(false);
                     }
-                }, function () {
-                    deferred.reject("Error in getting key");
-                });
+                }
+            }, function () { });
 
-            } catch (err) {
-                global.winston.log('error', {
-                    "error": String(err),
-                    "stack": new Error().stack
-                });
-                deferred.reject(err);
-            }
+        } catch (err) {
+            global.winston.log('error', {
+                "error": String(err),
+                "stack": new Error().stack
+            });
+            deferred.reject(err);
+        }
 
-            return deferred.promise;
-        },
+        return deferred.promise;
+    },
 
-        isClientAuthorized: function (appId, appKey, level, table) {
-            var deferred = q.defer();
-            var self = this
-            self.isKeyValid(appId, appKey).then(function (isValidKey) {
-                if (isValidKey) {
-                    self.isMasterKey(appId, appKey).then(function (isMasterKey) {
-                        // resolve if masterKey
-                        if (isMasterKey) {
-                            deferred.resolve(true)
-                        } else {
-                            // else check with client keys acc to auth level
-                            // levels = table level or app level
-                            // for app level check in app settings , for table level check in table schema
-                            if (level === 'table') {
-                                if (table) {
-                                    deferred.resolve(!!table.isEditableByClientKey)
-                                } else
-                                    deferred.resolve(false);
-                            }
-                            else {
-                                self.getAllSettings(appId).then(function (settings) {
-                                    if (settings) {
-                                        // check for clientkey flag in genral settings
-                                        let generalSetting = settings.filter((function (x) {
-                                            return x.category === 'general'
-                                        }))
-                                        if (generalSetting[0] && generalSetting[0].settings) {
-                                            deferred.resolve(!!generalSetting[0].settings.isTableEditableByClientKey)
-                                        } else
-                                            deferred.resolve(false);
-                                    }
-                                    else
-                                        deferred.resolve(false);
+    isKeyValid: function (appId, key) {
+        var deferred = q.defer();
 
-                                }
-                                    , function (error) {
-                                        deferred.reject(error);
-                                    });
-                            }
-                        }
-                    }, function (error) {
-                        deferred.reject(error);
-                    });
+        try {
+            var _self = this;
+
+            _self.getApp(appId).then(function (project) {
+                if (project.keys.master === key || project.keys.js === key) {
+                    deferred.resolve(true);
                 } else {
-                    deferred.reject('Unauthorized');
+                    deferred.resolve(false);
                 }
-            }, function (err) {
-                deferred.reject(err);
-            })
+            }, function () {
+                deferred.reject("Error in getting key");
+            });
 
-            return deferred.promise;
-        },
+        } catch (err) {
+            global.winston.log('error', {
+                "error": String(err),
+                "stack": new Error().stack
+            });
+            deferred.reject(err);
+        }
 
-        upsertTable: function (appId, tableName, schema, tableProps) {
+        return deferred.promise;
+    },
 
-            var deferred = global.q.defer();
-            tableProps = tableProps || {
-                isEditableByClientKey: false
-            }
-            var updateColumnNameOfOldRecordsPromises = []
-
-            try {
-
-                var self = this;
-                var isNewTable = false;
-                var tableType = null;
-                var maxCount = null; //How many tables of this type can be in an app.
-                var originalTable = null;
-
-                if (!tableName) {
-                    deferred.reject("Table name is empty");
-                    return deferred.promise;
-                }
-
-                if (typeof (tableName) !== "string") {
-                    deferred.reject("Table name is not a string.");
-                    return deferred.promise;
-                }
-
-                //get the type of a table.
-                if (tableName === "User") {
-                    tableType = "user";
-                } else if (tableName === "Role") {
-                    tableType = "role";
-                } else if (tableName === "Device") {
-                    tableType = "device";
-                } else if (tableName === "_File") {
-                    tableType = "file";
-                } else if (tableName === "_Event") {
-                    tableType = "event";
-                } else if (tableName === "_Funnel") {
-                    tableType = "funnel";
-                } else {
-                    tableType = "custom";
-                }
-
-                if (tableType === 'user' || tableType === 'role' || tableType === 'device' || tableType === 'file' || tableType === 'event' || tableType === 'funnel') {
-                    maxCount = 1;
-                } else {
-                    maxCount = 99999;
-                }
-
-                //duplicate column value verification
-                var errorDetails = _checkDuplicateColumns(schema);
-                if (errorDetails) {
-                    deferred.reject(errorDetails);
-                    return deferred.promise;
-                }
-
-                //dataType check.
-                var defaultDataType = _getDefaultColumnWithDataType(tableType);
-                var valid = _checkValidDataType(schema, defaultDataType, tableType);
-                if (!valid) {
-                    deferred.reject("Error : Invalid DataType Found.");
-                    return deferred.promise;
-                }
-
-                var collection = global.mongoClient.db(appId).collection("_Schema");
-                var findQuery = collection.find({ name: tableName });
-                findQuery.toArray(function (err, tables) {
-                    var oldColumns = null;
-                    var table = tables[0];
-                    if (err) {
-                        deferred.reject(err);
-                    } else if (table) {
-                        oldColumns = table.columns;
-                        //check duplicate columns, Pluck all name property of every columns.
-                        var tableColumns = _.filter(_.pluck(table.columns, 'name'), function (value) {
-                            return value.toLowerCase();
-                        });
-
-                        var defaultColumns = _getDefaultColumnList(tableType);
-
-                        try {
-                            for (var i = 0; i < schema.length; i++) {
-                                var index = tableColumns.indexOf(schema[i].name.toLowerCase());
-                                if (index >= 0) {
-                                    //column with the same name found in the table. Checking type...
-                                    if (schema[i].dataType !== table.columns[index].dataType || schema[i].relatedTo != table.columns[index].relatedTo || schema[i].relationType != table.columns[index].relationType || schema[i].isDeletable != table.columns[index].isDeletable || schema[i].isEditable != table.columns[index].isEditable || schema[i].isRenamable != table.columns[index].isRenamable || schema[i].editableByMasterKey != table.columns[index].editableByMasterKey || schema[i].isSearchable != table.columns[index].isSearchable) {
-                                        deferred.reject("Cannot Change Column's Property. Only Required and Unique Field can be changed.");
-                                        return deferred.promise;
-                                    }
-
-                                    if (schema[i].required !== table.columns[index].required && defaultColumns.indexOf(schema[i].name.toLowerCase()) >= 0) {
-                                        deferred.reject("Error : Cannot change the required field of a default column.");
-                                        return deferred.promise;
-                                    }
-
-                                    if (schema[i].unique !== table.columns[index].unique && defaultColumns.indexOf(schema[i].name.toLowerCase()) >= 0) {
-                                        deferred.reject("Error : Cannot change the unique field of a default column.");
-                                        return deferred.promise;
-                                    }
-                                }
-                            }
-                        } catch (e) {
-                            
-                            
-                            global.winston.log('error', {
-                                "error": String(e),
-                                "stack": new Error().stack
-                            });
-                        }
-
-                        table.columns = schema;
-                        // update table props
-                        table.isEditableByClientKey = !!tableProps.isEditableByClientKey
-
+    isClientAuthorized: function (appId, appKey, level, table) {
+        var deferred = q.defer();
+        var self = this;
+        self.isKeyValid(appId, appKey).then(function (isValidKey) {
+            if (isValidKey) {
+                self.isMasterKey(appId, appKey).then(function (isMasterKey) {
+                    // resolve if masterKey
+                    if (isMasterKey) {
+                        deferred.resolve(true);
                     } else {
+                        // else check with client keys acc to auth level
+                        // levels = table level or app level
+                        // for app level check in app settings , for table level check in table schema
+                        if (level === 'table') {
+                            if (table) {
+                                deferred.resolve(!!table.isEditableByClientKey)
+                            } else
+                                deferred.resolve(false);
+                        }
+                        else {
+                            self.getAllSettings(appId).then(function (settings) {
+                                if (settings) {
+                                    // check for clientkey flag in genral settings
+                                    var generalSetting = settings.filter((function (x) {
+                                        return x.category === 'general';
+                                    }));
+                                    if (generalSetting[0]) {
+                                        deferred.resolve(!!generalSetting[0].settings.isTableEditableByClientKey)
+                                    } else
+                                        deferred.resolve(false);
+                                }
+                                else
+                                    deferred.resolve(false);
 
-                        isNewTable = true;
+                            }
+                                , function (error) {
+                                    deferred.reject(error);
+                                });
+                        }
+                    }
+                }, function (error) {
+                    deferred.reject(error);
+                });
+            } else {
+                deferred.reject('Unauthorized');
+            }
+        }, function (err) {
+            deferred.reject(err);
+        });
 
-                        table = {};
-                        table.id = util.getId();
-                        table.columns = schema;
+        return deferred.promise;
+    },
 
-                        table.name = tableName;
-                        table.type = tableType;
-                        table._type = "table";
-                        table.isEditableByClientKey = !!tableProps.isEditableByClientKey
+    upsertTable: function (appId, tableName, schema, tableProps) {
+        var deferred = q.defer();
+        tableProps = tableProps || {
+            isEditableByClientKey: false
+        };
+        var updateColumnNameOfOldRecordsPromises = [];
+
+        try {
+
+            var self = this;
+            var isNewTable = false;
+            var tableType = null;
+            var maxCount = null; //How many tables of this type can be in an app.
+
+            if (!tableName) {
+                deferred.reject("Table name is empty");
+                return deferred.promise;
+            }
+
+            if (typeof (tableName) !== "string") {
+                deferred.reject("Table name is not a string.");
+                return deferred.promise;
+            }
+
+            //get the type of a table.
+            if (tableName === "User") {
+                tableType = "user";
+            } else if (tableName === "Role") {
+                tableType = "role";
+            } else if (tableName === "Device") {
+                tableType = "device";
+            } else if (tableName === "_File") {
+                tableType = "file";
+            } else if (tableName === "_Event") {
+                tableType = "event";
+            } else if (tableName === "_Funnel") {
+                tableType = "funnel";
+            } else {
+                tableType = "custom";
+            }
+
+            if (tableType === 'user' || tableType === 'role' || tableType === 'device' || tableType === 'file' || tableType === 'event' || tableType === 'funnel') {
+                maxCount = 1;
+            } else {
+                maxCount = 99999;
+            }
+
+            //duplicate column value verification
+            var errorDetails = _checkDuplicateColumns(schema);
+            if (errorDetails) {
+                deferred.reject(errorDetails);
+                return deferred.promise;
+            }
+
+            //dataType check.
+            var defaultDataType = _getDefaultColumnWithDataType(tableType);
+            var valid = _checkValidDataType(schema, defaultDataType, tableType);
+            if (!valid) {
+                deferred.reject("Error : Invalid DataType Found.");
+                return deferred.promise;
+            }
+
+            var collection = config.mongoClient.db(appId).collection("_Schema");
+            var findQuery = collection.find({ name: tableName });
+            findQuery.toArray(function (err, tables) {
+                var oldColumns = null;
+                var table = tables[0];
+                if (err) {
+                    deferred.reject(err);
+                } else if (table) {
+                    oldColumns = table.columns;
+                    //check duplicate columns, Pluck all name property of every columns.
+                    var tableColumns = _.filter(_.pluck(table.columns, 'name'), function (value) {
+                        return value.toLowerCase();
+                    });
+
+                    var defaultColumns = _getDefaultColumnList(tableType);
+
+                    try {
+                        for (var i = 0; i < schema.length; i++) {
+                            var index = tableColumns.indexOf(schema[i].name.toLowerCase());
+                            if (index >= 0) {
+                                //column with the same name found in the table. Checking type...
+                                if (schema[i].dataType !== table.columns[index].dataType || schema[i].relatedTo != table.columns[index].relatedTo || schema[i].relationType != table.columns[index].relationType || schema[i].isDeletable != table.columns[index].isDeletable || schema[i].isEditable != table.columns[index].isEditable || schema[i].isRenamable != table.columns[index].isRenamable || schema[i].editableByMasterKey != table.columns[index].editableByMasterKey || schema[i].isSearchable != table.columns[index].isSearchable) {
+                                    deferred.reject("Cannot Change Column's Property. Only Required and Unique Field can be changed.");
+                                    return deferred.promise;
+                                }
+
+                                if (schema[i].required !== table.columns[index].required && defaultColumns.indexOf(schema[i].name.toLowerCase()) >= 0) {
+                                    deferred.reject("Error : Cannot change the required field of a default column.");
+                                    return deferred.promise;
+                                }
+
+                                if (schema[i].unique !== table.columns[index].unique && defaultColumns.indexOf(schema[i].name.toLowerCase()) >= 0) {
+                                    deferred.reject("Error : Cannot change the unique field of a default column.");
+                                    return deferred.promise;
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        
+                        
+                        global.winston.log('error', {
+                            "error": String(e),
+                            "stack": new Error().stack
+                        });
                     }
 
-                    var collection = global.mongoClient.db(appId).collection("_Schema");
+                    table.columns = schema;
+                    // update table props
+                    table.isEditableByClientKey = !!tableProps.isEditableByClientKey;
 
-                    //get previous schema object of current table if old table
-                    var renameColumnObject = {};
-                    if (!isNewTable)
-                        collection.findOne({ name: tableName }, function (err, doc) {
-                            if (err)
-                                deferred.reject("Error : Failed to get the table. ");
-                            else if (!doc)
-                                deferred.reject("Error : Failed to get the table. ");
-                            else {
+                } else {
 
-                                doc.columns.forEach(function (oldColumnObj, i) {
-                                    //check column id
-                                    schema.forEach(function (newColumnObj, i) {
-                                        //match column id of each columns
-                                        if (newColumnObj._id === oldColumnObj._id) {
-                                            if (newColumnObj.name != oldColumnObj.name) {
-                                                //column name is updated update previous records.
-                                                renameColumnObject[oldColumnObj.name] = newColumnObj.name;
-                                            }
+                    isNewTable = true;
+
+                    table = {};
+                    table.id = util.getId();
+                    table.columns = schema;
+
+                    table.name = tableName;
+                    table.type = tableType;
+                    table._type = "table";
+                    table.isEditableByClientKey = !!tableProps.isEditableByClientKey;
+                }
+
+                var collection = config.mongoClient.db(appId).collection("_Schema");
+
+                //get previous schema object of current table if old table
+                var renameColumnObject = {};
+                if (!isNewTable)
+                    collection.findOne({ name: tableName }, function (err, doc) {
+                        if (err)
+                            deferred.reject("Error : Failed to get the table. ");
+                        else if (!doc)
+                            deferred.reject("Error : Failed to get the table. ");
+                        else {
+
+                            doc.columns.forEach(function (oldColumnObj, i) {
+                                //check column id
+                                schema.forEach(function (newColumnObj, i) {
+                                    //match column id of each columns
+                                    if (newColumnObj._id === oldColumnObj._id) {
+                                        if (newColumnObj.name != oldColumnObj.name) {
+                                            //column name is updated update previous records.
+                                            renameColumnObject[oldColumnObj.name] = newColumnObj.name;
                                         }
-                                    })
-                                })
-                                updateColumnNameOfOldRecordsPromises.push(_updateColumnNameOfOldRecords(tableName, appId, renameColumnObject));
+                                    }
+                                });
+                            });
+                            updateColumnNameOfOldRecordsPromises.push(_updateColumnNameOfOldRecords(tableName, appId, renameColumnObject));
 
-                            }
-                        })
+                        }
+                    });
 
-                    
-
-                    collection.findOneAndUpdate({
-                        name: tableName
+                collection.findOneAndUpdate({
+                    name: tableName
+                }, {
+                        $set: table
                     }, {
-                            $set: table
-                        }, {
-                            upsert: true,
-                            returnOriginal: false
-                        }, function (err, response) {
+                        upsert: true,
+                        returnOriginal: false
+                    }, function (err, response) {
 
-                            var table = null;
+                        var table = null;
 
-                            if (response && response.value)
-                                table = response.value;
+                        if (response && response.value)
+                            table = response.value;
 
-                            if (err) {
-                                deferred.reject("Error : Failed to save the table. ");
-                            } else if (table) {
-                                //clear the cache.
-                                global.redisClient.del(global.keys.cacheSchemaPrefix + '-' + appId + ':' + tableName);
+                        if (err) {
+                            deferred.reject("Error : Failed to save the table. ");
+                        } else if (table) {
+                            //clear the cache.
+                            config.redisClient.del(config.cacheSchemaPrefix + '-' + appId + ':' + tableName);
 
-                                var cloneOldColumns = [].concat(oldColumns || []);
+                            var cloneOldColumns = [].concat(oldColumns || []);
 
-                                if (isNewTable) {
-                                    var mongoPromise = global.mongoUtil.collection.create(appId, tableName, schema);
+                            if (isNewTable) {
+                                var mongoPromise = mongoUtil.collection.create(appId, tableName, schema);
+                                //Index all text fields
+                                var mongoIndexTextPromise = mongoUtil.collection.deleteAndCreateTextIndexes(appId, tableName, cloneOldColumns, schema);
+
+                                q.allSettled([mongoPromise, mongoIndexTextPromise]).then(function (res) {
+                                    if (res[0].state === 'fulfilled' && res[1].state === 'fulfilled') {
+                                        deferred.resolve(table);
+                                    } else {
+                                        //TODO : Rollback.
+                                        deferred.resolve(table);
+                                    }
+                                }, function (error) {
+                                    //TODO : Rollback.
+                                    deferred.resolve(table);
+                                });
+
+                            } else {
+                                //check if any column is deleted, if yes.. then delete it from everywhere.
+                                if (oldColumns) {
+
+                                    var promises = [];
+
+                                    var columnsToDelete = _getColumnsToDelete(oldColumns, schema);
+
+                                    for (var i = 0; i < columnsToDelete.length; i++) {
+                                        promises.push(self.deleteColumn(appId, tableName, columnsToDelete[i].name, columnsToDelete[i].dataType));
+                                    }
+
+                                    var columnsToAdd = _getColumnsToAdd(oldColumns, schema);
+
+                                    for (var i = 0; i < columnsToAdd.length; i++) {
+                                        promises.push(self.createColumn(appId, tableName, columnsToAdd[i]));
+                                    }
+
                                     //Index all text fields
-                                    var mongoIndexTextPromise = global.mongoUtil.collection.deleteAndCreateTextIndexes(appId, tableName, cloneOldColumns, schema);
-
-                                    q.allSettled([mongoPromise, mongoIndexTextPromise]).then(function (res) {
-                                        if (res[0].state === 'fulfilled' && res[1].state === 'fulfilled') {
+                                    promises.push(mongoUtil.collection.deleteAndCreateTextIndexes(appId, tableName, cloneOldColumns, schema));
+                                    //updateColumnNameOfOldRecordsPromises stores the promises for updating previous records.
+                                    q.all(promises.concat(updateColumnNameOfOldRecordsPromises)).then(function (res) {
+                                        //confirm all colums are updated 
+                                        q.all(updateColumnNameOfOldRecordsPromises).then(function (res) {
                                             deferred.resolve(table);
-                                        } else {
+                                        }, function (error) {
                                             //TODO : Rollback.
                                             deferred.resolve(table);
-                                        }
+                                        });
                                     }, function (error) {
                                         //TODO : Rollback.
                                         deferred.resolve(table);
                                     });
 
-                                } else {
-                                    //check if any column is deleted, if yes.. then delete it from everywhere.
-                                    if (oldColumns) {
-
-                                        var promises = [];
-
-                                        var columnsToDelete = _getColumnsToDelete(oldColumns, schema);
-
-                                        for (var i = 0; i < columnsToDelete.length; i++) {
-                                            promises.push(self.deleteColumn(appId, tableName, columnsToDelete[i].name, columnsToDelete[i].dataType));
-                                        }
-
-                                        var columnsToAdd = _getColumnsToAdd(oldColumns, schema);
-
-                                        for (var i = 0; i < columnsToAdd.length; i++) {
-                                            promises.push(self.createColumn(appId, tableName, columnsToAdd[i]));
-                                        }
-
-                                        //Index all text fields
-                                        promises.push(global.mongoUtil.collection.deleteAndCreateTextIndexes(appId, tableName, cloneOldColumns, schema));
-                                        //updateColumnNameOfOldRecordsPromises stores the promises for updating previous records.
-                                        q.all(promises.concat(updateColumnNameOfOldRecordsPromises)).then(function (res) {
-                                            //confirm all colums are updated 
-                                            q.all(updateColumnNameOfOldRecordsPromises).then(function (res) {
-                                                deferred.resolve(table);
-                                            }, function (error) {
-                                                //TODO : Rollback.
-                                                deferred.resolve(table);
-                                            });
-                                        }, function (error) {
-                                            //TODO : Rollback.
-                                            deferred.resolve(table);
-                                        });
-
-                                    }
                                 }
                             }
-
-                        });
-
-                });
-
-            } catch (e) {
-                global.winston.log('error', {
-                    "error": String(e),
-                    "stack": new Error().stack
-                });
-                
-                
-                deferred.reject(e);
-            }
-
-            return deferred.promise;
-        },
-
-        createColumn: function (appId, collectionName, column) {
-
-            var deferred = global.q.defer();
-
-            try {
-                var mongoPromise = global.mongoUtil.collection.addColumn(appId, collectionName, column);
-                q.allSettled([mongoPromise]).then(function (res) {
-                    if (res[0].state === 'fulfilled') {
-                        deferred.resolve("Success");
-                    } else {
-                        //TODO : Rollback.
-                        deferred.reject("Unable to create column");
-                    }
-                });
-            } catch (err) {
-                global.winston.log('error', {
-                    "error": String(err),
-                    "stack": new Error().stack
-                });
-                deferred.reject(err);
-            }
-
-            return deferred.promise;
-        },
-
-        createDefaultTables: function (appId) {
-            return q.all([
-                global.appService.upsertTable(appId, 'Role', tablesData.Role),
-                global.appService.upsertTable(appId, 'Device', tablesData.Device),
-                global.appService.upsertTable(appId, 'User', tablesData.User),
-                global.appService.upsertTable(appId, '_File', tablesData._File),
-                global.appService.upsertTable(appId, '_Event', tablesData._Event),
-                global.appService.upsertTable(appId, '_Funnel', tablesData._Funnel)
-            ]);
-        },
-
-        changeAppClientKey: function (appId, value) {
-
-            var deferred = q.defer();
-
-            try {
-
-                var query = {
-                    appId: appId
-                };
-
-                // var newClientkey = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), global.keys.secureKey, 100, 16).toString("base64");
-                var newClientkey = _generateKey()
-                if (value) {
-                    newClientkey = value;
-                }
-
-                var setJSON = {
-                    "keys.js": newClientkey
-                };
-
-                var collection = global.mongoClient.db(global.keys.globalDb).collection("projects");
-                collection.findOneAndUpdate(query, {
-                    $set: setJSON
-                }, {
-                        returnOriginal: false
-                    }, function (err, newDoc) {
-                        if (err) {
-                            global.winston.log('error', err);
-                            deferred.reject(err);
                         }
-                        if (newDoc) {
-                            
-                            //delete project/app from redis so further request will make a new entry with new keys
-                            deleteAppFromRedis(appId);
-                            deferred.resolve(newDoc.value);
-                        } else {
-                            
-                            deferred.resolve(null);
-                        }
+
                     });
 
-            } catch (err) {
-                global.winston.log('error', {
-                    "error": String(err),
-                    "stack": new Error().stack
-                });
-                deferred.reject(err);
-            }
-
-            return deferred.promise;
-        },
-
-        changeAppMasterKey: function (appId, value) {
-
-            var deferred = q.defer();
-
-            try {
-
-                var query = {
-                    appId: appId
-                };
-
-                //var newMasterkey = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), global.keys.secureKey, 100, 16).toString("base64");
-                var newMasterkey = _generateKey();
-                if (value) {
-                    newMasterkey = value;
-                }
-
-                var setJSON = {
-                    "keys.master": newMasterkey
-                };
-
-                var collection = global.mongoClient.db(global.keys.globalDb).collection("projects");
-                collection.findOneAndUpdate(query, {
-                    $set: setJSON
-                }, {
-                        returnOriginal: false
-                    }, function (err, newDoc) {
-                        if (err) {
-                            global.winston.log('error', err);
-                            deferred.reject(err);
-                        }
-                        if (newDoc) {
-                            
-                            //delete project/app from redis so further request will make a new entry with new keys
-                            deleteAppFromRedis(appId);
-                            deferred.resolve(newDoc.value);
-                        } else {
-                            
-                            deferred.resolve(null);
-                        }
-                    });
-
-            } catch (err) {
-                global.winston.log('error', {
-                    "error": String(err),
-                    "stack": new Error().stack
-                });
-                deferred.reject(err);
-            }
-
-            return deferred.promise;
-        },
-
-        exportDatabase: function (appId) {
-            var deferred = q.defer();
-            var promises = [];
-            global.mongoClient.db(appId).listCollections().toArray(function (err, collections) {
-                if (err) {
-                    global.winston.log('error', err);
-                    deferred.reject(err);
-                }
-                for (var k in collections) {
-                    (function (k) {
-                        var promise = new Promise(function (resolve, reject) {
-                            collections[k].documents = [];
-                            data = global.mongoClient.db(appId).collection(collections[k].name).find();
-                            data.toArray(function (err, data) {
-                                if (err) {
-                                    global.winston.log('error', err);
-                                    reject(err);
-                                }
-                                collections[k].documents.push(data);
-                                resolve();
-                            });
-                        });
-                        promises.push(promise);
-                    })(k);
-                }
-                Promise.all(promises).then(function (data) {
-                    deferred.resolve(collections);
-                }, function (err) {
-                    deferred.reject(err);
-                });
             });
-            return deferred.promise;
-        },
 
-        importDatabase: function (appId, file) {
-            var fileData;
-            var deferred = q.defer();
-            var collectionRemovePromises = [];
-            var validated = false;
+        } catch (e) {
+            global.winston.log('error', {
+                "error": String(e),
+                "stack": new Error().stack
+            });
             
-            try {
-                fileData = JSON.parse(file.toString());
-                for (var k in fileData) {
-                    if (fileData[k].name == '_Schema') {
-                        validated = true;
+            
+            deferred.reject(e);
+        }
+
+        return deferred.promise;
+    },
+
+    createColumn: function (appId, collectionName, column) {
+
+        var deferred = q.defer();
+
+        try {
+            var mongoPromise = mongoUtil.collection.addColumn(appId, collectionName, column);
+            q.allSettled([mongoPromise]).then(function (res) {
+                if (res[0].state === 'fulfilled') {
+                    deferred.resolve("Success");
+                } else {
+                    //TODO : Rollback.
+                    deferred.reject("Unable to create column");
+                }
+            });
+        } catch (err) {
+            global.winston.log('error', {
+                "error": String(err),
+                "stack": new Error().stack
+            });
+            deferred.reject(err);
+        }
+
+        return deferred.promise;
+    },
+
+    createDefaultTables: function (appId) {
+        var appService = this;
+        return q.all([
+            appService.upsertTable(appId, 'Role', tablesData.Role),
+            appService.upsertTable(appId, 'Device', tablesData.Device),
+            appService.upsertTable(appId, 'User', tablesData.User),
+            appService.upsertTable(appId, '_File', tablesData._File),
+            appService.upsertTable(appId, '_Event', tablesData._Event),
+            appService.upsertTable(appId, '_Funnel', tablesData._Funnel)
+        ]);
+    },
+
+    getSchema: function(appId, collectionName) {
+        var deferred = q.defer();
+        const appService = this;
+
+        try {
+            config.redisClient.get(config.cacheSchemaPrefix + '-' + appId + ':' + collectionName, function(err, res) {
+                if (res) {
+                    deferred.resolve(JSON.parse(res));
+                } else {
+                    var collection = config.mongoClient.db(appId).collection("_Schema");
+                    var findQuery = collection.find({name: collectionName});
+                    findQuery.toArray(function(err, tables) {
+                        var res = tables[0];
+                        if (err) {
+                            global.winston.log('error', err);
+                            deferred.reject(err);
+                        } else if (!res) {
+
+                            // No table found. Create new table
+                            var defaultSchema = tablesData.Custom;
+                            console.log(appService);
+                            appService.upsertTable(appId, collectionName, defaultSchema).then(function(table) {
+                                    config.redisClient.setex(config.cacheSchemaPrefix + '-' + appId + ':' + collectionName, config.schemaExpirationTimeFromCache, JSON.stringify(table._doc));
+                                    deferred.resolve(table);
+                                },function(err){
+                                    deferred.reject(err);
+                                }
+                            );
+
+                        } else {
+                            config.redisClient.setex(config.cacheSchemaPrefix + '-' + appId + ':' + collectionName, config.schemaExpirationTimeFromCache, JSON.stringify(res._doc));
+                            deferred.resolve(res);
+                        }
+
+                    });
+                }
+            });
+
+        } catch (err) {
+            global.winston.log('error', {
+                "error": String(err),
+                "stack": new Error().stack
+            });
+            deferred.reject(err);
+        }
+
+        return deferred.promise;
+    },
+
+    changeAppClientKey: function (appId, value) {
+
+        var deferred = q.defer();
+
+        try {
+
+            var query = {
+                appId: appId
+            };
+
+            // var newClientkey = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), config.secureKey, 100, 16).toString("base64");
+            var newClientkey = _generateKey()
+            if (value) {
+                newClientkey = value;
+            }
+
+            var setJSON = {
+                "keys.js": newClientkey
+            };
+
+            var collection = config.mongoClient.db(config.globalDb).collection("projects");
+            collection.findOneAndUpdate(query, {
+                $set: setJSON
+            }, {
+                    returnOriginal: false
+                }, function (err, newDoc) {
+                    if (err) {
+                        global.winston.log('error', err);
+                        deferred.reject(err);
                     }
+                    if (newDoc) {
+                        
+                        //delete project/app from redis so further request will make a new entry with new keys
+                        deleteAppFromRedis(appId);
+                        deferred.resolve(newDoc.value);
+                    } else {
+                        
+                        deferred.resolve(null);
+                    }
+                });
+
+        } catch (err) {
+            global.winston.log('error', {
+                "error": String(err),
+                "stack": new Error().stack
+            });
+            deferred.reject(err);
+        }
+
+        return deferred.promise;
+    },
+
+    changeAppMasterKey: function (appId, value) {
+
+        var deferred = q.defer();
+
+        try {
+
+            var query = {
+                appId: appId
+            };
+
+            //var newMasterkey = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), config.secureKey, 100, 16).toString("base64");
+            var newMasterkey = _generateKey();
+            if (value) {
+                newMasterkey = value;
+            }
+
+            var setJSON = {
+                "keys.master": newMasterkey
+            };
+
+            var collection = config.mongoClient.db(config.globalDb).collection("projects");
+            collection.findOneAndUpdate(query, {
+                $set: setJSON
+            }, {
+                    returnOriginal: false
+                }, function (err, newDoc) {
+                    if (err) {
+                        global.winston.log('error', err);
+                        deferred.reject(err);
+                    }
+                    if (newDoc) {
+                        
+                        //delete project/app from redis so further request will make a new entry with new keys
+                        deleteAppFromRedis(appId);
+                        deferred.resolve(newDoc.value);
+                    } else {
+                        
+                        deferred.resolve(null);
+                    }
+                });
+
+        } catch (err) {
+            global.winston.log('error', {
+                "error": String(err),
+                "stack": new Error().stack
+            });
+            deferred.reject(err);
+        }
+
+        return deferred.promise;
+    },
+
+    exportDatabase: function (appId) {
+        var deferred = q.defer();
+        var promises = [];
+        config.mongoClient.db(appId).listCollections().toArray(function (err, collections) {
+            if (err) {
+                global.winston.log('error', err);
+                deferred.reject(err);
+            }
+            for (var k in collections) {
+                (function (k) {
+                    var promise = new Promise(function (resolve, reject) {
+                        collections[k].documents = [];
+                        data = config.mongoClient.db(appId).collection(collections[k].name).find();
+                        data.toArray(function (err, data) {
+                            if (err) {
+                                global.winston.log('error', err);
+                                reject(err);
+                            }
+                            collections[k].documents.push(data);
+                            resolve();
+                        });
+                    });
+                    promises.push(promise);
+                })(k);
+            }
+            Promise.all(promises).then(function (data) {
+                deferred.resolve(collections);
+            }, function (err) {
+                deferred.reject(err);
+            });
+        });
+        return deferred.promise;
+    },
+
+    importDatabase: function (appId, file) {
+        var fileData;
+        var deferred = q.defer();
+        var collectionRemovePromises = [];
+        var validated = false;
+        
+        try {
+            fileData = JSON.parse(file.toString());
+            for (var k in fileData) {
+                if (fileData[k].name == '_Schema') {
+                    validated = true;
                 }
-                if (!validated) {
-                    deferred.reject('Invalid CloudBoost Database file');
-                }
-            } catch (e) {
+            }
+            if (!validated) {
                 deferred.reject('Invalid CloudBoost Database file');
             }
+        } catch (e) {
+            deferred.reject('Invalid CloudBoost Database file');
+        }
 
-            global.mongoClient.db(appId).listCollections().toArray(function (err, Collections) {
-                if (err) {
-                    global.winston.log('error', err);
-                    deferred.reject(err);
-                }
-                for (var k in Collections) {
-                    (function (k) {
-                        if (Collections[k].name.split('.')[0] != 'system') { // skipping delete for system namespaces
-                            collectionRemovePromises.push(new Promise(function (resolve, reject) {
-                                global.mongoClient.db(appId).collection(Collections[k].name).remove({}, function (err, removed) {
-                                    if (err) {
-                                        reject(err);
-                                    }
-                                    resolve(true);
-                                });
-                            }));
-                        }
-                    })(k);
-                }
-                Promise.all(collectionRemovePromises).then(function (data) {
-                    for (var i in fileData) {
-                        (function (i) {
-                            global.mongoClient.db(appId).createCollection(fileData[i].name, function (err, col) {
-                                if (err)
-                                    deferred.reject('Error creating Collections/Tables');
-                                global.mongoClient.db(appId).collection(fileData[i].name, function (err, col) {
-                                    if (err)
-                                        deferred.reject('Error getting Collections/Tables');
-                                    for (var j in fileData[i].documents[0]) {
-                                        (function (j) {
-                                            col.insert(fileData[i].documents[0][j], function (err) {
-                                                if (i == (fileData.length - 1) && j == (fileData[i].documents[0].length - 1)) {
-                                                    deferred.resolve(true);
-                                                }
-                                            });
-                                        })(j);
-                                    }
-                                });
-                            });
-                        })(i);
-                    }
-                }, function (err) {
-                    deferred.reject(err);
-                });
-            });
-            return deferred.promise;
-        },
-
-        createDatabaseUser: function (appId) {
-            var deferred = q.defer();
-
-            var username = util.getId();
-            var password = util.getId();
-
-            global.mongoClient.db(appId).addUser(username, password, {
-                roles: [
-                    {
-                        role: "readWrite",
-                        db: appId
-                    }
-                ]
-            }, function (err, result) {
-                if (err)
-                    deferred.reject(err);
-                else
-                    deferred.resolve({ username: username, password: password });
+        config.mongoClient.db(appId).listCollections().toArray(function (err, Collections) {
+            if (err) {
+                global.winston.log('error', err);
+                deferred.reject(err);
             }
-            );
-            return deferred.promise;
-        },
-
-        exportTable: function (appId, tableName, exportType, isMasterKey, accessList) {
-
-            var deferred = q.defer();
-            global.customService.find(appId, tableName, {}, null, null, 999999, null, accessList, isMasterKey).then(function (tables) {
-                tables.map(function (docs) {
-                    docs.createdAt ? delete docs.createdAt : null;
-                    docs.updatedAt ? delete docs.updatedAt : null;
-                    docs._tableName ? delete docs._tableName : null;
-                    delete docs.expires;
-                    docs._id ? delete docs._id : null;
-                    delete docs._version;
-                    docs.ACL ? delete docs.ACL : null;
-                    docs._type ? delete docs._type : null;
-                });
-                if (exportType === 'csv') {
-                    var result = json2csv({ data: tables });
-                    deferred.resolve(result);
-                } else if (exportType === 'xlsx' || exportType === 'xls') {
-                    var random = util.getId();
-                    var fileName = '/tmp/tempfile' + random + '.xlsx';
-                    var converted = convertObjectToString(tables);
-                    var outputFile = jsonXlsxWriteFile.writeFile(fileName, converted);
-
-                    fs.readFile(fileName, function read(err, data) {
-                        if (err) {
-                            deferred.reject("Error : Failed to convert the table.");
-                        }
-                        fs.unlink(fileName, function (err) {
-                            if (err) {
-                                deferred.reject(err);
-                            }
-                            deferred.resolve(data);
+            for (var k in Collections) {
+                (function (k) {
+                    if (Collections[k].name.split('.')[0] != 'system') { // skipping delete for system namespaces
+                        collectionRemovePromises.push(new Promise(function (resolve, reject) {
+                            config.mongoClient.db(appId).collection(Collections[k].name).remove({}, function (err, removed) {
+                                if (err) {
+                                    reject(err);
+                                }
+                                resolve(true);
+                            });
+                        }));
+                    }
+                })(k);
+            }
+            Promise.all(collectionRemovePromises).then(function (data) {
+                for (var i in fileData) {
+                    (function (i) {
+                        config.mongoClient.db(appId).createCollection(fileData[i].name, function (err, col) {
+                            if (err)
+                                deferred.reject('Error creating Collections/Tables');
+                            config.mongoClient.db(appId).collection(fileData[i].name, function (err, col) {
+                                if (err)
+                                    deferred.reject('Error getting Collections/Tables');
+                                for (var j in fileData[i].documents[0]) {
+                                    (function (j) {
+                                        col.insert(fileData[i].documents[0][j], function (err) {
+                                            if (i == (fileData.length - 1) && j == (fileData[i].documents[0].length - 1)) {
+                                                deferred.resolve(true);
+                                            }
+                                        });
+                                    })(j);
+                                }
+                            });
                         });
-                    });
-                } else if (exportType === 'json') {
-                    deferred.resolve(tables);
-                } else {
-                    deferred.reject('Invalid exportType ,exportType should be csv,xls,xlsx,json')
+                    })(i);
                 }
             }, function (err) {
                 deferred.reject(err);
             });
-            return deferred.promise;
-        },
+        });
+        return deferred.promise;
+    },
 
-        importTable: function (req, isMasterKey) {
-            var deferred = q.defer();
-            var appId = req.params.appId;
-            var appKey = req.body.key;
-            var fileId = req.body.fileId;
-            var table = req.body.tableName;
-            var tableName = table.replace(/\s/g, '');
-            var fileName = req.body.fileName;
-            var fileExt = path.extname(fileName);
+    createDatabaseUser: function (appId) {
+        var deferred = q.defer();
 
-            global.fileService.getFile(appId, fileId, customHelper.getAccessList(req), isMasterKey).then(function (file) {
-                var fileStream = global.mongoService.document.getFileStreamById(appId, file._id);
-                var parseFile = null;
-                var importType;
-                if (fileExt == ".csv") {
-                    parseFile = global.importHelpers.importCSVFile;
-                    importType = "csv";
-                } else if (fileExt == '.xls' || fileExt == '.xlsx') {
-                    parseFile = global.importHelpers.importXLSFile;
-                    importType = "xls";
-                } else {
-                    parseFile = global.importHelpers.importJSONFile;
-                    importType = "json";
+        var username = util.getId();
+        var password = util.getId();
+
+        config.mongoClient.db(appId).addUser(username, password, {
+            roles: [
+                {
+                    role: "readWrite",
+                    db: appId
                 }
-
-                if (parseFile) {
-                    parseFile(fileStream, tableName).then(function (document) {
-                        var body = global.importHelpers.generateSchema(document, importType);
-                        global.appService.getTable(appId, tableName).then(function (table) {
-                            if (table == null) {
-                                deferred.reject("Table doesn't exists");
-                            } else {
-                                global.importHelpers.compareSchema(document, table, body).then(function (schema) {
-                                    // check if table already exists
-                                    global.appService.getTable(appId, tableName).then(function (table) {
-                                        // authorize client for table level, if table found then authorize on table level else on app level for creating new table.
-                                        let authorizationLevel = table ? 'table' : 'app'
-                                        global.appService.isClientAuthorized(appId, appKey, authorizationLevel, table).then(function (isAuthorized) {
-                                            if (isAuthorized) {
-                                                global.appService.upsertTable(appId, tableName, schema.data.columns, schema.data).then(function (table) {
-                                                    global.customService.save(appId, tableName, document, customHelper.getAccessList(req), isMasterKey).then(function (result) {
-                                                        
-                                                        
-                                                        deferred.resolve(result);
-                                                    }, function (error) {
-                                                        
-                                                        
-                                                        deferred.reject(error);
-                                                    });
-                                                }, function (err) {
-                                                    
-                                                    return deferred.reject(err);
-                                                });
-                                            } else return deferred.reject({ status: 'Unauthorized' });
-                                        }, function (error) {
-                                            return deferred.reject({ status: 'Unauthorized', message: error });
-                                        })
-
-                                    }, function (err) {
-                                        return deferred.reject(err);
-                                    });
-                                }, function (err) {
-                                    
-                                    
-                                    deferred.reject(err);
-                                });
-
-                            }
-                        }, function (err) {
-                            deferred.reject(err);
-                        });
-                    }, function (error) {
-                        deferred.reject(error);
-                    });
-                }
-            });
-            return deferred.promise;
+            ]
+        }, function (err, result) {
+            if (err)
+                deferred.reject(err);
+            else
+                deferred.resolve({ username: username, password: password });
         }
-    };
+        );
+        return deferred.promise;
+    },
+
+    // exportTable: function (appId, tableName, exportType, isMasterKey, accessList) {
+
+    //     var deferred = q.defer();
+    //     customService.find(appId, tableName, {}, null, null, 999999, null, accessList, isMasterKey).then(function (tables) {
+    //         tables.map(function (docs) {
+    //             docs.createdAt ? delete docs.createdAt : null;
+    //             docs.updatedAt ? delete docs.updatedAt : null;
+    //             docs._tableName ? delete docs._tableName : null;
+    //             delete docs.expires;
+    //             docs._id ? delete docs._id : null;
+    //             delete docs._version;
+    //             docs.ACL ? delete docs.ACL : null;
+    //             docs._type ? delete docs._type : null;
+    //         });
+    //         if (exportType === 'csv') {
+    //             var result = json2csv({ data: tables });
+    //             deferred.resolve(result);
+    //         } else if (exportType === 'xlsx' || exportType === 'xls') {
+    //             var random = util.getId();
+    //             var fileName = '/tmp/tempfile' + random + '.xlsx';
+    //             var converted = convertObjectToString(tables);
+    //             var outputFile = jsonXlsxWriteFile.writeFile(fileName, converted);
+
+    //             fs.readFile(fileName, function read(err, data) {
+    //                 if (err) {
+    //                     deferred.reject("Error : Failed to convert the table.");
+    //                 }
+    //                 fs.unlink(fileName, function (err) {
+    //                     if (err) {
+    //                         deferred.reject(err);
+    //                     }
+    //                     deferred.resolve(data);
+    //                 });
+    //             });
+    //         } else if (exportType === 'json') {
+    //             deferred.resolve(tables);
+    //         } else {
+    //             deferred.reject('Invalid exportType ,exportType should be csv,xls,xlsx,json')
+    //         }
+    //     }, function (err) {
+    //         deferred.reject(err);
+    //     });
+    //     return deferred.promise;
+    // },
+
+    // importTable: function (req, isMasterKey) {
+    //     var deferred = q.defer();
+    //     var appId = req.params.appId;
+    //     var appKey = req.body.key;
+    //     var fileId = req.body.fileId;
+    //     var table = req.body.tableName;
+    //     var tableName = table.replace(/\s/g, '');
+    //     var fileName = req.body.fileName;
+    //     var fileExt = path.extname(fileName);
+    //     var appService = this;
+
+    //     fileService.getFile(appId, fileId, customHelper.getAccessList(req), isMasterKey).then(function (file) {
+    //         var fileStream = mongoService.document.getFileStreamById(appId, file._id);
+    //         var parseFile = null;
+    //         var importType;
+    //         if (fileExt == ".csv") {
+    //             parseFile = importHelpers.importCSVFile;
+    //             importType = "csv";
+    //         } else if (fileExt == '.xls' || fileExt == '.xlsx') {
+    //             parseFile = importHelpers.importXLSFile;
+    //             importType = "xls";
+    //         } else {
+    //             parseFile = importHelpers.importJSONFile;
+    //             importType = "json";
+    //         }
+
+    //         if (parseFile) {
+    //             parseFile(fileStream, tableName).then(function (document) {
+    //                 var body = importHelpers.generateSchema(document, importType);
+    //                 appService.getTable(appId, tableName).then(function (table) {
+    //                     if (table == null) {
+    //                         deferred.reject("Table doesn't exists");
+    //                     } else {
+    //                         importHelpers.compareSchema(document, table, body).then(function (schema) {
+    //                             // check if table already exists
+    //                             appService.getTable(appId, tableName).then(function (table) {
+    //                                 // authorize client for table level, if table found then authorize on table level else on app level for creating new table.
+    //                                 var authorizationLevel = table ? 'table' : 'app'
+    //                                 appService.isClientAuthorized(appId, appKey, authorizationLevel, table).then(function (isAuthorized) {
+    //                                     if (isAuthorized) {
+    //                                         appService.upsertTable(appId, tableName, schema.data.columns, schema.data).then(function (table) {
+    //                                             customService.save(appId, tableName, document, customHelper.getAccessList(req), isMasterKey).then(function (result) {
+                                                    
+                                                    
+    //                                                 deferred.resolve(result);
+    //                                             }, function (error) {
+                                                    
+                                                    
+    //                                                 deferred.reject(error);
+    //                                             });
+    //                                         }, function (err) {
+                                                
+    //                                             return deferred.reject(err);
+    //                                         });
+    //                                     } else return deferred.reject({ status: 'Unauthorized' });
+    //                                 }, function (error) {
+    //                                     return deferred.reject({ status: 'Unauthorized', message: error });
+    //                                 })
+
+    //                             }, function (err) {
+    //                                 return deferred.reject(err);
+    //                             });
+    //                         }, function (err) {
+                                
+                                
+    //                             deferred.reject(err);
+    //                         });
+
+    //                     }
+    //                 }, function (err) {
+    //                     deferred.reject(err);
+    //                 });
+    //             }, function (error) {
+    //                 deferred.reject(error);
+    //             });
+    //         }
+    //     });
+    //     return deferred.promise;
+    // }
 };
 
 function _updateColumnNameOfOldRecords(tableName, appId, renameColumnObject) {
 
     var deferred = q.defer();
 
-    var collection = global.mongoClient.db(appId).collection(tableName);
+    var collection = config.mongoClient.db(appId).collection(tableName);
     collection.updateMany({}, { $rename: renameColumnObject }, function (err, doc) {
         if (err)
             deferred.reject()
@@ -1225,7 +1253,7 @@ function _updateColumnNameOfOldRecords(tableName, appId, renameColumnObject) {
 
 function _isBasicDataType(dataType) {
     try {
-        var types = global.cloudBoostHelper.getBasicDataTypes();
+        var types = cloudBoostHelper.getBasicDataTypes();
 
         if (types.indexOf(dataType) > -1) {
             return true;
@@ -1663,7 +1691,7 @@ function deleteAppFromRedis(appId) {
 
     try {
         //check redis cache first.
-        global.redisClient.del(global.keys.cacheAppPrefix + ':' + appId, function (err, caches) {
+        config.redisClient.del(config.cacheAppPrefix + ':' + appId, function (err, caches) {
             if (err) {
                 deferred.reject(err);
             } else {
