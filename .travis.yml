@@ -80,7 +80,7 @@ before_deploy:
   - git config --global user.name "Travis CI"
   - export GIT_TAG=2.0.$TRAVIS_BUILD_NUMBER
   - git tag $GIT_TAG -a -m "Generated tag from TravisCI for build $TRAVIS_BUILD_NUMBER"
-  - git push -q https://$GITLOGIN@github.com/CloudBoost/cloudboost --tags
+  - git push -q https://github.com/CloudBoost/cloudboost.git --tags
 deploy:
   provider: releases
   api_key: $GH_TOKEN
