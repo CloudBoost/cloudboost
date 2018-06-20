@@ -10,7 +10,7 @@ var appService = require('../../services/app');
 var otherService = require('../../services/other');
 var customHelper = require('../../helpers/custom.js');
 
-<<<<<<< HEAD
+module.exports = function (app) {
     /**
      * @description Middleware used for zapier application auth using app ID and app secret key
      * @param {*} req
@@ -20,13 +20,13 @@ var customHelper = require('../../helpers/custom.js');
      * @param {*} res
      */
 
-    global.app.post('/app/token', function (req, res) {
+    app.post('/app/token', function (req, res) {
         var appId = req.body.appId;
         var appKey = req.body.appKey;
 
-        global.appService.isMasterKey(appId, appKey).then(function (isValid) {
+        appService.isMasterKey(appId, appKey).then(function (isValid) {
             if (isValid) {
-                return global.appService.getApp(appId).then(function (app) {
+                return appService.getApp(appId).then(function (app) {
                     return res.status(200).json({
                         appName: app.name
                     });
@@ -40,26 +40,6 @@ var customHelper = require('../../helpers/custom.js');
             return res.status(401).send('Invalid keys');
         });
     });
-
-    //create a new app.
-    global.app.post('/app/:appId', function (req, res) {
-
-        try {
-
-
-            var appId = req.params.appId;
-
-
-            var sdk = req.body.sdk || "REST";
-
-            if (global.keys.secureKey === req.body.secureKey) {
-
-                global.appService.createApp(appId).then(function (app) {
-
-                    global.appService.createDefaultTables(appId).then(function () {
-
-=======
-module.exports = function (app) {
 
     //create a new app.
     app.post('/app/:appId', function (req, res) {
@@ -76,7 +56,6 @@ module.exports = function (app) {
 
                     appService.createDefaultTables(appId).then(function () {
                         
->>>>>>> master
                         delete app.keys.encryption_key;
                         res.status(200).send(app);
                     }, function (err) {
