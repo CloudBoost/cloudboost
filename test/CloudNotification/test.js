@@ -33,7 +33,7 @@ describe("CloudNotification", function() {
       		CB.CloudNotification.publish('sample1', 'data1',{
 				success : function(){
 					//succesfully published. //do nothing.
-					setimer = setTimeout(done, 29999);
+					setimer = setTimeout(done, 25000);
 				},
 				error : function(err){
 					//error
