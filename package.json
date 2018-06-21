@@ -66,7 +66,7 @@
     "request": "^2.55.0",
     "should": "^4.6.5",
     "slack-node": "^0.1.8",
-    "snyk": "^1.49.4",
+    "snyk": "^1.83.0",
     "socket.io": "^2.0.4",
     "socket.io-client": "^1.7.1",
     "socket.io-redis": "^5.2.0",
@@ -117,5 +117,6 @@
     "presets": [
       "es2015"
     ]
-  }
+  },
+  "snyk": true
 }
