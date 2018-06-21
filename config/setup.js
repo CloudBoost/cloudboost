@@ -27,6 +27,7 @@ module.exports = function () {
             }
         }, function (e) {
             // exit server if connection to mongo was not made
+            winston.error(e);
             process.exit(1);
         });
 
