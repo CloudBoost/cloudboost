@@ -1,3 +1,4 @@
+/* eslint-disable no-redeclare */
 /*
 #     CloudBoost - Core Engine that powers Bakend as a Service
 #     (c) 2014 HackerBay, Inc.
@@ -126,7 +127,7 @@ module.exports = {
 
     save: function(appId, collectionName, document, accessList, isMasterKey, opts, encryption_key) {
 
-        
+
         var deferred = q.defer();
 
         try {
@@ -138,7 +139,7 @@ module.exports = {
                 for (var i = 0; i < document.length; i++) {
                     document[i] = _checkIdList(document[i], reqType);
                     _generateId(document[i], reqType);
-                    
+
                     promises.push(_save(appId, collectionName, document[i], accessList, isMasterKey, reqType, opts, encryption_key));
                 }
                 q.allSettled(promises).then(function(res) {
@@ -163,7 +164,7 @@ module.exports = {
                     }
                 });
             } else {
-                
+
                 _save(appId, collectionName, document, accessList, isMasterKey, null, opts, encryption_key)
                 .then(function(res) {
                     deferred.resolve(res);
@@ -183,7 +184,7 @@ module.exports = {
 
     },
 
-    delete: function(appId, collectionName, document, accessList, isMasterKey, opts) {
+    delete: function(appId, collectionName, document, accessList, isMasterKey) {
 
         var deferred = q.defer();
 
@@ -256,8 +257,8 @@ function _save(appId, collectionName, document, accessList, isMasterKey, reqType
 
     var deferred = q.defer();
     try {
-        
-        
+
+
         var docToSave = document;
 
         var promises = [];
@@ -276,14 +277,14 @@ function _save(appId, collectionName, document, accessList, isMasterKey, reqType
             document = _generateId(document, reqType);
         }
         var parentId = document._id;
-        
+
         document = _getModifiedDocs(document, unModDoc);
         if (document && Object.keys(document).length > 0) {
             customHelper.checkWriteAclAndUpdateVersion(appId, document, accessList, isMasterKey).then(function(listOfDocs) {
                 var obj = _seperateDocs(listOfDocs);
                 listOfDocs = obj.newDoc;
                 obj = obj.oldDoc;
-                
+
                 _validateSchema(appId, listOfDocs, accessList, isMasterKey, encryption_key).then(function(listOfDocs) {
                     var mongoDocs = listOfDocs.map(function(doc){
                         return Object.assign({},doc);
@@ -294,8 +295,8 @@ function _save(appId, collectionName, document, accessList, isMasterKey, reqType
                         if (array[0].state === 'fulfilled') {
                             _sendNotification(appId, array[0], reqType);
                             unModDoc = _merge(parentId, array[0].value, unModDoc);
-                            
-                            
+
+
                             deferred.resolve(unModDoc);
                         } else {
                             _rollBack(appId, array, listOfDocs, obj).then(function(res) {
@@ -310,12 +311,12 @@ function _save(appId, collectionName, document, accessList, isMasterKey, reqType
                 }, function(err) {
                     deferred.reject(err);
                 });
-            }, function(err) {
+            }, function() {
                 deferred.reject("Unauthorized to modify");
             });
         } else {
-            
-            
+
+
             deferred.resolve(docToSave);
         }
 
@@ -343,7 +344,7 @@ function _delete(appId, collectionName, document, accessList, isMasterKey) {
                             config.realTime.sendObjectNotification(appId, document, 'deleted');
                             deferred.resolve(document);
                         } else {
-                            _deleteRollback(appId, doc.oldDoc, res).then(function(res) {
+                            _deleteRollback(appId, doc.oldDoc, res).then(function() {
                                 deferred.reject("Unable to Delete Document Right Now Try Again !!!");
                             }, function() {
                                 deferred.reject("Unable to Delete");
@@ -352,6 +353,7 @@ function _delete(appId, collectionName, document, accessList, isMasterKey) {
                     });
                 }
             }, function(err) {
+                winston.error(err);
                 deferred.reject("You do not have permission to delete the Object");
             });
         } else {
@@ -436,7 +438,7 @@ function _isSchemaValid (appId, collectionName, document, accessList, isMasterKe
                     continue; //ignore.
 
                 if (document[columns[i].name] === undefined) {
-                    //TODO :  check type for defaultValue , convert to date of type is DateTime , quick patch , fix properly later 
+                    //TODO :  check type for defaultValue , convert to date of type is DateTime , quick patch , fix properly later
                     if(columns[i].dataType === 'DateTime'){
                         try{
                             columns[i].defaultValue = new Date(columns[i].defaultValue);
@@ -451,7 +453,7 @@ function _isSchemaValid (appId, collectionName, document, accessList, isMasterKe
                     document[columns[i].name] = null;
                 }
 
-                //if column datatype is bool, and data is  null, change data to false by default. 
+                //if column datatype is bool, and data is  null, change data to false by default.
                 if(columns[i].dataType === "Boolean" && !document[columns[i].name]){
                     document[columns[i].name] = false;
                 }
@@ -463,7 +465,7 @@ function _isSchemaValid (appId, collectionName, document, accessList, isMasterKe
                     }
                 }
 
-                
+
 
 
                 //Is Editable only by master key is true?
@@ -487,7 +489,7 @@ function _isSchemaValid (appId, collectionName, document, accessList, isMasterKe
                 $or: []
             };
 
-            for (var i = 0; i < columns.length; i++) {
+            for (let i = 0; i < columns.length; i++) {
                 if (columns[i].unique && document[columns[i].name] && modifiedDocuments.indexOf(columns[i].name) >= 0) {
                     var temp = {};
                     //relation unique check.
@@ -503,15 +505,15 @@ function _isSchemaValid (appId, collectionName, document, accessList, isMasterKe
                         temp[columns[i].name] = document[columns[i].name];
                     }
                     query.$or.push(temp);
-                    
-                    
+
+
                 }
             }
             if (query.$or.length > 0) {
                 var findPromise = q.defer();
                 promises.push(findPromise.promise);
                 mongoService.document.find(appId, collectionName, query, null, null, 9999999, 0, null, true).then(function(res) {
-                    
+
                     if (res.length === 1 && res[0]._id === document._id) {
                         findPromise.resolve('Update the document');
                     } else if (res.length > 0) {
@@ -628,7 +630,7 @@ function _isSchemaValid (appId, collectionName, document, accessList, isMasterKe
                             if (document[key] && datatype === 'List' && Object.prototype.toString.call(document[key]) === '[object Array]') {
                                 if (document[key].length !== 0) {
                                     if (_isBasicDataType(col.relatedTo)) {
-                                        var res = _checkBasicDataTypes(document[key], col.relatedTo, key, document._tableName);
+                                        let res = _checkBasicDataTypes(document[key], col.relatedTo, key, document._tableName);
                                         if (res.message) {
                                             //if something is wrong.
                                             mainPromise.reject(res.message);
@@ -637,7 +639,7 @@ function _isSchemaValid (appId, collectionName, document, accessList, isMasterKe
                                             document[key] = res.data;
                                         }
                                     } else {
-                                        for (var i = 0; i < document[key].length; i++) {
+                                        for (let i = 0; i < document[key].length; i++) {
                                             if (document[key][i]._tableName) {
                                                 if (col.relatedTo !== document[key][i]._tableName) {
                                                     mainPromise.reject('Invalid data in column ' + key + '. It should be Array of \'CloudObjects\' which belongs to table \'' + col.relatedTo + '\'.');
@@ -675,7 +677,7 @@ function _isSchemaValid (appId, collectionName, document, accessList, isMasterKe
                         createNewColumnPromise.reject("Error : Failed to update the table with the new column. ");
                     } else if (table) {
                         createNewColumnPromise.resolve();
-                        
+
                     }
                 });
 
@@ -683,7 +685,7 @@ function _isSchemaValid (appId, collectionName, document, accessList, isMasterKe
             }
             if (promises.length > 0) {
                 //you have related documents or unique queries.
-                q.all(promises).then(function(results) {
+                q.all(promises).then(function() {
                     var obj = {};
                     obj.document = document;
                     obj.schema = columns;
@@ -933,34 +935,6 @@ function _generateId(document, reqType) {
     }
 }
 
-function _checkForRelation(document) {
-    try {
-        for (keys in document) {
-            if (keys._type)
-                return true;
-            }
-        return false;
-    } catch (err) {
-        winston.log('error', {
-            "error": String(err),
-            "stack": new Error().stack
-        });
-    }
-}
-
-//clones an object.
-function _clone(document) {
-    try {
-        return JSON.parse(JSON.stringify(document));
-    } catch (err) {
-        winston.log('error', {
-            "error": String(err),
-            "stack": new Error().stack
-        });
-        return null;
-    }
-}
-
 function _getModifiedDocs(document, unModDoc) {
 
     try {
@@ -1155,7 +1129,7 @@ function _deleteRollback(appId, document, res) {
             if (promises.length > 0) {
                 q.all(promises).then(function() {
                     deferred.resolve("Success");
-                }, function() {
+                }, function(err) {
                     deferred.reject(err);
                 });
             }
@@ -1234,48 +1208,6 @@ function _merge(collectionId, listOfDocs, unModDoc) {
             "stack": new Error().stack
         });
         return null;
-    }
-}
-
-function _queryType(query, select) {
-    try {
-        var orientQuery = ['$all', '$any', '$index', '$first'];
-        var keys = Object.keys(query);
-        if (query.$include && query.$include.length > 0) {
-            return true;
-        }
-        if (query.$includeList && query.$includeList.length > 0) {
-            return true;
-        }
-        if (query.$or && query.$or.length > 0) {
-            if (_queryType(query.$or[0]))
-                return true;
-            if (_queryType(query.$or[1]))
-                return true;
-            }
-        for (var i = 0; i < keys.length; i++) {
-            if (orientQuery.indexOf(keys[i]) !== -1) {
-                return true;
-            }
-            if (keys[i].split('.').length > 1) {
-                return true;
-            }
-        }
-        if (select) {
-            var keys = Object.keys(select);
-            for (var i = 0; i < keys.length; i++) {
-                if (keys[i].split('.').length > 1) {
-                    return true;
-                }
-            }
-        }
-        return false;
-
-    } catch (err) {
-        winston.log('error', {
-            "error": String(err),
-            "stack": new Error().stack
-        });
     }
 }
 
@@ -1358,11 +1290,10 @@ function _modifyFieldsInQuery(appId, collectionName, query) {
 function _encrypt(data, encryption_key) {
     try {
         var cipher_alg = 'aes-256-ctr';
-        var encryptedPassword;
         if(encryption_key && encryption_key.iv && encryption_key.key){
             // to decrypt text use this
             // var encryptedText = encryptText(cipher_alg, encryption_key.key, encryption_key.iv, data);
-            // 
+            //
             return encryptText(cipher_alg, encryption_key.key, encryption_key.iv, data);
         } else {
             return crypto.pbkdf2Sync(data, config.secureKey, 10000, 64, 'sha1').toString('base64');
@@ -1476,72 +1407,6 @@ function _rollBack(appId, status, docsArray, oldDocs) {
     return deferred.promise;
 }
 
-/*
-    Remove this Function it is no Longer Reqd
- */
-
-function _revertBack(appId, statusArray, docsArray, oldDocs) {
-    var promises = [];
-    var deferred = q.defer();
-
-    try {
-        promises.push(_mongoRevert(appId, statusArray[1], docsArray, oldDocs));
-        q.all(promises).then(function(res) {
-            deferred.resolve(res);
-        }, function(err) {
-            deferred.reject(err);
-        });
-
-    } catch (err) {
-        winston.log('error', {
-            "error": String(err),
-            "stack": new Error().stack
-        });
-        deferred.reject(err);
-    }
-    return deferred.promise;
-}
-
-/*
- Remove this Function it is no Longer Reqd
- */
-
-function _mongoRevert(appId, status, docsArray, oldDocs) {
-    var deferred = q.defer();
-
-    try {
-        if (status.state === 'fulfilled') {
-            deferred.resolve();
-        } else {
-            var docs = status.value;
-            var save = [];
-            var del = [];
-            for (var i = 0; i < docs.length; i++) {
-                if (docs[i].state !== 'fulfilled') {
-                    for (var j = 0; j < oldDocs.length; j++) {
-                        if (docs[i].value._id === oldDocs[i]._id) {
-                            save.push(oldDocs[i]);
-                        }
-                    }
-                }
-            }
-            mongoService.document.save(appId, docs).then(function() {
-                deferred.resove();
-            }, function() {
-                deferred.reject();
-            });
-        }
-
-    } catch (err) {
-        winston.log('error', {
-            "error": String(err),
-            "stack": new Error().stack
-        });
-        deferred.reject(err);
-    }
-    return deferred.promise;
-}
-
 function _seperateDocs(listOfDocs) {
     try {
         var newDoc = [];
@@ -1644,6 +1509,7 @@ function encryptText(cipher_alg, key, iv, text) {
 }
 
 //to decrypt data
+//eslint-disable-next-line
 function decryptText(cipher_alg, key, iv, text) {
 			var decipher = crypto.createDecipheriv(cipher_alg, key.toString('hex').slice(0, 32), iv.toString('hex').slice(0, 16));
 			var result = decipher.update(text, 'hex');

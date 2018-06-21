@@ -60,8 +60,8 @@ var importHelpers =  {
                             }
                         };
                 } catch (err) {
-                    
-                    
+
+
                     json.ACL = {
                         "read": {
                             "allow": {
@@ -106,7 +106,6 @@ var importHelpers =  {
 
     importXLSFile: function (fileStream, table) {
         var deferred = q.defer();
-        var csvJson = [];
         var tableName = table.replace(/\s/g, '');
         var xslJsonObj = [];
         var workSheetsFromBuffer;
@@ -134,7 +133,7 @@ var importHelpers =  {
                                         try {
                                             obj['ACL'] = JSON.parse(element.data[i][j]);
                                         } catch (err) {
-                                            
+
                                             obj['ACL'] = {
                                                 "read": {
                                                     "allow": {
@@ -219,8 +218,6 @@ var importHelpers =  {
                 });
                 deferred.resolve(xslJsonObj);
             } catch (err) {
-                
-                
                 deferred.reject(err);
             }
         });
@@ -298,12 +295,12 @@ var importHelpers =  {
                     }
                     deferred.resolve(jSON.data);
                 } catch (error) {
-                    
+
                     deferred.reject(error);
                 }
             } catch (err) {
-                
-                
+
+
                 deferred.reject(err);
             }
 
@@ -315,7 +312,7 @@ var importHelpers =  {
         return deferred.promise;
     },
 
-    generateSchema: function (document, importType) {
+    generateSchema: function (document) {
         var tableHeaders = [];
         var nonTHeaders = [];
         var masterArray = [];
@@ -507,13 +504,13 @@ function detectDataType(data, colProp) {
     if (isJson(data)) {
         try {
             data = JSON.parse(data);
-        } catch (e) {
-            
-        }
+            //eslint-disable-next-line
+        } catch (e) {}
     }
     if (colProp == "relatedTo") {
         data = data[0];
     }
+    var type;
     if (data == "true" || data == "false" || data == true || data == false) {
         type = "Boolean";
     } else if (!isNaN(data) && typeof data == "number") {

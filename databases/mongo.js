@@ -1,3 +1,4 @@
+/* eslint-disable no-redeclare, no-undef*/
 /*
 #     CloudBoost - Core Engine that powers Bakend as a Service
 #     (c) 2014 HackerBay, Inc.
@@ -6,7 +7,6 @@
 
 const q = require('q');
 var _ = require('underscore');
-var util = require('../helpers/util.js');
 var Grid = require('gridfs-stream');
 var config = require('../config/config');
 var winston = require('winston');
@@ -164,12 +164,12 @@ obj.document = {
                     deferred.resolve(docs);
                 }, function(error) {
                     winston.log('error', error);
-                    
+
                     deferred.reject(error);
                 });
             }, function(error) {
                 winston.log('error', error);
-                
+
                 deferred.reject();
             });
 
@@ -218,7 +218,7 @@ obj.document = {
 
     find: function(appId, collectionName, query, select, sort, limit, skip, accessList, isMasterKey) {
 
-        
+
         var deferred = q.defer();
         try {
 
@@ -227,7 +227,7 @@ obj.document = {
                 return deferred.promise;
             }
 
-            
+
             var collection = config.mongoClient.db(appId).collection(mongoUtil.collection.getId(appId, collectionName));
             var include = [];
             /*query for expires*/
@@ -351,8 +351,8 @@ obj.document = {
 
             //check for include.
             if (query.$include) {
-                
-                
+
+
                 if (query.$include.length > 0) {
                     include = include.concat(query.$include);
                 }
@@ -378,7 +378,7 @@ obj.document = {
 
             findQuery.toArray(function(err, docs) {
                 if (err) {
-                    
+
                     deferred.reject(err);
                 } else {
                     if (!include || include.length === 0) {
@@ -388,7 +388,7 @@ obj.document = {
                         obj.document._include(appId, include, docs).then(function(docs) {
                             deferred.resolve(docs);
                         }, function(error) {
-                            
+
                             deferred.reject(error);
                         });
                     }
@@ -451,7 +451,7 @@ obj.document = {
             }
 
             var promises = [];
-            
+
             for (var i = 0; i < documentArray.length; i++) {
                 promises.push(_save(appId, documentArray[i].document._tableName, documentArray[i].document));
             }
@@ -484,11 +484,11 @@ obj.document = {
                 return deferred.promise;
             }
 
-            
+
 
             var collection = config.mongoClient.db(appId).collection(mongoUtil.collection.getId(appId, collectionName));
 
-            
+
 
             var documentId = document._id;
 
@@ -498,12 +498,12 @@ obj.document = {
                 _id: documentId
             }, document, {
                 upsert: true
-            }, function(err, list, status) {
+            }, function(err, list) {
                 if (err) {
                     winston.log('error', err);
                     deferred.reject(err);
                 } else if (list) {
-                    
+
                     deferred.resolve(document);
                 }
 
@@ -519,7 +519,7 @@ obj.document = {
         return deferred.promise;
     },
 
-    count: function(appId, collectionName, query, limit, skip, accessList, isMasterKey) {
+    count: function(appId, collectionName, query, limit, skip) {
         var deferred = q.defer();
 
         try {
@@ -561,7 +561,7 @@ obj.document = {
         return deferred.promise;
     },
 
-    distinct: function(appId, collectionName, onKey, query, select, sort, limit, skip, accessList, isMasterKey) {
+    distinct: function(appId, collectionName, onKey, query, select, sort, limit, skip) {
 
         var deferred = q.defer();
 
@@ -775,7 +775,7 @@ obj.document = {
         return deferred.promise;
     },
 
-    _insert: function(appId, collectionName, document, accessList, isMasterKey) {
+    _insert: function(appId, collectionName, document) {
 
         var deferred = q.defer();
 
@@ -794,8 +794,8 @@ obj.document = {
                 } else {
                     //elastic search code.
                     document = doc;
-                    
-                    
+
+
                     deferred.resolve(document);
                 }
 
@@ -812,7 +812,7 @@ obj.document = {
         return deferred.promise;
     },
 
-    delete: function(appId, collectionName, document, accessList, isMasterKey) {
+    delete: function(appId, collectionName, document) {
 
         var documentId = document._id;
         var deferred = q.defer();
@@ -868,7 +868,6 @@ obj.document = {
 
     deleteByQuery: function(appId, collectionName, query) {
 
-        var _self = obj;
         var deferred = q.defer();
 
         try {
@@ -1028,13 +1027,13 @@ obj.document = {
 
             writestream.on('close', function(file) {
                 deferred.resolve(file);
-                
+
             });
 
             writestream.on('error', function(error) {
                 deferred.reject(error);
                 writestream.destroy();
-                
+
             });
 
         } catch (err) {
@@ -1082,7 +1081,7 @@ function _sanitizeQuery(query) {
 function _save(appId, collectionName, document) {
     var deferredMain = q.defer();
     try {
-        
+
         if (document._isModified) {
             delete document._isModified;
         }
@@ -1091,9 +1090,7 @@ function _save(appId, collectionName, document) {
         }
         document = _serialize(document);
         //column key array to track sub documents.
-        var columns = [];
         obj.document._update(appId, collectionName, document).then(function(doc) {
-            
             doc = _deserialize(doc);
             deferredMain.resolve(doc);
         }, function(err) {
@@ -1204,157 +1201,6 @@ function _deserialize(docs) {
             docs = document;
         }
         return docs;
-    } catch (err) {
-        winston.log('error', {
-            "error": String(err),
-            "stack": new Error().stack
-        });
-    }
-}
-
-function _checkBasicDataTypes(data, datatype, columnName, tableName) {
-
-    try {
-        if (Object.prototype.toString.call(data) === '[object Array]') {
-            for (var i = 0; i < data.length; i++) {
-
-                var res = _checkDataTypeUtil(data[i], datatype, columnName, tableName);
-
-                if (res !== '')
-                    return res;
-                }
-            } else {
-            return _checkDataTypeUtil(data, datatype, columnName, tableName);
-        }
-
-        return ''; //success!
-
-    } catch (err) {
-        winston.log('error', {
-            "error": String(err),
-            "stack": new Error().stack
-        });
-    }
-}
-
-function _checkDataTypeUtil(data, datatype, columnName, tableName) {
-
-    try {
-        var isValid = true;
-        if (data && datatype === 'Text' && typeof data !== 'string') {
-            isValid = false;
-        }
-
-        if (data && datatype === 'Email' && typeof data !== 'string' && util.isEmailValid(data)) {
-            isValid = false;
-        }
-
-        if (data && datatype === 'URL' && typeof data !== 'string' && util.isEmailValid(data)) {
-            isValid = false;
-        }
-
-        if (data && datatype === 'Password' && typeof data !== 'string') {
-            isValid = false;
-        }
-
-        if (data && datatype === 'Boolean' && typeof data !== 'boolean') {
-            isValid = false;
-        }
-
-        if (data && datatype === 'DateTime' && new Date(data).toString() === 'Invalid Date') {
-            isValid = false;
-        }
-
-        if (data && datatype === 'ACL' && typeof data !== 'object' && doc[key].read && doc[key].write) {
-            isValid = false;
-        }
-
-        if (data && datatype === 'Object' && typeof data !== 'object') {
-            isValid = false;
-        }
-
-        if (data && datatype === 'File' && (data._type && data._type !== 'file')) {
-            isValid = false;
-        }
-
-        if (!isValid) {
-            return 'Invalid data in column ' + columnName + ' of table ' + tableName + '. It should be of type ' + datatype;
-        }
-
-        return ''; //success!
-
-    } catch (err) {
-        winston.log('error', {
-            "error": String(err),
-            "stack": new Error().stack
-        });
-    }
-}
-
-function _isBasicDataType(dataType) {
-    try {
-        var types = [
-            'Object',
-            'ACL',
-            'DateTime',
-            'Boolean',
-            'Password',
-            'URL',
-            'Email',
-            'Text',
-            'File'
-        ];
-
-        if (types.indexOf(dataType) > -1) {
-            return true;
-        }
-
-        return false;
-
-    } catch (err) {
-        winston.log('error', {
-            "error": String(err),
-            "stack": new Error().stack
-        });
-    }
-}
-
-function clone(obj) {
-    try {
-        var copy;
-
-        // Handle the 3 simple types, and null or undefined
-        if (null == obj || "object" != typeof obj)
-            return obj;
-
-        // Handle Date
-        if (obj instanceof Date) {
-            copy = new Date();
-            copy.setTime(obj.getTime());
-            return copy;
-        }
-
-        // Handle Array
-        if (obj instanceof Array) {
-            copy = [];
-            for (var i = 0, len = obj.length; i < len; i++) {
-                copy[i] = clone(obj[i]);
-            }
-            return copy;
-        }
-
-        // Handle Object
-        if (obj instanceof Object) {
-            copy = {};
-            for (var attr in obj) {
-                if (obj.hasOwnProperty(attr))
-                    copy[attr] = clone(obj[attr]);
-                }
-            return copy;
-        }
-
-        throw new Error("Unable to copy obj! Its type isn't supported.");
-
     } catch (err) {
         winston.log('error', {
             "error": String(err),

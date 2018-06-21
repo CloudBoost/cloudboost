@@ -34,8 +34,8 @@ module.exports = function (io) {
 
             socket.on('join-custom-channel', function (data) {
                 try {
-                    
-                    
+
+
                     socket.join(data);
 
                 } catch (e) {
@@ -46,7 +46,7 @@ module.exports = function (io) {
                 }
             });
 
-            socket.on('socket-disconnect', function (data) {
+            socket.on('socket-disconnect', function () {
                 try {
                     socket.disconnect();
                 } catch (e) {
@@ -59,8 +59,8 @@ module.exports = function (io) {
 
             socket.on('leave-custom-channel', function (data) {
                 try {
-                    
-                    
+
+
                     socket.leave(data);
                 } catch (e) {
                     winston.log('error', {
@@ -72,11 +72,11 @@ module.exports = function (io) {
 
             socket.on('publish-custom-channel', function (data) {
                 try {
-                    
-                    
+
+
                     //if this doucment is an instance of a table Object.
-                    var roomSockets = io.to(data.channel);
-                    var sockets = roomSockets.sockets;
+                    // var roomSockets = io.to(data.channel);
+                    // var sockets = roomSockets.sockets;
 
                     // if (typeof sockets === "object") {
                     //     for (var key in sockets) {
@@ -123,8 +123,8 @@ module.exports = function (io) {
 
             socket.on('leave-object-channel', function (data) {
                 try {
-                    
-                    
+
+
                     // build socketid specefic to table
                     var tableSocketId = socket.id + data.event;
                     socketQueryHelper.getData(tableSocketId, data.eventType, function (err, socketData) {
@@ -168,9 +168,9 @@ module.exports = function (io) {
         try {
             //event type can be created, updated, deleted.
             if (document && document._tableName) {
-                
-                
-                
+
+
+
                 //if this doucment is an instance of a table Object.
                 var roomSockets = io.to(appId.toLowerCase() + 'table' + document._tableName.toLowerCase() + eventType.toLowerCase());
                 var sockets = roomSockets.sockets;
@@ -193,9 +193,9 @@ module.exports = function (io) {
                 }
 
                 q.all(promises).then(function () {
-                    
+
                 }, function () {
-                    
+
                 });
             }
         } catch (e) {
@@ -234,29 +234,29 @@ function _sendNotification(appId, document, socket, eventType) {
                 if (socketQueryValidate) {
                     // check if public access is enabled or the current session user is allowed
                     if (aclHelper.isAllowedReadAccess(session.userId, session.roles, document.ACL)) {
-                        
+
                         socket.emit(appId.toLowerCase() + 'table' + document._tableName.toLowerCase() + eventType.toLowerCase() + socketData.timestamp, JSON.stringify(document));
-                        
+
                         deferred.resolve();
                     } else {
                         // if no access then only emit if listen is using master key
                         if (socketData.appKey) {
                             appService.isMasterKey(appId, socketData.appKey).then(( isMaster ) => {
                                 if(isMaster){
-                                    
+
                                     socket.emit(appId.toLowerCase() + 'table' + document._tableName.toLowerCase() + eventType.toLowerCase() + socketData.timestamp, JSON.stringify(document));
-                                    
+
                                 }
                                 deferred.resolve();
                             });
                         } else {
-                            
+
                             deferred.resolve();
                         }
                     }
 
                 } else {
-                    
+
                     deferred.resolve();
                 }
 

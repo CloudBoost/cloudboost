@@ -1,6 +1,4 @@
 var Slack = require('slack-node');
-var http = require("https");
-var querystring = require('querystring');
 var request = require('request');
 var appService = require('../services/app');
 
@@ -55,7 +53,7 @@ function notifyOnSlack(integrationSettings, document, appName) {
     var user = document.data.username;
     var user_email = document.data.email;
 
-    var text, image, title, color, channel;
+    var text, title, color, channel;
     switch (event_type) {
         case "Login":
             if (integrationSettings["Login"] && integrationSettings["Login"].notify === true) {
@@ -109,15 +107,13 @@ function notifyOnSlack(integrationSettings, document, appName) {
                 "ts": timeStamp
             }
             ])
-        }, function (err, response) {
-            
-        });
+        }, function () {});
         return true;
     }
     return false;
 }
 
-function notifyOnZapier(integrationSettings, document, collection_name, table_event, appName) {
+function notifyOnZapier(integrationSettings, document, collection_name, table_event) {
     var zapier_events = integrationSettings.zapier_events;
     var zapier_webhook = integrationSettings.webhook_url || null;
     var eventObject = null;
@@ -139,11 +135,7 @@ function notifyOnZapier(integrationSettings, document, collection_name, table_ev
             json: document
         };
 
-        request(options, function (error, response, body) {
-            if (!error && response.statusCode == 200) {
-                
-            }
-        });
+        request(options, function () {});
     }
 }
 

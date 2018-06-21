@@ -7,7 +7,6 @@
 var q = require("q");
 var util = require("../helpers/util.js");
 var jimp = require("jimp");
-var config = require('../config/config');
 var mongoService = require('../databases/mongo');
 var customService = require('./cloudObjects');
 var keyService = require('../database-connect/keyService');
@@ -21,22 +20,20 @@ module.exports = {
                Reject->Error on getMyUrl() or saving filestream or saving cloudBoostFileObject
     */
     upload: function(appId, fileStream, contentType, fileObj, accessList, isMasterKey) {
-        
+
         var deferred = q.defer();
 
         try {
             var promises = [];
-            var newFileName = '';
 
             keyService.getMyUrl().then(function(url) {
 
                 if (!fileObj._id) {
                     fileObj._id = util.getId();
                     fileObj._version = 0;
-                    newFileName = fileObj._id + fileObj.name.slice(fileObj.name.indexOf('.'), fileObj.name.length);
                     fileObj.url = url + "/file/" + appId + "/" + fileObj._id + fileObj.name.slice(fileObj.name.indexOf('.'), fileObj.name.length);
-                    
-                    
+
+
                 } else {
                     fileObj._version = fileObj._version + 1;
                 }
@@ -45,7 +42,7 @@ module.exports = {
                     promises.push(mongoService.document.saveFileStream(appId, fileStream, fileObj._id, contentType));
                     promises.push(customService.save(appId, collectionName, fileObj, accessList, isMasterKey));
                 } catch (error) {
-                    console.log(error);
+                    winston.error(error);
                 }
                 // promises.push(mongoService.document.saveFileStream(appId, fileStream, fileObj._id, contentType));
                 // promises.push(customService.save(appId, collectionName, fileObj, accessList, isMasterKey));
@@ -76,14 +73,10 @@ module.exports = {
                Reject->Error on getMyUrl() or saving filestream or saving cloudBoostFileObject
     */
     delete: function(appId, fileObj, accessList, isMasterKey) {
-        
-        var collectionName = '_File';
+
         var deferred = q.defer();
         try {
             var collectionName = "_File";
-            var fileUrl = config.fileUrl + appId + "/";
-            var filename = fileObj.url.substr(fileUrl.length, fileObj.url.length + 1);
-            
 
             var promises = [];
             promises.push(mongoService.document.deleteFileFromGridFs(appId, fileObj._id));
@@ -111,7 +104,7 @@ module.exports = {
                Reject->Error on _readFileACL() or getFile from gridFs
     */
     getFile: function(appId, filename, accessList, isMasterKey) {
-        
+
         var deferred = q.defer();
 
         try {
@@ -120,14 +113,14 @@ module.exports = {
                 _id: filename.split('.')[0]
             }, null, null, 1, 0, accessList, isMasterKey, null).then(function(file) {
                 if (file.length == 1) {
-                    
+
                     mongoService.document.getFile(appId, filename.split('.')[0]).then(function(res) {
                         deferred.resolve(res);
                     }, function(err) {
                         deferred.reject(err);
                     });
                 } else {
-                    
+
                     deferred.reject("Unauthorized");
                 }
             }, function() {

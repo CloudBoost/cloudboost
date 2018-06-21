@@ -4,18 +4,10 @@ var utilHelper = require('./helpers/util');
 // var util = require('util');
 var sessionHelper = require('./helpers/session');
 var appService = require('./services/app');
-var mung = require('express-mung');
 var uuid = require('uuid');
 var winston = require('winston');
 
 module.exports = function (app) {
-    
-    // app.use(mung.json(
-    //     function transform(body) {
-    //         console.log(body);
-    //         return body;
-    //     }
-    // ));
 
     app.use(function(req, res, next) {
         if (req.is('text/*')) {
@@ -29,24 +21,24 @@ module.exports = function (app) {
             next();
         }
     });
-    
+
     //This middleware converts text to JSON.
     app.use(function(req, res, next) {
         try {
-            
+
             if (req.text && utilHelper._isJSON(req.text)) {
                 req.body = JSON.parse(req.text);
             }
-    
+
             if (req.body && typeof(req.body) === "string" && utilHelper._isJSON(req.body)) {
                 req.body = JSON.parse(req.body);
             }
-    
+
             //INVALIDATE CACHE FOR API
             res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1.
             res.setHeader("Pragma", "no-cache"); // HTTP 1.0.
             res.setHeader("Expires", "0"); // Proxies.
-    
+
             next();
         } catch (e) {
             winston.log('error', {
@@ -57,7 +49,7 @@ module.exports = function (app) {
             next();
         }
     });
-    
+
     app.use([
         '/file/:appId',
         '/data/:appId',
@@ -66,29 +58,29 @@ module.exports = function (app) {
         ], function(req, res, next) {
         //This is the Middleware for authenticating the app access using appID and key
         //check if all the services are loaded first.
-    
+
         try {
-    
+
             if (req.text && utilHelper._isJSON(req.text)) {
                 req.body = JSON.parse(req.text);
             }
-    
+
             if (req.body && typeof(req.body) === "string" && utilHelper._isJSON(req.body)) {
                 req.body = JSON.parse(req.body);
             }
-    
+
             var requestRecvd = req.originalUrl; //this is the relative url.
             if (ignoreUrl(requestRecvd)) {
                 next();
             } else {
-    
+
                 var appKey = req.body.key || req.params.key; //key is extracted from body/url parameters
-    
+
                 var appId = req.params.appId;
                 if (!appKey) {
                     return res.status(401).send({status: 'error', message: "Key not found. You need to have your Client Key or Master Key in the body or url parameter 'key' when you make this request"});
                 } else {
-                    
+
                     //check if app is in the plan.
                     var promises = [];
                     promises.push(apiTracker.isInPlanLimit(appId));
@@ -99,40 +91,40 @@ module.exports = function (app) {
                         if (!isInPlan) {
                             //check if the appIsReleased.
                             apiTracker.log(appId, "isReleased/isReleased", "", "JavaScript", true);
-    
+
                             return res.status(402).send("Reached Plan Limit. Upgrade Plan.");
                         }
-    
+
                         if (!isAppKeyValid) {
                             return res.status(401).send("App ID or App Key is invalid.");
                         } else {
                             next();
                         }
-    
+
                     }, function(err) {
                         return res.status(500).send(err.message);
                     });
                 }
             }
-    
+
         } catch (err) {
             winston.log('error', {
                 "error": String(err),
                 "stack": new Error().stack
             });
         }
-    
+
     });
-    
+
     app.use(function(req, res, next) {
-    
+
         try {
             // Middleware for retrieving sessions
-            
+
             res.header('Access-Control-Expose-Headers', 'sessionID');
-    
+
             if (req.headers.sessionid) {
-                
+
                 res.header('sessionID', req.headers.sessionid);
                 sessionHelper.getSession(req.headers.sessionid, function(err, session) {
                     if (!err) {
@@ -145,18 +137,18 @@ module.exports = function (app) {
                     }
                 });
             } else {
-                
+
                 _setSession(req, res);
                 next();
             }
-    
+
         } catch (err) {
             winston.log('error', {
                 "error": String(err),
                 "stack": new Error().stack
             });
         }
-    
+
     });
 };
 
@@ -192,7 +184,7 @@ function ignoreUrl(requestUrl) {
 
 function _setSession(req, res) {
     try {
-        
+
         if (!req.session) {
             req.session = {};
             req.session.id = uuid.v1();

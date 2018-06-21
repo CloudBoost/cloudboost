@@ -59,16 +59,16 @@ mongoService.app = {
             var db = new Db(appId, replSet, {w: 1});
 
             if (db) {
-                
+
                 deferred.resolve(db);
             } else {
-                
+
                 winston.log("Error : Creating an app in the Storage Backend ");
                 deferred.reject("Error : Creating an app in the Storage Backend ");
             }
         } catch (e) {
-            
-            
+
+
             winston.log('error', {
                 "error": String(e),
                 "stack": new Error().stack
@@ -247,10 +247,10 @@ mongoService.collection = {
                 var collection = config.mongoClient.db(appId).collection(mongoService.collection.getId(appId, collectionName));
                 collection.createIndex(obj, function(err, res) {
                     if (err) {
-                        
+
                         deferred.reject(err);
                     } else {
-                        
+
                         deferred.resolve(res);
                     }
 
@@ -269,7 +269,7 @@ mongoService.collection = {
         return deferred.promise;
     },
 
-    deleteAndCreateTextIndexes: function(appId, collectionName, oldColumns, schema) {
+    deleteAndCreateTextIndexes: function(appId, collectionName) {
         var deferred = q.defer();
 
         try {
@@ -286,10 +286,10 @@ mongoService.collection = {
             }, function(err, res) {
                 if (err) {
                     winston.log('error', err);
-                    
+
                     deferred.reject(err);
                 } else {
-                    
+
                     deferred.resolve(res);
                 }
 
@@ -317,10 +317,10 @@ mongoService.collection = {
             var collection = config.mongoClient.db(appId).collection(mongoService.collection.getId(appId, collectionName));
             collection.indexInformation(function(err, res) {
                 if (err) {
-                    
+
                     deferred.resolve(null);
                 } else {
-                    
+
                     deferred.resolve(res);
                 }
             });
@@ -354,12 +354,12 @@ mongoService.collection = {
             }, function(err, result) {
                 if (err) {
                     winston.log('error', err);
-                    
-                    
+
+
                     deferred.reject(err);
                 } else {
-                    
-                    deferred.resolve();
+
+                    deferred.resolve(result);
                 }
             });
 
@@ -379,11 +379,6 @@ mongoService.collection = {
         var deferred = q.defer();
 
         try {
-            
-            
-            
-
-            var _self = mongoService;
 
             if (config.mongoDisconnected) {
                 deferred.reject("Database Not Connected");
@@ -447,8 +442,8 @@ mongoService.collection = {
         var deferred = q.defer();
 
         try {
-            
-            
+
+
 
             if (config.mongoDisconnected) {
                 deferred.reject("Database Not Connected");
@@ -461,16 +456,16 @@ mongoService.collection = {
             collection.drop(function(err, reply) {
                 if (err) {
                     if (err.message === 'ns not found') {
-                        
+
                         deferred.resolve();
                     } else {
                         winston.log('error', err);
-                        
+
                         deferred.reject(err);
                     }
                 } else {
-                    
-                    deferred.resolve();
+
+                    deferred.resolve(reply);
                 }
             });
 
@@ -491,28 +486,25 @@ mongoService.collection = {
         var deferred = q.defer();
 
         try {
-        
+
             var _self = mongoService;
 
             var collection = config.mongoClient.db(appId).collection(_self.collection.getId(appId, oldCollectionName));
 
-            collection.rename(_self.collection.getId(appId, newCollectionName), function(err, collection) {
+            collection.rename(_self.collection.getId(appId, newCollectionName), function(err, _collection) {
                 if (err) {
-
-                    
-
                     if (err.message === 'source namespace does not exist') {
                          //if oldCollectionName is not found.
                         deferred.resolve();
                     } else {
-                        
+
                         winston.log('error', err);
                         deferred.reject(err);
                     }
 
                 } else {
-                    
-                    deferred.resolve();
+
+                    deferred.resolve(_collection);
                 }
             });
 
@@ -581,8 +573,8 @@ function _dropIndex(appId, collectionName, indexString) {
             collection.dropIndex(indexString, function(err, result) {
                 if (err && err.message && err.message != 'ns not found') {
                     winston.log('error', err);
-                    
-                    
+
+
                     deferred.reject(err);
                 } else {
                     deferred.resolve(result);
@@ -616,11 +608,9 @@ function _unsetColumn(appId, collectionName, query) {
                 multi: true
             }, function(err, result) {
                 if (err) {
-                    
                     deferred.reject(err);
                 } else {
-                    
-                    deferred.resolve();
+                    deferred.resolve(result);
                 }
             });
         } else {

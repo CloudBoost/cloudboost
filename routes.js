@@ -12,9 +12,9 @@ module.exports = function (app) {
             message: "This is CloudBoost API. If you're looking for the dashboard. It should be running on port 1440."
         }));
     });
-    
+
     app.get('/getFile/:filename', function (req, res) { //for getting any file from resources/
-    
+
         res.sendFile("resources/" + req.params.filename, {
             root: __dirname
         });
@@ -37,7 +37,7 @@ module.exports = function (app) {
 
     winston.info('+++++++++++ API Status : OK ++++++++++++++++++');
 
-    app.use(function (req, res, next) {
+    app.use(function (req, res) {
         res.status(404).json({
             status: 404,
             message: 'The endpoint was not found. Please check again.'

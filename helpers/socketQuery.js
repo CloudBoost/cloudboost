@@ -1,3 +1,4 @@
+/* eslint-disable no-redeclare */
 /*
 #     CloudBoost - Core Engine that powers Bakend as a Service
 #     (c) 2014 HackerBay, Inc.
@@ -95,7 +96,7 @@ var obj = {
                                     lat2 = qVal['$geometry'].coordinates[1],
                                     lon2 = qVal['$geometry'].coordinates[0];
                                 var maxDistance = qVal['$maxDistance'];
-                                    minDistance = qVal['$minDistance'];
+                                var minDistance = qVal['$minDistance'];
                                 var distance = util.getLatLongDistance(lat1, lon1, lat2, lon2);
                                 if (!minDistance)
                                     minDistance = 0;
@@ -305,7 +306,7 @@ var obj = {
                         }
                         var a = cloudObject[temp]._id;
                         var b = query[key];
-                        if (cloudObject[temp]._id !== query[key]) {
+                        if (a !== b) {
                             return false;
                         }
                     } else {
@@ -322,5 +323,15 @@ var obj = {
         return true;
     }
 };
+
+function trimStart(character, string) {
+    var startIndex = 0;
+
+    while (string[startIndex] === character) {
+        startIndex++;
+    }
+
+    return string.substr(startIndex);
+}
 
 module.exports = obj;

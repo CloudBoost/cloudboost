@@ -3,3 +3,4 @@ test/
 sdk/
 page-templates/
 docs/
+gruntfile.js

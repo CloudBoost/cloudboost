@@ -111,7 +111,7 @@
     "test-browser": "mocha-phantomjs -p ./node_modules/phantomjs/bin/phantomjs -s webSecurityEnabled=false --ssl-protocol=any test/index.html",
     "test-node": "./node_modules/.bin/mocha --reporter spec test/test.js",
     "dev": "webpack --watch --progress",
-    "lint": "eslint . --ext .js --fix",
+    "lint": "eslint . --ext .js",
     "2npm": "publish"
   },
   "babel": {
