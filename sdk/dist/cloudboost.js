@@ -9679,13 +9679,15 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	            _CB2.default.CloudApp._isConnected = true;
 	            _confirmConnection();
-	            this.onConnect(function () {
-	                _CB2.default.CloudApp._isConnected = true;
-	                _CB2.default.CloudObject.sync();
-	            });
-	            this.onDisconnect(function () {
-	                _CB2.default.CloudApp._isConnected = false;
-	            });
+	            if (!_CB2.default._isRealtimeDisabled) {
+	                this.onConnect(function () {
+	                    _CB2.default.CloudApp._isConnected = true;
+	                    _CB2.default.CloudObject.sync();
+	                });
+	                this.onDisconnect(function () {
+	                    _CB2.default.CloudApp._isConnected = false;
+	                });
+	            }
 	        }
 	    }, {
 	        key: 'onConnect',
