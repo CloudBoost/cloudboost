@@ -8,6 +8,7 @@ var socketQueryHelper = require('../helpers/socketQuery');
 var aclHelper = require('../helpers/ACL');
 var appService = require('../services/app');
 var q = require('q');
+var winston = require('winston');
 
 module.exports = function (io) {
 
@@ -22,7 +23,7 @@ module.exports = function (io) {
                 try {
                     socket.join(data);
                 } catch (e) {
-                    global.winston.log('error', {
+                    winston.log('error', {
                         "error": String(e),
                         "stack": new Error().stack
                     });
@@ -38,7 +39,7 @@ module.exports = function (io) {
                     socket.join(data);
 
                 } catch (e) {
-                    global.winston.log('error', {
+                    winston.log('error', {
                         "error": String(e),
                         "stack": new Error().stack
                     });
@@ -49,7 +50,7 @@ module.exports = function (io) {
                 try {
                     socket.disconnect();
                 } catch (e) {
-                    global.winston.log('error', {
+                    winston.log('error', {
                         "error": String(e),
                         "stack": new Error().stack
                     });
@@ -62,7 +63,7 @@ module.exports = function (io) {
                     
                     socket.leave(data);
                 } catch (e) {
-                    global.winston.log('error', {
+                    winston.log('error', {
                         "error": String(e),
                         "stack": new Error().stack
                     });
@@ -88,7 +89,7 @@ module.exports = function (io) {
                     io.emit(data.channel, data.data);
 
                 } catch (e) {
-                    global.winston.log('error', {
+                    winston.log('error', {
                         "error": String(e),
                         "stack": new Error().stack
                     });
@@ -113,7 +114,7 @@ module.exports = function (io) {
                         socketSessionHelper.saveSession(socket.id, data.sessionId);
                     }
                 } catch (e) {
-                    global.winston.log('error', {
+                    winston.log('error', {
                         "error": String(e),
                         "stack": new Error().stack
                     });
@@ -136,7 +137,7 @@ module.exports = function (io) {
                         }
                     });
                 } catch (e) {
-                    global.winston.log('error', {
+                    winston.log('error', {
                         "error": String(e),
                         "stack": new Error().stack
                     });
@@ -147,7 +148,7 @@ module.exports = function (io) {
                 try {
                     socketSessionHelper.deleteSession(socket.id); //deletes the lnk between this socket and session.
                 } catch (e) {
-                    global.winston.log('error', {
+                    winston.log('error', {
                         "error": String(e),
                         "stack": new Error().stack
                     });
@@ -155,7 +156,7 @@ module.exports = function (io) {
             });
 
         } catch (e) {
-            global.winston.log('error', {
+            winston.log('error', {
                 "error": String(e),
                 "stack": new Error().stack
             });
@@ -198,7 +199,7 @@ module.exports = function (io) {
                 });
             }
         } catch (e) {
-            global.winston.log('error', {
+            winston.log('error', {
                 "error": String(e),
                 "stack": new Error().stack
             });
@@ -262,7 +263,7 @@ function _sendNotification(appId, document, socket, eventType) {
             });
         });
     } catch (e) {
-        global.winston.log('error', {
+        winston.log('error', {
             "error": String(e),
             "stack": new Error().stack
         });

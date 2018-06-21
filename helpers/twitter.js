@@ -8,6 +8,7 @@
 
 var q = require('q');
 var Twitter = require("node-twitter-api");
+var winston = require('winston');
 
 module.exports = {
 
@@ -36,7 +37,7 @@ module.exports = {
             });
 
 		}catch(err){                    
-            global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+            winston.log('error',{"error":String(err),"stack": new Error().stack});
             deferred.reject(err);                                                  
         }
 
@@ -68,7 +69,7 @@ module.exports = {
 
 
 		}catch(err){                    
-            global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+            winston.log('error',{"error":String(err),"stack": new Error().stack});
             deferred.reject(err);                                                  
         }
 
@@ -100,7 +101,7 @@ module.exports = {
 
 
 		}catch(err){                    
-            global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+            winston.log('error',{"error":String(err),"stack": new Error().stack});
             deferred.reject(err);                                                  
         }
 

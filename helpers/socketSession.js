@@ -6,6 +6,7 @@
 */
 var sessionHelper = require('../helpers/session');
 var config = require('../config/config');
+var winston = require('winston');
 
 module.exports = {
     
@@ -28,7 +29,7 @@ module.exports = {
             });
 
         }catch(err){                    
-            global.winston.log('error',{"error":String(err),"stack": new Error().stack});                                                            
+            winston.log('error',{"error":String(err),"stack": new Error().stack});                                                            
         }
     },
     
@@ -43,7 +44,7 @@ module.exports = {
                     callback(err, reply);
             });
         }catch(err){                    
-            global.winston.log('error',{"error":String(err),"stack": new Error().stack});                                                            
+            winston.log('error',{"error":String(err),"stack": new Error().stack});                                                            
         }
         
     },
@@ -55,7 +56,7 @@ module.exports = {
                     callback(err, reply);
             });
         }catch(err){                    
-            global.winston.log('error',{"error":String(err),"stack": new Error().stack});                                                            
+            winston.log('error',{"error":String(err),"stack": new Error().stack});                                                            
         }
     },
 

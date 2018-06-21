@@ -9,6 +9,7 @@ var q = require('q');
 var mongoUtil = require('../services/mongo');
 var fileService = require('../services/cloudFiles');
 var config = require('../config/config');
+var winston = require('winston');
 
 var CronJob = require('cron').CronJob;
 var job= new CronJob('00 00 22 * * *', function(){
@@ -54,7 +55,7 @@ var job= new CronJob('00 00 22 * * *', function(){
         });        
 
     } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack});               
+        winston.log('error',{"error":String(err),"stack": new Error().stack});               
     }
 },
 
@@ -81,7 +82,7 @@ function removeFiles(appId,curr) {
 
         });
     } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack});               
+        winston.log('error',{"error":String(err),"stack": new Error().stack});               
     }
 }
 
@@ -94,7 +95,7 @@ function mongodb(appId,collectionName,curr){
             
         });
     } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack});               
+        winston.log('error',{"error":String(err),"stack": new Error().stack});               
     }
 }
 
@@ -121,7 +122,7 @@ function _getDatabases(){
         });
 
     } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack});               
+        winston.log('error',{"error":String(err),"stack": new Error().stack});               
     }
 
     return deferred.promise;

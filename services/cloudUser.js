@@ -16,6 +16,7 @@ var mongoService = require('../databases/mongo');
 var customService = require('../services/cloudObjects');
 var appService = require('../services/app');
 var mailService = require('../services/mail');
+var winston = require('winston');
 
 var userService = {
 		
@@ -79,7 +80,7 @@ var userService = {
 			});
 
 		} catch(err){           
-			global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+			winston.log('error',{"error":String(err),"stack": new Error().stack});
 			deferred.reject(err);
 		}
 
@@ -122,7 +123,7 @@ var userService = {
 			});
 
 		} catch(err){           
-			global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+			winston.log('error',{"error":String(err),"stack": new Error().stack});
 			deferred.reject(err);
 		}
 
@@ -165,7 +166,7 @@ var userService = {
 			});
 
 		} catch(err){           
-			global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+			winston.log('error',{"error":String(err),"stack": new Error().stack});
 			deferred.reject(err);
 		}
 		
@@ -207,7 +208,7 @@ var userService = {
 			});
 
 		} catch(err){           
-			global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+			winston.log('error',{"error":String(err),"stack": new Error().stack});
 			deferred.reject(err);
 		}
 		return deferred.promise;
@@ -271,7 +272,7 @@ var userService = {
 			});
 
 		} catch(err){           
-			global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+			winston.log('error',{"error":String(err),"stack": new Error().stack});
 			deferred.reject(err);
 		}
 		return deferred.promise;
@@ -315,7 +316,7 @@ var userService = {
 			});
 
 		} catch(err){           
-			global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+			winston.log('error',{"error":String(err),"stack": new Error().stack});
 			deferred.reject(err);
 		}
 		return deferred.promise;
@@ -393,7 +394,7 @@ var userService = {
 			});
 
 		} catch(err){           
-			global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+			winston.log('error',{"error":String(err),"stack": new Error().stack});
 			deferred.reject(err);
 		}
 		return deferred.promise;
@@ -459,7 +460,7 @@ var userService = {
 			});
 
 		} catch(err){           
-			global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+			winston.log('error',{"error":String(err),"stack": new Error().stack});
 			deferred.reject(err);
 		}
 		return deferred.promise;

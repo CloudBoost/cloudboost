@@ -5,6 +5,7 @@
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
+var winston = require('winston');
 
 module.exports = function(){
 
@@ -18,7 +19,7 @@ module.exports = function(){
                 return types;
 
             }catch(err){                    
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack});                                                  
+                winston.log('error',{"error":String(err),"stack": new Error().stack});                                                  
             }
         },
 
@@ -33,7 +34,7 @@ module.exports = function(){
                 return false;
 
             }catch(err){                    
-                global.winston.log('error',{"error":String(err),"stack": new Error().stack});                                                  
+                winston.log('error',{"error":String(err),"stack": new Error().stack});                                                  
             }
         }
     };

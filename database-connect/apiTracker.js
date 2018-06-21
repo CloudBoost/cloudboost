@@ -10,6 +10,7 @@ var request = require('request');
 
 var obj = {};
 var config = require('../config/config');
+var winston = require('winston');
 
 obj.log = function(appId, actionName, url,sdk, checkReleaseRequest){   
 
@@ -55,7 +56,7 @@ obj.log = function(appId, actionName, url,sdk, checkReleaseRequest){
                         });
                     }
                 }catch(e){
-                    global.winston.log('error',{"error":String(e),"stack": new Error().stack});
+                    winston.log('error',{"error":String(e),"stack": new Error().stack});
                     obj.releaseApp(body.appId).then(function(){
                         
                     }, function(error){
@@ -69,7 +70,7 @@ obj.log = function(appId, actionName, url,sdk, checkReleaseRequest){
         
         });  
     } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack});               
+        winston.log('error',{"error":String(err),"stack": new Error().stack});               
     }      
 };
 
@@ -98,7 +99,7 @@ try{
      });
 
 } catch(err){           
-    global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
+    winston.log('error',{"error":String(err),"stack": new Error().stack}); 
     deferred.reject(err);              
 } 
    
@@ -118,7 +119,7 @@ try{
         deferred.resolve();
    });
 } catch(err){           
-    global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
+    winston.log('error',{"error":String(err),"stack": new Error().stack}); 
     deferred.reject(err);              
 }  
    
@@ -138,7 +139,7 @@ try{
     });
 
 } catch(err){           
-    global.winston.log('error',{"error":String(err),"stack": new Error().stack}); 
+    winston.log('error',{"error":String(err),"stack": new Error().stack}); 
     deferred.reject(err);              
 }           
 return deferred.promise;

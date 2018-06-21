@@ -8,6 +8,7 @@ var q = require('q');
 var uuid = require('node-uuid');
 
 var config = require('../config/config');
+var winston = require('winston');
 
 //This file manages encryption keys, Host URL, etc etc. 
 module.exports = {
@@ -88,7 +89,7 @@ module.exports = {
 		} catch (e) {
 
 
-			global.winston.log('error', {
+			winston.log('error', {
 				"error": String(e),
 				"stack": new Error().stack
 			});
@@ -170,7 +171,7 @@ module.exports = {
 
 			return deferred.promise;
 		} catch (e) {
-			global.winston.log('error', {
+			winston.log('error', {
 				"error": String(e),
 				"stack": new Error().stack
 			});
@@ -217,7 +218,7 @@ module.exports = {
 			}
 
 		} catch (e) {
-			global.winston.log('error', {
+			winston.log('error', {
 				"error": String(e),
 				"stack": new Error().stack
 			});
@@ -263,7 +264,7 @@ module.exports = {
 			});
 
 		} catch (e) {
-			global.winston.log('error', {
+			winston.log('error', {
 				"error": String(e),
 				"stack": new Error().stack
 			});

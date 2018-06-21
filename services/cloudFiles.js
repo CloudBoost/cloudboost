@@ -11,6 +11,7 @@ var config = require('../config/config');
 var mongoService = require('../databases/mongo');
 var customService = require('./cloudObjects');
 var keyService = require('../database-connect/keyService');
+var winston = require('winston');
 
 module.exports = {
     /*Desc   : Save FileStream & CloudBoostFileObject
@@ -58,7 +59,7 @@ module.exports = {
             });
 
         } catch (err) {
-            global.winston.log('error', {
+            winston.log('error', {
                 "error": String(err),
                 "stack": new Error().stack
             });
@@ -94,7 +95,7 @@ module.exports = {
             });
 
         } catch (err) {
-            global.winston.log('error', {
+            winston.log('error', {
                 "error": String(err),
                 "stack": new Error().stack
             });
@@ -134,7 +135,7 @@ module.exports = {
             });
 
         } catch (err) {
-            global.winston.log('error', {
+            winston.log('error', {
                 "error": String(err),
                 "stack": new Error().stack
             });
@@ -152,7 +153,7 @@ module.exports = {
                 deferred.reject(err);
             });
         } catch (err) {
-            global.winston.log('error', {
+            winston.log('error', {
                 "error": String(err),
                 "stack": new Error().stack
             });
@@ -215,7 +216,7 @@ function _processImage(appId, fileName, resizeWidth, resizeHeight, cropX, cropY,
         });
 
     } catch (err) {
-        global.winston.log('error', {
+        winston.log('error', {
             "error": String(err),
             "stack": new Error().stack
         });

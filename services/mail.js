@@ -13,6 +13,7 @@ var fs = require("fs");
 var appService = require('../services/app');
 var keyService = require('../database-connect/keyService');
 var q = require('q');
+var winston = require('winston');
 
 var mail = {}; 
 
@@ -83,7 +84,7 @@ mail.sendResetPasswordMail = function(appId, email, user, passwordResetKey){
         });    
 
     } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+        winston.log('error',{"error":String(err),"stack": new Error().stack});
         deferred.reject(err);
     }
 
@@ -169,7 +170,7 @@ mail.sendSignupMail = function(appId, user, activateKey){
         });     
 
     } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+        winston.log('error',{"error":String(err),"stack": new Error().stack});
         deferred.reject(err);
     }
 
@@ -223,7 +224,7 @@ mail.emailCampaign = function(appId,userEmail,emailBody,emailSubject){
         });     
 
     } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+        winston.log('error',{"error":String(err),"stack": new Error().stack});
         deferred.reject(err);
     }
 
@@ -279,7 +280,7 @@ function _mandrill(emailSettings){
         });
 
     } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+        winston.log('error',{"error":String(err),"stack": new Error().stack});
         deferred.reject(err);
     } 
 
@@ -323,7 +324,7 @@ function _mailGun(emailSettings){
         });
 
     } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+        winston.log('error',{"error":String(err),"stack": new Error().stack});
         deferred.reject(err);
     }
 
@@ -390,7 +391,7 @@ function _getEmailSettings(settings,returnDefault){
         }
 
     } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+        winston.log('error',{"error":String(err),"stack": new Error().stack});
         deferred.reject(err);
     }
 
@@ -439,7 +440,7 @@ function _getEmailTemplate(settings,templateName){
         } 
 
     } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+        winston.log('error',{"error":String(err),"stack": new Error().stack});
         deferred.reject(err);
     }
 
@@ -465,7 +466,7 @@ function _getTemplateByName(templateName){
         });
 
     } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+        winston.log('error',{"error":String(err),"stack": new Error().stack});
         deferred.reject(err);
     }
 
@@ -515,7 +516,7 @@ function _mergeVariablesInTemplate(template, variableArray){
         });       
 
     } catch(err){           
-        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+        winston.log('error',{"error":String(err),"stack": new Error().stack});
         deferred.reject(err);
     }  
 

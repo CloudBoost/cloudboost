@@ -8,6 +8,7 @@
 var q = require('q');
 var oauth = require("oauth").OAuth2;
 var github = require('octonode');
+var winston = require('winston');
 
 module.exports = {
 
@@ -30,7 +31,7 @@ module.exports = {
 
 
 		}catch(err){                    
-            global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+            winston.log('error',{"error":String(err),"stack": new Error().stack});
             deferred.reject(err);                                                  
         }
 
@@ -56,7 +57,7 @@ module.exports = {
             }); 
 
         }catch(err){                    
-            global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+            winston.log('error',{"error":String(err),"stack": new Error().stack});
             deferred.reject(err);                                                  
         }
 
@@ -80,7 +81,7 @@ module.exports = {
             });            
 
         }catch(err){                    
-            global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+            winston.log('error',{"error":String(err),"stack": new Error().stack});
             deferred.reject(err);                                                  
         }
 
