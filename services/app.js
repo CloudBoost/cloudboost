@@ -508,7 +508,7 @@ module.exports = {
                         // for app level check in app settings , for table level check in table schema
                         if (level === 'table') {
                             if (table) {
-                                deferred.resolve(!!table.isEditableByClientKey)
+                                deferred.resolve(!!table.isEditableByClientKey);
                             } else
                                 deferred.resolve(false);
                         }
@@ -520,7 +520,7 @@ module.exports = {
                                         return x.category === 'general';
                                     }));
                                     if (generalSetting[0]) {
-                                        deferred.resolve(!!generalSetting[0].settings.isTableEditableByClientKey)
+                                        deferred.resolve(!!generalSetting[0].settings.isTableEditableByClientKey);
                                     } else
                                         deferred.resolve(false);
                                 }
@@ -892,7 +892,7 @@ module.exports = {
             };
 
             // var newClientkey = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), config.secureKey, 100, 16).toString("base64");
-            var newClientkey = _generateKey()
+            var newClientkey = _generateKey();
             if (value) {
                 newClientkey = value;
             }
@@ -1243,7 +1243,7 @@ function _updateColumnNameOfOldRecords(tableName, appId, renameColumnObject) {
     var collection = config.mongoClient.db(appId).collection(tableName);
     collection.updateMany({}, { $rename: renameColumnObject }, function (err, doc) {
         if (err)
-            deferred.reject()
+            deferred.reject();
         else
             deferred.resolve();
     });
@@ -1591,7 +1591,7 @@ function _checkValidDataType(columns, deafultDataType, tableType) {
 }
 
 function _getColumnsToDelete(oldColumns, newColumns) {
-    var deferred = q.defer()
+    var deferred = q.defer();
     try {
         var originalColumns = oldColumns;
 

@@ -5,9 +5,5 @@
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
-var customHelper = require('../../helpers/custom.js');
 
-module.exports = function () {
-
-
-};
+module.exports = function () {};

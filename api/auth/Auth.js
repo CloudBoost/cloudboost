@@ -9,7 +9,6 @@
 
 var q = require("q");
 var _ = require('underscore');
-var request = require('request');
 var uuid = require('uuid');
 
 var customHelper = require('../../helpers/custom.js');

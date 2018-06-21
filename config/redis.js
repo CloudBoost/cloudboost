@@ -15,7 +15,7 @@ function constructUrl (io) {
 
         //Set up Redis.
         if (!config.redis && !process.env["REDIS_1_PORT_6379_TCP_ADDR"] && !process.env["REDIS_SENTINEL_SERVICE_HOST"] && !process.env["REDIS_PORT_6379_TCP_ADDR"]) {
-            console.error("FATAL : Redis Cluster Not found. Use docker-compose from https://github.com/cloudboost/docker or Kubernetes from https://github.com/cloudboost/kubernetes");
+            winston.error("FATAL : Redis Cluster Not found. Use docker-compose from https://github.com/cloudboost/docker or Kubernetes from https://github.com/cloudboost/kubernetes");
         }
 
         var hosts = [];
@@ -48,9 +48,9 @@ function constructUrl (io) {
 
                 if (process.env["KUBERNETES_STATEFUL_REDIS_URL"]) {
 
-                    console.log('REDIS running on kube cluster');
+                    winston.info('REDIS running on kube cluster');
 
-                    process.env["KUBERNETES_STATEFUL_REDIS_URL"].split(',').map(function (x, i) {
+                    process.env["KUBERNETES_STATEFUL_REDIS_URL"].split(',').map(function (x) {
                         hosts.push({
                             host: x.split(':')[0],
                             port: x.split(':')[1],

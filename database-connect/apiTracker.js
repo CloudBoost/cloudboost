@@ -14,8 +14,7 @@ var winston = require('winston');
 
 obj.log = function(appId, actionName, url,sdk, checkReleaseRequest){   
 
-    try{  
-        var url = null;
+    try {
         if(checkReleaseRequest){
             url= config.analyticsUrl+"/app/isReleased";
         }else{

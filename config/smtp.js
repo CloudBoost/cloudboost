@@ -4,4 +4,4 @@ module.exports = {
   "domain"    : process.env["DOMAIN"],
   "fromEmail" : process.env["FROM_EMAIL"],
   "fromName"  : process.env["FROM_NAME"] 
-}
+};

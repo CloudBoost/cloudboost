@@ -32,7 +32,7 @@ var obj = {
      */
     setData: function(socketId, data, callback) {
         try {
-            data = data || {}
+            data = data || {};
             config.redisClient.set('cb-socket-' + socketId + '-data' + data.eventType, JSON.stringify(data), function(err, reply) {
                 if (callback)
                     callback(err, reply);
@@ -96,7 +96,7 @@ var obj = {
                                     lon2 = qVal['$geometry'].coordinates[0];
                                 var maxDistance = qVal['$maxDistance'];
                                     minDistance = qVal['$minDistance'];
-                                var distance = util.getLatLongDistance(lat1, lon1, lat2, lon2)
+                                var distance = util.getLatLongDistance(lat1, lon1, lat2, lon2);
                                 if (!minDistance)
                                     minDistance = 0;
                                 if (!maxDistance)

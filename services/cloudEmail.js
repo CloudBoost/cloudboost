@@ -25,13 +25,13 @@ var emailService =  {
 					deferred.resolve(data);
 				}, function (err) {
 					deferred.reject(err);
-				})
+				});
 			} else {
 				deferred.reject("No users found");
 			}
 		}, function (err) {
 			deferred.reject(err);
-		})
+		});
 		return deferred.promise;
 	}
 

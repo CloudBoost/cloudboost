@@ -66,7 +66,7 @@ module.exports = {
             } else if (exportType === 'json') {
                 deferred.resolve(tables);
             } else {
-                deferred.reject('Invalid exportType ,exportType should be csv,xls,xlsx,json')
+                deferred.reject('Invalid exportType ,exportType should be csv,xls,xlsx,json');
             }
         }, function (err) {
             deferred.reject(err);

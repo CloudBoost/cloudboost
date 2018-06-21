@@ -60,7 +60,7 @@ function notifyOnSlack(integrationSettings, document, appName) {
         case "Login":
             if (integrationSettings["Login"] && integrationSettings["Login"].notify === true) {
                 title = "Login";
-                text = "A user just logged in to " + appName + " application"
+                text = "A user just logged in to " + appName + " application";
                 color = "#36a64f";
                 channel = integrationSettings["Login"].channel_name;
             }
@@ -68,7 +68,7 @@ function notifyOnSlack(integrationSettings, document, appName) {
         case "Signup":
             if (integrationSettings["Signup"] && integrationSettings["Signup"].notify === true) {
                 title = "Sign Up";
-                text = "A new user just signed up for your " + appName + " application"
+                text = "A new user just signed up for your " + appName + " application";
                 color = "#5CACEE";
                 channel = integrationSettings["Signup"].channel_name;
             }
@@ -130,20 +130,20 @@ function notifyOnZapier(integrationSettings, document, collection_name, table_ev
         var headers = {
             'User-Agent':       'Super Agent/0.0.1',
             'Content-Type':     'application/json'
-        }
+        };
 
         var options = {
             url: zapier_webhook,
             method: 'POST',
             headers: headers,
             json: document
-        }
+        };
 
         request(options, function (error, response, body) {
             if (!error && response.statusCode == 200) {
                 
             }
-        })
+        });
     }
 }
 

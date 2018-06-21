@@ -78,7 +78,7 @@ mongoService.app = {
 
         return deferred.promise;
     }
-}
+};
 
 mongoService.document = {
 

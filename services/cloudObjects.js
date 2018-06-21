@@ -415,7 +415,7 @@ function _sendNotification(appId, res, reqType) {
 
 function _isSchemaValid (appId, collectionName, document, accessList, isMasterKey, encryption_key) {
     var mainPromise = q.defer();
-    var columnNotFound = false
+    var columnNotFound = false;
 
     try {
         var promises = [];
@@ -425,7 +425,7 @@ function _isSchemaValid (appId, collectionName, document, accessList, isMasterKe
         }
         var modifiedDocuments = document._modifiedColumns;
         tableService.getSchema(appId, collectionName).then(function(table) {
-            var columns = table.columns
+            var columns = table.columns;
             //check for required.
             if (!document['_tableName'] || !document['_type']) {
                 mainPromise.reject('Not a type of table');
@@ -439,9 +439,9 @@ function _isSchemaValid (appId, collectionName, document, accessList, isMasterKe
                     //TODO :  check type for defaultValue , convert to date of type is DateTime , quick patch , fix properly later 
                     if(columns[i].dataType === 'DateTime'){
                         try{
-                            columns[i].defaultValue = new Date(columns[i].defaultValue)
+                            columns[i].defaultValue = new Date(columns[i].defaultValue);
                         } catch(e){
-                            columns[i].defaultValue = null
+                            columns[i].defaultValue = null;
                         }
                     }
                     document[columns[i].name] = columns[i].defaultValue;
@@ -539,7 +539,7 @@ function _isSchemaValid (appId, collectionName, document, accessList, isMasterKe
 
                         // if column does not exist create a new column
                         if (!col) {
-                            columnNotFound = true
+                            columnNotFound = true;
                             try {
                                 let detectedDataType = type.inferDataType(document[key]);
                                 let newCol = {
@@ -605,8 +605,8 @@ function _isSchemaValid (appId, collectionName, document, accessList, isMasterKe
                                     mainPromise.reject("Invalid data in column " + key + ". It should be of type 'CloudObject' which belongs to table '" + col.relatedTo + "'");
                                     return mainPromise.promise;
                                 } else {
-                                    document[key]._id = document[key]._id || document[key].id
-                                    delete document[key].id
+                                    document[key]._id = document[key]._id || document[key].id;
+                                    delete document[key].id;
                                 }
                                 if (!document[key]._type) {
                                     document[key]._type = _getTableType(col.relatedTo);
@@ -677,9 +677,9 @@ function _isSchemaValid (appId, collectionName, document, accessList, isMasterKe
                         createNewColumnPromise.resolve();
                         
                     }
-                })
+                });
 
-                promises.push(createNewColumnPromise.promise)
+                promises.push(createNewColumnPromise.promise);
             }
             if (promises.length > 0) {
                 //you have related documents or unique queries.
@@ -711,7 +711,7 @@ function _isSchemaValid (appId, collectionName, document, accessList, isMasterKe
 
     return mainPromise.promise;
 
-};
+}
 
 function _validateObjectId(objectId) {
     if (objectId.length === 8)
@@ -1400,7 +1400,7 @@ function _recursiveModifyQuery(query, columnNames, type, encryptionKey) {
                     try {
                         Object.keys(val).map(function(x) {
                             val[x] = new Date(val[x]);
-                        })
+                        });
                         return val;
                     } catch (e) {
                         return val;

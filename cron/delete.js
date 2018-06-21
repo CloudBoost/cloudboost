@@ -50,14 +50,7 @@ function getMessages() {
 
 function deleteFromQueue(message) {
     try {
-        global.queue.deleteMessage(config.deleteQueue, message[0].messageid, message[0].popreceipt, function (err, res) {
-            if (err) {
-
-            } else {
-
-            }
-
-        });
+        global.queue.deleteMessage(config.deleteQueue, message[0].messageid, message[0].popreceipt, function () {});
     } catch (err) {
         winston.log('error', {
             "error": String(err),

@@ -14,14 +14,12 @@ var apiTracker = require('../../database-connect/apiTracker');
 var userService = require('../../services/cloudUser');
 var appService = require('../../services/app');
 var config = require('../../config/config');
-
+var winston = require('winston');
 
 module.exports = function(app) {
     
 
-    app.get('/page/:appId/reset-password', function(req, res) {
-       
-           
+    app.get('/page/:appId/reset-password', function(req, res) {           
         var appId = req.params.appId || null;      
         var sdk = req.body.sdk || "REST";     
         
@@ -29,10 +27,7 @@ module.exports = function(app) {
         promises.push(appService.getApp(appId));
         promises.push(appService.getAllSettings(appId));        
 
-        q.all(promises).then(function(list){            
-
-            
-            
+        q.all(promises).then(function(list){
             var appKeys={};
             appKeys.appId=appId;
 
@@ -84,7 +79,7 @@ module.exports = function(app) {
         
         appService.getApp(appId).then(function (application) {
             userService.resetUserPassword(appId, username, newPassword, resetKey, customHelper.getAccessList(req), true, application.keys.encryption_key)
-            .then(function(result) {
+            .then(function() {
                 res.json({message : "Password changed successfully."});
             }, function(error) {
                 res.json(400, {
@@ -188,7 +183,10 @@ module.exports = function(app) {
                 verified:true                                   
             });
 
-        },function(error){
+        },function(err){
+            winston.error({
+                error: err
+            });
             res.render(config.rootPath+'/page-templates/user/signup-activate',{               
                 verified:false                                   
             });
