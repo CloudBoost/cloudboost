@@ -1,7 +1,6 @@
 var q = require('q');
 var apiTracker = require('./database-connect/apiTracker');
 var utilHelper = require('./helpers/util');
-// var util = require('util');
 var sessionHelper = require('./helpers/session');
 var appService = require('./services/app');
 var uuid = require('uuid');

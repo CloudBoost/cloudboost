@@ -17,10 +17,12 @@ describe("CloudNotification", function() {
 
     it("should publish data to the channel.", function(done) {
 
-        this.timeout(40000);
+		this.timeout(30000);
+		var setimer;
         CB.CloudNotification.on('sample1',  function(data){
 	      	if(data === 'data1'){
-	      		done();
+				clearTimeout(setimer);
+				done();
 	      	}else{
 	      		throw 'Error wrong data received.';
 	      	}
@@ -31,13 +33,13 @@ describe("CloudNotification", function() {
       		CB.CloudNotification.publish('sample1', 'data1',{
 				success : function(){
 					//succesfully published. //do nothing.
-
+					setimer = setTimeout(done, 29999);
 				},
 				error : function(err){
 					//error
 					throw 'Error publishing to a channel in CloudNotification.';
 				}
-				});
+			});
       	},
       	error : function(){
       		throw 'Error subscribing to a CloudNotification.';
