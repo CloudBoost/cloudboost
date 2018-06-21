@@ -12,12 +12,13 @@ before_install:
 - curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
 - chmod +x ./kubectl
 - sudo mv ./kubectl /usr/local/bin/kubectl
-- docker run --name mongo -p 27017:27017 -d mongo:3.2 
-- docker run --name redis -p 6379:6379 -d redis:3.0 
+- docker run --name mongo -p 27017:27017 -d mongo:3.2
+- docker run --name redis -p 6379:6379 -d redis:3.0
 - sleep 30s
 - docker exec $(docker ps -aqf "name=mongo") mongo _GLOBAL --eval "db.getCollection('_Settings').insertOne({secureKey:'1227d1c4-1385-4d5f-ae73-23e99f74b006',clusterKey:'1227d1c4-1385-4d5f-ae73-23e99f74b006',myURL:'http://localhost:4730'});"
 install:
 - npm install grunt-cli -g
+- npm install eslint -g
 - npm install
 - docker build -t cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER .
 - if [ "$TRAVIS_BRANCH" == "master" ]; then
@@ -26,9 +27,9 @@ install:
 - if [ "$TRAVIS_BRANCH" == "staging" ]; then
     docker build -t cloudboost/cloudboost:staging .;
   fi
-- docker run --name cloudboost 
-    -e  ANALYTICS_URL=$ANALYTICS_URL 
-    -e  ANALYTICS_KEY=$ANALYTICS_KEY 
+- docker run --name cloudboost
+    -e  ANALYTICS_URL=$ANALYTICS_URL
+    -e  ANALYTICS_KEY=$ANALYTICS_KEY
     -e  LOGGLY_TOKEN=$LOGGLY_TOKEN
     -e  LOGGLY_SUBDOMAIN=$LOGGLY_SUBDOMAIN
     -e  LOGGLY_TAGS=$LOGGLY_TAGS
@@ -41,6 +42,7 @@ install:
 - docker logs cloudboost
 - webpack
 - grunt
+- npm run lint
 - npm test
 after_success:
 - if [ "$TRAVIS_BRANCH" == "master" ]; then
