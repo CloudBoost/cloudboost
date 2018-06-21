@@ -15,6 +15,7 @@ module.exports = {
     slackChannel: process.env['SLACK_CHANNEL'],
     mongoDisconnected: false,
     port: process.env['PORT'] || 4730,
+    env: process.env['NODE_ENV'] || 'development',
     smtp: {
         provider: process.env["MAIL_PROVIDER"],
         apiKey: process.env["MAIL_PROVIDER_API_KEY"],

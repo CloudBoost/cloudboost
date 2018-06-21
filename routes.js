@@ -1,9 +1,7 @@
-
-// var pjson = require('./package.json');
 var config = require('./config/config');
 var pjson = require('./package.json');
 
-config.env = process.env.NODE_ENV || 'development';
+var winston = require('winston');
 
 module.exports = function (app) {
     app.get('/', function (req, res) {
@@ -37,7 +35,7 @@ module.exports = function (app) {
     require('./cron/expire.js');
 
 
-    console.log('+++++++++++ API Status : OK ++++++++++++++++++');
+    winston.info('+++++++++++ API Status : OK ++++++++++++++++++');
 
     app.use(function (req, res, next) {
         res.status(404).json({
@@ -46,10 +44,10 @@ module.exports = function (app) {
         });
     });
 
-    app.use(function (err, req, res, next) {
-        console.log("FATAL : Internal Server Error");
-        console.log(err);
-        console.log(config.env);
+    app.use(function (err, req, res) {
+        winston.error("FATAL : Internal Server Error");
+        winston.error(err);
+
         if(config.env === 'development'){
             res.status(500).json({
                 message: err.message,

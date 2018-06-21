@@ -6,6 +6,7 @@ var sessionHelper = require('./helpers/session');
 var appService = require('./services/app');
 var mung = require('express-mung');
 var uuid = require('uuid');
+var winston = require('winston');
 
 module.exports = function (app) {
     
@@ -48,7 +49,7 @@ module.exports = function (app) {
     
             next();
         } catch (e) {
-            global.winston.log('error', {
+            winston.log('error', {
                 "error": String(e),
                 "stack": new Error().stack
             });
@@ -115,7 +116,7 @@ module.exports = function (app) {
             }
     
         } catch (err) {
-            global.winston.log('error', {
+            winston.log('error', {
                 "error": String(err),
                 "stack": new Error().stack
             });
@@ -150,7 +151,7 @@ module.exports = function (app) {
             }
     
         } catch (err) {
-            global.winston.log('error', {
+            winston.log('error', {
                 "error": String(err),
                 "stack": new Error().stack
             });
@@ -181,7 +182,7 @@ function ignoreUrl(requestUrl) {
         return false;
 
     } catch (err) {
-        global.winston.log('error', {
+        winston.log('error', {
             "error": String(err),
             "stack": new Error().stack
         });
@@ -212,7 +213,7 @@ function _setSession(req, res) {
         var expireDays = 30; //Default
         sessionHelper.saveSession(obj, expireDays);
     } catch (err) {
-        global.winston.log('error', {
+        winston.log('error', {
             "error": String(err),
             "stack": new Error().stack
         });

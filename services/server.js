@@ -9,6 +9,7 @@ var Q = require('q');
 var request = require('request');
 
 var appConfig = require('../config/config');
+var winston = require('winston');
 
 module.exports = {
 	registerServer: function (secureKey) {
@@ -20,7 +21,7 @@ module.exports = {
 				deferred.reject(error);
 			});
 		} catch (err) {
-			global.winston.log('error', {
+			winston.log('error', {
 				"error": String(err),
 				"stack": new Error().stack
 			});
@@ -49,7 +50,7 @@ module.exports = {
 			});
 
 		} catch (err) {
-			global.winston.log('error', {
+			winston.log('error', {
 				"error": String(err),
 				"stack": new Error().stack
 			});
@@ -91,7 +92,7 @@ function _registerServerAnalytics(secureKey) {
 		});
 
 	} catch (err) {
-		global.winston.log('error', {
+		winston.log('error', {
 			"error": String(err),
 			"stack": new Error().stack
 		});
@@ -133,7 +134,7 @@ function _mongoDbStatus() {
 		});
 
 	} catch (err) {
-		global.winston.log('error', {
+		winston.log('error', {
 			"error": String(err),
 			"stack": new Error().stack
 		});
@@ -174,7 +175,7 @@ function _redisDbStatus() {
 		});
 
 	} catch (err) {
-		global.winston.log('error', {
+		winston.log('error', {
 			"error": String(err),
 			"stack": new Error().stack
 		});

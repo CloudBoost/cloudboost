@@ -6,6 +6,7 @@
 */
 var q = require('q');
 var customService = require('../services/cloudObjects');
+var winston = require('winston');
 
 var authService = {
 
@@ -88,7 +89,7 @@ var authService = {
 			});			    						
 
 		} catch(err){           
-			global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+			winston.log('error',{"error":String(err),"stack": new Error().stack});
 			deferred.reject(err);
 		}	
 

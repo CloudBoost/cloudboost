@@ -10,6 +10,7 @@ var q = require('q');
 var google = require('googleapis');
 var OAuth2Client = google.auth.OAuth2;
 var plus = google.plus('v1');
+var winston = require('winston');
 
 module.exports = {
 
@@ -32,7 +33,7 @@ module.exports = {
             deferred.resolve({loginUrl:url});
 
 		}catch(err){                    
-	        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+	        winston.log('error',{"error":String(err),"stack": new Error().stack});
 	        deferred.reject(err);                                                  
 	    }
 
@@ -60,7 +61,7 @@ module.exports = {
             });            
 
 		}catch(err){                    
-	        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+	        winston.log('error',{"error":String(err),"stack": new Error().stack});
 	        deferred.reject(err);                                                  
 	    }
 
@@ -94,7 +95,7 @@ module.exports = {
             });          
 
 		}catch(err){                    
-	        global.winston.log('error',{"error":String(err),"stack": new Error().stack});
+	        winston.log('error',{"error":String(err),"stack": new Error().stack});
 	        deferred.reject(err);                                                  
 	    }
 

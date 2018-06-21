@@ -7,6 +7,7 @@
 
 var config = require('../config/config');
 var uuid = require('uuid');
+var winston = require('winston');
 
 module.exports = {
 
@@ -34,7 +35,7 @@ module.exports = {
             });
 
         }catch(err){                    
-            global.winston.log('error',{"error":String(err),"stack": new Error().stack});                                                            
+            winston.log('error',{"error":String(err),"stack": new Error().stack});                                                            
         }
     },
     
@@ -62,7 +63,7 @@ module.exports = {
             });
 
         }catch(err){                    
-            global.winston.log('error',{"error":String(err),"stack": new Error().stack});                                                            
+            winston.log('error',{"error":String(err),"stack": new Error().stack});                                                            
         }
     }
 

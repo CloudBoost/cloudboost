@@ -2,6 +2,7 @@ var q = require('q');
 var config = require('../config/config');
 var tablesData = require('../helpers/cloudTable');
 const appService = require('./app');
+var winston = require('winston');
 
 
 module.exports = {
@@ -18,7 +19,7 @@ module.exports = {
                     findQuery.toArray(function(err, tables) {
                         var res = tables[0];
                         if (err) {
-                            global.winston.log('error', err);
+                            winston.log('error', err);
                             deferred.reject(err);
                         } else if (!res) {
 
@@ -42,7 +43,7 @@ module.exports = {
             });
 
         } catch (err) {
-            global.winston.log('error', {
+            winston.log('error', {
                 "error": String(err),
                 "stack": new Error().stack
             });

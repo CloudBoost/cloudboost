@@ -6,6 +6,8 @@ var ioRedisAdapter = require('socket.io-redis');
 
 var appConfig = require('./config');
 
+var winston = require('winston');
+
 function constructUrl (io) {
     var config = loadConfig();
 
@@ -133,7 +135,7 @@ function constructUrl (io) {
         appConfig.realTime = require('../database-connect/realTime')(io);
 
     } catch (err) {
-        global.winston.log('error', {
+        winston.log('error', {
             "error": String(err),
             "stack": new Error().stack
         });

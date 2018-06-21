@@ -5,6 +5,7 @@
 */
 var util = require('../helpers/util.js');
 var config = require('../config/config');
+var winston = require('winston');
 
 var obj = {
 
@@ -20,7 +21,7 @@ var obj = {
             });
 
         } catch (err) {
-            global.winston.log('error', {
+            winston.log('error', {
                 "error": String(err),
                 "stack": new Error().stack
             });
@@ -38,7 +39,7 @@ var obj = {
                 }
             );
         } catch (err) {
-            global.winston.log('error', {
+            winston.log('error', {
                 "error": String(err),
                 "stack": new Error().stack
             });
@@ -54,7 +55,7 @@ var obj = {
                 }
             );
         } catch (err) {
-            global.winston.log('error', {
+            winston.log('error', {
                 "error": String(err),
                 "stack": new Error().stack
             });

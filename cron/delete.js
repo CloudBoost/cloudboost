@@ -14,6 +14,7 @@ var job = new CronJob('15 * * * * *', function () {
     null, false, "America/Los_Angeles");
 
 job.start();
+var winston = require('winston');
 
 function getMessages() {
     try {
@@ -28,7 +29,7 @@ function getMessages() {
                         getMessages();
                     }, function (err) {
                         deleteFromQueue(message);
-                        global.winston.log("error", {
+                        winston.log("error", {
                             "error": String(err),
                             "stack": new Error().stack
                         });
@@ -40,7 +41,7 @@ function getMessages() {
         });
 
     } catch (err) {
-        global.winston.log('error', {
+        winston.log('error', {
             "error": String(err),
             "stack": new Error().stack
         });
@@ -58,7 +59,7 @@ function deleteFromQueue(message) {
 
         });
     } catch (err) {
-        global.winston.log('error', {
+        winston.log('error', {
             "error": String(err),
             "stack": new Error().stack
         });
@@ -85,7 +86,7 @@ function _delete(message) {
         });
 
     } catch (err) {
-        global.winston.log('error', {
+        winston.log('error', {
             "error": String(err),
             "stack": new Error().stack
         });
@@ -112,7 +113,7 @@ function _appDelete(appId, db) {
             deferred.resolve();
 
     } catch (err) {
-        global.winston.log('error', {
+        winston.log('error', {
             "error": String(err),
             "stack": new Error().stack
         });
@@ -140,7 +141,7 @@ function _tableDelete(appId, tableName, db) {
             deferred.resolve();
 
     } catch (err) {
-        global.winston.log('error', {
+        winston.log('error', {
             "error": String(err),
             "stack": new Error().stack
         });
@@ -167,7 +168,7 @@ function _columnDelete(appId, tableName, columnName, db) {
             deferred.resolve();
 
     } catch (err) {
-        global.winston.log('error', {
+        winston.log('error', {
             "error": String(err),
             "stack": new Error().stack
         });
