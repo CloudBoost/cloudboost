@@ -12,6 +12,35 @@ var customHelper = require('../../helpers/custom.js');
 var winston = require('winston');
 
 module.exports = function (app) {
+    /**
+     * @description Middleware used for zapier application auth using app ID and app secret key
+     * @param {*} req
+     * @param {Object} req.body
+     * @param {String} req.body.appId
+     * @param {String} req.body.appKey
+     * @param {*} res
+     */
+
+    app.post('/app/token', function (req, res) {
+        var appId = req.body.appId;
+        var appKey = req.body.appKey;
+
+        appService.isMasterKey(appId, appKey).then(function (isValid) {
+            if (isValid) {
+                return appService.getApp(appId).then(function (app) {
+                    return res.status(200).json({
+                        appName: app.name
+                    });
+                }, function () {
+                    return res.status(401).send('App not found');
+                });
+            } else {
+                return res.status(401).send('Invalid access keys provided');
+            }
+        },  function () {
+            return res.status(401).send('Invalid keys');
+        });
+    });
 
     //create a new app.
     app.post('/app/:appId', function (req, res) {
@@ -194,6 +223,8 @@ module.exports = function (app) {
     //get a table.
     app.post('/app/:appId/:tableName', _getTable);
     app.get('/app/:appId/:tableName', _getTable);
+
+    // global.app.get('/app/:appId/:tableName', _getColumn);
 
     function _getTable(req, res) {
         var appId = req.params.appId;
