@@ -47,7 +47,9 @@ after_success:
 - if [ "$TRAVIS_BRANCH" == "master" ]; then
     docker login --username $DOCKERUSERNAME --password $DOCKERPASSWORD;
     docker push cloudboost/cloudboost:staging;
+    echo 'Now about to clone kube-cred';
     git clone https://github.com/CloudBoost/kube-cred.git;
+    echo 'Now about to clone kube-cred';
     cd kube-cred;
     openssl enc -in config.enc -out config -d -aes256 -k $KUBE_ENC;
     mkdir ~/.kube;
