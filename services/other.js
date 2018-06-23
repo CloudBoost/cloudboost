@@ -1,7 +1,6 @@
 
 var q = require('q');
 var json2csv = require('json2csv');
-var jsonXlsxWriteFile = require('icg-json-to-xlsx');
 var fs = require('fs');
 var path = require('path');
 
@@ -12,21 +11,6 @@ var fileService = require('./cloudFiles');
 var importHelpers = require('./importHelpers');
 var mongoService = require('../databases/mongo');
 var appService = require('./app');
-
-
-function convertObjectToString(arr) {
-    for (let j in arr) {
-        let data = arr[j];
-        for (let i in data) {
-            if (typeof data[i] == 'object') {
-                data[i] = JSON.stringify(data[i]);
-            }
-
-        }
-    }
-    return arr;
-
-}
 
 module.exports = {
      exportTable: function (appId, tableName, exportType, isMasterKey, accessList) {
@@ -49,8 +33,6 @@ module.exports = {
             } else if (exportType === 'xlsx' || exportType === 'xls') {
                 var random = util.getId();
                 var fileName = '/tmp/tempfile' + random + '.xlsx';
-                var converted = convertObjectToString(tables);
-                var outputFile = jsonXlsxWriteFile.writeFile(fileName, converted);
 
                 fs.readFile(fileName, function read(err, data) {
                     if (err) {
@@ -66,7 +48,7 @@ module.exports = {
             } else if (exportType === 'json') {
                 deferred.resolve(tables);
             } else {
-                deferred.reject('Invalid exportType ,exportType should be csv,xls,xlsx,json')
+                deferred.reject('Invalid exportType ,exportType should be csv,xls,xlsx,json');
             }
         }, function (err) {
             deferred.reject(err);
@@ -113,16 +95,13 @@ module.exports = {
                                     var authorizationLevel = table ? 'table' : 'app';
                                     appService.isClientAuthorized(appId, appKey, authorizationLevel, table).then(function (isAuthorized) {
                                         if (isAuthorized) {
-                                            appService.upsertTable(appId, tableName, schema.data.columns, schema.data).then(function (table) {
+                                            appService.upsertTable(appId, tableName, schema.data.columns, schema.data).then(function () {
                                                 customService.save(appId, tableName, document, customHelper.getAccessList(req), isMasterKey).then(function (result) {
                                                     deferred.resolve(result);
                                                 }, function (error) {
-                                                    
-                                                    
                                                     deferred.reject(error);
                                                 });
                                             }, function (err) {
-                                                
                                                 return deferred.reject(err);
                                             });
                                         } else return deferred.reject({ status: 'Unauthorized' });
@@ -134,8 +113,8 @@ module.exports = {
                                     return deferred.reject(err);
                                 });
                             }, function (err) {
-                                
-                                
+
+
                                 deferred.reject(err);
                             });
 

@@ -60,8 +60,8 @@ var importHelpers =  {
                             }
                         };
                 } catch (err) {
-                    
-                    
+
+
                     json.ACL = {
                         "read": {
                             "allow": {
@@ -106,7 +106,6 @@ var importHelpers =  {
 
     importXLSFile: function (fileStream, table) {
         var deferred = q.defer();
-        var csvJson = [];
         var tableName = table.replace(/\s/g, '');
         var xslJsonObj = [];
         var workSheetsFromBuffer;
@@ -123,7 +122,7 @@ var importHelpers =  {
                         if (x !== "A CL" && x !== "ACL" && x !== "A C L") {
                             x = x.charAt(0).toLowerCase() + x.slice(1);
                         }
-                        headers.push(x.replace(/\s/g, ''))
+                        headers.push(x.replace(/\s/g, ''));
                     });
                     for (var i = 1; i < element.data.length; i++) {
                         var obj = {};
@@ -134,7 +133,7 @@ var importHelpers =  {
                                         try {
                                             obj['ACL'] = JSON.parse(element.data[i][j]);
                                         } catch (err) {
-                                            
+
                                             obj['ACL'] = {
                                                 "read": {
                                                     "allow": {
@@ -201,8 +200,8 @@ var importHelpers =  {
                             };
                             obj.expires ? obj.expires : obj.expires = null;
                             if (obj._id) {
-                                delete obj._id
-                            };
+                                delete obj._id;
+                            }
                             obj._id = util.getId();
                             obj.updatedAt ? obj.updatedAt : obj.updatedAt = "";
                             obj._version ? obj._version : obj._version = "1";
@@ -219,8 +218,6 @@ var importHelpers =  {
                 });
                 deferred.resolve(xslJsonObj);
             } catch (err) {
-                
-                
                 deferred.reject(err);
             }
         });
@@ -298,12 +295,12 @@ var importHelpers =  {
                     }
                     deferred.resolve(jSON.data);
                 } catch (error) {
-                    
+
                     deferred.reject(error);
                 }
             } catch (err) {
-                
-                
+
+
                 deferred.reject(err);
             }
 
@@ -315,7 +312,7 @@ var importHelpers =  {
         return deferred.promise;
     },
 
-    generateSchema: function (document, importType) {
+    generateSchema: function (document) {
         var tableHeaders = [];
         var nonTHeaders = [];
         var masterArray = [];
@@ -471,10 +468,10 @@ var importHelpers =  {
             if (verifyRequiredCols(schema, document)) {
                 deferred.resolve({ data: { columns: schema } });
             } else {
-                deferred.reject("Required Data Missing")
+                deferred.reject("Required Data Missing");
             }
         } else {
-            deferred.reject("Schema not present")
+            deferred.reject("Schema not present");
         }
 
         return deferred.promise;
@@ -507,13 +504,13 @@ function detectDataType(data, colProp) {
     if (isJson(data)) {
         try {
             data = JSON.parse(data);
-        } catch (e) {
-            
-        }
+            //eslint-disable-next-line
+        } catch (e) {}
     }
     if (colProp == "relatedTo") {
         data = data[0];
     }
+    var type;
     if (data == "true" || data == "false" || data == true || data == false) {
         type = "Boolean";
     } else if (!isNaN(data) && typeof data == "number") {
@@ -521,9 +518,9 @@ function detectDataType(data, colProp) {
     } else if (isUrl(data) && !(data instanceof Array)) {
         type = "URL";
     } else if (validateEmail(data) && !(data instanceof Array)) {
-        type = "Email"
+        type = "Email";
     } else if (new Date(data).toString() != "Invalid Date") {
-        type = "DateTime"
+        type = "DateTime";
     } else if (data instanceof Array) {
         type = "List";
     } else if (isJson(data) || typeof data == "object") {
@@ -533,7 +530,7 @@ function detectDataType(data, colProp) {
             } else if (data._type == "point") {
                 type = "GeoPoint";
             } else if (data._tableName) {
-                type = data._tableName
+                type = data._tableName;
             }
         } else {
             type = "Object";
@@ -560,7 +557,7 @@ function validateData(tableHeaders, nonTHeaders, document) {
     document.map(function (data) {
         tableHeaders.map(function (header) {
             if (isEmpty(data[header.colName])) {
-                emptyDataValidation(data, header)
+                emptyDataValidation(data, header);
             } else {
                 dataValidation(data, header);
             }
@@ -574,7 +571,7 @@ function validateData(tableHeaders, nonTHeaders, document) {
 }
 
 function isUrl(s) {
-    var regexp = /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/
+    var regexp = /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/;
     return regexp.test(s);
 }
 

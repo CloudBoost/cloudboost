@@ -1,18 +1,17 @@
 ﻿
 /*
 #     CloudBoost - Core Engine that powers Bakend as a Service
-#     (c) 2014 HackerBay, Inc. 
+#     (c) 2014 HackerBay, Inc.
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
 var config = require('../config/config');
-var uuid = require('uuid');
 var winston = require('winston');
 
 module.exports = {
 
     getSession : function (sessionId, callback) {
-        
+
         try{
             config.redisClient.get(sessionId, function (err, reply) {
                 if (!err) {
@@ -27,19 +26,19 @@ module.exports = {
                     }
                 }
                 else {
-                    if (callback) { 
+                    if (callback) {
                         callback(err, null);
                     }
                 }
 
             });
 
-        }catch(err){                    
-            winston.log('error',{"error":String(err),"stack": new Error().stack});                                                            
+        }catch(err){
+            winston.log('error',{"error":String(err),"stack": new Error().stack});
         }
     },
-    
-    
+
+
     /*Saves the user session into Redis.
      * @session : Object
      *  {
@@ -50,8 +49,8 @@ module.exports = {
             email : result.email,
             roles : [string of role id's]
         };
-     * @callback : Its a simple callback. 
-     */ 
+     * @callback : Its a simple callback.
+     */
     saveSession : function (session, expireDays, callback) {
         try{
             config.redisClient.set(session.id, JSON.stringify(session), function (err, reply) {
@@ -62,8 +61,8 @@ module.exports = {
                 }
             });
 
-        }catch(err){                    
-            winston.log('error',{"error":String(err),"stack": new Error().stack});                                                            
+        }catch(err){
+            winston.log('error',{"error":String(err),"stack": new Error().stack});
         }
     }
 

@@ -16,10 +16,7 @@ module.exports = {
 		try {
 			var deferred = q.defer();
 
-			var key = null;
-
 			if (config.secureKey) {
-
 				deferred.resolve(config.secureKey);
 			} else {
 
@@ -28,13 +25,9 @@ module.exports = {
 
 				collection.find({}).toArray(function (err, docs) {
 					if (err) {
-
-
 						deferred.reject(err);
 					} else {
-
 						var key = uuid.v4(); //generate a new key.
-
 						if (docs.length >= 1) {
 							if (docs[0].secureKey) {
 								config.secureKey = docs[0].secureKey;
@@ -50,15 +43,12 @@ module.exports = {
 
 
 
-								collection.save(docs[0], function (err, doc) {
+								collection.save(docs[0], function (err) {
 									if (err) {
-
-
 										deferred.reject(err);
 									} else {
 										//resolve if not an error
 										config.secureKey = key;
-
 										deferred.resolve(key);
 									}
 								});
@@ -68,14 +58,11 @@ module.exports = {
 							var doc = {};
 							doc.secureKey = key;
 							config.secureKey = key;
-							collection.save(doc, function (err, doc) {
+							collection.save(doc, function (err) {
 								if (err) {
-
-
 									deferred.reject(err);
 								} else {
 									//resolve if not an error
-
 									deferred.resolve(key);
 								}
 							});
@@ -87,8 +74,6 @@ module.exports = {
 
 			return deferred.promise;
 		} catch (e) {
-
-
 			winston.log('error', {
 				"error": String(e),
 				"stack": new Error().stack
@@ -98,13 +83,7 @@ module.exports = {
 
 	initClusterKey: function () {
 		try {
-
-
-
-			var key = null;
-
 			if (config.secureKey) {
-
 				deferred.resolve(config.clusterKey);
 			} else {
 
@@ -115,17 +94,12 @@ module.exports = {
 
 				collection.find({}).toArray(function (err, docs) {
 					if (err) {
-
-
 						deferred.reject(err);
 					} else {
-
 						var key = uuid.v4(); //generate a new key.
-
 						if (docs.length >= 1) {
 							if (docs[0].clusterKey) {
 								config.clusterKey = docs[0].clusterKey;
-
 								deferred.resolve(config.clusterKey);
 							} else {
 
@@ -135,15 +109,12 @@ module.exports = {
 
 								docs[0]["clusterKey"] = key;
 
-								collection.save(docs[0], function (err, doc) {
+								collection.save(docs[0], function (err) {
 									if (err) {
-
-
 										deferred.reject(err);
 									} else {
 										//resolve if not an error
 										config.clusterKey = key;
-
 										deferred.resolve(key);
 									}
 								});
@@ -153,14 +124,11 @@ module.exports = {
 							var doc = {};
 							doc.clusterKey = key;
 							config.clusterKey = key;
-							collection.save(doc, function (err, doc) {
+							collection.save(doc, function (err) {
 								if (err) {
-
-
 									deferred.reject(err);
 								} else {
 									//resolve if not an error
-
 									deferred.resolve(key);
 								}
 							});
@@ -237,8 +205,6 @@ module.exports = {
 
 			collection.find({}).toArray(function (err, docs) {
 				if (err) {
-
-
 					deferred.reject(err);
 				} else {
 
@@ -246,13 +212,10 @@ module.exports = {
 
 						docs[0].myURL = url;
 
-						collection.save(docs[0], function (err, doc) {
-
+						collection.save(docs[0], function (err) {
 							if (err) {
-
 								deferred.reject("Error, cannot change the cluster URL.");
 							} else {
-
 								config.myURL = url;
 								deferred.resolve(url);
 							}

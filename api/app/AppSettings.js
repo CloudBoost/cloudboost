@@ -13,6 +13,7 @@ var apiTracker = require('../../database-connect/apiTracker');
 var mongoService = require('../../databases/mongo');
 var appService = require('../../services/app');
 var keyService = require('../../database-connect/keyService');
+var winston = require('winston');
 
 module.exports = function(app) {
 
@@ -41,13 +42,19 @@ module.exports = function(app) {
                 appService.updateSettings(appId, category, settings).then(function(settings) {
                     return res.status(200).send(settings);
                 }, function(err) {
+                    winston.error({
+                        error: err
+                    });
                     return res.status(500).send('Error');
                 });
 
             } else {
                 return res.status(401).send({status: 'Unauthorized'});
             }
-        }, function(error) {
+        }, function(err) {
+            winston.error({
+                error: err
+            });
             return res.status(500).send('Cannot retrieve security keys.');
         });
 
@@ -72,13 +79,19 @@ module.exports = function(app) {
                 appService.getAllSettings(appId).then(function(settings) {
                     return res.status(200).send(settings);
                 }, function(err) {
+                    winston.error({
+                        error: err
+                    });
                     return res.status(500).send('Error');
                 });
 
             } else {
                 return res.status(401).send({status: 'Unauthorized'});
             }
-        }, function(error) {
+        }, function(err) {
+            winston.error({
+                error: err
+            });
             return res.status(500).send('Cannot retrieve security keys.');
         });
 
@@ -94,8 +107,6 @@ module.exports = function(app) {
         5.Save current file to gridfs
     */
     app.put('/settings/:appId/file/:category', function(req, res) {
-
-        
 
         var appId = req.params.appId;
         var appKey = req.body.key || req.params.key;
@@ -125,7 +136,7 @@ module.exports = function(app) {
 
                 if (categorySettings && categorySettings.length > 0) {
 
-                    var fileName = appId;
+                    let fileName = appId;
                     //for category == general , filename is set to appId;
 
                     if (category == "push") {
@@ -147,7 +158,7 @@ module.exports = function(app) {
             //Server URI
             thisUri = resultList[3];
 
-            var fileName = util.getId();
+            let fileName = util.getId();
             if (category == "general") {
                 fileName = appId;
             }

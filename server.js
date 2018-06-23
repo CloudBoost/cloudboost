@@ -79,4 +79,4 @@ http.listen(PORT, function () {
         winston.log('error', e);
         process.exit(1);
     }
-})
+});

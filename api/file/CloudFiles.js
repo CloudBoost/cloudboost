@@ -71,18 +71,14 @@ module.exports = function(app) {
         var sdk = req.body.sdk || "REST";
         config.fileUrl = config.myURL + "/file/";
         appService.isMasterKey(appId, appKey).then(function(isMasterKey) {
-            fileService.delete(appId, fileObj, customHelper.getAccessList(req), isMasterKey).then(function(file) {
-                
+            fileService.delete(appId, fileObj, customHelper.getAccessList(req), isMasterKey).then(function() {
                 return res.status(200).send(null);
             }, function(err) {
-                
-                
                 return res.status(500).send(err);
             });
         });
 
         apiTracker.log(appId, "File / Delete", req.url, sdk);
-
     }
 
     app.get('/file/:appId/:fileId', _getFile);
@@ -90,8 +86,6 @@ module.exports = function(app) {
 };
 
 function _getFile(req, res) {
-
-    
     var appId = req.params.appId;
     var fileId = req.params.fileId;
     var appKey = req.body.key;

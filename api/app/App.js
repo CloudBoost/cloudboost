@@ -9,6 +9,7 @@ var config = require('../../config/config');
 var appService = require('../../services/app');
 var otherService = require('../../services/other');
 var customHelper = require('../../helpers/custom.js');
+var winston = require('winston');
 
 module.exports = function (app) {
     /**
@@ -45,17 +46,17 @@ module.exports = function (app) {
     app.post('/app/:appId', function (req, res) {
 
         try {
-            
+
             var appId = req.params.appId;
-            
+
             var sdk = req.body.sdk || "REST";
 
             if (config.secureKey === req.body.secureKey) {
-                
+
                 appService.createApp(appId).then(function (app) {
 
                     appService.createDefaultTables(appId).then(function () {
-                        
+
                         delete app.keys.encryption_key;
                         res.status(200).send(app);
                     }, function (err) {
@@ -65,18 +66,21 @@ module.exports = function (app) {
                     });
 
                 }, function (err) {
-
-
+                    winston.error({
+                        error: err
+                    });
                     res.status(500).send(err);
                 });
             } else {
-
                 res.status(401).send("Unauthorized");
             }
 
-    apiTracker.log(appId, "App / Create", req.url, sdk);
+            apiTracker.log(appId, "App / Create", req.url, sdk);
 
         } catch (e) {
+            winston.error({
+                error: e
+            });
             return res.status(500).json({
                 error: e
             });
@@ -95,11 +99,13 @@ module.exports = function (app) {
         var body = req.body || {};
         var deleteReason = body.deleteReason;
         if (config.secureKey === body.secureKey) {
-            
+
             //delete all code here.
             appService.deleteApp(appId, deleteReason).then(function () {
-                
-                return res.status(200).send({ status: 'Success' });
+
+                return res.status(200).send({
+                    status: 'Success'
+                });
             }, function () {
 
                 return res.status(500).send({
@@ -113,7 +119,7 @@ module.exports = function (app) {
             });
         }
 
-    apiTracker.log(appId, "App / Delete", req.url, sdk);
+        apiTracker.log(appId, "App / Delete", req.url, sdk);
 
     }
 
@@ -124,7 +130,7 @@ module.exports = function (app) {
 
         try {
             //this method is to delete a particular collection from an app.
-            
+
             var appId = req.params.appId;
             var tableName = req.params.tableName;
             var sdk = req.body.sdk || "REST";
@@ -137,7 +143,9 @@ module.exports = function (app) {
                     appService.deleteTable(appId, tableName).then(function (table) {
                         res.status(200).send(table);
                     }, function (error) {
-
+                        winston.error({
+                            error: error
+                        });
 
                         res.status(500).send('Cannot delete table at this point in time. Please try again later.');
                     });
@@ -145,7 +153,10 @@ module.exports = function (app) {
                     status: 'Unauthorized'
                 });
             }, function (error) {
-                return res.status(401).send({ status: 'Unauthorized', message: error });
+                return res.status(401).send({
+                    status: 'Unauthorized',
+                    message: error
+                });
             });
 
         } catch (e) {
@@ -154,7 +165,7 @@ module.exports = function (app) {
             return res.status(500).send('Cannot delete table.');
         }
 
-    apiTracker.log(appId, "App / Table / Delete", req.url, sdk);
+        apiTracker.log(appId, "App / Table / Delete", req.url, sdk);
     }
 
     //create a table.
@@ -195,7 +206,10 @@ module.exports = function (app) {
                         status: 'Unauthorized'
                     });
                 }, function (error) {
-                    return res.status(401).send({ status: 'Unauthorized', message: error });
+                    return res.status(401).send({
+                        status: 'Unauthorized',
+                        message: error
+                    });
                 });
 
             }, function (err) {
@@ -225,13 +239,19 @@ module.exports = function (app) {
                     appService.getAllTables(appId).then(function (tables) {
                         return res.status(200).send(tables);
                     }, function (err) {
+                        winston.error({
+                            error: err
+                        });
                         return res.status(500).send('Error');
                     });
                 } else return res.status(401).send({
                     status: 'Unauthorized'
                 });
             }, function (error) {
-                return res.status(401).send({ status: 'Unauthorized', message: error });
+                return res.status(401).send({
+                    status: 'Unauthorized',
+                    message: error
+                });
             });
 
         } else {
@@ -245,21 +265,25 @@ module.exports = function (app) {
                         status: 'Unauthorized'
                     });
                 }, function (error) {
-                    return res.status(401).send({ status: 'Unauthorized', message: error });
+                    return res.status(401).send({
+                        status: 'Unauthorized',
+                        message: error
+                    });
                 });
 
             }, function (err) {
+                winston.error({
+                    error: err
+                });
                 return res.status(500).send('Error');
             });
         }
 
-    apiTracker.log(appId, "App / Table / Get", req.url, sdk);
+        apiTracker.log(appId, "App / Table / Get", req.url, sdk);
     }
 
     //Export Database for :appID
     app.post('/backup/:appId/exportdb', function (req, res) {
-        
-        try {
             var appKey = req.body.key;
             var appId = req.params.appId;
 
@@ -273,8 +297,9 @@ module.exports = function (app) {
                         });
                         res.end(JSON.stringify(data));
                     }, function (err) {
-
-
+                        winston.error({
+                            error: err
+                        });
                         res.status(500).send("Error");
                     });
                 } else {
@@ -282,18 +307,16 @@ module.exports = function (app) {
                         status: 'Unauthorized'
                     });
                 }
-            }, function (error) {
+            }, function (err) {
+                winston.error({
+                    error: err
+                });
                 return res.status(500).send('Cannot retrieve security keys.');
             });
-        } catch (e) {
-            console.log(e);
-        }
     });
 
     //Import Database for :appID
     app.post('/backup/:appId/importdb', function (req, res) {
-        
-        try {
             var appKey = req.body.key;
             var appId = req.params.appId;
             appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
@@ -314,8 +337,9 @@ module.exports = function (app) {
                                 });
                             }
                         }, function (err) {
-
-
+                            winston.error({
+                                error: err
+                            });
                             res.status(500).send("Error");
                         });
                     }
@@ -324,12 +348,12 @@ module.exports = function (app) {
                         status: 'Unauthorized'
                     });
                 }
-            }, function (error) {
+            }, function (err) {
+                winston.error({
+                    error: err
+                });
                 return res.status(500).send('Cannot retrieve security keys.');
             });
-        } catch (e) {
-
-        }
     });
 
     //Export Table for :appID
@@ -355,27 +379,32 @@ module.exports = function (app) {
             otherService.exportTable(appId, tableName, exportType.toLowerCase(), isMasterKey, accessList).then(function (data) {
                 if (exportType.toLowerCase() === 'json') {
                     res.status(200).json(data);
-                } else { res.status(200).send(data); }
+                } else {
+                    res.status(200).send(data);
+                }
             }, function (err) {
-                
-                
+
+
                 res.status(500).send(err);
             });
-        }, function (error) {
+        }, function (err) {
+            winston.error({
+                error: err
+            });
             return res.status(500).send('Cannot retrieve security keys.');
         });
     });
 
     //Import Table for :appID
-    app.post('/import/:appId', function (req, res, next) {
-        
+    app.post('/import/:appId', function (req, res) {
+
         var appKey = req.body.key;
         var appId = req.params.appId;
         var fileId = req.body.fileId;
         var tableName = req.body.tableName;
         var fileName = req.body.fileName;
         var fileExt = path.extname(fileName);
-        
+
         if (!appKey) {
             return res.status(400).send("key is missing");
         }
@@ -392,9 +421,9 @@ module.exports = function (app) {
             return res.status(400).send(fileExt + " is not allowed");
         }
         appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
-            otherService.importTable(req, isMasterKey).then(function(result){
+            otherService.importTable(req, isMasterKey).then(function (result) {
                 return res.status(200).json(result);
-            }, function(error){
+            }, function (error) {
                 return res.status(500).send(error);
             });
         }, function () {
