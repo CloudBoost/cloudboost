@@ -32,6 +32,7 @@ module.exports = function () {
                 "stack": new Error().stack
             });
             // exit server if connection to mongo was not made
+            winston.error(e);
             process.exit(1);
         });
 
