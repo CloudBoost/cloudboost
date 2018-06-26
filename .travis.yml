@@ -43,6 +43,8 @@ install:
 - webpack
 - grunt
 - npm test
+
+after_success:
 - if [ "$TRAVIS_BRANCH" == "travis-debug" ]; then
     docker login --username $DOCKERUSERNAME --password $DOCKERPASSWORD;
     docker push cloudboost/cloudboost:staging;
@@ -60,19 +62,17 @@ install:
     kubectl rolling-update cloudboost-api-staging --image=cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER --image-pull-policy=Always;
     kubectl config use-context cb-stagingmgmt;
   fi
-
-after_success:
-# - if [ "$TRAVIS_BRANCH" == "master" ]; then
-#     docker login --username $DOCKERUSERNAME --password $DOCKERPASSWORD;
-#     docker push cloudboost/cloudboost:staging;
-#     git clone https://github.com/CloudBoost/kube-cred.git;
-#     cd kube-cred;
-#     openssl enc -in config.enc -out config -d -aes256 -k $KUBE_ENC;
-#     mkdir ~/.kube;
-#     mv config ~/.kube/;
-#     kubectl rolling-update cloudboost-api-staging --image=cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER --image-pull-policy=Always;
-#     kubectl config use-context cb-stagingmgmt;
-#   fi
+- if [ "$TRAVIS_BRANCH" == "master" ]; then
+    docker login --username $DOCKERUSERNAME --password $DOCKERPASSWORD;
+    docker push cloudboost/cloudboost:staging;
+    git clone https://github.com/CloudBoost/kube-cred.git;
+    cd kube-cred;
+    openssl enc -in config.enc -out config -d -aes256 -k $KUBE_ENC;
+    mkdir ~/.kube;
+    mv config ~/.kube/;
+    kubectl rolling-update cloudboost-api-staging --image=cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER --image-pull-policy=Always;
+    kubectl config use-context cb-stagingmgmt;
+  fi
 - if [ "$TRAVIS_BRANCH" == "release" ]; then
     docker login --username $DOCKERUSERNAME --password $DOCKERPASSWORD;
     docker push cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER;
