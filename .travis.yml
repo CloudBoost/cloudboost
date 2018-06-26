@@ -47,7 +47,7 @@ install:
 after_success:
 - if [ "$TRAVIS_BRANCH" == "travis-debug" ]; then
     docker login --username $DOCKERUSERNAME --password $DOCKERPASSWORD;
-    docker push cloudboost/cloudboost:staging;
+    docker push cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER;
   fi
 - if [ "$TRAVIS_BRANCH" == "travis-debug" ]; then
     git clone https://github.com/CloudBoost/kube-cred.git;
