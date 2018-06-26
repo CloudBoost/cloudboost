@@ -7964,9 +7964,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * @return {boolean}
 	 */
 	function isNetworkError(error) {
-	  return !error.response && Boolean(error.code) // Prevents retrying cancelled requests
-	  && error.code !== 'ECONNABORTED' // Prevents retrying timed out requests
-	  && (0, _isRetryAllowed2.default)(error); // Prevents retrying unsafe errors
+	  return !error.response && Boolean(error.code) && // Prevents retrying cancelled requests
+	  error.code !== 'ECONNABORTED' && // Prevents retrying timed out requests
+	  (0, _isRetryAllowed2.default)(error); // Prevents retrying unsafe errors
 	}
 
 	var SAFE_HTTP_METHODS = ['get', 'head', 'options'];
@@ -8153,7 +8153,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var shouldRetry = retryCondition(error) && currentState.retryCount < retries;
 
 	    if (shouldRetry) {
-	      currentState.retryCount++;
+	      currentState.retryCount += 1;
 	      var delay = retryDelay(currentState.retryCount, error);
 
 	      // Axios fails merging this configuration to the default configuration because it has an issue
@@ -8165,6 +8165,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        // Minimum 1ms timeout (passing 0 or less to XHR means no timeout)
 	        config.timeout = Math.max(config.timeout - lastRequestDuration - delay, 1);
 	      }
+
+	      config.transformRequest = [function (data) {
+	        return data;
+	      }];
 
 	      return new Promise(function (resolve) {
 	        return setTimeout(function () {
@@ -9795,15 +9799,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 73 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
-	/*!
+	var require;var require;/* WEBPACK VAR INJECTION */(function(global) {/*!
 	    localForage -- Offline Storage, Improved
-	    Version 1.7.1
+	    Version 1.7.2
 	    https://localforage.github.io/localForage
 	    (c) 2013-2017 Mozilla, Apache License 2.0
 	*/
-	(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.localforage = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw (f.code="MODULE_NOT_FOUND", f)}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+	(function(f){if(true){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.localforage = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return require(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw (f.code="MODULE_NOT_FOUND", f)}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 	(function (global){
 	'use strict';
 	var Mutation = global.MutationObserver || global.WebKitMutationObserver;
@@ -11508,7 +11512,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function tryExecuteSql(t, dbInfo, sqlStatement, args, callback, errorCallback) {
 	    t.executeSql(sqlStatement, args, callback, function (t, error) {
 	        if (error.code === error.SYNTAX_ERR) {
-	            t.executeSql('SELECT name FROM sqlite_master ' + "WHERE type='table' AND name = ?", [name], function (t, results) {
+	            t.executeSql('SELECT name FROM sqlite_master ' + "WHERE type='table' AND name = ?", [dbInfo.storeName], function (t, results) {
 	                if (!results.rows.length) {
 	                    // if the table is missing (was deleted)
 	                    // re-create it table and retry
@@ -12595,6 +12599,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	},{"3":3}]},{},[4])(4)
 	});
 
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
 /* 74 */
