@@ -1,5 +1,5 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
-version: v1.8.0
+version: v1.12.0
 ignore: {}
 # patches apply the minimum changes required to fix a vulnerability
 patch:
@@ -15,3 +15,19 @@ patch:
   'npm:request:20160119':
     - winston-bishop-slack > winston > request:
         patched: '2017-11-21T04:47:12.009Z'
+  'npm:mime:20170907':
+    - winston-bishop-slack > superagent > mime:
+        patched: '2018-06-26T02:20:06.182Z'
+    - winston-bishop-slack > superagent > form-data > mime:
+        patched: '2018-06-26T02:20:06.182Z'
+    - winston-bishop-slack > winston > request > mime:
+        patched: '2018-06-26T02:20:06.182Z'
+    - winston-bishop-slack > winston > request > form-data > mime:
+        patched: '2018-06-26T02:20:06.182Z'
+  'npm:tunnel-agent:20170305':
+    - phantomjs > request > tunnel-agent:
+        patched: '2018-06-26T02:20:06.182Z'
+    - winston-loggly > loggly > request > tunnel-agent:
+        patched: '2018-06-26T02:20:06.182Z'
+    - winston-loggly-transport > loggly > request > tunnel-agent:
+        patched: '2018-06-26T02:20:06.182Z'
