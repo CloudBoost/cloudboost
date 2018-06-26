@@ -5,7 +5,7 @@
 */
 
 //Load Env Variables for dev
-require('dotenv').config()
+require('dotenv').config();
 
 
 var fs = require('fs');
