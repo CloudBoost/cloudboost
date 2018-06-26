@@ -26,6 +26,7 @@
     "crypto": "^0.0.3",
     "csvtojson": "^1.1.7",
     "deep-equal": "^1.0.1",
+    "dotenv": "^6.0.0",
     "ejs": "^2.4.1",
     "express": "^4.13.4",
     "express-mung": "^0.5.0",

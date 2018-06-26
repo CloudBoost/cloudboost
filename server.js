@@ -4,6 +4,10 @@
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
+//Load Env Variables for dev
+require('dotenv').config()
+
+
 var fs = require('fs');
 var busboyBodyParser = require('busboy-body-parser');
 var path = require('path');
