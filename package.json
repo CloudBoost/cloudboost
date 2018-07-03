@@ -40,7 +40,7 @@
     "grunt-bumpup": "^0.6.2",
     "grunt-env": "^0.4.4",
     "icg-json-to-xlsx": "^0.2.5",
-    "ioredis": "^1.13.0",
+    "ioredis": "^2.0.0",
     "jimp": "^0.2.21",
     "jquery": "^3.0.0",
     "jsdom": "^8.0.4",
