@@ -45,7 +45,9 @@ install:
 - docker logs cloudboost
 - webpack
 - grunt
-- npm test
+- npm run lint
+- npm run test-browser
+- npm run test-node
 
 after_success:
 - echo "$DOCKERPASSWORD" | docker login -u "$DOCKERUSERNAME" --password-stdin
