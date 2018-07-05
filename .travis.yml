@@ -14,7 +14,7 @@ before_install:
 - sudo mv ./kubectl /usr/local/bin/kubectl
 - docker run --name mongo -p 27017:27017 -d mongo:3.2
 - docker run --name redis -p 6379:6379 -d redis:3.0
-- sleep 30s
+- sleep 5s
 - docker exec $(docker ps -aqf "name=mongo") mongo _GLOBAL --eval "db.getCollection('_Settings').insertOne({secureKey:'1227d1c4-1385-4d5f-ae73-23e99f74b006',clusterKey:'1227d1c4-1385-4d5f-ae73-23e99f74b006',myURL:'http://localhost:4730'});"
 install:
 - npm install grunt-cli -g
@@ -38,43 +38,28 @@ install:
     -e  FROM_EMAIL=$FROM_EMAIL
     -e  FROM_NAME=$FROM_NAME
     -p 4730:4730 -it --link redis:redis --link mongo:mongo -d cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER
-- sleep 30s
+- sleep 5s
 - docker logs cloudboost
 - webpack
 - grunt
 - npm test
 
 after_success:
-- if [ "$TRAVIS_BRANCH" == "travis-debug" ]; then
-    docker login --username $DOCKERUSERNAME --password $DOCKERPASSWORD;
-    docker push cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER;
-  fi
-- if [ "$TRAVIS_BRANCH" == "travis-debug" ]; then
-    git clone https://github.com/CloudBoost/kube-cred.git;
-    cd kube-cred;
-  fi
-- if [ "$TRAVIS_BRANCH" == "travis-debug" ]; then
-    openssl enc -in config.enc -out config -d -aes256 -k $KUBE_ENC;
-    mkdir ~/.kube;
-    mv config ~/.kube/;
-  fi
-- if [ "$TRAVIS_BRANCH" == "travis-debug" ]; then
-    kubectl rolling-update cloudboost-api-staging --image=cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER --image-pull-policy=Always;
-    kubectl config use-context cb-stagingmgmt;
-  fi
+- echo "$DOCKERPASSWORD" | docker login -u "$DOCKERUSERNAME" --password-stdin
+- docker push cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER;
 - if [ "$TRAVIS_BRANCH" == "master" ]; then
-    docker login --username $DOCKERUSERNAME --password $DOCKERPASSWORD;
+    echo "$DOCKERPASSWORD" | docker login -u "$DOCKERUSERNAME" --password-stdin
     docker push cloudboost/cloudboost:staging;
     git clone https://github.com/CloudBoost/kube-cred.git;
     cd kube-cred;
     openssl enc -in config.enc -out config -d -aes256 -k $KUBE_ENC;
     mkdir ~/.kube;
     mv config ~/.kube/;
-    kubectl rolling-update cloudboost-api-staging --image=cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER --image-pull-policy=Always;
     kubectl config use-context cb-stagingmgmt;
+    kubectl rolling-update cloudboost-api-staging --image=cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER --image-pull-policy=Always;
   fi
 - if [ "$TRAVIS_BRANCH" == "release" ]; then
-    docker login --username $DOCKERUSERNAME --password $DOCKERPASSWORD;
+    echo "$DOCKERPASSWORD" | docker login -u "$DOCKERUSERNAME" --password-stdin
     docker push cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER;
     docker push cloudboost/cloudboost:latest;
     git clone https://github.com/CloudBoost/kube-cred.git;
