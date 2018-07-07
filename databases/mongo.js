@@ -8,6 +8,9 @@
 const q = require('q');
 var _ = require('underscore');
 var Grid = require('gridfs-stream');
+//cursor.nextObject is no more included so here we replace it with cursor.next
+eval(`Grid.prototype.findOne = ${Grid.prototype.findOne.toString().replace('nextObject', 'next')}`);
+
 var config = require('../config/config');
 var winston = require('winston');
 

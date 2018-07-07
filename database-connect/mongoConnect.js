@@ -59,7 +59,8 @@ module.exports = {
         try {
             var mongoClient = require('mongodb').MongoClient;
             mongoClient.connect(config.mongoConnectionString, {
-                poolSize: 200
+                poolSize: 200,
+                useNewUrlParser:true
               }, function (err, db) {
                 if (err) {
                     deferred.reject(err);

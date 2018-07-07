@@ -114,7 +114,7 @@ function _mongoDbStatus() {
 		responseJson.success = null;
 		responseJson.error = null;
 
-		appConfig.mongoClient.command({
+		appConfig.mongoClient.db(appConfig.globalDb).command({
 			serverStatus: 1
 		}, function (err, status) {
 			if (err) {
