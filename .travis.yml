@@ -30,7 +30,7 @@ install:
 - if [ "$TRAVIS_BRANCH" == "release" ]; then
     docker build -t cloudboost/cloudboost:latest .;
   fi
-- if [ "$TRAVIS_BRANCH" == "travis-debug" ]; then
+- if [ "$TRAVIS_BRANCH" == "master" ]; then
     docker build -t cloudboost/cloudboost:staging .;
   fi
 - docker run --name cloudboost
@@ -52,7 +52,7 @@ install:
 after_success:
 - echo "$DOCKERPASSWORD" | docker login -u "$DOCKERUSERNAME" --password-stdin
 - docker push cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER
-- if [ "$TRAVIS_BRANCH" == "travis-debug" ]; then
+- if [ "$TRAVIS_BRANCH" == "master" ]; then
     echo "$DOCKERPASSWORD" | docker login -u "$DOCKERUSERNAME" --password-stdin;
     docker push cloudboost/cloudboost:staging;
     git clone https://github.com/CloudBoost/kube-cred.git;
