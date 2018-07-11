@@ -8,6 +8,9 @@
 const q = require('q');
 var _ = require('underscore');
 var Grid = require('gridfs-stream');
+//cursor.nextObject is no more included so here we replace it with cursor.next
+eval(`Grid.prototype.findOne = ${Grid.prototype.findOne.toString().replace('nextObject', 'next')}`);
+
 var config = require('../config/config');
 var winston = require('winston');
 
@@ -361,7 +364,7 @@ obj.document = {
             //delete $include and $includeList recursively
             query = _sanitizeQuery(query);
 
-            var findQuery = collection.find(query, select);
+            var findQuery = collection.find(query).project(select);
 
             if (Object.keys(sort).length > 0) {
                 findQuery = findQuery.sort(sort);
@@ -644,17 +647,22 @@ obj.document = {
                 });
             }
 
-            collection.aggregate(pipeline, function(err, res) {
+            collection.aggregate(pipeline, function(err, cursor) {
                 if (err) {
                     deferred.reject(err);
                 } else {
                     var docs = [];
-
-                    //filter out
-                    for (var i = 0; i < res.length; i++) {
-                        docs.push(res[i].document);
-                    }
-
+                    cursor.toArray(function(error, res) {
+                        if(error){
+                            winston.log('error',error);
+                            deferred.reject(error);
+                        }else{
+                        //filter out
+                            for (var i = 0; i < res.length; i++) {
+                                docs.push(res[i].document);
+                            }
+                        }
+                    });
                     //include.
                     obj.document._include(appId, include, docs).then(function(docs) {
                         docs = _deserialize(docs);
@@ -756,11 +764,13 @@ obj.document = {
                 pipeline.push({$limit: limit});
             }
 
-            collection.aggregate(pipeline, function(err, res) {
+            collection.aggregate(pipeline, function(err, cursor) {
                 if (err) {
                     deferred.reject(err);
                 } else {
-                    deferred.resolve(res);
+                    cursor.toArray(function(err, res) {
+                        (err) ? deferred.reject(err) : deferred.resolve(res); 
+                    });
                 }
             });
 
