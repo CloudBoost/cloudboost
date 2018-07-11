@@ -655,27 +655,21 @@ obj.document = {
                     cursor.toArray(function(error, res) {
                         if(error){
                             winston.log('error',error);
-                            console.log(error);
                             deferred.reject(error);
                         }else{
-                        console.log(`This is Cursor:${cursor}`);
-                        console.log(`This is Res:${res}`);
                         //filter out
                             for (var i = 0; i < res.length; i++) {
                                 docs.push(res[i].document);
                             }
                         }
                     });
-                    console.log(`This is Docs:${docs}`);
                     //include.
                     obj.document._include(appId, include, docs).then(function(docs) {
                         docs = _deserialize(docs);
                         deferred.resolve(docs);
-                        console.log(docs)
                     }, function(error) {
                         winston.log('error', error);
                         deferred.reject(error);
-                        console.log(error);
                     });
                 }
             });
@@ -685,7 +679,6 @@ obj.document = {
                 "error": String(err),
                 "stack": new Error().stack
             });
-            console.log(err);
             deferred.reject(err);
         }
         return deferred.promise;
