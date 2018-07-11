@@ -661,15 +661,15 @@ obj.document = {
                             for (var i = 0; i < res.length; i++) {
                                 docs.push(res[i].document);
                             }
+                            //include.
+                            obj.document._include(appId, include, docs).then(function (docs) {
+                                docs = _deserialize(docs);
+                                deferred.resolve(docs);
+                            }, function (error) {
+                                winston.log('error', error);
+                                deferred.reject(error);
+                            });
                         }
-                        //include.
-                        obj.document._include(appId, include, docs).then(function (docs) {
-                            docs = _deserialize(docs);
-                            deferred.resolve(docs);
-                        }, function (error) {
-                            winston.log('error', error);
-                            deferred.reject(error);
-                        });
                     });
                 }
             });
