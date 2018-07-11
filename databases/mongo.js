@@ -8,6 +8,9 @@
 const q = require('q');
 var _ = require('underscore');
 var Grid = require('gridfs-stream');
+//cursor.nextObject is no more included so here we replace it with cursor.next
+eval(`Grid.prototype.findOne = ${Grid.prototype.findOne.toString().replace('nextObject', 'next')}`);
+
 var config = require('../config/config');
 var winston = require('winston');
 
@@ -17,16 +20,16 @@ var obj = {};
 
 obj.document = {
 
-    get: function(appId, collectionName, documentId, accessList, isMasterKey) { //returns the document that matches the _id with the documentId
+    get: function (appId, collectionName, documentId, accessList, isMasterKey) { //returns the document that matches the _id with the documentId
         var _self = obj;
 
         var deferred = q.defer();
         try {
             _self.document.findOne(appId, collectionName, {
                 _id: documentId
-            }, null, null, null, accessList, isMasterKey).then(function(doc) {
+            }, null, null, null, accessList, isMasterKey).then(function (doc) {
                 deferred.resolve(doc);
-            }, function(error) {
+            }, function (error) {
                 winston.log('error', error);
                 deferred.reject(error);
             });
@@ -41,7 +44,7 @@ obj.document = {
         return deferred.promise;
     },
 
-    _include: function(appId, include, docs) {
+    _include: function (appId, include, docs) {
         //This function is for joins. :)
         var _self = obj;
         var join = [];
@@ -63,7 +66,7 @@ obj.document = {
                 //include this column and merge.
                 var idList = [];
                 var collectionName = null;
-                _.each(docs, function(doc) {
+                _.each(docs, function (doc) {
                     if (doc[columnName] != null) {
                         // checks if the doc[columnName] is an list of relations or a relation
                         if (Object.getPrototypeOf(doc[columnName]) === Object.prototype) {
@@ -98,14 +101,14 @@ obj.document = {
                 //}
             }
 
-            q.all(promises).then(function(arrayOfDocs) {
+            q.all(promises).then(function (arrayOfDocs) {
                 var pr = [];
                 var r_include = [];
                 for (var i = 0; i < join.length; i++) {
                     for (var k = 0; k < include.length; k++) {
                         if (join[i] === include[k].split('.')[0])
                             r_include.push(include[k]);
-                        }
+                    }
                     for (var k = 0; k < r_include.length; k++) {
                         r_include[k] = r_include[k].split('.').splice(1, 1).join('.');
                     }
@@ -125,7 +128,7 @@ obj.document = {
 
                 }
 
-                q.all(pr).then(function(arrayOfDocs) {
+                q.all(pr).then(function (arrayOfDocs) {
                     for (var i = 0; i < docs.length; i++) {
                         for (var j = 0; j < join.length; j++) {
                             //if the doc contains an relation with a columnName.
@@ -162,12 +165,12 @@ obj.document = {
 
                     docs = _deserialize(docs);
                     deferred.resolve(docs);
-                }, function(error) {
+                }, function (error) {
                     winston.log('error', error);
 
                     deferred.reject(error);
                 });
-            }, function(error) {
+            }, function (error) {
                 winston.log('error', error);
 
                 deferred.reject();
@@ -183,7 +186,7 @@ obj.document = {
         return deferred.promise;
     },
 
-    fetch_data: function(appId, collectionName, qry) {
+    fetch_data: function (appId, collectionName, qry) {
         var includeDeferred = q.defer();
 
         try {
@@ -197,7 +200,7 @@ obj.document = {
                 return includeDeferred.promise;
             }
 
-            config.mongoClient.db(appId).collection(mongoUtil.collection.getId(appId, collectionName)).find(qry).toArray(function(err, includeDocs) {
+            config.mongoClient.db(appId).collection(mongoUtil.collection.getId(appId, collectionName)).find(qry).toArray(function (err, includeDocs) {
                 if (err) {
                     winston.log('error', err);
                     includeDeferred.reject(err);
@@ -216,7 +219,7 @@ obj.document = {
         return includeDeferred.promise;
     },
 
-    find: function(appId, collectionName, query, select, sort, limit, skip, accessList, isMasterKey) {
+    find: function (appId, collectionName, query, select, sort, limit, skip, accessList, isMasterKey) {
 
 
         var deferred = q.defer();
@@ -340,10 +343,10 @@ obj.document = {
                         }
                     ];
                     if (query.$and)
-                        query.$and.push({"$and": acl_query});
+                        query.$and.push({ "$and": acl_query });
                     else
                         query.$and = acl_query;
-                    }
+                }
                 else {
                     query["ACL.read.allow.user"] = 'all';
                 }
@@ -361,7 +364,7 @@ obj.document = {
             //delete $include and $includeList recursively
             query = _sanitizeQuery(query);
 
-            var findQuery = collection.find(query, select);
+            var findQuery = collection.find(query).project(select);
 
             if (Object.keys(sort).length > 0) {
                 findQuery = findQuery.sort(sort);
@@ -369,14 +372,14 @@ obj.document = {
 
             if (skip) {
                 if (Object.keys(sort).length === 0) { //default sort it in desc order on createdAt
-                    findQuery = findQuery.sort({"createdAt": -1});
+                    findQuery = findQuery.sort({ "createdAt": -1 });
                 }
                 findQuery = findQuery.skip(skip);
             }
 
             findQuery = findQuery.limit(limit);
 
-            findQuery.toArray(function(err, docs) {
+            findQuery.toArray(function (err, docs) {
                 if (err) {
 
                     deferred.reject(err);
@@ -385,9 +388,9 @@ obj.document = {
                         docs = _deserialize(docs);
                         deferred.resolve(docs);
                     } else {
-                        obj.document._include(appId, include, docs).then(function(docs) {
+                        obj.document._include(appId, include, docs).then(function (docs) {
                             deferred.resolve(docs);
-                        }, function(error) {
+                        }, function (error) {
 
                             deferred.reject(error);
                         });
@@ -406,7 +409,7 @@ obj.document = {
         return deferred.promise;
     },
 
-    findOne: function(appId, collectionName, query, select, sort, skip, accessList, isMasterKey) {
+    findOne: function (appId, collectionName, query, select, sort, skip, accessList, isMasterKey) {
 
         var mainPromise = q.defer();
 
@@ -416,7 +419,7 @@ obj.document = {
                 return mainPromise.promise;
             }
 
-            obj.document.find(appId, collectionName, query, select, sort, 1, skip, accessList, isMasterKey).then(function(list) {
+            obj.document.find(appId, collectionName, query, select, sort, 1, skip, accessList, isMasterKey).then(function (list) {
                 if (Object.prototype.toString.call(list) === '[object Array]') {
                     if (list.length === 0) {
                         mainPromise.resolve(null);
@@ -424,7 +427,7 @@ obj.document = {
                         mainPromise.resolve(list[0]);
                     }
                 }
-            }, function(error) {
+            }, function (error) {
                 winston.log('error', error);
                 mainPromise.reject(null);
             });
@@ -440,7 +443,7 @@ obj.document = {
         return mainPromise.promise;
     },
 
-    save: function(appId, documentArray) {
+    save: function (appId, documentArray) {
 
         var deferred = q.defer();
 
@@ -455,9 +458,9 @@ obj.document = {
             for (var i = 0; i < documentArray.length; i++) {
                 promises.push(_save(appId, documentArray[i].document._tableName, documentArray[i].document));
             }
-            q.allSettled(promises).then(function(docs) {
+            q.allSettled(promises).then(function (docs) {
                 deferred.resolve(docs);
-            }, function(err) {
+            }, function (err) {
                 winston.log('error', err);
                 deferred.reject(err);
             });
@@ -473,7 +476,7 @@ obj.document = {
 
     },
 
-    _update: function(appId, collectionName, document) {
+    _update: function (appId, collectionName, document) {
 
         var deferred = q.defer();
 
@@ -497,17 +500,17 @@ obj.document = {
             collection.update({
                 _id: documentId
             }, document, {
-                upsert: true
-            }, function(err, list) {
-                if (err) {
-                    winston.log('error', err);
-                    deferred.reject(err);
-                } else if (list) {
+                    upsert: true
+                }, function (err, list) {
+                    if (err) {
+                        winston.log('error', err);
+                        deferred.reject(err);
+                    } else if (list) {
 
-                    deferred.resolve(document);
-                }
+                        deferred.resolve(document);
+                    }
 
-            });
+                });
 
         } catch (err) {
             winston.log('error', {
@@ -519,7 +522,7 @@ obj.document = {
         return deferred.promise;
     },
 
-    count: function(appId, collectionName, query, limit, skip) {
+    count: function (appId, collectionName, query, limit, skip) {
         var deferred = q.defer();
 
         try {
@@ -542,7 +545,7 @@ obj.document = {
                 findQuery = findQuery.skip(skip);
             }
 
-            findQuery.count(query, function(err, count) {
+            findQuery.count(query, function (err, count) {
                 if (err) {
                     winston.log('error', err);
                     deferred.reject(err);
@@ -561,7 +564,7 @@ obj.document = {
         return deferred.promise;
     },
 
-    distinct: function(appId, collectionName, onKey, query, select, sort, limit, skip) {
+    distinct: function (appId, collectionName, onKey, query, select, sort, limit, skip) {
 
         var deferred = q.defer();
 
@@ -594,8 +597,8 @@ obj.document = {
             if (indexForDot !== -1) {
 
                 //not using computed properties as it may not be available in server's nodejs version
-                keys[ onKey.slice(0, indexForDot) ] = { };
-                keys[ onKey.slice(0, indexForDot) ][ onKey.slice(indexForDot + 1) ] = "$" + onKey;
+                keys[onKey.slice(0, indexForDot)] = {};
+                keys[onKey.slice(0, indexForDot)][onKey.slice(indexForDot + 1)] = "$" + onKey;
             }
             else
                 keys[onKey] = "$" + onKey;
@@ -615,8 +618,8 @@ obj.document = {
             }
 
             var pipeline = [];
-            pipeline.push({$match: query});
-            pipeline.push({$sort: sort});
+            pipeline.push({ $match: query });
+            pipeline.push({ $sort: sort });
 
             //push the distinct aggregation.
             pipeline.push({
@@ -629,11 +632,11 @@ obj.document = {
             });
 
             if (skip && skip != 0) {
-                pipeline.push({$skip: skip});
+                pipeline.push({ $skip: skip });
             }
 
             if (limit && limit != 0) {
-                pipeline.push({$limit: limit});
+                pipeline.push({ $limit: limit });
             }
 
             if (select && Object.keys(select).length > 0) {
@@ -644,24 +647,29 @@ obj.document = {
                 });
             }
 
-            collection.aggregate(pipeline, function(err, res) {
+            collection.aggregate(pipeline, function (err, cursor) {
                 if (err) {
                     deferred.reject(err);
                 } else {
                     var docs = [];
-
-                    //filter out
-                    for (var i = 0; i < res.length; i++) {
-                        docs.push(res[i].document);
-                    }
-
-                    //include.
-                    obj.document._include(appId, include, docs).then(function(docs) {
-                        docs = _deserialize(docs);
-                        deferred.resolve(docs);
-                    }, function(error) {
-                        winston.log('error', error);
-                        deferred.reject(error);
+                    cursor.toArray(function (error, res) {
+                        if (error) {
+                            winston.log('error', error);
+                            deferred.reject(error);
+                        } else {
+                            //filter out
+                            for (var i = 0; i < res.length; i++) {
+                                docs.push(res[i].document);
+                            }
+                            //include.
+                            obj.document._include(appId, include, docs).then(function (docs) {
+                                docs = _deserialize(docs);
+                                deferred.resolve(docs);
+                            }, function (error) {
+                                winston.log('error', error);
+                                deferred.reject(error);
+                            });
+                        }
                     });
                 }
             });
@@ -676,7 +684,7 @@ obj.document = {
         return deferred.promise;
     },
 
-    aggregate: function(appId, collectionName, pipeline, limit, skip, accessList, isMasterKey) {
+    aggregate: function (appId, collectionName, pipeline, limit, skip, accessList, isMasterKey) {
 
         var deferred = q.defer();
 
@@ -725,10 +733,10 @@ obj.document = {
                         }
                     ];
                     if (query.$and)
-                        query.$and.push({"$and": acl_query});
+                        query.$and.push({ "$and": acl_query });
                     else
                         query.$and = acl_query;
-                    }
+                }
                 else {
                     query["ACL.read.allow.user"] = 'all';
                 }
@@ -746,21 +754,23 @@ obj.document = {
                 ];
             }
 
-            pipeline.unshift({"$match": query}); //add item to the begining of the pipeline.
+            pipeline.unshift({ "$match": query }); //add item to the begining of the pipeline.
 
             if (skip && skip != 0) {
-                pipeline.push({$skip: skip});
+                pipeline.push({ $skip: skip });
             }
 
             if (limit && limit != 0) {
-                pipeline.push({$limit: limit});
+                pipeline.push({ $limit: limit });
             }
 
-            collection.aggregate(pipeline, function(err, res) {
+            collection.aggregate(pipeline, function (err, cursor) {
                 if (err) {
                     deferred.reject(err);
                 } else {
-                    deferred.resolve(res);
+                    cursor.toArray(function (err, res) {
+                        (err) ? deferred.reject(err) : deferred.resolve(res);
+                    });
                 }
             });
 
@@ -775,7 +785,7 @@ obj.document = {
         return deferred.promise;
     },
 
-    _insert: function(appId, collectionName, document) {
+    _insert: function (appId, collectionName, document) {
 
         var deferred = q.defer();
 
@@ -787,7 +797,7 @@ obj.document = {
 
             var collection = config.mongoClient.db(appId).collection(mongoUtil.collection.getId(appId, collectionName));
 
-            collection.save(document, function(err, doc) {
+            collection.save(document, function (err, doc) {
                 if (err) {
                     winston.log('error', err);
                     deferred.reject(err);
@@ -812,7 +822,7 @@ obj.document = {
         return deferred.promise;
     },
 
-    delete: function(appId, collectionName, document) {
+    delete: function (appId, collectionName, document) {
 
         var documentId = document._id;
         var deferred = q.defer();
@@ -833,7 +843,7 @@ obj.document = {
 
                 collection.remove(query, {
                     w: 1 //returns the number of documents removed
-                }, function(err, doc) {
+                }, function (err, doc) {
                     if (err || doc.result.n === 0) {
                         if (doc.result.n === 0) {
                             err = {
@@ -850,7 +860,7 @@ obj.document = {
                     } else if (doc.result.n !== 0) {
                         deferred.resolve(doc.result);
                     } else {
-                        deferred.reject({"code": 500, "message": "Server Error"});
+                        deferred.reject({ "code": 500, "message": "Server Error" });
                     }
                 });
             }
@@ -866,7 +876,7 @@ obj.document = {
         return deferred.promise;
     },
 
-    deleteByQuery: function(appId, collectionName, query) {
+    deleteByQuery: function (appId, collectionName, query) {
 
         var deferred = q.defer();
 
@@ -880,7 +890,7 @@ obj.document = {
 
             collection.remove(query, {
                 w: 1 //returns the number of documents removed
-            }, function(err, doc) {
+            }, function (err, doc) {
                 if (err) {
                     winston.log('error', err);
                     deferred.reject(err);
@@ -906,7 +916,7 @@ obj.document = {
                Resolve->file
                Reject->Error on findOne() or file not found(null)
     */
-    getFile: function(appId, filename) {
+    getFile: function (appId, filename) {
 
         var deferred = q.defer();
 
@@ -915,7 +925,7 @@ obj.document = {
 
             gfs.findOne({
                 filename: filename
-            }, function(err, file) {
+            }, function (err, file) {
                 if (err) {
                     deferred.reject(err);
                 }
@@ -940,11 +950,11 @@ obj.document = {
       Params : appId,fileId
       Returns: fileStream
     */
-    getFileStreamById: function(appId, fileId) {
+    getFileStreamById: function (appId, fileId) {
         try {
             var gfs = Grid(config.mongoClient.db(appId), require('mongodb'));
 
-            var readstream = gfs.createReadStream({_id: fileId});
+            var readstream = gfs.createReadStream({ _id: fileId });
 
             return readstream;
 
@@ -962,7 +972,7 @@ obj.document = {
                Resolve->true
                Reject->Error on exist() or remove() or file does not exists
     */
-    deleteFileFromGridFs: function(appId, filename) {
+    deleteFileFromGridFs: function (appId, filename) {
 
         var deferred = q.defer();
 
@@ -972,7 +982,7 @@ obj.document = {
             //File existence checking
             gfs.exist({
                 filename: filename
-            }, function(err, found) {
+            }, function (err, found) {
                 if (err) {
                     //Error while checking file existence
                     deferred.reject(err);
@@ -980,7 +990,7 @@ obj.document = {
                 if (found) {
                     gfs.remove({
                         filename: filename
-                    }, function(err) {
+                    }, function (err) {
                         if (err) {
                             deferred.reject(err);
                             //unable to delete
@@ -1013,7 +1023,7 @@ obj.document = {
                Resolve->fileObject
                Reject->Error on writing file
     */
-    saveFileStream: function(appId, fileStream, fileName, contentType) {
+    saveFileStream: function (appId, fileStream, fileName, contentType) {
 
         var deferred = q.defer();
 
@@ -1021,16 +1031,16 @@ obj.document = {
             var gfs = Grid(config.mongoClient.db(appId), require('mongodb'));
 
             //streaming to gridfs
-            var writestream = gfs.createWriteStream({filename: fileName, mode: 'w', content_type: contentType});
+            var writestream = gfs.createWriteStream({ filename: fileName, mode: 'w', content_type: contentType });
 
             fileStream.pipe(writestream);
 
-            writestream.on('close', function(file) {
+            writestream.on('close', function (file) {
                 deferred.resolve(file);
 
             });
 
-            writestream.on('error', function(error) {
+            writestream.on('error', function (error) {
                 deferred.reject(error);
                 writestream.destroy();
 
@@ -1090,10 +1100,10 @@ function _save(appId, collectionName, document) {
         }
         document = _serialize(document);
         //column key array to track sub documents.
-        obj.document._update(appId, collectionName, document).then(function(doc) {
+        obj.document._update(appId, collectionName, document).then(function (doc) {
             doc = _deserialize(doc);
             deferredMain.resolve(doc);
-        }, function(err) {
+        }, function (err) {
             winston.log('error', err);
             deferredMain.reject(err);
         });
