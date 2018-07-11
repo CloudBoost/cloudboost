@@ -364,7 +364,7 @@ obj.document = {
             //delete $include and $includeList recursively
             query = _sanitizeQuery(query);
 
-            var findQuery = collection.find(query, select);
+            var findQuery = collection.find(query).project(select);
 
             if (Object.keys(sort).length > 0) {
                 findQuery = findQuery.sort(sort);
@@ -647,24 +647,35 @@ obj.document = {
                 });
             }
 
-            collection.aggregate(pipeline, function(err, res) {
+            collection.aggregate(pipeline, function(err, cursor) {
                 if (err) {
                     deferred.reject(err);
                 } else {
                     var docs = [];
-
-                    //filter out
-                    for (var i = 0; i < res.length; i++) {
-                        docs.push(res[i].document);
-                    }
-
+                    cursor.toArray(function(error, res) {
+                        if(error){
+                            winston.log('error',error);
+                            console.log(error);
+                            deferred.reject(error);
+                        }else{
+                        console.log(`This is Cursor:${cursor}`);
+                        console.log(`This is Res:${res}`);
+                        //filter out
+                            for (var i = 0; i < res.length; i++) {
+                                docs.push(res[i].document);
+                            }
+                        }
+                    });
+                    console.log(`This is Docs:${docs}`);
                     //include.
                     obj.document._include(appId, include, docs).then(function(docs) {
                         docs = _deserialize(docs);
                         deferred.resolve(docs);
+                        console.log(docs)
                     }, function(error) {
                         winston.log('error', error);
                         deferred.reject(error);
+                        console.log(error);
                     });
                 }
             });
@@ -674,6 +685,7 @@ obj.document = {
                 "error": String(err),
                 "stack": new Error().stack
             });
+            console.log(err);
             deferred.reject(err);
         }
         return deferred.promise;
@@ -759,11 +771,13 @@ obj.document = {
                 pipeline.push({$limit: limit});
             }
 
-            collection.aggregate(pipeline, function(err, res) {
+            collection.aggregate(pipeline, function(err, cursor) {
                 if (err) {
                     deferred.reject(err);
                 } else {
-                    deferred.resolve(res);
+                    cursor.toArray(function(err, res) {
+                        (err) ? deferred.reject(err) : deferred.resolve(res); 
+                    });
                 }
             });
 
