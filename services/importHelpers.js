@@ -1,8 +1,6 @@
 var q = require('q');
 var util = require('../helpers/util.js');
-var csv = require('csvtojson');
 var csv2json = require('csv2json');
-var fs = require('fs');
 var xlsx = require('node-xlsx');
 
 var stream = require('stream');
@@ -116,7 +114,7 @@ var importHelpers = {
                 json._isModified = true;
                 json._tableName = tableName;
                 return json;
-            }
+            };
         return deferred.promise;
     },
 
