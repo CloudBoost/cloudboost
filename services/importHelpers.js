@@ -1,16 +1,39 @@
 var q = require('q');
 var util = require('../helpers/util.js');
 var csv = require('csvtojson');
+var csv2json = require('csv2json');
+var fs = require('fs');
 var xlsx = require('node-xlsx');
 
-var importHelpers =  {
+var stream = require('stream');
+
+var importHelpers = {
     importCSVFile: function (fileStream, table) {
         var deferred = q.defer();
         var tableName = table.replace(/\s/g, '');
-        var csvJson = [];
-        csv()
-            .fromStream(fileStream)
-            .on('json', (json) => {
+        var jsonWriteStream = new stream.Writable();
+        var jsonStr = '';
+        jsonWriteStream._write = function(chunk, encoding, cb){
+            jsonStr += chunk;
+            cb();
+        };
+
+        fileStream
+        .pipe(csv2json({}))
+        .pipe(jsonWriteStream);
+
+        jsonWriteStream.on('finish', function () {
+            try{
+                var escapedStr = jsonStr.toString().replace(/([\\]+[\w"])/g, '');
+                var arrData = JSON.parse(escapedStr);
+                var csvArr = arrData.map(onData);
+                deferred.resolve(csvArr);
+            }catch(err){
+                deferred.reject(err);
+            }
+        });
+
+        var onData = (json) => {
                 json.expires ? json.expires : json.expires = null;
                 json._id = util.getId();
                 json._version ? json._version : json._version = "1";
@@ -92,15 +115,8 @@ var importHelpers =  {
                 json._modifiedColumns = Object.keys(json);
                 json._isModified = true;
                 json._tableName = tableName;
-                csvJson.push(json);
-            })
-            .on('done', (error) => {
-                if (error) {
-                    deferred.reject(error);
-                } else {
-                    deferred.resolve(csvJson);
-                }
-            });
+                return json;
+            }
         return deferred.promise;
     },
 
@@ -505,7 +521,7 @@ function detectDataType(data, colProp) {
         try {
             data = JSON.parse(data);
             //eslint-disable-next-line
-        } catch (e) {}
+        } catch (e) { }
     }
     if (colProp == "relatedTo") {
         data = data[0];
