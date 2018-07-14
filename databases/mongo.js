@@ -364,7 +364,7 @@ obj.document = {
             //delete $include and $includeList recursively
             query = _sanitizeQuery(query);
 
-            var findQuery = collection.find(query, select);
+            var findQuery = collection.find(query).project(select);
 
             if (Object.keys(sort).length > 0) {
                 findQuery = findQuery.sort(sort);
