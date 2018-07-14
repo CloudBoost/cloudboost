@@ -647,27 +647,32 @@ obj.document = {
                 });
             }
 
-            collection.aggregate(pipeline, function(err, res) {
+            collection.aggregate(pipeline, function (err, cursor) {
                 if (err) {
                     deferred.reject(err);
                 } else {
                     var docs = [];
-
-                    //filter out
-                    for (var i = 0; i < res.length; i++) {
-                        docs.push(res[i].document);
-                    }
-                    //include.
-                    obj.document._include(appId, include, docs).then(function(docs) {
-                        docs = _deserialize(docs);
-                        deferred.resolve(docs);
-                    }, function(error) {
-                        winston.log('error', error);
-                        deferred.reject(error);
+                    cursor.toArray(function (error, res) {
+                        if (error) {
+                            winston.log('error', error);
+                            deferred.reject(error);
+                        } else {
+                            //filter out
+                            for (var i = 0; i < res.length; i++) {
+                                docs.push(res[i].document);
+                            }
+                            //include.
+                            obj.document._include(appId, include, docs).then(function (docs) {
+                                docs = _deserialize(docs);
+                                deferred.resolve(docs);
+                            }, function (error) {
+                                winston.log('error', error);
+                                deferred.reject(error);
+                            });
+                        }
                     });
                 }
             });
-
         } catch (err) {
             winston.log('error', {
                 "error": String(err),
@@ -758,11 +763,13 @@ obj.document = {
                 pipeline.push({$limit: limit});
             }
 
-            collection.aggregate(pipeline, function(err, res) {
+            collection.aggregate(pipeline, function (err, cursor) {
                 if (err) {
                     deferred.reject(err);
                 } else {
-                    deferred.resolve(res);
+                    cursor.toArray(function (err, res) {
+                        (err) ? deferred.reject(err) : deferred.resolve(res);
+                    });
                 }
             });
 
