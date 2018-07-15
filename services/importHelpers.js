@@ -1,106 +1,113 @@
 var q = require('q');
 var util = require('../helpers/util.js');
-var csv = require('csvtojson');
+var csv2json = require('csv2json');
 var xlsx = require('node-xlsx');
 
-var importHelpers =  {
+var stream = require('stream');
+
+var importHelpers = {
     importCSVFile: function (fileStream, table) {
         var deferred = q.defer();
         var tableName = table.replace(/\s/g, '');
-        var csvJson = [];
-        csv()
-            .fromStream(fileStream)
-            .on('json', (json) => {
-                json.expires ? json.expires : json.expires = null;
-                json._id = util.getId();
-                json._version ? json._version : json._version = "1";
-                json._type ? json._type : json._type = "custom";
-                if (json.createdAt) {
-                    if (new Date(json.createdAt) == "Invalid Date") {
-                        json.created = json.createdAt;
-                        json.createdAt = "";
-                    }
-                } else {
+        var jsonWriteStream = new stream.Writable();
+        var jsonStr = '';
+        //Store the Data from Stream
+        jsonWriteStream._write = function (chunk, encoding, cb) {
+            jsonStr += chunk;
+            cb();
+        };
+        fileStream
+            .pipe(csv2json({}))
+            .pipe(jsonWriteStream);
+        var onData = (json) => {
+            json.expires ? json.expires : json.expires = null;
+            json._id = util.getId();
+            json._version ? json._version : json._version = "1";
+            json._type ? json._type : json._type = "custom";
+            if (json.createdAt) {
+                if (new Date(json.createdAt) == "Invalid Date") {
+                    json.created = json.createdAt;
                     json.createdAt = "";
                 }
-                if (json.updatedAt) {
-                    if (new Date(json.updatedAt) == "Invalid Date") {
-                        json.updated = json.updatedAt;
-                        json.updatedAt = "";
-                    }
-                } else {
+            } else {
+                json.createdAt = "";
+            }
+            if (json.updatedAt) {
+                if (new Date(json.updatedAt) == "Invalid Date") {
+                    json.updated = json.updatedAt;
                     json.updatedAt = "";
                 }
-                try {
-                    json.ACL ? json.ACL = JSON.parse(json.ACL)
-                        : json.ACL = {
-                            "read": {
-                                "allow": {
-                                    "user": [
-                                        "all"
-                                    ],
-                                    "role": []
-                                },
-                                "deny": {
-                                    "user": [],
-                                    "role": []
-                                }
-                            },
-                            "write": {
-                                "allow": {
-                                    "user": [
-                                        "all"
-                                    ],
-                                    "role": []
-                                },
-                                "deny": {
-                                    "user": [],
-                                    "role": []
-                                }
-                            }
-                        };
-                } catch (err) {
-
-
-                    json.ACL = {
+            } else {
+                json.updatedAt = "";
+            }
+            updateJson(json);
+            json._modifiedColumns = Object.keys(json);
+            json._isModified = true;
+            json._tableName = tableName;
+            return json;
+        };
+        var updateFail = (json) => {
+            json.ACL = {
+                "read": {
+                    "allow": {
+                        "user": ["all"],
+                        "role": []
+                    },"deny": {
+                        "user": [],
+                        "role": []
+                    }
+                },
+                "write": {
+                    "allow": {
+                        "user": ["all"],
+                        "role": []
+                    },"deny": {
+                        "user": [],
+                        "role": []
+                    }
+                }
+            };
+            return json;
+        };
+        var updateJson = (json) => {
+            try {
+                json.ACL ? json.ACL = JSON.parse(json.ACL)
+                    : json.ACL = {
                         "read": {
                             "allow": {
-                                "user": [
-                                    "all"
-                                ],
+                                "user": ["all"],
                                 "role": []
-                            },
-                            "deny": {
+                            },"deny": {
                                 "user": [],
                                 "role": []
                             }
                         },
                         "write": {
                             "allow": {
-                                "user": [
-                                    "all"
-                                ],
+                                "user": ["all"],
                                 "role": []
-                            },
-                            "deny": {
+                            },"deny": {
                                 "user": [],
                                 "role": []
                             }
                         }
                     };
-                }
-                json._modifiedColumns = Object.keys(json);
-                json._isModified = true;
-                json._tableName = tableName;
-                csvJson.push(json);
-            })
-            .on('done', (error) => {
-                if (error) {
-                    deferred.reject(error);
-                } else {
-                    deferred.resolve(csvJson);
-                }
-            });
+            } catch (err) {
+                updateFail(json);
+            }
+            return json;
+        };
+        jsonWriteStream.on('finish', function () {
+            try {
+                //To correctly parse the data to csvToJson
+                var escapedStr = jsonStr.toString().replace(/([\\]+[\w"])/g, '');
+                escapedStr = JSON.parse(escapedStr);
+                var csvArr = escapedStr.map(onData);
+                deferred.resolve(csvArr);
+            } catch (err) {
+                deferred.reject(err);
+            }
+        });
         return deferred.promise;
     },
 
@@ -505,7 +512,7 @@ function detectDataType(data, colProp) {
         try {
             data = JSON.parse(data);
             //eslint-disable-next-line
-        } catch (e) {}
+        } catch (e) { }
     }
     if (colProp == "relatedTo") {
         data = data[0];
