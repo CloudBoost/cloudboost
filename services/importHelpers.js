@@ -27,7 +27,6 @@ var importHelpers = {
                 var csvArr = escapedStr.map((data)=>util.onDataImportCSV(data,tableName));
                 deferred.resolve(csvArr);
             } catch (err) {
-                console.log(err);
                 deferred.reject(err);
             }
         });

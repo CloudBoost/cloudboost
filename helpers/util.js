@@ -11,6 +11,52 @@ var _ = require('underscore');
 var winston = require('winston');
 
 module.exports = {
+    onUpdateFail:(json)=>{
+        json.ACL = {
+            "read": {
+                "allow": {
+                    "user": ["all"],
+                    "role": []
+                }, "deny": {
+                    "user": [],
+                    "role": []
+                }
+            },
+            "write": {
+                "allow": {
+                    "user": ["all"],
+                    "role": []
+                }, "deny": {
+                    "user": [],
+                    "role": []
+                }
+            }
+        };
+        return json;
+    },
+    onUpdate: (json)=>{
+        json.ACL = {
+            "read": {
+                "allow": {
+                    "user": ["all"],
+                    "role": []
+                }, "deny": {
+                    "user": [],
+                    "role": []
+                }
+            },
+            "write": {
+                "allow": {
+                    "user": ["all"],
+                    "role": []
+                }, "deny": {
+                    "user": [],
+                    "role": []
+                }
+            }
+        };
+        return json;
+    },
     onDataImportCSV: (json,tableName) => {
         var util = require('../helpers/util.js');
         json.expires ? json.expires : json.expires = null;
@@ -35,47 +81,9 @@ module.exports = {
         }
         try {
             json.ACL ? json.ACL = JSON.parse(json.ACL)
-            : json.ACL = {
-                "read": {
-                    "allow": {
-                        "user": ["all"],
-                        "role": []
-                    }, "deny": {
-                        "user": [],
-                        "role": []
-                    }
-                },
-                "write": {
-                    "allow": {
-                        "user": ["all"],
-                        "role": []
-                    }, "deny": {
-                        "user": [],
-                        "role": []
-                    }
-                }
-            };
+            : json = util.onUpdate(json);
         } catch (err) {
-            json.ACL = {
-                "read": {
-                    "allow": {
-                        "user": ["all"],
-                        "role": []
-                    }, "deny": {
-                        "user": [],
-                        "role": []
-                    }
-                },
-                "write": {
-                    "allow": {
-                        "user": ["all"],
-                        "role": []
-                    }, "deny": {
-                        "user": [],
-                        "role": []
-                    }
-                }
-            };
+            json = util.onUpdateFail(json);
         }
         json._modifiedColumns = Object.keys(json);
         json._isModified = true;
