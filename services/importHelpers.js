@@ -11,14 +11,14 @@ var importHelpers = {
         var tableName = table.replace(/\s/g, '');
         var jsonWriteStream = new stream.Writable();
         var jsonStr = '';
-        jsonWriteStream._write = function(chunk, encoding, cb){
+        //Store the Data from Stream
+        jsonWriteStream._write = function (chunk, encoding, cb) {
             jsonStr += chunk;
             cb();
         };
-
         fileStream
-        .pipe(csv2json({}))
-        .pipe(jsonWriteStream);
+            .pipe(csv2json({}))
+            .pipe(jsonWriteStream);
         var onData = (json) => {
             json.expires ? json.expires : json.expires = null;
             json._id = util.getId();
@@ -46,74 +46,65 @@ var importHelpers = {
             json._tableName = tableName;
             return json;
         };
-        var updateJson = (json)=>{
+        var updateFail = (json) => {
+            json.ACL = {
+                "read": {
+                    "allow": {
+                        "user": ["all"],
+                        "role": []
+                    },"deny": {
+                        "user": [],
+                        "role": []
+                    }
+                },
+                "write": {
+                    "allow": {
+                        "user": ["all"],
+                        "role": []
+                    },"deny": {
+                        "user": [],
+                        "role": []
+                    }
+                }
+            };
+            return json;
+        };
+        var updateJson = (json) => {
             try {
                 json.ACL ? json.ACL = JSON.parse(json.ACL)
                     : json.ACL = {
                         "read": {
                             "allow": {
-                                "user": [
-                                    "all"
-                                ],
+                                "user": ["all"],
                                 "role": []
-                            },
-                            "deny": {
+                            },"deny": {
                                 "user": [],
                                 "role": []
                             }
                         },
                         "write": {
                             "allow": {
-                                "user": [
-                                    "all"
-                                ],
+                                "user": ["all"],
                                 "role": []
-                            },
-                            "deny": {
+                            },"deny": {
                                 "user": [],
                                 "role": []
                             }
                         }
                     };
             } catch (err) {
-
-
-                json.ACL = {
-                    "read": {
-                        "allow": {
-                            "user": [
-                                "all"
-                            ],
-                            "role": []
-                        },
-                        "deny": {
-                            "user": [],
-                            "role": []
-                        }
-                    },
-                    "write": {
-                        "allow": {
-                            "user": [
-                                "all"
-                            ],
-                            "role": []
-                        },
-                        "deny": {
-                            "user": [],
-                            "role": []
-                        }
-                    }
-                };
+                updateFail(json);
             }
             return json;
-        }
+        };
         jsonWriteStream.on('finish', function () {
-            try{
+            try {
+                //To correctly parse the data to csvToJson
                 var escapedStr = jsonStr.toString().replace(/([\\]+[\w"])/g, '');
-                var arrData = JSON.parse(escapedStr);
-                var csvArr = arrData.map(onData);
+                escapedStr = JSON.parse(escapedStr);
+                var csvArr = escapedStr.map(onData);
                 deferred.resolve(csvArr);
-            }catch(err){
+            } catch (err) {
                 deferred.reject(err);
             }
         });
