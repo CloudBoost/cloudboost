@@ -28,10 +28,10 @@ install:
 - npm install
 - docker build -t cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER .
 - if [ "$TRAVIS_BRANCH" == "release" ]; then
-    docker build -t cloudboost/cloudboost:latest .;
+    docker tag cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER cloudboost/cloudboost:latest;
   fi
 - if [ "$TRAVIS_BRANCH" == "master" ]; then
-    docker build -t cloudboost/cloudboost:staging .;
+    docker tag cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER-master;
   fi
 - docker run --name cloudboost
     -e  ANALYTICS_URL=$ANALYTICS_URL
@@ -52,14 +52,15 @@ install:
 after_success:
 - if [ "$TRAVIS_BRANCH" == "master" ]; then
     echo "$DOCKERPASSWORD" | docker login -u "$DOCKERUSERNAME" --password-stdin;
-    docker push cloudboost/cloudboost:staging;
+    docker push cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER-master;
     git clone https://github.com/CloudBoost/kube-cred.git;
     cd kube-cred;
     openssl enc -in config.enc -out config -d -aes256 -k $KUBE_ENC;
     mkdir ~/.kube;
     mv config ~/.kube/;
     kubectl config use-context cloudboost-staging;
-    kubectl rolling-update cloudboost-api --image=cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER --image-pull-policy=Always;
+    kubectl set image deployments/cloudboost-api cloudboost-api=cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER-master;
+    kubectl rollout status deployments/cloudboost-api;
   fi
 - if [ "$TRAVIS_BRANCH" == "release" ]; then
     echo "$DOCKERPASSWORD" | docker login -u "$DOCKERUSERNAME" --password-stdin
