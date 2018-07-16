@@ -1,6 +1,6 @@
 /*
 #     CloudBoost - Core Engine that powers Bakend as a Service
-#     (c) 2014 HackerBay, Inc. 
+#     (c) 2014 HackerBay, Inc.
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
@@ -37,15 +37,16 @@ obj.log = function (appId, actionName, url, sdk, checkReleaseRequest) {
         }, function (err, response, body) {
             if (!err) {
                 try {
-                    body = JSON.parse(body);
-                    if (body.limitExceeded) {
-                        obj.blockApp(body.appId).then(function () {
+                    winston.info(body);
+                    var data = body && typeof body === 'string' ? JSON.parse(body) : body;
+                    if (data && data.limitExceeded) {
+                        obj.blockApp(appId).then(function () {
 
                         }, function () {
 
                         });
                     } else {
-                        obj.releaseApp(body.appId).then(function () {
+                        obj.releaseApp(appId).then(function () {
 
                         }, function () {
 
@@ -57,7 +58,7 @@ obj.log = function (appId, actionName, url, sdk, checkReleaseRequest) {
                         "error": String(e),
                         "stack": new Error().stack
                     });
-                    obj.releaseApp(body.appId).then(function () {
+                    obj.releaseApp(appId).then(function () {
 
                     }, function () {
 
@@ -66,8 +67,6 @@ obj.log = function (appId, actionName, url, sdk, checkReleaseRequest) {
                 }
 
             }
-
-
         });
     } catch (err) {
         winston.log('error', {
@@ -78,8 +77,8 @@ obj.log = function (appId, actionName, url, sdk, checkReleaseRequest) {
 };
 
 
-//Description : Checks weather the current app is in the Plan Limit. 
-// Params : appId - ID of the App. 
+//Description : Checks weather the current app is in the Plan Limit.
+// Params : appId - ID of the App.
 //Returns : Promise - True for yes, It is in the plan limit. False if it exceeded.
 obj.isInPlanLimit = function (appId) {
     var deferred = q.defer();
@@ -113,7 +112,7 @@ obj.isInPlanLimit = function (appId) {
 };
 
 //Description : Blocks the app
-// Params : appId - ID of the App. 
+// Params : appId - ID of the App.
 //Returns : Promise (void)
 obj.blockApp = function (appId) {
     var deferred = q.defer();
@@ -136,7 +135,7 @@ obj.blockApp = function (appId) {
 };
 
 //Description : Releases the App.
-// Params : appId - ID of the App. 
+// Params : appId - ID of the App.
 //Returns : Promise (void)
 obj.releaseApp = function (appId) {
     var deferred = q.defer();
