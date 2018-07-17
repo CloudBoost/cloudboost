@@ -9,31 +9,9 @@ var q = require('q');
 var fs = require('fs');
 var _ = require('underscore');
 var winston = require('winston');
+var util = require('../helpers/util.js');
 
 module.exports = {
-    onUpdateFail:(json)=>{
-        json.ACL = {
-            "read": {
-                "allow": {
-                    "user": ["all"],
-                    "role": []
-                }, "deny": {
-                    "user": [],
-                    "role": []
-                }
-            },
-            "write": {
-                "allow": {
-                    "user": ["all"],
-                    "role": []
-                }, "deny": {
-                    "user": [],
-                    "role": []
-                }
-            }
-        };
-        return json;
-    },
     onUpdate: (json)=>{
         json.ACL = {
             "read": {
@@ -58,7 +36,7 @@ module.exports = {
         return json;
     },
     onDataImportCSV: (json,tableName) => {
-        var util = require('../helpers/util.js');
+        //Sets the properties on each JSON
         json.expires ? json.expires : json.expires = null;
         json._id = util.getId();
         json._version ? json._version : json._version = "1";
@@ -66,25 +44,16 @@ module.exports = {
         if (json.createdAt) {
             if (new Date(json.createdAt) == "Invalid Date") {
                 json.created = json.createdAt;
-                json.createdAt = "";
             }
-        } else {
-            json.createdAt = "";
         }
+        json.createdAt = "";
         if (json.updatedAt) {
             if (new Date(json.updatedAt) == "Invalid Date") {
                 json.updated = json.updatedAt;
-                json.updatedAt = "";
             }
-        } else {
-            json.updatedAt = "";
         }
-        try {
-            json.ACL ? json.ACL = JSON.parse(json.ACL)
-            : json = util.onUpdate(json);
-        } catch (err) {
-            json = util.onUpdateFail(json);
-        }
+        json.updatedAt = "";
+        json.ACL ? json.ACL = JSON.parse(json.ACL):json = util.onUpdate(json);
         json._modifiedColumns = Object.keys(json);
         json._isModified = true;
         json._tableName = tableName;
