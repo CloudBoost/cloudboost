@@ -1,6 +1,6 @@
 
 var q = require('q');
-const json2csv = require('json2csv')
+const json2csv = require('json2csv');
 var fs = require('fs');
 var path = require('path');
 

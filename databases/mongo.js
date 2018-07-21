@@ -980,7 +980,7 @@ obj.document = {
                     var id=found._id;
                     config.mongoClient.db(appId).collection("fs").deleteMany({
                         _id:id
-                    },(err,done)=>{
+                    },(err)=>{
                         if(err){
                             //Unable to delete
                             deferred.reject(err);
@@ -989,13 +989,11 @@ obj.document = {
                             deferred.resolve(true);
                         }
                         return deferred.resolve("Success");
-                    })
+                    });
                 }else{
-                    console.log("File does not exist");
                     deferred.reject("File does not exist");
                 }
-            })
-
+            });
         } catch (err) {
             winston.log('error', {
                 "error": String(err),
@@ -1029,7 +1027,7 @@ obj.document = {
             })
             .on('finish',(file)=>{
                 deferred.resolve(file);
-            })
+            });
 
         } catch (err) {
             winston.log('error', {
