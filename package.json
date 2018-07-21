@@ -56,7 +56,7 @@
     "nodemailer": "^2.4.1",
     "nodemailer-mailgun-transport": "^1.0.2",
     "oauth": "^0.9.14",
-    "octonode": "^0.7.5",
+    "octonode": "^0.9.3",
     "path": "^0.12.7",
     "phantomjs": "^2.1.7",
     "q": "^2.0.3",
