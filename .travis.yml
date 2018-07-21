@@ -59,7 +59,7 @@ after_success:
     mkdir ~/.kube;
     mv config ~/.kube/;
     kubectl config use-context cloudboost-staging;
-    kubectl set image deployment cloudboost-api cloudboost-api=cloudboost/cloudboost:master-2.0.$TRAVIS_BUILD_NUMBER
+    kubectl set image deployment cloudboost-api cloudboost-api=cloudboost/cloudboost:master-2.0.$TRAVIS_BUILD_NUMBER;
     kubectl rollout status deployment cloudboost-api;
   fi
 - if [ "$TRAVIS_BRANCH" == "release" ]; then
