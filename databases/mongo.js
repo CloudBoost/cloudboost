@@ -8,9 +8,8 @@
 const q = require('q');
 var _ = require('underscore');
 var Grid = require('gridfs-stream');
-//cursor.nextObject is no more included so here we replace it with cursor.next
-eval(`Grid.prototype.findOne = ${Grid.prototype.findOne.toString().replace('nextObject', 'next')}`);
 
+var mongodb = require('mongodb');
 var config = require('../config/config');
 var winston = require('winston');
 
@@ -920,18 +919,15 @@ obj.document = {
         var deferred = q.defer();
 
         try {
-            var gfs = Grid(config.mongoClient.db(appId), require('mongodb'));
-
-            gfs.findOne({
+            config.mongoClient.db(appId).collection("fs.files").findOne({
                 filename: filename
             }, function(err, file) {
                 if (err) {
                     deferred.reject(err);
                 }
                 if (!file) {
-                    return deferred.resolve(null);
+                    deferred.resolve(null);
                 }
-
                 deferred.resolve(file);
             });
 
@@ -952,9 +948,7 @@ obj.document = {
     getFileStreamById: function(appId, fileId) {
         try {
             var gfs = Grid(config.mongoClient.db(appId), require('mongodb'));
-
             var readstream = gfs.createReadStream({_id: fileId});
-
             return readstream;
 
         } catch (err) {
@@ -976,35 +970,31 @@ obj.document = {
         var deferred = q.defer();
 
         try {
-            var gfs = Grid(config.mongoClient.db(appId), require('mongodb'));
-
-            //File existence checking
-            gfs.exist({
-                filename: filename
-            }, function(err, found) {
+            config.mongoClient.db(appId).collection("fs.files").findOne({
+                filename:filename
+            },(err,found)=>{
                 if (err) {
-                    //Error while checking file existence
                     deferred.reject(err);
                 }
-                if (found) {
-                    gfs.remove({
-                        filename: filename
-                    }, function(err) {
-                        if (err) {
+                if(found){
+                    var id=found._id;
+                    config.mongoClient.db(appId).collection("fs").deleteMany({
+                        _id:id
+                    },(err,done)=>{
+                        if(err){
+                            //Unable to delete
                             deferred.reject(err);
-                            //unable to delete
-                        } else {
+                        }else{
+                            //Deleted
                             deferred.resolve(true);
-                            //deleted
                         }
-
                         return deferred.resolve("Success");
-                    });
-                } else {
-                    //file does not exists
-                    deferred.reject("file does not exists");
+                    })
+                }else{
+                    console.log("File does not exist");
+                    deferred.reject("File does not exist");
                 }
-            });
+            })
 
         } catch (err) {
             winston.log('error', {
@@ -1027,23 +1017,19 @@ obj.document = {
         var deferred = q.defer();
 
         try {
-            var gfs = Grid(config.mongoClient.db(appId), require('mongodb'));
-
-            //streaming to gridfs
-            var writestream = gfs.createWriteStream({filename: fileName, mode: 'w', content_type: contentType});
-
-            fileStream.pipe(writestream);
-
-            writestream.on('close', function(file) {
+            var bucket = new mongodb.GridFSBucket(config.mongoClient.db(appId));
+            var writeStream = bucket.openUploadStream(fileName,{
+                contentType:contentType,
+                w:1
+            });
+            fileStream.pipe(writeStream)
+            .on('error',(err)=>{
+                deferred.reject(err);
+                writeStream.destroy();
+            })
+            .on('finish',(file)=>{
                 deferred.resolve(file);
-
-            });
-
-            writestream.on('error', function(error) {
-                deferred.reject(error);
-                writestream.destroy();
-
-            });
+            })
 
         } catch (err) {
             winston.log('error', {

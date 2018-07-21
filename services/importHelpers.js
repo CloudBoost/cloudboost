@@ -24,7 +24,7 @@ var importHelpers = {
                 //To correctly parse the data to csvToJson
                 var escapedStr = jsonStr.toString().replace(/([\\]+[\w"])/g, '');
                 escapedStr = JSON.parse(escapedStr);
-                var csvArr = escapedStr.map((data)=>util.onDataImportCSV(data,tableName));
+                var csvArr = escapedStr.map((data)=>util.importCSV(data,tableName));
                 deferred.resolve(csvArr);
             } catch (err) {
                 deferred.reject(err);

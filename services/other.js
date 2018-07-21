@@ -1,6 +1,6 @@
 
 var q = require('q');
-const Json2csvParser = require('json2csv').Parser;
+const json2csv = require('json2csv')
 var fs = require('fs');
 var path = require('path');
 
@@ -29,10 +29,8 @@ module.exports = {
             });
             if (exportType === 'csv') {
                 try {
-                    var opts = ['data'];
-                    const parser = new Json2csvParser(opts);
-                    const csv = parser.parse(tables);
-                    deferred.resolve(csv);
+                    var result = json2csv({ data: tables });
+                    deferred.resolve(result);
                 } catch (err) {
                     return deferred.reject(err);
                 }

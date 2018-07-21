@@ -60,6 +60,7 @@ module.exports = {
             var mongoClient = require('mongodb').MongoClient;
             mongoClient.connect(config.mongoConnectionString, {
                 poolSize: 200,
+                //Parses the ConnectionString according to Connection String standards of MongoDB v3
                 useNewUrlParser:true
               }, function (err, db) {
                 if (err) {

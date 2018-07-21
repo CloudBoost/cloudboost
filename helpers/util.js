@@ -11,8 +11,8 @@ var _ = require('underscore');
 var winston = require('winston');
 
 module.exports = {
-    onUpdate: (json)=>{
-        json.ACL = {
+    addDefaultACL: (obj)=>{
+        obj.ACL = {
             "read": {
                 "allow": {
                     "user": ["all"],
@@ -32,34 +32,34 @@ module.exports = {
                 }
             }
         };
-        return json;
+        return obj;
     },
-    onDataImportCSV: (json,tableName) => {
+    importCSV: (list,tableName) => {
         var util = require('../helpers/util.js');
         //Sets the properties on each JSON
-        json.expires ? json.expires : json.expires = null;
-        json._id = util.getId();
-        json._version ? json._version : json._version = "1";
-        json._type ? json._type : json._type = "custom";
-        if (json.createdAt) {
-            if (new Date(json.createdAt) == "Invalid Date") {
-                json.created = json.createdAt;
+        list.expires ? list.expires : list.expires = null;
+        list._id = util.getId();
+        list._version ? list._version : list._version = "1";
+        list._type ? list._type : list._type = "custom";
+        if (list.createdAt) {
+            if (new Date(list.createdAt) == "Invalid Date") {
+                list.created = list.createdAt;
             }
         }else{
-            json.createdAt = "";
+            list.createdAt = "";
         }
-        if (json.updatedAt) {
-            if (new Date(json.updatedAt) == "Invalid Date") {
-                json.updated = json.updatedAt;
+        if (list.updatedAt) {
+            if (new Date(list.updatedAt) == "Invalid Date") {
+                list.updated = list.updatedAt;
              }
         }else{
-            json.updatedAt = "";
+            list.updatedAt = "";
         }
-        json.ACL ? json.ACL = JSON.parse(json.ACL):json = util.onUpdate(json);
-        json._modifiedColumns = Object.keys(json);
-        json._isModified = true;
-        json._tableName = tableName;
-        return json;
+        list.ACL ? list.ACL = JSON.parse(list.ACL):util.addDefaultACL(list);
+        list._modifiedColumns = Object.keys(list);
+        list._isModified = true;
+        list._tableName = tableName;
+        return list;
     },
     isUrlValid: function (data) {
         try {
