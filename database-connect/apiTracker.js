@@ -11,6 +11,26 @@ var obj = {};
 var config = require('../config/config');
 var winston = require('winston');
 
+function appLogger (message) {
+    return function () {
+        winston.info(message);
+    };
+}
+
+var appReleased = appLogger('App Released');
+var appBlocked = appLogger('App Blocked');
+var appReleasedError = appLogger('Error Releasing App');
+var appBlockedError = appLogger('Error Blocking App');
+
+function IsJsonString(str) {
+    try {
+        JSON.parse(str);
+    } catch (e) {
+        return false;
+    }
+    return true;
+}
+
 obj.log = function (appId, actionName, url, sdk, checkReleaseRequest) {
 
     try {
@@ -37,35 +57,21 @@ obj.log = function (appId, actionName, url, sdk, checkReleaseRequest) {
         }, function (err, response, body) {
             if (!err) {
                 try {
-                    winston.info(body);
-                    var data = body && typeof body === 'string' ? JSON.parse(body) : body;
+                    var data = body && typeof body === 'string' && IsJsonString(body) ? JSON.parse(body) : body;
+
                     if (data && data.limitExceeded) {
-                        obj.blockApp(appId).then(function () {
-
-                        }, function () {
-
-                        });
+                        obj.blockApp(appId).then(appBlocked, appBlockedError);
                     } else {
-                        obj.releaseApp(appId).then(function () {
-
-                        }, function () {
-
-
-                        });
+                        obj.releaseApp(appId).then(appReleased, appReleasedError);
                     }
+
                 } catch (e) {
                     winston.log('error', {
                         "error": String(e),
                         "stack": new Error().stack
                     });
-                    obj.releaseApp(appId).then(function () {
-
-                    }, function () {
-
-
-                    });
+                    obj.releaseApp(appId).then(appReleased, appReleasedError);
                 }
-
             }
         });
     } catch (err) {
