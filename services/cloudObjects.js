@@ -299,29 +299,26 @@ function _save(appId, collectionName, document, accessList, isMasterKey, reqType
                         aclArray.push(aclObj);
                         mongoDocs[j].document.ACL = aclId;
                     }
-                    mongoService.document.save(appId, aclArray).then(function(ok){
-                        
-                        promises.push(mongoService.document.save(appId, mongoDocs));
-                        q.allSettled(promises).then(function(array) {
-                            if (array[0].state === 'fulfilled') {
-                                _sendNotification(appId, array[0], reqType);
-                                unModDoc = _merge(parentId, array[0].value, unModDoc);
+                    promises.push(mongoService.document.save(appId, aclArray));
+                    promises.push(mongoService.document.save(appId, mongoDocs));
+                    q.allSettled(promises).then(function(array) {
+                        if (array[0].state === 'fulfilled') {
+                            _sendNotification(appId, array[0], reqType);
+                            unModDoc = _merge(parentId, array[0].value, unModDoc);
+                            
 
-
-                                deferred.resolve(unModDoc);
-                            } else {
-                                _rollBack(appId, array, listOfDocs, obj).then(function(res) {
-                                    winston.log('error', res);
-                                    deferred.reject("Unable to Save the document at this time");
-                                }, function(err) {
-                                    winston.log('error', err);
-                                    deferred.reject(err);
-                                });
-                            }
-                        });
-                    }, function(err) {
-                        deferred.reject(err);
+                            deferred.resolve(unModDoc);
+                        } else {
+                            _rollBack(appId, array, listOfDocs, obj).then(function(res) {
+                                winston.log('error', res);
+                                deferred.reject("Unable to Save the document at this time");
+                            }, function(err) {
+                                winston.log('error', err);
+                                deferred.reject(err);
+                            });
+                        }
                     });
+                   
             }, function(errs) {
                 deferred.reject(errs);
             });
