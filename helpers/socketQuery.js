@@ -1,11 +1,14 @@
+/* eslint-disable no-redeclare */
 /*
 #     CloudBoost - Core Engine that powers Bakend as a Service
 #     (c) 2014 HackerBay, Inc.
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 var util = require('../helpers/util.js');
+var config = require('../config/config');
+var winston = require('winston');
 
-module.exports = {
+var obj = {
 
     /* Gets the query connected to a socketId.
      * @socketId : Its a string.
@@ -14,12 +17,12 @@ module.exports = {
      */
     getData: function(socketId, eventType, callback) {
         try {
-            global.redisClient.get('cb-socket-' + socketId + '-data' + eventType, function(err, reply) {
+            config.redisClient.get('cb-socket-' + socketId + '-data' + eventType, function(err, reply) {
                 callback(err, JSON.parse(reply));
             });
 
         } catch (err) {
-            global.winston.log('error', {
+            winston.log('error', {
                 "error": String(err),
                 "stack": new Error().stack
             });
@@ -30,14 +33,14 @@ module.exports = {
      */
     setData: function(socketId, data, callback) {
         try {
-            data = data || {}
-            global.redisClient.set('cb-socket-' + socketId + '-data' + data.eventType, JSON.stringify(data), function(err, reply) {
+            data = data || {};
+            config.redisClient.set('cb-socket-' + socketId + '-data' + data.eventType, JSON.stringify(data), function(err, reply) {
                 if (callback)
                     callback(err, reply);
                 }
             );
         } catch (err) {
-            global.winston.log('error', {
+            winston.log('error', {
                 "error": String(err),
                 "stack": new Error().stack
             });
@@ -47,13 +50,13 @@ module.exports = {
 
     deleteData: function(socketId, eventType, callback) {
         try {
-            global.redisClient.set('cb-socket-' + socketId + '-data' + eventType, null, function(err, reply) {
+            config.redisClient.set('cb-socket-' + socketId + '-data' + eventType, null, function(err, reply) {
                 if (callback)
                     callback(err, reply);
                 }
             );
         } catch (err) {
-            global.winston.log('error', {
+            winston.log('error', {
                 "error": String(err),
                 "stack": new Error().stack
             });
@@ -71,7 +74,7 @@ module.exports = {
                         if (query[key].length > 0) {
                             var isTrue = false;
                             for (var i = 0; i < query[key].length; i++) {
-                                if (global.socketQueryHelper.validateSocketQuery(cloudObject, query[key][i])) {
+                                if (obj.validateSocketQuery(cloudObject, query[key][i])) {
                                     isTrue = true;
                                     break;
                                 }
@@ -93,8 +96,8 @@ module.exports = {
                                     lat2 = qVal['$geometry'].coordinates[1],
                                     lon2 = qVal['$geometry'].coordinates[0];
                                 var maxDistance = qVal['$maxDistance'];
-                                    minDistance = qVal['$minDistance'];
-                                var distance = util.getLatLongDistance(lat1, lon1, lat2, lon2)
+                                var minDistance = qVal['$minDistance'];
+                                var distance = util.getLatLongDistance(lat1, lon1, lat2, lon2);
                                 if (!minDistance)
                                     minDistance = 0;
                                 if (!maxDistance)
@@ -303,7 +306,7 @@ module.exports = {
                         }
                         var a = cloudObject[temp]._id;
                         var b = query[key];
-                        if (cloudObject[temp]._id !== query[key]) {
+                        if (a !== b) {
                             return false;
                         }
                     } else {
@@ -320,3 +323,15 @@ module.exports = {
         return true;
     }
 };
+
+function trimStart(character, string) {
+    var startIndex = 0;
+
+    while (string[startIndex] === character) {
+        startIndex++;
+    }
+
+    return string.substr(startIndex);
+}
+
+module.exports = obj;

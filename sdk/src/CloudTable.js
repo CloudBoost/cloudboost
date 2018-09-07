@@ -306,12 +306,12 @@ CB.CloudTable.get = function(table, callback){
 
       var url = CB.apiUrl + '/app/' + CB.appId + "/" + table.document.name;
       CB._request('POST',url,params,true).then(function(response){
-          if(response === "null" || response === ""){
-            obj = null;
-        }else{
-            response = JSON.parse(response);
-            var obj = CB.fromJSON(response);
-        }
+            if(response === "null" || response === ""){
+                obj = null;
+            }else{
+                response = JSON.parse(response);
+                var obj = CB.fromJSON(response);
+            }
           if (callback) {
               callback.success(obj);
           } else {

@@ -1,271 +1,171 @@
-﻿
-
-/*
+﻿/*
 #     CloudBoost - Core Engine that powers Bakend as a Service
-#     (c) 2014 HackerBay, Inc. 
+#     (c) 2014 HackerBay, Inc.
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
 var q = require('q');
 var uuid = require('node-uuid');
 
+var config = require('../config/config');
+var winston = require('winston');
 
-//This file manages encryption keys, Host URL, etc etc. 
+//This file manages encryption keys, Host URL, etc etc.
 module.exports = {
-        initSecureKey : function () {
-            try {
-                var deferred = q.defer();
-                
-                
 
-                var key = null;
+	getSettingsVariables: function () {
+		var deferred = q.defer();
+		var collection = config.mongoClient.db(config.globalDb).collection(config.globalSettings);
 
-                if (global.keys.secureKey) {
-                    
-                    deferred.resolve(global.keys.secureKey);
-                } else {
+		collection.find({}).toArray(function (err, docs) {
+			if(err){
+				return deferred.reject(err);
+			}
 
-                    //get it from mongodb, If does not exist, create a new random key and return;
-                    var collection = global.mongoClient.db(global.keys.globalDb).collection(global.keys.globalSettings);
+			if(docs.length){
+				return deferred.resolve(docs[0]);
+			} else {
+				return deferred.reject('No configuration found.');
+			}
+		});
 
-                    collection.find({}).toArray(function (err, docs) {
-                        if (err) {
-                            
-                            
-                            deferred.reject(err);
-                        } else {
+		return deferred.promise;
+	},
 
-                            var key = uuid.v4(); //generate a new key.
+	initSettingsVariable: function () {
+		var deferred = q.defer();
+		var collection = config.mongoClient.db(config.globalDb).collection(config.globalSettings);
+		var self = this;
 
-                            if (docs.length >= 1) {
-                                if (docs[0].secureKey) {
-                                    global.keys.secureKey = docs[0].secureKey;
-                                    
-                                    deferred.resolve(global.keys.secureKey);
-                                } else {
+		function cbFn (err){
+			if(err){
+				return deferred.reject(err);
+			}
 
-                                    //save in mongodb.
-                                    if (!docs[0])
-                                        docs[0] = {};
-
-                                    docs[0]["secureKey"] = key;
+			//since it just saved new configuration recall this function to get the saved settings.
+			return self.getSettingsVariables().then(deferred.resolve, deferred.reject);
+		}
 
 
+		collection.find({}).toArray(function (err, docs) {
+			if(err){
+				return deferred.reject(err);
+			}
 
-                                    collection.save(docs[0], function (err, doc) {
-                                        if (err) {
-                                            
-                                            
-                                            deferred.reject(err);
-                                        } else {
-                                            //resolve if not an error
-                                            global.keys.secureKey = key;
-                                            
-                                            deferred.resolve(key);
-                                        }
-                                    });
-                                }
-                            }else{
-                                //create a new document.
-                                var doc = {};
-                                doc.secureKey = key;
-                                global.keys.secureKey = key;
-                                collection.save(doc, function (err, doc) {
-                                    if (err) {
-                                        
-                                        
-                                        deferred.reject(err);
-                                    } else {
-                                        //resolve if not an error
-                                        
-                                        deferred.resolve(key);
-                                    }
-                                });
-                            }
-                        }
-                    });
+			if(docs.length){
+				var firstDoc = docs[0];
+				if(firstDoc.secureKey && firstDoc.clusterKey && firstDoc.myURL){
+					//Return the firstDoc since all required keys are present.
+					return deferred.resolve(firstDoc);
+				} else {
+					//Update the found configuration.
+					return _saveSettings({ collection: collection, doc: firstDoc }, cbFn);
+				}
+			} else {
+				return _saveSettings({ collection: collection }, cbFn);
+			}
+		});
 
-                }
+		return deferred.promise;
+	},
 
-                return deferred.promise;
-            }catch(e){
-                
-                
-                global.winston.log('error',{"error":String(e),"stack": new Error().stack});   
-            }
-        },
+	getMyUrl: function () {
 
-    initClusterKey : function () {
-        try {
+		var deferred = q.defer();
 
-            
+		try {
+			if (config.myURL) {
+				deferred.resolve(config.myURL);
+			} else {
 
-            var key = null;
+				//get it from mongodb, If does not exist, create a new random key and return;
 
-            if (global.keys.secureKey) {
-                
-                deferred.resolve(global.keys.clusterKey);
-            } else {
+				var collection = config.mongoClient.db(config.globalDb).collection(config.globalSettings);
 
-                //get it from mongodb, If does not exist, create a new random key and return;
-                var deferred = q.defer();
-
-                var collection = global.mongoClient.db(global.keys.globalDb).collection(global.keys.globalSettings);
-
-                collection.find({}).toArray(function (err, docs) {
-                    if (err) {
-                        
-                        
-                        deferred.reject(err);
-                    } else {
-
-                        var key = uuid.v4(); //generate a new key.
-
-                        if (docs.length >= 1) {
-                            if (docs[0].clusterKey) {
-                                global.keys.clusterKey = docs[0].clusterKey;
-                                
-                                deferred.resolve(global.keys.clusterKey);
-                            } else {
-
-                                //save in mongodb.
-                                if (!docs[0])
-                                    docs[0] = {};
-
-                                docs[0]["clusterKey"] = key;
-
-                                collection.save(docs[0], function (err, doc) {
-                                    if (err) {
-                                        
-                                        
-                                        deferred.reject(err);
-                                    } else {
-                                        //resolve if not an error
-                                        global.keys.clusterKey = key;
-                                        
-                                        deferred.resolve(key);
-                                    }
-                                });
-                            }
-                        }else{
-                            //create a new document.
-                            var doc = {};
-                            doc.clusterKey = key;
-                            global.keys.clusterKey = key;
-                            collection.save(doc, function (err, doc) {
-                                if (err) {
-                                    
-                                    
-                                    deferred.reject(err);
-                                } else {
-                                    //resolve if not an error
-                                    
-                                    deferred.resolve(key);
-                                }
-                            });
-                        }
-                    }
-                });
+				collection.find({ clusterKey: config.clusterKey }).toArray(function (err, docs) {
+					if (err) {
 
 
-            }
+						deferred.reject(err);
+					} else {
 
-            return deferred.promise;
-        }catch(e){
-            
-            
-            global.winston.log('error',{"error":String(e),"stack": new Error().stack});       
-        }
-    },
+						if (docs.length >= 1) {
+							if (docs[0].myURL) {
 
-    getMyUrl : function () { 
+								config.myURL = docs[0].myURL;
+								deferred.resolve(config.myURL);
+							} else {
+								_saveSettings({collection: collection, doc: docs[0] }, function (){
+									deferred.resolve(config.hostUrl);
+								});
+							}
+						} else {
+							deferred.resolve(config.hostUrl);
+						}
+					}
+				});
 
-                var deferred = q.defer();
-                
-                try{
-                    if (global.keys.myURL) {
-                        deferred.resolve(global.keys.myURL);
-                    } else {
-                        
-                        //get it from mongodb, If does not exist, create a new random key and return; 
-                        var deferred = q.defer();
-                        
-                        var collection = global.mongoClient.db(global.keys.globalDb).collection(global.keys.globalSettings);
-                        
-                        collection.find({}).toArray(function (err, docs) {
-                            if (err) {
-                                
-                                
-                                deferred.reject(err);
-                            } else {
+			}
 
-                                if (docs.length >= 1) {
-                                    if (docs[0].myURL) {
-                                        
-                                        global.keys.myURL = docs[0].myURL;
-                                        deferred.resolve(global.keys.myURL);
-                                    } else {
-                                        // FOR TESTING, FIX LATER
-                                        deferred.resolve("http://localhost:4730");
-                                    }
-                                } else {
-                                    // FOR TESTING, FIX LATER
-                                    deferred.resolve("http://localhost:4730");
-                                }
-                            }
-                        });
+		} catch (e) {
+			winston.log('error', {
+				"error": String(e),
+				"stack": new Error().stack
+			});
+			deferred.reject(e);
+		}
 
-                    }
+		return deferred.promise;
+	},
 
-                }catch(e){                    
-                    global.winston.log('error',{"error":String(e),"stack": new Error().stack}); 
-                    deferred.reject(e);  
-                }
-                
-                return deferred.promise;
-        },
+	changeUrl: function (url) {
 
-    changeUrl : function (url) {
+		var deferred = q.defer();
 
-        var deferred = q.defer();
+		try {
+			var collection = config.mongoClient.db(config.globalDb).collection(config.globalSettings);
 
-        try{
-            var collection = global.mongoClient.db(global.keys.globalDb).collection(global.keys.globalSettings);
+			collection.find({}).toArray(function (err, docs) {
+				if (err) {
+					deferred.reject(err);
+				} else {
 
-            collection.find({}).toArray(function (err, docs) {
-                if (err) {
-                    
-                    
-                    deferred.reject(err);
-                } else {
+					if (docs.length >= 1) {
 
-                    if (docs.length >= 1) {
-                        
-                        docs[0].myURL = url;
-                        
-                        collection.save(docs[0], function(err, doc){
+						docs[0].myURL = url;
 
-                            if(err){
-                                
-                                deferred.reject("Error, cannot change the cluster URL.");
-                            }else{
-                                
-                                global.keys.myURL = url;
-                                deferred.resolve(url);
-                            }
-                        });
-                    } else {
-                        deferred.reject("Global record not found. Restart the cluster.");
-                    }
-                }
-            });
+						collection.save(docs[0], function (err) {
+							if (err) {
+								deferred.reject("Error, cannot change the cluster URL.");
+							} else {
+								config.myURL = url;
+								deferred.resolve(url);
+							}
+						});
+					} else {
+						deferred.reject("Global record not found. Restart the cluster.");
+					}
+				}
+			});
 
-        }catch(e){                    
-            global.winston.log('error',{"error":String(e),"stack": new Error().stack}); 
-            deferred.reject(e);  
-        }
+		} catch (e) {
+			winston.log('error', {
+				"error": String(e),
+				"stack": new Error().stack
+			});
+			deferred.reject(e);
+		}
 
-        return deferred.promise;
+		return deferred.promise;
 
-    }
+	}
 };
+
+function _saveSettings(params, callback) {
+	var doc = params.doc || {};
+	var collection = params.collection;
+	doc.secureKey = doc.secureKey || uuid.v4(); //generate a new key.
+	doc.clusterKey = doc.clusterKey || uuid.v4();
+	doc.myURL = doc.myURL || (config.hostUrl || 'http://localhost:4730');
+	collection.save(doc, callback);
+}

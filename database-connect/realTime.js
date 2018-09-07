@@ -3,6 +3,12 @@
 #     (c) 2014 HackerBay, Inc.
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
+var socketSessionHelper = require('../helpers/socketSession');
+var socketQueryHelper = require('../helpers/socketQuery');
+var aclHelper = require('../helpers/ACL');
+var appService = require('../services/app');
+var q = require('q');
+var winston = require('winston');
 
 module.exports = function (io) {
 
@@ -17,7 +23,7 @@ module.exports = function (io) {
                 try {
                     socket.join(data);
                 } catch (e) {
-                    global.winston.log('error', {
+                    winston.log('error', {
                         "error": String(e),
                         "stack": new Error().stack
                     });
@@ -28,23 +34,23 @@ module.exports = function (io) {
 
             socket.on('join-custom-channel', function (data) {
                 try {
-                    
-                    
+
+
                     socket.join(data);
 
                 } catch (e) {
-                    global.winston.log('error', {
+                    winston.log('error', {
                         "error": String(e),
                         "stack": new Error().stack
                     });
                 }
             });
 
-            socket.on('socket-disconnect', function (data) {
+            socket.on('socket-disconnect', function () {
                 try {
                     socket.disconnect();
                 } catch (e) {
-                    global.winston.log('error', {
+                    winston.log('error', {
                         "error": String(e),
                         "stack": new Error().stack
                     });
@@ -53,11 +59,11 @@ module.exports = function (io) {
 
             socket.on('leave-custom-channel', function (data) {
                 try {
-                    
-                    
+
+
                     socket.leave(data);
                 } catch (e) {
-                    global.winston.log('error', {
+                    winston.log('error', {
                         "error": String(e),
                         "stack": new Error().stack
                     });
@@ -66,11 +72,11 @@ module.exports = function (io) {
 
             socket.on('publish-custom-channel', function (data) {
                 try {
-                    
-                    
+
+
                     //if this doucment is an instance of a table Object.
-                    var roomSockets = io.to(data.channel);
-                    var sockets = roomSockets.sockets;
+                    // var roomSockets = io.to(data.channel);
+                    // var sockets = roomSockets.sockets;
 
                     // if (typeof sockets === "object") {
                     //     for (var key in sockets) {
@@ -83,7 +89,7 @@ module.exports = function (io) {
                     io.emit(data.channel, data.data);
 
                 } catch (e) {
-                    global.winston.log('error', {
+                    winston.log('error', {
                         "error": String(e),
                         "stack": new Error().stack
                     });
@@ -93,9 +99,6 @@ module.exports = function (io) {
             /* CloudObject Channel Listeners. */
             socket.on('join-object-channel', function (data) {
                 try {
-                    
-                    
-
                     if (typeof data === 'string') { // Backward Compatibility : data only has the room id
                         socket.join(data);
                     } else { //data has both the room id and the sessionId.
@@ -103,15 +106,15 @@ module.exports = function (io) {
                         //connect socket.id and sessionId together
 
                         // build socketid specefic to table
-                        var tableSocketId = data.room.split('')
-                        tableSocketId.splice(-8,8)
-                        tableSocketId = socket.id + tableSocketId.join('')
+                        var tableSocketId = data.room.split('');
+                        tableSocketId.splice(-8,8);
+                        tableSocketId = socket.id + tableSocketId.join('');
 
-                        global.socketQueryHelper.setData(tableSocketId, data.data);
-                        global.socketSessionHelper.saveSession(socket.id, data.sessionId);
+                        socketQueryHelper.setData(tableSocketId, data.data);
+                        socketSessionHelper.saveSession(socket.id, data.sessionId);
                     }
                 } catch (e) {
-                    global.winston.log('error', {
+                    winston.log('error', {
                         "error": String(e),
                         "stack": new Error().stack
                     });
@@ -120,21 +123,21 @@ module.exports = function (io) {
 
             socket.on('leave-object-channel', function (data) {
                 try {
-                    
-                    
+
+
                     // build socketid specefic to table
-                    var tableSocketId = socket.id + data.event
-                    global.socketQueryHelper.getData(tableSocketId, data.eventType, function (err, socketData) {
+                    var tableSocketId = socket.id + data.event;
+                    socketQueryHelper.getData(tableSocketId, data.eventType, function (err, socketData) {
                         if (err)
                             throw err;
                         else {
                             socket.leave(data.event + socketData.timestamp);
                             socket.emit('leave' + data.event + data.timestamp, socketData.timestamp); //to removeAlListeners
-                            global.socketQueryHelper.deleteData(tableSocketId, data.event);
+                            socketQueryHelper.deleteData(tableSocketId, data.event);
                         }
                     });
                 } catch (e) {
-                    global.winston.log('error', {
+                    winston.log('error', {
                         "error": String(e),
                         "stack": new Error().stack
                     });
@@ -143,9 +146,9 @@ module.exports = function (io) {
 
             socket.on('disconnect', function () {
                 try {
-                    global.socketSessionHelper.deleteSession(socket.id); //deletes the lnk between this socket and session.
+                    socketSessionHelper.deleteSession(socket.id); //deletes the lnk between this socket and session.
                 } catch (e) {
-                    global.winston.log('error', {
+                    winston.log('error', {
                         "error": String(e),
                         "stack": new Error().stack
                     });
@@ -153,7 +156,7 @@ module.exports = function (io) {
             });
 
         } catch (e) {
-            global.winston.log('error', {
+            winston.log('error', {
                 "error": String(e),
                 "stack": new Error().stack
             });
@@ -165,9 +168,9 @@ module.exports = function (io) {
         try {
             //event type can be created, updated, deleted.
             if (document && document._tableName) {
-                
-                
-                
+
+
+
                 //if this doucment is an instance of a table Object.
                 var roomSockets = io.to(appId.toLowerCase() + 'table' + document._tableName.toLowerCase() + eventType.toLowerCase());
                 var sockets = roomSockets.sockets;
@@ -189,14 +192,14 @@ module.exports = function (io) {
                     }
                 }
 
-                global.q.all(promises).then(function () {
-                    
+                q.all(promises).then(function () {
+
                 }, function () {
-                    
+
                 });
             }
         } catch (e) {
-            global.winston.log('error', {
+            winston.log('error', {
                 "error": String(e),
                 "stack": new Error().stack
             });
@@ -211,56 +214,56 @@ module.exports = function (io) {
  */
 
 function _sendNotification(appId, document, socket, eventType) {
-    var deferred = global.q.defer();
+    var deferred = q.defer();
     try {
-        global.socketSessionHelper.getSession(socket.id, function (err, session) {
+        socketSessionHelper.getSession(socket.id, function (err, session) {
             if (err) {
                 deferred.reject();
             }
 
-            session = session || {}
+            session = session || {};
 
-            global.socketQueryHelper.getData(_buildSocketId(socket.id,appId,document._tableName,eventType), eventType, function (err, socketData) {
+            socketQueryHelper.getData(_buildSocketId(socket.id,appId,document._tableName,eventType), eventType, function (err, socketData) {
 
                 socketData = socketData || { timestamp: '' };
                 var socketQueryValidate = true;
                 if (socketData.query) {
-                    socketQueryValidate = global.socketQueryHelper.validateSocketQuery(document, socketData.query.query);
+                    socketQueryValidate = socketQueryHelper.validateSocketQuery(document, socketData.query.query);
                 }
 
                 if (socketQueryValidate) {
                     // check if public access is enabled or the current session user is allowed
-                    if (global.aclHelper.isAllowedReadAccess(session.userId, session.roles, document.ACL)) {
-                        
+                    if (aclHelper.isAllowedReadAccess(session.userId, session.roles, document.ACL)) {
+
                         socket.emit(appId.toLowerCase() + 'table' + document._tableName.toLowerCase() + eventType.toLowerCase() + socketData.timestamp, JSON.stringify(document));
-                        
+
                         deferred.resolve();
                     } else {
                         // if no access then only emit if listen is using master key
                         if (socketData.appKey) {
-                            global.appService.isMasterKey(appId, socketData.appKey).then(( isMaster ) => {
+                            appService.isMasterKey(appId, socketData.appKey).then(( isMaster ) => {
                                 if(isMaster){
-                                    
+
                                     socket.emit(appId.toLowerCase() + 'table' + document._tableName.toLowerCase() + eventType.toLowerCase() + socketData.timestamp, JSON.stringify(document));
-                                    
+
                                 }
                                 deferred.resolve();
-                            })
+                            });
                         } else {
-                            
+
                             deferred.resolve();
                         }
                     }
 
                 } else {
-                    
+
                     deferred.resolve();
                 }
 
             });
         });
     } catch (e) {
-        global.winston.log('error', {
+        winston.log('error', {
             "error": String(e),
             "stack": new Error().stack
         });
@@ -270,5 +273,5 @@ function _sendNotification(appId, document, socket, eventType) {
 }
 
 function _buildSocketId(socketId, appId,tableName,eventType){
-    return socketId + (appId + 'table' + tableName + eventType).toLowerCase()
+    return socketId + (appId + 'table' + tableName + eventType).toLowerCase();
 }
