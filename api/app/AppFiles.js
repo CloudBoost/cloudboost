@@ -4,21 +4,23 @@
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
-module.exports = function() {
+var mongoService = require('../../databases/mongo');
+
+module.exports = function(app) {
 
     //get file from gridfs
-    global.app.get('/appfile/:appId/icon', function(req, res) {
+    app.get('/appfile/:appId/icon', function(req, res) {
 
         
 
         var appId = req.params.appId;
         var fileName = appId;
 
-        global.mongoService.document.getFile(appId, fileName).then(function(file) {
+        mongoService.document.getFile(appId, fileName).then(function(file) {
             if (!file) 
                 res.send();
 
-            var fileStream = global.mongoService.document.getFileStreamById(appId, file._id);
+            var fileStream = mongoService.document.getFileStreamById(appId, file._id);
             res.set('Content-Type', file.contentType);
             res.setHeader('Cache-Control', 'public, max-age=86400');
             res.set('Content-Disposition', 'attachment; filename="' + file.filename + '"');
@@ -39,4 +41,4 @@ module.exports = function() {
         });
 
     });
-}
+};

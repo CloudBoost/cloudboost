@@ -10,24 +10,24 @@
 var _ = require('underscore');
 var customHelper = require('../../helpers/custom.js');
 var q = require('q');
+var apiTracker = require('../../database-connect/apiTracker');
+var userService = require('../../services/cloudUser');
+var appService = require('../../services/app');
+var config = require('../../config/config');
+var winston = require('winston');
 
-module.exports = function() {
+module.exports = function(app) {
     
 
-    global.app.get('/page/:appId/reset-password', function(req, res) {
-       
-           
+    app.get('/page/:appId/reset-password', function(req, res) {           
         var appId = req.params.appId || null;      
         var sdk = req.body.sdk || "REST";     
         
         var promises=[];
-        promises.push(global.appService.getApp(appId));
-        promises.push(global.appService.getAllSettings(appId));        
+        promises.push(appService.getApp(appId));
+        promises.push(appService.getAllSettings(appId));        
 
-        q.all(promises).then(function(list){            
-
-            
-            
+        q.all(promises).then(function(list){
             var appKeys={};
             appKeys.appId=appId;
 
@@ -47,7 +47,7 @@ module.exports = function() {
                 authSettings=auth.settings;
             }
 
-            res.render(global.rootPath+'/page-templates/user/password-reset',{
+            res.render(config.rootPath+'/page-templates/user/password-reset',{
                 appKeys:appKeys,
                 generalSettings: generalSettings,
                 authSettings: authSettings,                       
@@ -57,14 +57,14 @@ module.exports = function() {
             res.status(400).send(error);
         });   
             
-        global.apiTracker.log(appId,"User / Reset User Password", req.url,sdk);
+        apiTracker.log(appId,"User / Reset User Password", req.url,sdk);
        
     });
 
     /*
     Reset Password : This API is used from CloudBoost Reset Password Page. 
     */    
-    global.app.post('/page/:appId/reset-user-password', function(req, res) { 
+    app.post('/page/:appId/reset-user-password', function(req, res) { 
         var appId = req.params.appId || null;
         var username = req.body.username || null;
         var sdk = req.body.sdk || "REST";
@@ -77,9 +77,9 @@ module.exports = function() {
             });
         }
         
-        global.appService.getApp(appId).then(function (application) {
-            global.userService.resetUserPassword(appId, username, newPassword, resetKey, customHelper.getAccessList(req), true, application.keys.encryption_key)
-            .then(function(result) {
+        appService.getApp(appId).then(function (application) {
+            userService.resetUserPassword(appId, username, newPassword, resetKey, customHelper.getAccessList(req), true, application.keys.encryption_key)
+            .then(function() {
                 res.json({message : "Password changed successfully."});
             }, function(error) {
                 res.json(400, {
@@ -88,28 +88,23 @@ module.exports = function() {
             });
         });
         
-        global.apiTracker.log(appId,"User / Reset User Password", req.url,sdk);
+        apiTracker.log(appId,"User / Reset User Password", req.url,sdk);
     });
 
     /*Desc   : Render Authentication Page
       Params : appId
       Returns: Authentication html page
     */
-    global.app.get('/page/:appId/authentication', function(req, res) { 
-
-        
+    app.get('/page/:appId/authentication', function(req, res) { 
 
         var appId = req.params.appId || null;      
         var sdk = req.body.sdk || "REST";     
 
         var promises=[];
-        promises.push(global.appService.getApp(appId));
-        promises.push(global.appService.getAllSettings(appId));        
+        promises.push(appService.getApp(appId));
+        promises.push(appService.getAllSettings(appId));        
 
         q.all(promises).then(function(list){            
-
-            
-            
             var appKeys={};
             appKeys.appId=appId;
 
@@ -128,13 +123,18 @@ module.exports = function() {
                 authSettings=auth.settings;
             }
 
-            delete authSettings.resetPasswordEmail.template;
-            delete authSettings.signupEmail.template;
+            if(authSettings && authSettings.resetPasswordEmail && authSettings.resetPasswordEmail.template){
+                delete authSettings.resetPasswordEmail.template;
+            }
 
-            res.render(global.rootPath+'/page-templates/user/login',{
-                appKeys:appKeys,
+            if(authSettings && authSettings.signupEmail && authSettings.signupEmail.template){
+                delete authSettings.signupEmail.template;
+            }
+            
+            res.render(config.rootPath+'/page-templates/user/login',{
+                appKeys: appKeys,
                 generalSettings: generalSettings,
-                authSettings: authSettings                    
+                authSettings: authSettings     
             });
 
         },function(error){
@@ -142,7 +142,7 @@ module.exports = function() {
         });   
         
         
-        global.apiTracker.log(appId,"User / Reset User Password", req.url,sdk);
+        apiTracker.log(appId,"User / Reset User Password", req.url,sdk);
     });
 
 
@@ -150,7 +150,7 @@ module.exports = function() {
       Params : appId
       Returns: Activation html page
     */
-    global.app.get('/page/:appId/verify', function(req, res) { 
+    app.get('/page/:appId/verify', function(req, res) { 
 
         
 
@@ -164,8 +164,8 @@ module.exports = function() {
         
 
         var promises=[];
-        promises.push(global.userService.verifyActivateCode(appId, activateCode, customHelper.getAccessList(req)));
-        promises.push(global.appService.getAllSettings(appId));        
+        promises.push(userService.verifyActivateCode(appId, activateCode, customHelper.getAccessList(req)));
+        promises.push(appService.getAllSettings(appId));        
 
         q.all(promises).then(function(list){            
            
@@ -178,17 +178,20 @@ module.exports = function() {
                 generalSettings=general.settings;
             }            
 
-            res.render(global.rootPath+'/page-templates/user/signup-activate',{               
+            res.render(config.rootPath+'/page-templates/user/signup-activate',{               
                 generalSettings: generalSettings,
                 verified:true                                   
             });
 
-        },function(error){
-            res.render(global.rootPath+'/page-templates/user/signup-activate',{               
+        },function(err){
+            winston.error({
+                error: err
+            });
+            res.render(config.rootPath+'/page-templates/user/signup-activate',{               
                 verified:false                                   
             });
         });
         
-        global.apiTracker.log(appId,"User / Reset User Password", req.url,sdk);
+        apiTracker.log(appId,"User / Reset User Password", req.url,sdk);
     });
 };

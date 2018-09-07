@@ -6,17 +6,23 @@ describe("Query on Cloud Object Notifications ", function() {
 
     it("limit : 1", function(done) {
 
-        var isDone = false;
-
-        this.timeout(40000);
+        this.timeout(4000);
         //create the query.
         var query = new CB.CloudQuery('Student');
         query.limit = 2;
 
         var count = 0;
 
+        var timeout = setTimeout(function() {
+            done(new Error("Limit Error"));
+        }, 3000);
+
         CB.CloudObject.on('Student', 'created', query, function() {
             ++count;
+            if(count == 2){
+                clearTimeout(timeout);
+                done();
+            }
         });
 
         for (var i = 0; i < 3; i++) {
@@ -26,74 +32,56 @@ describe("Query on Cloud Object Notifications ", function() {
             obj.save();
         }
 
-        setTimeout(function() {
-            if (count === 2) {
-                if (!isDone) {
-                    isDone = true;
-                    done();
-                };
-            } else {
-                if (!isDone) {
-                    isDone = true;
-                    done("Limit Error");
-                };
-            }
-        }, 30000)
-
     });
 
     it("near : 1", function(done) {
         //Custom5 table has location field.
 
-        this.timeout(30000);
+        this.timeout(3000);
         var loc = new CB.CloudGeoPoint("76.991204", "28.605977");
         var query = new CB.CloudQuery('Custom5');
-        var isDone = false;
         query.near("location", loc, 40000); //40km
-
+        var timeout = setTimeout(function() {
+            done(new Error('event not fired'));
+        }, 2000);
         CB.CloudObject.on('Custom5', 'created', query, function() {
             CB.CloudObject.off('Custom5', 'created');
-            isDone = true;
-
+            clearTimeout(timeout);
+            done();
         });
         loc = new CB.CloudGeoPoint("77.061327", "28.621272");
         var obj = new CB.CloudObject('Custom5');
         obj.set('location', loc);
         obj.save();
-        setTimeout(function() {
-            if (isDone) {
-                done();
-            } else {
-                done('event not fired');
-            }
-        }, 20000);
+
     });
 
     it("near : 2", function(done) {
         //Custom5 table has location field.
 
-        this.timeout(30000);
+        this.timeout(1000);
         var loc = new CB.CloudGeoPoint("76.991204", "28.605977");
         var query = new CB.CloudQuery('Custom5');
         var isDone = false;
         query.near("location", loc, 40000); //40km
 
+        var timeout = setTimeout(function() {
+            if (!isDone) {
+                done();
+            }
+        }, 500);
+
         CB.CloudObject.on('Custom5', 'created', query, function() {
             CB.CloudObject.off('Custom5', 'created');
             isDone = true;
-
+            clearTimeout(timeout);
+            done(new Error('event fired'));
         });
         loc = new CB.CloudGeoPoint("78.486671", "17.385044");
         var obj = new CB.CloudObject('Custom5');
         obj.set('location', loc);
         obj.save();
-        setTimeout(function() {
-            if (!isDone) {
-                done();
-            } else {
-                done('event  fired');
-            }
-        }, 20000);
+
     });
 
     it("should only fire the second event and not the first one. ", function(done) {

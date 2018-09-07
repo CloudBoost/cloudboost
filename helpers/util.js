@@ -5,6 +5,10 @@
 */
 
 var URL = require('url');
+var q = require('q');
+var fs = require('fs');
+var _ = require('underscore');
+var winston = require('winston');
 
 module.exports = {
 
@@ -15,7 +19,7 @@ module.exports = {
                 return false;
             return true;
         } catch (err) {
-            global.winston.log('error', {
+            winston.log('error', {
                 "error": String(err),
                 "stack": new Error().stack
             });
@@ -27,7 +31,7 @@ module.exports = {
             var re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
             return re.test(data);
         } catch (err) {
-            global.winston.log('error', {
+            winston.log('error', {
                 "error": String(err),
                 "stack": new Error().stack
             });
@@ -44,7 +48,7 @@ module.exports = {
             return id;
 
         } catch (err) {
-            global.winston.log('error', {
+            winston.log('error', {
                 "error": String(err),
                 "stack": new Error().stack
             });
@@ -54,15 +58,11 @@ module.exports = {
     isJsonString: function(str) {
         try {
 
-            try {
-                JSON.parse(str);
-            } catch (e) {
-                return false;
-            }
+            JSON.parse(str);
             return true;
 
         } catch (err) {
-            global.winston.log('error', {
+            winston.log('error', {
                 "error": String(err),
                 "stack": new Error().stack
             });
@@ -72,15 +72,11 @@ module.exports = {
     isJsonObject: function(obj) {
         try {
 
-            try {
-                JSON.stringify(obj);
-            } catch (e) {
-                return false;
-            }
-            return true;
+             JSON.stringify(obj);
+             return true;
 
         } catch (err) {
-            global.winston.log('error', {
+            winston.log('error', {
                 "error": String(err),
                 "stack": new Error().stack
             });
@@ -98,6 +94,46 @@ module.exports = {
         dist = dist * 60 * 1.1515 ;
         dist = dist * 1609.344 ;
 
-        return dist
+        return dist;
+    },
+
+    _checkFileExists: function (filePath) {
+
+    var deferred = q.defer();
+
+        try {
+
+            fs.readFile(filePath, function(err, data) {
+                if (err) {
+                    
+                    return deferred.reject(err);
+                }
+                deferred.resolve(data);
+            });
+
+        } catch (err) {
+            winston.log('error', {
+                "error": String(err),
+                "stack": new Error().stack
+            });
+        }
+
+        return deferred.promise;
+    },
+
+    _isJSON: function (json) {
+        //String
+        if (json && typeof(json) === "string") {
+            try {
+                JSON.parse(json);
+                return true;
+            } catch (e) {
+                return false;
+            }
+
+        } else {
+            return _.isObject(json);
+        }
     }
+
 };

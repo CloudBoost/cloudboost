@@ -1,3 +1,4 @@
+/* eslint-disable no-redeclare */
 /*
 #     CloudBoost - Core Engine that powers Bakend as a Service
 #     (c) 2014 HackerBay, Inc.
@@ -8,252 +9,256 @@ var q = require("q");
 var util = require("../helpers/util.js");
 var _ = require('underscore');
 var crypto = require('crypto');
-var customHelper = require('../helpers/custom.js');
+var customHelper = require('../helpers/custom');
 var type = require("../helpers/dataType");
 
-var databaseDriver = global.mongoService.document;
-module.exports = function() {
+var config = require('../config/config');
+var mongoService = require('../databases/mongo');
+var appService = require('./app');
+var tableService = require('./table');
+var winston = require('winston');
 
-    return {
+module.exports = {
 
-        find: function(appId, collectionName, query, select, sort, limit, skip, accessList, isMasterKey, opts) {
-            var deferred = q.defer();
+    find: function(appId, collectionName, query, select, sort, limit, skip, accessList, isMasterKey, opts) {
+        var deferred = q.defer();
 
-            try {
-                if (opts && opts.ignoreSchema || collectionName === "_File") {
-                    databaseDriver.find(appId, collectionName, query, select, sort, limit, skip, accessList, isMasterKey).then(function(doc) {
-                        deferred.resolve(doc);
-                    }, function(err) {
-                        deferred.reject(err);
-                    });
-                } else {
-
-                    _modifyFieldsInQuery(appId, collectionName, query).then(function(query) {
-                        databaseDriver.find(appId, collectionName, query, select, sort, limit, skip, accessList, isMasterKey).then(function(doc) {
-                            deferred.resolve(doc);
-                        }, function(err) {
-                            deferred.reject(err);
-                        });
-                    }, function(error) {
-                        deferred.reject(error);
-                    });
-
-                }
-
-            } catch (err) {
-                global.winston.log('error', {
-                    "error": String(err),
-                    "stack": new Error().stack
-                });
-                deferred.reject(err);
-            }
-
-            return deferred.promise;
-        },
-        count: function(appId, collectionName, query, limit, skip, accessList, isMasterKey) {
-            var deferred = q.defer();
-
-            try {
-                _modifyFieldsInQuery(appId, collectionName, query).then(function(query) {
-                    databaseDriver.count(appId, collectionName, query, limit, skip, accessList, isMasterKey).then(function(doc) {
-                        deferred.resolve(doc);
-                    }, function(err) {
-                        deferred.reject(err);
-                    });
-                }, function(error) {
-                    deferred.reject(error);
-                });
-            } catch (err) {
-                global.winston.log('error', {
-                    "error": String(err),
-                    "stack": new Error().stack
-                });
-                deferred.reject(err);
-            }
-
-            return deferred.promise;
-        },
-        distinct: function(appId, collectionName, onKey, query, select, sort, limit, skip, accessList, isMasterKey) {
-            var deferred = q.defer();
-
-            try {
-                _modifyFieldsInQuery(appId, collectionName, query).then(function(query) {
-                    databaseDriver.distinct(appId, collectionName, onKey, query, select, sort, limit, skip, accessList, isMasterKey).then(function(doc) {
-                        deferred.resolve(doc);
-                    }, function(err) {
-                        deferred.reject(err);
-                    });
-                }, function(error) {
-                    deferred.reject(error);
-                });
-
-            } catch (err) {
-                global.winston.log('error', {
-                    "error": String(err),
-                    "stack": new Error().stack
-                });
-                deferred.reject(err);
-            }
-            return deferred.promise;
-        },
-
-        findOne: function(appId, collectionName, query, select, sort, skip, accessList, isMasterKey) {
-            var deferred = q.defer();
-
-            try {
-                _modifyFieldsInQuery(appId, collectionName, query).then(function(query) {
-                    databaseDriver.findOne(appId, collectionName, query, select, sort, skip, accessList, isMasterKey).then(function(doc) {
-                        deferred.resolve(doc);
-                    }, function(err) {
-                        deferred.reject(err);
-                    });
-                }, function(error) {
-                    deferred.reject(error);
-                });
-
-            } catch (err) {
-                global.winston.log('error', {
-                    "error": String(err),
-                    "stack": new Error().stack
-                });
-                deferred.reject(err);
-            }
-            return deferred.promise;
-        },
-
-        save: function(appId, collectionName, document, accessList, isMasterKey, opts, encryption_key) {
-
-            
-            var deferred = global.q.defer();
-
-            try {
-                var promises = [];
-                var reqType = {};
-                reqType.save = [];
-                reqType.update = [];
-                if (document.constructor === Array) {
-                    for (var i = 0; i < document.length; i++) {
-                        document[i] = _checkIdList(document[i], reqType);
-                        _generateId(document[i], reqType);
-                        
-                        promises.push(_save(appId, collectionName, document[i], accessList, isMasterKey, reqType, opts, encryption_key));
-                    }
-                    global.q.allSettled(promises).then(function(res) {
-
-                        var status = true;
-                        var success = [];
-                        var error = [];
-                        for (var i = 0; i < res.length; i++) {
-                            if (res[i].status === 'fulfilled') {
-                                success.push(res[i].value);
-                                error.push(null);
-                            } else {
-                                status = false;
-                                error.push(res[i].value);
-                            }
-                        }
-
-                        if (status === true) {
-                            deferred.resolve(success);
-                        } else {
-                            deferred.resolve(error);
-                        }
-                    });
-                } else {
-                    
-                    _save(appId, collectionName, document, accessList, isMasterKey, null, opts, encryption_key).then(function(res) {
-                        deferred.resolve(res);
-                    }, function(err) {
-                        deferred.reject(err);
-                    });
-                }
-
-            } catch (err) {
-                global.winston.log('error', {
-                    "error": String(err),
-                    "stack": new Error().stack
-                });
-                deferred.reject(err);
-            }
-            return deferred.promise;
-
-        },
-
-        delete: function(appId, collectionName, document, accessList, isMasterKey, opts) {
-
-            var deferred = global.q.defer();
-
-            try {
-                var promises = [];
-                if (document.constructor === Array) {
-                    for (var i = 0; i < document.length; i++) {
-                        promises.push(_delete(appId, collectionName, document[i], accessList, isMasterKey));
-                    }
-                    global.q.allSettled(promises).then(function(res) {
-                        var status = true;
-                        var success = [];
-                        var error = [];
-                        for (var i = 0; i < res.length; i++) {
-                            if (res[i].status === 'fulfilled') {
-                                success.push(res[i].value);
-                                error.push(null);
-                            } else {
-                                status = false;
-                                error.push(res[i].value);
-                            }
-                        }
-                        if (status === true) {
-                            deferred.resolve(success);
-                        } else {
-                            deferred.resolve(error);
-                        }
-                    });
-                } else {
-                    _delete(appId, collectionName, document, accessList, isMasterKey).then(function(res) {
-                        deferred.resolve(res);
-                    }, function(err) {
-                        deferred.reject(err);
-                    });
-                }
-
-            } catch (err) {
-                global.winston.log('error', {
-                    "error": String(err),
-                    "stack": new Error().stack
-                });
-                deferred.reject(err);
-            }
-            return deferred.promise;
-
-        },
-        createIndex: function(appId, collectionName, columnName) {
-
-            var deferred = q.defer();
-
-            try {
-                databaseDriver.createIndex(appId, collectionName, columnName).then(function(doc) {
+        try {
+            if (opts && opts.ignoreSchema || collectionName === "_File") {
+                mongoService.document.find(appId, collectionName, query, select, sort, limit, skip, accessList, isMasterKey).then(function(doc) {
                     deferred.resolve(doc);
+                }, function(err) {
+                    deferred.reject(err);
+                });
+            } else {
+                _modifyFieldsInQuery(appId, collectionName, query)
+                .then(function(query) {
+                    mongoService.document.find(appId, collectionName, query, select, sort, limit, skip, accessList, isMasterKey).then(function(doc) {
+                        deferred.resolve(doc);
+                    }, function(err) {
+                        deferred.reject(err);
+                    });
                 }, function(error) {
                     deferred.reject(error);
                 });
-            } catch (err) {
-                global.winston.log('error', {
-                    "error": String(err),
-                    "stack": new Error().stack
-                });
-                deferred.reject(err);
+
             }
-            return deferred.promise;
+
+        } catch (err) {
+            winston.log('error', {
+                "error": String(err),
+                "stack": new Error().stack
+            });
+            deferred.reject(err);
         }
-    };
+
+        return deferred.promise;
+    },
+    count: function(appId, collectionName, query, limit, skip, accessList, isMasterKey) {
+        var deferred = q.defer();
+
+        try {
+            _modifyFieldsInQuery(appId, collectionName, query).then(function(query) {
+                mongoService.document.count(appId, collectionName, query, limit, skip, accessList, isMasterKey).then(function(doc) {
+                    deferred.resolve(doc);
+                }, function(err) {
+                    deferred.reject(err);
+                });
+            }, function(error) {
+                deferred.reject(error);
+            });
+        } catch (err) {
+            winston.log('error', {
+                "error": String(err),
+                "stack": new Error().stack
+            });
+            deferred.reject(err);
+        }
+
+        return deferred.promise;
+    },
+    distinct: function(appId, collectionName, onKey, query, select, sort, limit, skip, accessList, isMasterKey) {
+        var deferred = q.defer();
+
+        try {
+            _modifyFieldsInQuery(appId, collectionName, query).then(function(query) {
+                mongoService.document.distinct(appId, collectionName, onKey, query, select, sort, limit, skip, accessList, isMasterKey).then(function(doc) {
+                    deferred.resolve(doc);
+                }, function(err) {
+                    deferred.reject(err);
+                });
+            }, function(error) {
+                deferred.reject(error);
+            });
+
+        } catch (err) {
+            winston.log('error', {
+                "error": String(err),
+                "stack": new Error().stack
+            });
+            deferred.reject(err);
+        }
+        return deferred.promise;
+    },
+
+    findOne: function(appId, collectionName, query, select, sort, skip, accessList, isMasterKey) {
+        var deferred = q.defer();
+
+        try {
+            _modifyFieldsInQuery(appId, collectionName, query).then(function(query) {
+                mongoService.document.findOne(appId, collectionName, query, select, sort, skip, accessList, isMasterKey).then(function(doc) {
+                    deferred.resolve(doc);
+                }, function(err) {
+                    deferred.reject(err);
+                });
+            }, function(error) {
+                deferred.reject(error);
+            });
+
+        } catch (err) {
+            winston.log('error', {
+                "error": String(err),
+                "stack": new Error().stack
+            });
+            deferred.reject(err);
+        }
+        return deferred.promise;
+    },
+
+    save: function(appId, collectionName, document, accessList, isMasterKey, opts, encryption_key) {
+
+
+        var deferred = q.defer();
+
+        try {
+            var promises = [];
+            var reqType = {};
+            reqType.save = [];
+            reqType.update = [];
+            if (document.constructor === Array) {
+                for (var i = 0; i < document.length; i++) {
+                    document[i] = _checkIdList(document[i], reqType);
+                    _generateId(document[i], reqType);
+
+                    promises.push(_save(appId, collectionName, document[i], accessList, isMasterKey, reqType, opts, encryption_key));
+                }
+                q.allSettled(promises).then(function(res) {
+
+                    var status = true;
+                    var success = [];
+                    var error = [];
+                    for (var i = 0; i < res.length; i++) {
+                        if (res[i].status === 'fulfilled') {
+                            success.push(res[i].value);
+                            error.push(null);
+                        } else {
+                            status = false;
+                            error.push(res[i].value);
+                        }
+                    }
+
+                    if (status === true) {
+                        deferred.resolve(success);
+                    } else {
+                        deferred.resolve(error);
+                    }
+                });
+            } else {
+
+                _save(appId, collectionName, document, accessList, isMasterKey, null, opts, encryption_key)
+                .then(function(res) {
+                    deferred.resolve(res);
+                }, function(err) {
+                    deferred.reject(err);
+                });
+            }
+
+        } catch (err) {
+            winston.log('error', {
+                "error": String(err),
+                "stack": new Error().stack
+            });
+            deferred.reject(err);
+        }
+        return deferred.promise;
+
+    },
+
+    delete: function(appId, collectionName, document, accessList, isMasterKey) {
+
+        var deferred = q.defer();
+
+        try {
+            var promises = [];
+            if (document.constructor === Array) {
+                for (var i = 0; i < document.length; i++) {
+                    promises.push(_delete(appId, collectionName, document[i], accessList, isMasterKey));
+                }
+                q.allSettled(promises).then(function(res) {
+                    var status = true;
+                    var success = [];
+                    var error = [];
+                    for (var i = 0; i < res.length; i++) {
+                        if (res[i].status === 'fulfilled') {
+                            success.push(res[i].value);
+                            error.push(null);
+                        } else {
+                            status = false;
+                            error.push(res[i].value);
+                        }
+                    }
+                    if (status === true) {
+                        deferred.resolve(success);
+                    } else {
+                        deferred.resolve(error);
+                    }
+                });
+            } else {
+                _delete(appId, collectionName, document, accessList, isMasterKey).then(function(res) {
+                    deferred.resolve(res);
+                }, function(err) {
+                    deferred.reject(err);
+                });
+            }
+
+        } catch (err) {
+            winston.log('error', {
+                "error": String(err),
+                "stack": new Error().stack
+            });
+            deferred.reject(err);
+        }
+        return deferred.promise;
+
+    },
+    createIndex: function(appId, collectionName, columnName) {
+
+        var deferred = q.defer();
+
+        try {
+            mongoService.document.createIndex(appId, collectionName, columnName).then(function(doc) {
+                deferred.resolve(doc);
+            }, function(error) {
+                deferred.reject(error);
+            });
+        } catch (err) {
+            winston.log('error', {
+                "error": String(err),
+                "stack": new Error().stack
+            });
+            deferred.reject(err);
+        }
+        return deferred.promise;
+    }
 };
+
 
 function _save(appId, collectionName, document, accessList, isMasterKey, reqType, opts, encryption_key) {
 
     var deferred = q.defer();
     try {
-        
-        
+
+
         var docToSave = document;
 
         var promises = [];
@@ -272,54 +277,62 @@ function _save(appId, collectionName, document, accessList, isMasterKey, reqType
             document = _generateId(document, reqType);
         }
         var parentId = document._id;
-        
+
         document = _getModifiedDocs(document, unModDoc);
         if (document && Object.keys(document).length > 0) {
             customHelper.checkWriteAclAndUpdateVersion(appId, document, accessList, isMasterKey).then(function(listOfDocs) {
                 var obj = _seperateDocs(listOfDocs);
                 listOfDocs = obj.newDoc;
                 obj = obj.oldDoc;
-                
+
                 _validateSchema(appId, listOfDocs, accessList, isMasterKey, encryption_key).then(function(listOfDocs) {
-                    
-
-
                     var mongoDocs = listOfDocs.map(function(doc){
-                        return Object.assign({},doc)
-                    })
+                        return Object.assign({},doc);
+                    });
+                    // extract ACL object and push it to Acl table
+                    var aclArray = [];
+                    var aclObj = new Object();
 
-                    promises.push(databaseDriver.save(appId, mongoDocs));
-                    global.q.allSettled(promises).then(function(array) {
+                    for(var j=0; j<mongoDocs.length; j++){
+                        var aclId = util.getId();
+                        aclObj.document = {_tableName:"ACL",ACL:mongoDocs[j].document.ACL ,_id:aclId};
+                        aclArray.push(aclObj);
+                        mongoDocs[j].document.ACL = aclId;
+                    }
+                    promises.push(mongoService.document.save(appId, aclArray));
+                    promises.push(mongoService.document.save(appId, mongoDocs));
+                    q.allSettled(promises).then(function(array) {
                         if (array[0].state === 'fulfilled') {
                             _sendNotification(appId, array[0], reqType);
                             unModDoc = _merge(parentId, array[0].value, unModDoc);
                             
-                            
+
                             deferred.resolve(unModDoc);
                         } else {
                             _rollBack(appId, array, listOfDocs, obj).then(function(res) {
-                                global.winston.log('error', res);
+                                winston.log('error', res);
                                 deferred.reject("Unable to Save the document at this time");
                             }, function(err) {
-                                global.winston.log('error', err);
+                                winston.log('error', err);
                                 deferred.reject(err);
                             });
                         }
                     });
-                }, function(err) {
-                    deferred.reject(err);
-                });
-            }, function(err) {
+                   
+            }, function(errs) {
+                deferred.reject(errs);
+            });
+            }, function() {
                 deferred.reject("Unauthorized to modify");
             });
         } else {
-            
-            
+
+
             deferred.resolve(docToSave);
         }
 
     } catch (err) {
-        global.winston.log('error', {
+        winston.log('error', {
             "error": String(err),
             "stack": new Error().stack
         });
@@ -335,14 +348,14 @@ function _delete(appId, collectionName, document, accessList, isMasterKey) {
         var promises = [];
         if (document._id) {
             customHelper.verifyWriteACLAndUpdateVersion(appId, collectionName, document, accessList, isMasterKey).then(function(doc) {
-                promises.push(databaseDriver.delete(appId, collectionName, document, accessList, isMasterKey));
+                promises.push(mongoService.document.delete(appId, collectionName, document, accessList, isMasterKey));
                 if (promises.length > 0) {
-                    global.q.allSettled(promises).then(function(res) {
+                    q.allSettled(promises).then(function(res) {
                         if (res[0].state === 'fulfilled') {
-                            global.realTime.sendObjectNotification(appId, document, 'deleted');
+                            config.realTime.sendObjectNotification(appId, document, 'deleted');
                             deferred.resolve(document);
                         } else {
-                            _deleteRollback(appId, doc.oldDoc, res).then(function(res) {
+                            _deleteRollback(appId, doc.oldDoc, res).then(function() {
                                 deferred.reject("Unable to Delete Document Right Now Try Again !!!");
                             }, function() {
                                 deferred.reject("Unable to Delete");
@@ -351,6 +364,7 @@ function _delete(appId, collectionName, document, accessList, isMasterKey) {
                     });
                 }
             }, function(err) {
+                winston.error(err);
                 deferred.reject("You do not have permission to delete the Object");
             });
         } else {
@@ -358,7 +372,7 @@ function _delete(appId, collectionName, document, accessList, isMasterKey) {
         }
 
     } catch (err) {
-        global.winston.log('error', {
+        winston.log('error', {
             "error": String(err),
             "stack": new Error().stack
         });
@@ -369,19 +383,19 @@ function _delete(appId, collectionName, document, accessList, isMasterKey) {
 }
 
 function _validateSchema(appId, listOfDocs, accessList, isMasterKey, encryption_key) {
-    var deferred = global.q.defer();
+    var deferred = q.defer();
     try {
         var promises = [];
         for (var i = 0; i < listOfDocs.length; i++)
             promises.push(_isSchemaValid(appId, listOfDocs[i]._tableName, listOfDocs[i], accessList, isMasterKey, encryption_key));
-        global.q.all(promises).then(function(docs) {
+        q.all(promises).then(function(docs) {
             deferred.resolve(docs);
         }, function(err) {
             deferred.reject(err);
         });
 
     } catch (err) {
-        global.winston.log('error', {
+        winston.log('error', {
             "error": String(err),
             "stack": new Error().stack
         });
@@ -395,16 +409,16 @@ function _sendNotification(appId, res, reqType) {
         for (var i = 0; i < res.value.length; i++) {
             if (res.value[i].state === 'fulfilled') {
                 if (reqType.save.indexOf(res.value[i].value._id) >= 0) {
-                    global.realTime.sendObjectNotification(appId, res.value[i].value, 'created');
+                    config.realTime.sendObjectNotification(appId, res.value[i].value, 'created');
                 } else {
-                    global.realTime.sendObjectNotification(appId, res.value[i].value, 'updated');
+                    config.realTime.sendObjectNotification(appId, res.value[i].value, 'updated');
                 }
             }
         }
         return '';
 
     } catch (err) {
-        global.winston.log('error', {
+        winston.log('error', {
             "error": String(err),
             "stack": new Error().stack
         });
@@ -412,9 +426,9 @@ function _sendNotification(appId, res, reqType) {
     }
 }
 
-var _isSchemaValid = function(appId, collectionName, document, accessList, isMasterKey, encryption_key) {
+function _isSchemaValid (appId, collectionName, document, accessList, isMasterKey, encryption_key) {
     var mainPromise = q.defer();
-    var columnNotFound = false
+    var columnNotFound = false;
 
     try {
         var promises = [];
@@ -423,8 +437,8 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
             return mainPromise.promise;
         }
         var modifiedDocuments = document._modifiedColumns;
-        global.mongoUtil.collection.getSchema(appId, collectionName).then(function(table) {
-            columns = table.columns
+        tableService.getSchema(appId, collectionName).then(function(table) {
+            var columns = table.columns;
             //check for required.
             if (!document['_tableName'] || !document['_type']) {
                 mainPromise.reject('Not a type of table');
@@ -435,12 +449,12 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                     continue; //ignore.
 
                 if (document[columns[i].name] === undefined) {
-                    //TODO :  check type for defaultValue , convert to date of type is DateTime , quick patch , fix properly later 
+                    //TODO :  check type for defaultValue , convert to date of type is DateTime , quick patch , fix properly later
                     if(columns[i].dataType === 'DateTime'){
                         try{
-                            columns[i].defaultValue = new Date(columns[i].defaultValue)
+                            columns[i].defaultValue = new Date(columns[i].defaultValue);
                         } catch(e){
-                            columns[i].defaultValue = null
+                            columns[i].defaultValue = null;
                         }
                     }
                     document[columns[i].name] = columns[i].defaultValue;
@@ -450,7 +464,7 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                     document[columns[i].name] = null;
                 }
 
-                //if column datatype is bool, and data is  null, change data to false by default. 
+                //if column datatype is bool, and data is  null, change data to false by default.
                 if(columns[i].dataType === "Boolean" && !document[columns[i].name]){
                     document[columns[i].name] = false;
                 }
@@ -462,7 +476,7 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                     }
                 }
 
-                
+
 
 
                 //Is Editable only by master key is true?
@@ -486,7 +500,7 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                 $or: []
             };
 
-            for (var i = 0; i < columns.length; i++) {
+            for (let i = 0; i < columns.length; i++) {
                 if (columns[i].unique && document[columns[i].name] && modifiedDocuments.indexOf(columns[i].name) >= 0) {
                     var temp = {};
                     //relation unique check.
@@ -502,15 +516,15 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                         temp[columns[i].name] = document[columns[i].name];
                     }
                     query.$or.push(temp);
-                    
-                    
+
+
                 }
             }
             if (query.$or.length > 0) {
                 var findPromise = q.defer();
                 promises.push(findPromise.promise);
-                global.mongoService.document.find(appId, collectionName, query, null, null, 9999999, 0, null, true).then(function(res) {
-                    
+                mongoService.document.find(appId, collectionName, query, null, null, 9999999, 0, null, true).then(function(res) {
+
                     if (res.length === 1 && res[0]._id === document._id) {
                         findPromise.resolve('Update the document');
                     } else if (res.length > 0) {
@@ -538,7 +552,7 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
 
                         // if column does not exist create a new column
                         if (!col) {
-                            columnNotFound = true
+                            columnNotFound = true;
                             try {
                                 let detectedDataType = type.inferDataType(document[key]);
                                 let newCol = {
@@ -560,7 +574,7 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                                 table.columns.push(newCol);
 
                             } catch (err) {
-                                global.winston.log('error', {
+                                winston.log('error', {
                                     "error": String(err),
                                     "stack": new Error().stack
                                 });
@@ -582,9 +596,9 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                             //Relation check.
                             if (document[key] && datatype === 'Relation' && typeof document[key] !== 'object') {
                                 //data passed is id of the relatedObject
-                                var objectId = document[key]
+                                var objectId = document[key];
                                 if (_validateObjectId(objectId)) {
-                                    document[key] = {}
+                                    document[key] = {};
                                     document[key]._id = objectId;
                                     document[key]._tableName = col.relatedTo;
                                     document[key]._type = _getTableType(col.relatedTo);
@@ -604,8 +618,8 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                                     mainPromise.reject("Invalid data in column " + key + ". It should be of type 'CloudObject' which belongs to table '" + col.relatedTo + "'");
                                     return mainPromise.promise;
                                 } else {
-                                    document[key]._id = document[key]._id || document[key].id
-                                    delete document[key].id
+                                    document[key]._id = document[key]._id || document[key].id;
+                                    delete document[key].id;
                                 }
                                 if (!document[key]._type) {
                                     document[key]._type = _getTableType(col.relatedTo);
@@ -627,7 +641,7 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                             if (document[key] && datatype === 'List' && Object.prototype.toString.call(document[key]) === '[object Array]') {
                                 if (document[key].length !== 0) {
                                     if (_isBasicDataType(col.relatedTo)) {
-                                        var res = _checkBasicDataTypes(document[key], col.relatedTo, key, document._tableName);
+                                        let res = _checkBasicDataTypes(document[key], col.relatedTo, key, document._tableName);
                                         if (res.message) {
                                             //if something is wrong.
                                             mainPromise.reject(res.message);
@@ -636,7 +650,7 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                                             document[key] = res.data;
                                         }
                                     } else {
-                                        for (var i = 0; i < document[key].length; i++) {
+                                        for (let i = 0; i < document[key].length; i++) {
                                             if (document[key][i]._tableName) {
                                                 if (col.relatedTo !== document[key][i]._tableName) {
                                                     mainPromise.reject('Invalid data in column ' + key + '. It should be Array of \'CloudObjects\' which belongs to table \'' + col.relatedTo + '\'.');
@@ -657,7 +671,7 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
             if (columnNotFound) {
                 // update the table schema
                 var createNewColumnPromise = q.defer();
-                var schemaCursor = global.mongoClient.db(appId).collection("_Schema");
+                var schemaCursor = config.mongoClient.db(appId).collection("_Schema");
                 schemaCursor.findOneAndUpdate({
                     name: document._tableName
                 }, {
@@ -674,15 +688,15 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
                         createNewColumnPromise.reject("Error : Failed to update the table with the new column. ");
                     } else if (table) {
                         createNewColumnPromise.resolve();
-                        
-                    }
-                })
 
-                promises.push(createNewColumnPromise.promise)
+                    }
+                });
+
+                promises.push(createNewColumnPromise.promise);
             }
             if (promises.length > 0) {
                 //you have related documents or unique queries.
-                q.all(promises).then(function(results) {
+                q.all(promises).then(function() {
                     var obj = {};
                     obj.document = document;
                     obj.schema = columns;
@@ -701,7 +715,7 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
         });
 
     } catch (err) {
-        global.winston.log('error', {
+        winston.log('error', {
             "error": String(err),
             "stack": new Error().stack
         });
@@ -710,7 +724,7 @@ var _isSchemaValid = function(appId, collectionName, document, accessList, isMas
 
     return mainPromise.promise;
 
-};
+}
 
 function _validateObjectId(objectId) {
     if (objectId.length === 8)
@@ -760,7 +774,7 @@ function _checkBasicDataTypes(data, datatype, columnName, tableName) {
         return obj; //success!
 
     } catch (err) {
-        global.winston.log('error', {
+        winston.log('error', {
             "error": String(err),
             "stack": new Error().stack
         });
@@ -849,7 +863,7 @@ function _checkDataTypeUtil(data, datatype, columnName, tableName) {
         return obj; //success!
 
     } catch (err) {
-        global.winston.log('error', {
+        winston.log('error', {
             "error": String(err),
             "stack": new Error().stack
         });
@@ -881,7 +895,7 @@ function _isBasicDataType(dataType) {
         return false;
 
     } catch (err) {
-        global.winston.log('error', {
+        winston.log('error', {
             "error": String(err),
             "stack": new Error().stack
         });
@@ -924,35 +938,7 @@ function _generateId(document, reqType) {
         return document;
 
     } catch (err) {
-        global.winston.log('error', {
-            "error": String(err),
-            "stack": new Error().stack
-        });
-        return null;
-    }
-}
-
-function _checkForRelation(document) {
-    try {
-        for (keys in document) {
-            if (keys._type)
-                return true;
-            }
-        return false;
-    } catch (err) {
-        global.winston.log('error', {
-            "error": String(err),
-            "stack": new Error().stack
-        });
-    }
-}
-
-//clones an object.
-function _clone(document) {
-    try {
-        return JSON.parse(JSON.stringify(document));
-    } catch (err) {
-        global.winston.log('error', {
+        winston.log('error', {
             "error": String(err),
             "stack": new Error().stack
         });
@@ -1083,7 +1069,7 @@ function _getModifiedDocs(document, unModDoc) {
         return modifiedDocument;
 
     } catch (err) {
-        global.winston.log('error', {
+        winston.log('error', {
             "error": String(err),
             "stack": new Error().stack
         });
@@ -1128,7 +1114,7 @@ function _stripChildDocs(document) {
         return doc;
 
     } catch (err) {
-        global.winston.log('error', {
+        winston.log('error', {
             "error": String(err),
             "stack": new Error().stack
         });
@@ -1137,7 +1123,7 @@ function _stripChildDocs(document) {
 }
 
 function _deleteRollback(appId, document, res) {
-    var deferred = global.q.defer();
+    var deferred = q.defer();
 
     try {
         var promises = [];
@@ -1149,12 +1135,12 @@ function _deleteRollback(appId, document, res) {
             document.push(docToSave);
 
             if (res[0].state === 'fulfilled') {
-                promises.push(global.mongoService.document.save(appId, document));
+                promises.push(mongoService.document.save(appId, document));
             }
             if (promises.length > 0) {
-                global.q.all(promises).then(function() {
+                q.all(promises).then(function() {
                     deferred.resolve("Success");
-                }, function() {
+                }, function(err) {
                     deferred.reject(err);
                 });
             }
@@ -1163,7 +1149,7 @@ function _deleteRollback(appId, document, res) {
         });
 
     } catch (err) {
-        global.winston.log('error', {
+        winston.log('error', {
             "error": String(err),
             "stack": new Error().stack
         });
@@ -1228,7 +1214,7 @@ function _merge(collectionId, listOfDocs, unModDoc) {
         return document;
 
     } catch (err) {
-        global.winston.log('error', {
+        winston.log('error', {
             "error": String(err),
             "stack": new Error().stack
         });
@@ -1236,62 +1222,20 @@ function _merge(collectionId, listOfDocs, unModDoc) {
     }
 }
 
-function _queryType(query, select) {
-    try {
-        var orientQuery = ['$all', '$any', '$index', '$first'];
-        var keys = Object.keys(query);
-        if (query.$include && query.$include.length > 0) {
-            return true;
-        }
-        if (query.$includeList && query.$includeList.length > 0) {
-            return true;
-        }
-        if (query.$or && query.$or.length > 0) {
-            if (_queryType(query.$or[0]))
-                return true;
-            if (_queryType(query.$or[1]))
-                return true;
-            }
-        for (var i = 0; i < keys.length; i++) {
-            if (orientQuery.indexOf(keys[i]) !== -1) {
-                return true;
-            }
-            if (keys[i].split('.').length > 1) {
-                return true;
-            }
-        }
-        if (select) {
-            var keys = Object.keys(select);
-            for (var i = 0; i < keys.length; i++) {
-                if (keys[i].split('.').length > 1) {
-                    return true;
-                }
-            }
-        }
-        return false;
-
-    } catch (err) {
-        global.winston.log('error', {
-            "error": String(err),
-            "stack": new Error().stack
-        });
-    }
-}
-
 //this function gets the schema of the table from the db.
 function _getSchema(appId, collectionName) {
 
-    var deferred = global.q.defer();
+    var deferred = q.defer();
 
     try {
-        global.mongoUtil.collection.getSchema(appId, collectionName).then(function(table) {
+        tableService.getSchema(appId, collectionName).then(function(table) {
             deferred.resolve(table.columns);
         }, function(error) {
             deferred.reject(error);
         });
 
     } catch (err) {
-        global.winston.log('error', {
+        winston.log('error', {
             "error": String(err),
             "stack": new Error().stack
         });
@@ -1304,7 +1248,7 @@ function _getSchema(appId, collectionName) {
 //this function modifies the fields ['password','datetime']  passed in the Query.
 function _modifyFieldsInQuery(appId, collectionName, query) {
 
-    var deferred = global.q.defer();
+    var deferred = q.defer();
 
     try {
         if (collectionName === '_File') {
@@ -1328,20 +1272,23 @@ function _modifyFieldsInQuery(appId, collectionName, query) {
                 if (passwordColumnNames.length === 0 && dateTimeColumnNames === 0) {
                     deferred.resolve(query);
                 } else {
-                    //or modify the query and resolve it.
-                    if (passwordColumnNames.length)
-                        query = _recursiveModifyQuery(query, passwordColumnNames, 'encrypt');
-                    if (dateTimeColumnNames.length)
-                        query = _recursiveModifyQuery(query, dateTimeColumnNames, 'datetime');
-
-                    deferred.resolve(query);
+                    appService.getApp(appId).then(function (application) {
+                        //or modify the query and resolve it.
+                        if (passwordColumnNames.length)
+                            query = _recursiveModifyQuery(query, passwordColumnNames, 'encrypt',application.keys.encryption_key);
+                        if (dateTimeColumnNames.length)
+                            query = _recursiveModifyQuery(query, dateTimeColumnNames, 'datetime',application.keys.encryption_key);
+                        deferred.resolve(query);
+                    }), function(){
+                        deferred.reject("Cannot find an app wiht AppID "+appId);
+                    };
                 }
             }, function(error) {
                 deferred.reject(error);
             });
         }
     } catch (err) {
-        global.winston.log('error', {
+        winston.log('error', {
             "error": String(err),
             "stack": new Error().stack
         });
@@ -1354,17 +1301,16 @@ function _modifyFieldsInQuery(appId, collectionName, query) {
 function _encrypt(data, encryption_key) {
     try {
         var cipher_alg = 'aes-256-ctr';
-        var encryptedPassword;
         if(encryption_key && encryption_key.iv && encryption_key.key){
             // to decrypt text use this
             // var encryptedText = encryptText(cipher_alg, encryption_key.key, encryption_key.iv, data);
-            // 
+            //
             return encryptText(cipher_alg, encryption_key.key, encryption_key.iv, data);
         } else {
-            return crypto.pbkdf2Sync(data, global.keys.secureKey, 10000, 64, 'sha1').toString('base64');
+            return crypto.pbkdf2Sync(data, config.secureKey, 10000, 64, 'sha1').toString('base64');
         }
     } catch (err) {
-        global.winston.log('error', {
+        winston.log('error', {
             "error": String(err),
             "stack": new Error().stack
         });
@@ -1372,12 +1318,15 @@ function _encrypt(data, encryption_key) {
     }
 }
 
-function _recursiveModifyQuery(query, columnNames, type) {
+function _recursiveModifyQuery(query, columnNames, type, encryptionKey) {
+
+
+
 
     for (var key in query) {
         if (key === '$or') {
             for (var i = 0; i < query[key].length; i++) {
-                query[key][i] = _recursiveModifyQuery(query[key][i], columnNames, type);
+                query[key][i] = _recursiveModifyQuery(query[key][i], columnNames, type, encryptionKey);
             }
         }
     }
@@ -1385,7 +1334,7 @@ function _recursiveModifyQuery(query, columnNames, type) {
         if (columnNames.indexOf(key) > -1) {
             if (typeof val !== 'object') {
                 if (type === 'encrypt') {
-                    return _encrypt(val);
+                    return _encrypt(val, encryptionKey);
                 }
             } else {
                 // for datetime fields convert them to a fomat which mongodb can query
@@ -1393,7 +1342,7 @@ function _recursiveModifyQuery(query, columnNames, type) {
                     try {
                         Object.keys(val).map(function(x) {
                             val[x] = new Date(val[x]);
-                        })
+                        });
                         return val;
                     } catch (e) {
                         return val;
@@ -1419,7 +1368,7 @@ function _attachSchema(docsArray, oldDocs) {
         }
         return oldDocs;
     } catch (err) {
-        global.winston.log('error', {
+        winston.log('error', {
             "error": String(err),
             "stack": new Error().stack
         });
@@ -1428,7 +1377,7 @@ function _attachSchema(docsArray, oldDocs) {
 }
 
 function _rollBack(appId, status, docsArray, oldDocs) {
-    var deferred = global.q.defer();
+    var deferred = q.defer();
 
     try {
         oldDocs = _attachSchema(docsArray, oldDocs);
@@ -1436,16 +1385,16 @@ function _rollBack(appId, status, docsArray, oldDocs) {
         var arr = [];
         if (status[0].state === 'fulfilled') {
             if (oldDocs)
-                promises.push(global.mongoService.document.save(appId, oldDocs));
+                promises.push(mongoService.document.save(appId, oldDocs));
             else {
                 for (var i = 0; i < docsArray.length; i++) {
-                    promises.push(global.mongoService.delete(appId, docsArray[i]._tableName, docsArray[i]));
+                    promises.push(mongoService.delete(appId, docsArray[i]._tableName, docsArray[i]));
                 }
             }
             arr.push('Mongo');
         }
 
-        global.q.allSettled(promises).then(function(res) {
+        q.allSettled(promises).then(function(res) {
             var status = true;
             for (var i = 0; i < res.length; i++) {
                 if (res[i].state !== 'fulfilled') {
@@ -1460,73 +1409,7 @@ function _rollBack(appId, status, docsArray, oldDocs) {
         });
 
     } catch (err) {
-        global.winston.log('error', {
-            "error": String(err),
-            "stack": new Error().stack
-        });
-        deferred.reject(err);
-    }
-    return deferred.promise;
-}
-
-/*
-    Remove this Function it is no Longer Reqd
- */
-
-function _revertBack(appId, statusArray, docsArray, oldDocs) {
-    var promises = [];
-    var deferred = global.q.defer();
-
-    try {
-        promises.push(_mongoRevert(appId, statusArray[1], docsArray, oldDocs));
-        global.q.all(promises).then(function(res) {
-            deferred.resolve(res);
-        }, function(err) {
-            deferred.reject(err);
-        });
-
-    } catch (err) {
-        global.winston.log('error', {
-            "error": String(err),
-            "stack": new Error().stack
-        });
-        deferred.reject(err);
-    }
-    return deferred.promise;
-}
-
-/*
- Remove this Function it is no Longer Reqd
- */
-
-function _mongoRevert(appId, status, docsArray, oldDocs) {
-    var deferred = global.q.defer();
-
-    try {
-        if (status.state === 'fulfilled') {
-            deferred.resolve();
-        } else {
-            var docs = status.value;
-            var save = [];
-            var del = [];
-            for (var i = 0; i < docs.length; i++) {
-                if (docs[i].state !== 'fulfilled') {
-                    for (var j = 0; j < oldDocs.length; j++) {
-                        if (docs[i].value._id === oldDocs[i]._id) {
-                            save.push(oldDocs[i]);
-                        }
-                    }
-                }
-            }
-            global.mongoService.document.save(appId, docs).then(function() {
-                deferred.resove();
-            }, function() {
-                deferred.reject();
-            });
-        }
-
-    } catch (err) {
-        global.winston.log('error', {
+        winston.log('error', {
             "error": String(err),
             "stack": new Error().stack
         });
@@ -1551,7 +1434,7 @@ function _seperateDocs(listOfDocs) {
         return obj;
 
     } catch (err) {
-        global.winston.log('error', {
+        winston.log('error', {
             "error": String(err),
             "stack": new Error().stack
         });
@@ -1588,7 +1471,7 @@ function _checkIdList(document, reqType) {
         return document;
 
     } catch (err) {
-        global.winston.log('error', {
+        winston.log('error', {
             "error": String(err),
             "stack": new Error().stack
         });
@@ -1620,7 +1503,7 @@ function _getUniqueObjects(objectsList) {
         return uniqueListObject;
 
     } catch (err) {
-        global.winston.log('error', {
+        winston.log('error', {
             "error": String(err),
             "stack": new Error().stack
         });
@@ -1637,6 +1520,7 @@ function encryptText(cipher_alg, key, iv, text) {
 }
 
 //to decrypt data
+//eslint-disable-next-line
 function decryptText(cipher_alg, key, iv, text) {
 			var decipher = crypto.createDecipheriv(cipher_alg, key.toString('hex').slice(0, 32), iv.toString('hex').slice(0, 16));
 			var result = decipher.update(text, 'hex');

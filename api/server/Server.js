@@ -7,49 +7,41 @@
 
 
 var util = require('../../helpers/util.js');
-var request = require('request');
+var config = require('../../config/config');
+var serverService = require('../../services/server');
+var keyService = require('../../database-connect/keyService');
+var winston = require('winston');
 
-module.exports = function() {
+module.exports = function(app) {
 
     //Description : Used to change server URL form localhost to any DNS. 
     //Params : secureKey : Used to validate the request. 
     //         url : New Server URL. 
     //Returns : 200 - success
     //          400 - Invalid URL, 401 - Unauthoroized, 500 - Internal Server Error.     
-    global.app.post('/server/url', function(req, res) {
-        try {
-            
-            
+    app.post('/server/url', function(req, res) {
+
             if (!util.isUrlValid(req.body.url)) {
                 return res.status(400).send("Invalid URL");
             }
 
-            if (global.keys.secureKey === req.body.secureKey) {
-                
-                global.keyService.changeUrl(req.body.url).then(function (url) {
-                    
+            if (config.secureKey === req.body.secureKey) {
+                keyService.changeUrl(req.body.url).then(function (url) {
                     res.status(200).send({status : "success", message : "Cluster URL Updated to "+url});
                 }, function (err) {
-                    
-                    
+                    winston.error({
+                        error: err
+                    });
                     res.status(500).send("Error, Cannot change the cluster URL at this time.");
                 });
             } else {
-                
                 res.status(401).send("Unauthorized");
             }
-        }catch(e){
-            
-            res.send(500, "Internal Server Error");
-        }
     });
 
 
-    global.app.get('/status', function(req,res) {
-
-                
-
-        global.serverService.getDBStatuses().then(function(response){           
+    app.get('/status', function(req,res) {
+        serverService.getDBStatuses().then(function(){           
             return res.status(200).json({status:200, message : "Service Status : OK"});            
         },function(error){
             return res.status(500).send(error);

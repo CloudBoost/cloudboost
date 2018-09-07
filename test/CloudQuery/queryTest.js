@@ -578,14 +578,13 @@ describe("CloudQuery", function(done) {
 
     it("should find item by id", function(done) {
         this.timeout(30000);
-
         var query = new CB.CloudQuery('student1');
         query.equalTo('id', obj.get('id'));
         query.find().then(function(list) {
             if (list.length > 0)
                 done();
             else
-                throw "object could not saved properly";
+                done (new Error("object could not saved properly"));
             }
         , function(err) {
             done(err);
@@ -1616,13 +1615,18 @@ describe("CloudQuery", function(done) {
         });
     });
 
-    it("Should not get any element if queried with a valid column name to not to exist", function(done) {
+    it("Should not get elements that exist will non-null value if queried with a valid column name", function(done) {
         this.timeout(30000);
         var obj = new CB.CloudQuery('student4');
         obj.doesNotExists('age');
         obj.find().then(function(list) {
             if (list.length > 0) {
-                done("Reciveing data");
+                for (var i = 0; i < list.length; i++) {
+                    if (list[i].get('age')) {
+                        done(new Error("Recieving data"));                     
+                    }
+                }
+                done();
             } else {
                 done();
             }

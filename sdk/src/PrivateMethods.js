@@ -1,9 +1,34 @@
 import CB from './CB'
+import { log } from 'util';
 
 if (typeof localStorage === "undefined" || localStorage === null) {
     var localStorage = require('localStorage')
 }
 
+function lsWrapper() {
+    if (typeof localStorage === "undefined" || localStorage === null) {
+        var localStorage = require('localStorage');
+        var nodeLocalStorage = true;
+    }
+
+    return {
+        setItem: function(key, value){
+            if(nodeLocalStorage){
+                localStorage.setItem(key, value).catch(errorCB);
+            } else {
+                localStorage.setItem(key, value);
+            }
+        },
+
+        removeItem: function (key) {
+            if(nodeLocalStorage) {
+                localStorage.getItem(key)
+            }
+        }
+
+    }
+    
+}
 
 
 /* PRIVATE METHODS */
@@ -273,13 +298,14 @@ CB._request = function(method, url, params, isServiceUrl, isFile, progressCallba
         throw "Your CloudApp is disconnected. Please use CB.CloudApp.connect() and try again.";
 
     var def = new CB.Promise();
-    var Axios
-    var headers = {}
+    var Axios;
+    var headers = {};
+    var axiosRetry = require('axios-retry');
 
     if (CB._isNode) {
-        Axios = require('Axios')
+        Axios = require('Axios');
     } else {
-        Axios = require('axios')
+        Axios = require('axios');
     }
 
     if (!isServiceUrl) {
@@ -290,8 +316,8 @@ CB._request = function(method, url, params, isServiceUrl, isFile, progressCallba
 
     if (params && typeof params != "object") {
         params = JSON.parse(params);
-    }
-
+    } 
+    axiosRetry(Axios, { retryDelay: axiosRetry.exponentialDelay });
     Axios({
         method: method,
         url: url,
@@ -314,7 +340,7 @@ CB._request = function(method, url, params, isServiceUrl, isFile, progressCallba
             }
         def.resolve(JSON.stringify(res.data));
     }, function(err) {
-        def.reject(err)
+        def.reject(err);
     })
 
     return def.promise;

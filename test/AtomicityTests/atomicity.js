@@ -24,7 +24,7 @@ describe("Atomicity Tests",function(done){
             CB._request('POST',url).then(function(){
                 res.set('name','what');
                 res.save().then(function(){
-                   done("DB disconnected should not save");
+                   done(new Error("DB disconnected should not save"));
                 },function(){
                     var url = CB.apiUrl + '/db/mongo/connect';
                     CB._request('POST',url).then(function() {
@@ -33,19 +33,19 @@ describe("Atomicity Tests",function(done){
                             if(res.get('name') === 'let')
                                 done();
                             else
-                                throw "Save is Not Atomic";
+                                done(new Error("Save is Not Atomic"));
                         },function(){
-                            throw "Unable to run find Query";
+                            done(new Error("Unable to run find Query"));
                         });
                     },function(){
-                        throw "Unable to connect back Mongo";
+                        done(new Error("Unable to connect back Mongo"));
                     });
                 });
             },function(err){
-                throw "Unable to disconnect Mongo";
+                done(new Error("Unable to disconnect Mongo"));
             });
         },function(){
-            throw "Unable to Save Object";
+            done(new Error("Unable to Save Object"));
         });
 
     });
@@ -58,7 +58,7 @@ describe("Atomicity Tests",function(done){
         CB._request('POST',url).then(function() {
             done();
         },function(){
-            throw "Unable to connect back Mongo";
+            done(new Error("Unable to connect back Mongo"));
         });
     });
 
