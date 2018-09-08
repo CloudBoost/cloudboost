@@ -289,13 +289,23 @@ function _save(appId, collectionName, document, accessList, isMasterKey, reqType
                     var mongoDocs = listOfDocs.map(function(doc){
                         return Object.assign({},doc);
                     });
+                    // extract ACL object and push it to Acl table
+                    var aclArray = [];
+                    var aclObj = new Object();
 
+                    for(var j=0; j<mongoDocs.length; j++){
+                        var aclId = util.getId();
+                        aclObj.document = {_tableName:"ACL",ACL:mongoDocs[j].document.ACL ,_id:aclId};
+                        aclArray.push(aclObj);
+                        mongoDocs[j].document.ACL = aclId;
+                    }
+                    promises.push(mongoService.document.save(appId, aclArray));
                     promises.push(mongoService.document.save(appId, mongoDocs));
                     q.allSettled(promises).then(function(array) {
                         if (array[0].state === 'fulfilled') {
                             _sendNotification(appId, array[0], reqType);
                             unModDoc = _merge(parentId, array[0].value, unModDoc);
-
+                            
 
                             deferred.resolve(unModDoc);
                         } else {
@@ -308,9 +318,10 @@ function _save(appId, collectionName, document, accessList, isMasterKey, reqType
                             });
                         }
                     });
-                }, function(err) {
-                    deferred.reject(err);
-                });
+                   
+            }, function(errs) {
+                deferred.reject(errs);
+            });
             }, function() {
                 deferred.reject("Unauthorized to modify");
             });
