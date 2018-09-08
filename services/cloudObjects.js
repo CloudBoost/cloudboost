@@ -289,7 +289,17 @@ function _save(appId, collectionName, document, accessList, isMasterKey, reqType
                     var mongoDocs = listOfDocs.map(function(doc){
                         return Object.assign({},doc);
                     });
+                    // push ACL object into Acl table and store Id in document 
+                    var aclArray = [];
+                    var aclObj = new Object();
 
+                    for(var j=0; j<mongoDocs.length; j++){
+                        var aclId = util.getId();
+                        aclObj.document = {_tableName:"ACL",ACL:mongoDocs[j].document.ACL ,_id:aclId};
+                        aclArray.push(aclObj);
+                        mongoDocs[j].document.ACL = aclId;
+                    }
+                    promises.push(mongoService.document.save(appId, aclArray));
                     promises.push(mongoService.document.save(appId, mongoDocs));
                     q.allSettled(promises).then(function(array) {
                         if (array[0].state === 'fulfilled') {
