@@ -1,6 +1,6 @@
 /*
 #     CloudBoost - Core Engine that powers Bakend as a Service
-#     (c) 2014 HackerBay, Inc. 
+#     (c) 2014 HackerBay, Inc.
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
@@ -10,6 +10,26 @@ var request = require('request');
 var obj = {};
 var config = require('../config/config');
 var winston = require('winston');
+
+function appLogger (message) {
+    return function () {
+        winston.info(message);
+    };
+}
+
+var appReleased = appLogger('App Released');
+var appBlocked = appLogger('App Blocked');
+var appReleasedError = appLogger('Error Releasing App');
+var appBlockedError = appLogger('Error Blocking App');
+
+function IsJsonString(str) {
+    try {
+        JSON.parse(str);
+    } catch (e) {
+        return false;
+    }
+    return true;
+}
 
 obj.log = function (appId, actionName, url, sdk, checkReleaseRequest) {
 
@@ -37,37 +57,22 @@ obj.log = function (appId, actionName, url, sdk, checkReleaseRequest) {
         }, function (err, response, body) {
             if (!err) {
                 try {
-                    body = JSON.parse(body);
-                    if (body.limitExceeded) {
-                        obj.blockApp(body.appId).then(function () {
+                    var data = body && typeof body === 'string' && IsJsonString(body) ? JSON.parse(body) : body;
 
-                        }, function () {
-
-                        });
+                    if (data && data.limitExceeded) {
+                        obj.blockApp(appId).then(appBlocked, appBlockedError);
                     } else {
-                        obj.releaseApp(body.appId).then(function () {
-
-                        }, function () {
-
-
-                        });
+                        obj.releaseApp(appId).then(appReleased, appReleasedError);
                     }
+
                 } catch (e) {
                     winston.log('error', {
                         "error": String(e),
                         "stack": new Error().stack
                     });
-                    obj.releaseApp(body.appId).then(function () {
-
-                    }, function () {
-
-
-                    });
+                    obj.releaseApp(appId).then(appReleased, appReleasedError);
                 }
-
             }
-
-
         });
     } catch (err) {
         winston.log('error', {
@@ -78,8 +83,8 @@ obj.log = function (appId, actionName, url, sdk, checkReleaseRequest) {
 };
 
 
-//Description : Checks weather the current app is in the Plan Limit. 
-// Params : appId - ID of the App. 
+//Description : Checks weather the current app is in the Plan Limit.
+// Params : appId - ID of the App.
 //Returns : Promise - True for yes, It is in the plan limit. False if it exceeded.
 obj.isInPlanLimit = function (appId) {
     var deferred = q.defer();
@@ -113,7 +118,7 @@ obj.isInPlanLimit = function (appId) {
 };
 
 //Description : Blocks the app
-// Params : appId - ID of the App. 
+// Params : appId - ID of the App.
 //Returns : Promise (void)
 obj.blockApp = function (appId) {
     var deferred = q.defer();
@@ -136,7 +141,7 @@ obj.blockApp = function (appId) {
 };
 
 //Description : Releases the App.
-// Params : appId - ID of the App. 
+// Params : appId - ID of the App.
 //Returns : Promise (void)
 obj.releaseApp = function (appId) {
     var deferred = q.defer();
