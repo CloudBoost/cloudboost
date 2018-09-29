@@ -382,17 +382,17 @@ obj.document = {
                     deferred.reject(err);
                 } else {
                     var acl_promises = []
-                    docs = docs.map(function(doc){
-                        if(doc.ACL){   
-                            var collection_acl = config.mongoClient.db(appId).collection(mongoUtil.collection.getId(appId, 'ACL'))
+                    if(docs.length>0){
+                        docs = docs.map(function(doc){   
+                            var collection_acl = config.mongoClient.db(appId).collection(mongoUtil.collection.getId(appId, '_ACL'))
                             acl_promises.push(new Promise(function(resolve){
-                                collection_acl.find({ _id : doc.ACL }).toArray(function(err, acl_docs) {
+                                collection_acl.find({ _id : doc._id }).toArray(function(err, acl_docs) {
                                     doc.ACL = (acl_docs && acl_docs[0]) ? acl_docs[0].ACL : null
                                     resolve(doc)
                                 })
-                            }))
-                        }    
-                    })
+                            }))                           
+                        })
+                    }
                     Promise.all(acl_promises).then(function(docs){
                         if (!include || include.length === 0) {
                             docs = _deserialize(docs);

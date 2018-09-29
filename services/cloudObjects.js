@@ -292,12 +292,12 @@ function _save(appId, collectionName, document, accessList, isMasterKey, reqType
                     // push ACL object into Acl table and store Id in document 
                     var aclArray = [];
                     var aclObj = new Object();
-
+                    
                     for(var j=0; j<mongoDocs.length; j++){
                         var aclId = util.getId();
-                        aclObj.document = {_tableName:"ACL",ACL:mongoDocs[j].document.ACL ,_id:aclId};
+                        aclObj.document = {_tableName:"_ACL",ACL:mongoDocs[j].document.ACL ,_id:mongoDocs[j].document._id};
                         aclArray.push(aclObj);
-                        mongoDocs[j].document.ACL = aclId;
+                        delete mongoDocs[j].document.ACL;
                     }
                     promises.push(mongoService.document.save(appId, aclArray));
                     promises.push(mongoService.document.save(appId, mongoDocs));
