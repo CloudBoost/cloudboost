@@ -881,7 +881,10 @@ obj.document = {
 
         return deferred.promise;
     },
-
+    deleteById :function(appId,collectionName,id){
+        var query = {_id:id};
+        return obj.document.deleteByQuery(appId,collectionName,query);
+    },
     deleteByQuery: function(appId, collectionName, query) {
 
         var deferred = q.defer();

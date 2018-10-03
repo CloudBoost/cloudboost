@@ -16,6 +16,7 @@ var config = require('../config/config');
 var mongoService = require('../databases/mongo');
 var appService = require('./app');
 var tableService = require('./table');
+var aclService = require('./aclService');
 var winston = require('winston');
 
 module.exports = {
@@ -289,17 +290,33 @@ function _save(appId, collectionName, document, accessList, isMasterKey, reqType
                     var mongoDocs = listOfDocs.map(function(doc){
                         return Object.assign({},doc);
                     });
-                    // push ACL object into Acl table and store Id in document 
-                    var aclArray = [];
+                    // move ACL object into _ACL table and store  document id as cloudObjectID in _ACL table  
+                    var aclArray = [];                    
+                    var aclPromise = [];
                     var aclObj = new Object();
-                    
-                    for(var j=0; j<mongoDocs.length; j++){
-                        var aclId = util.getId();
-                        aclObj.document = {_tableName:"_ACL",ACL:mongoDocs[j].document.ACL ,_id:mongoDocs[j].document._id};
-                        aclArray.push(aclObj);
-                        delete mongoDocs[j].document.ACL;
-                    }
-                    promises.push(mongoService.document.save(appId, aclArray));
+                    for(var i=0; i<mongoDocs.length; i++){
+                            aclPromise.push(aclService.findACLByCloudObjectId(appId,mongoDocs[i].document._id))
+                        }
+                    q.all(aclPromise).then(function(aclDocs){
+                        if(aclDocs[0]==null){
+                            for(var j=0; j<mongoDocs.length; j++){
+                                var aclId = util.getId();
+                                aclObj.document = {_tableName:"_ACL",ACL:mongoDocs[j].document.ACL ,cloudObjectId:mongoDocs[j].document._id};
+                                aclArray.push(aclObj);
+                                delete mongoDocs[j].document.ACL;
+                            }
+                        }else{
+                            var data = aclDocs.map(function(aclObject,j) {
+                                return mongoDocs.some(function(mongoObject,i) {
+                                    if(aclObject.cloudObjectId === mongoObject.document._id){
+                                        aclObj.document ={_tableName:"_ACL",ACL:mongoObject.document.ACL ,_id:aclObject._id,cloudObjectId:mongoObject.document._id}
+                                        aclArray.push(aclObj)
+                                        delete mongoObject.document.ACL;
+                                    }
+                                }) 
+                            });
+                        }
+                    promises.push(aclService.save(appId, aclArray));
                     promises.push(mongoService.document.save(appId, mongoDocs));
                     q.allSettled(promises).then(function(array) {
                         if (array[0].state === 'fulfilled') {
@@ -318,6 +335,7 @@ function _save(appId, collectionName, document, accessList, isMasterKey, reqType
                             });
                         }
                     });
+                })
                 }, function(err) {
                     deferred.reject(err);
                 });
