@@ -19,6 +19,9 @@ module.exports = function(app) {
 
     //Update Settings for the App
     app.put('/settings/:appId/:category', function(req, res) {
+
+        
+
         var appId = req.params.appId;
         var category = req.params.category;
         var sdk = req.body.sdk || "REST";
