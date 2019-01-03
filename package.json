@@ -3,7 +3,7 @@
   "version": "1.0.132",
   "main": "server.js",
   "engines": {
-    "node": ">=5.0.0"
+    "node": ">=7.8.0"
   },
   "repository": {
     "type": "git",
@@ -83,24 +83,26 @@
     "babel-preset-es2015-without-strict": "0.0.4",
     "chai": "^3.5.0",
     "chance": "^1.0.1",
+    "eslint": "^5.11.1",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.14.0",
     "grunt": "~0.4.5",
+    "grunt-babel": "^6.0.0",
     "grunt-bump": "^0.3.1",
-    "grunt-env": "^0.4.4",
     "grunt-bumpup": "^0.6.3",
     "grunt-contrib-concat": "^0.5.1",
     "grunt-contrib-uglify": "^0.9.1",
     "grunt-contrib-watch": "^0.6.1",
+    "grunt-env": "^0.4.4",
+    "grunt-eslint": "^19.0.0",
     "grunt-release": "^0.13.0",
-    "grunt-babel": "^6.0.0",
     "json-loader": "^0.5.4",
     "mocha": "^2.4.5",
-    "phantomjs-prebuilt": "*",
     "mocha-phantomjs": "^4.1.0",
+    "phantomjs-prebuilt": "*",
     "publish": "^0.6.0",
     "webpack": "~1.13.1",
-    "webpack-dev-server": "~1.14.1",
-    "eslint": "^3.16.1",
-    "grunt-eslint": "^19.0.0"
+    "webpack-dev-server": "~1.14.1"
   },
   "scripts": {
     "snyk-protect": "snyk protect",

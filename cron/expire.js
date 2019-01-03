@@ -6,7 +6,7 @@
 */
 
 var q = require('q');
-var mongoUtil = require('../services/mongo');
+var mongoUtil = require('../helpers/mongo');
 var fileService = require('../services/cloudFiles');
 var config = require('../config/config');
 var winston = require('winston');

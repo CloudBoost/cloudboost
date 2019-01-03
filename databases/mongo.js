@@ -11,7 +11,7 @@ var Grid = require('gridfs-stream');
 var config = require('../config/config');
 var winston = require('winston');
 
-var mongoUtil = require('../services/mongo');
+var mongoUtil = require('../helpers/mongo');
 
 var obj = {};
 

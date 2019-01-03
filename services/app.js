@@ -14,7 +14,7 @@ var tablesData = require('../helpers/cloudTable');
 var config = require('../config/config');
 var winston = require('winston');
 
-var mongoUtil = require('./mongo');
+var mongoUtil = require('../helpers/mongo');
 var mongoService = require('../databases/mongo');
 
 module.exports = {

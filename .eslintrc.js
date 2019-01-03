@@ -1,10 +1,17 @@
 module.exports = {
+    "plugins": ["import"],
+    "parserOptions": {
+        "ecmaVersion": 8,
+        "sourceType": "module"
+    },
+    "extends": ["eslint:recommended", "airbnb-base"],
     "env": {
         "node": true,
         "es6": true
     },
-    "extends": "eslint:recommended",
     "rules": {
+        "for-direction": "off",
+        "getter-return": "off",
         "semi": [
             "error",
             "always"
