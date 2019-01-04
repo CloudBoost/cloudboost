@@ -4,21 +4,25 @@
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
+const winston = require('winston');
 const mongoService = require('../../databases/mongo');
 
-module.exports = function (app) {
+module.exports = (app) => {
   // get file from gridfs
-  app.get('/appfile/:appId/icon', (req, res) => {
-    const appId = req.params.appId;
+  app.get('/appfile/:appId/icon', async (req, res) => {
+    const { appId } = req.params;
     const fileName = appId;
 
-    mongoService.document.getFile(appId, fileName).then((file) => {
-      if (!file) res.send();
-
+    try {
+      const file = await mongoService.document.getFile(appId, fileName);
+      if (!file) {
+        return res.send();
+      }
+      // eslint-disable-next-line no-underscore-dangle
       const fileStream = mongoService.document.getFileStreamById(appId, file._id);
       res.set('Content-Type', file.contentType);
       res.setHeader('Cache-Control', 'public, max-age=86400');
-      res.set('Content-Disposition', `attachment; filename="${file.filename}"`);
+      res.set('Content-Disposition', `attachment: filename="${file.filename}`);
 
       fileStream.on('error', (err) => {
         res.send(500, `Got error while processing stream ${err.message}`);
@@ -29,7 +33,10 @@ module.exports = function (app) {
         res.end();
       });
 
-      fileStream.pipe(res);
-    }, error => res.status(500).send(error));
+      return fileStream.pipe(res);
+    } catch (error) {
+      winston.error({ error });
+      return res.status(500).send(error);
+    }
   });
 };

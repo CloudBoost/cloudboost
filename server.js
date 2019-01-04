@@ -3,18 +3,23 @@
 #     (c) 2014 HackerBay, Inc.
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
-
+/*  eslint global-require: "off" */
 const fs = require('fs');
 const busboyBodyParser = require('busboy-body-parser');
 const path = require('path');
 const cors = require('cors');
 const express = require('express');
+const io = require('socket.io')();
 
 const app = express();
+const http = require('http').createServer(app);
 const bodyParser = require('body-parser');
 const winston = require('winston');
+const config = require('./config/config');
 
 require('./config/logger')(); // configure winston logger transports.
+
+global.reqlib = require('app-root-path').require;
 
 app.use(cors());
 // For pages in cloudboost
@@ -46,10 +51,8 @@ try {
   winston.info('Switching ONLY to HTTP...');
 }
 
-const http = require('http').createServer(app);
 config.rootPath = require('app-root-path');
-const io = require('socket.io')();
-const config = require('./config/config');
+
 
 io.attach(http);
 // attach io to https, only if running in hosted env and certs are found
