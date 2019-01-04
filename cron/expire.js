@@ -1,125 +1,118 @@
 
 /*
 #     CloudBoost - Core Engine that powers Bakend as a Service
-#     (c) 2014 HackerBay, Inc. 
+#     (c) 2014 HackerBay, Inc.
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
-var q = require('q');
-var mongoUtil = require('../helpers/mongo');
-var fileService = require('../services/cloudFiles');
-var config = require('../config/config');
-var winston = require('winston');
+const q = require('q');
+const winston = require('winston');
+const mongoUtil = require('../helpers/mongo');
+const fileService = require('../services/cloudFiles');
+const config = require('../config/config');
 
-var CronJob = require('cron').CronJob;
-var job= new CronJob('00 00 22 * * *', function(){
-    
-    try{             
+const CronJob = require('cron').CronJob;
 
-        _getDatabases().then(function(databaseNameList){
+const job = new CronJob('00 00 22 * * *', (() => {
+  try {
+    _getDatabases().then((databaseNameList) => {
+      if (databaseNameList && databaseNameList.length > 0) {
+        for (let j = 0; j < databaseNameList.length; ++j) {
+          var appId = databaseNameList[j];
 
-            if(databaseNameList && databaseNameList.length>0){
-                for(var j=0;j<databaseNameList.length;++j){
+          var curr = new Date();
 
-                    var appId = databaseNameList[j];
+          const collectionName = '_Schema';
+          const collection = config.mongoClient.db(appId).collection(collectionName);
 
-                    var curr = new Date();
+          collection.find({}).toArray().then((res) => {
+            const resp = res.length;
 
-                    var collectionName = "_Schema";        
-                    var collection = config.mongoClient.db(appId).collection(collectionName);
-                    
-                    collection.find({}).toArray().then(function (res) {
-                        
-                       let resp = res.length;
-                        
-                        for (var i = 0; i < resp; i++) {                            
-                            var collectionName = res[i].name;
-                            if(global.database && global.esClient) {
-                                if(collectionName !== "File") {                                   
-                                    mongodb(appId, collectionName, curr);
-                                }else{
-                                    removeFiles(appId, curr);
-                                }
-                            }
-                        }
-                    },function(error) {
-                        winston.error({
-                            error
-                        });
-                    });
+            for (let i = 0; i < resp; i++) {
+              const collectionName = res[i].name;
+              if (global.database && global.esClient) {
+                if (collectionName !== 'File') {
+                  mongodb(appId, collectionName, curr);
+                } else {
+                  removeFiles(appId, curr);
                 }
-            }            
-
-        },function(error){
+              }
+            }
+          }, (error) => {
             winston.error({
-                error
+              error,
             });
-        });        
+          });
+        }
+      }
+    }, (error) => {
+      winston.error({
+        error,
+      });
+    });
+  } catch (err) {
+    winston.log('error', { error: String(err), stack: new Error().stack });
+  }
+}),
 
-    } catch(err){           
-        winston.log('error',{"error":String(err),"stack": new Error().stack});               
-    }
-},
-
-    null, false, "America/Los_Angeles");
+null, false, 'America/Los_Angeles');
 
 
-function removeFiles(appId,curr) {
-    try{
-        var collectionName = "File";
-        var collectionId = mongoUtil.collection.getId(appId, collectionName);
-        var collection = config.mongoClient.db(appId).collection(collectionId);
-        var query = {"expires": {"$lt": curr, "$exists": true, "$ne": null}};
-        var promises = [];
-        collection.find(query).toArray().then(function (res) {
-            for(var i=0;i<res.length;i++) {
-                promises.push(fileService.delete(appId, res[i], null, true));
-            }
-            q.all(promises).then(function(){},function(){});
-        }, function () {});
-    } catch(err){           
-        winston.log('error',{"error":String(err),"stack": new Error().stack});               
-    }
+function removeFiles(appId, curr) {
+  try {
+    const collectionName = 'File';
+    const collectionId = mongoUtil.collection.getId(appId, collectionName);
+    const collection = config.mongoClient.db(appId).collection(collectionId);
+    const query = { expires: { $lt: curr, $exists: true, $ne: null } };
+    const promises = [];
+    collection.find(query).toArray().then((res) => {
+      for (let i = 0; i < res.length; i++) {
+        promises.push(fileService.delete(appId, res[i], null, true));
+      }
+      q.all(promises).then(() => {}, () => {});
+    }, () => {});
+  } catch (err) {
+    winston.log('error', { error: String(err), stack: new Error().stack });
+  }
 }
 
-function mongodb(appId,collectionName,curr){
-    try{
-        var collectionId = mongoUtil.collection.getId(appId, collectionName);
-        var collection = config.mongoClient.db(appId).collection(collectionId);
-        var que = {"expires": {"$lt": curr,"$exists":true,"$ne":null}};
-        collection.remove(que);
-    } catch(err){           
-        winston.log('error',{"error":String(err),"stack": new Error().stack});               
-    }
+function mongodb(appId, collectionName, curr) {
+  try {
+    const collectionId = mongoUtil.collection.getId(appId, collectionName);
+    const collection = config.mongoClient.db(appId).collection(collectionId);
+    const que = { expires: { $lt: curr, $exists: true, $ne: null } };
+    collection.remove(que);
+  } catch (err) {
+    winston.log('error', { error: String(err), stack: new Error().stack });
+  }
 }
 
 
-function _getDatabases(){
-    var deferred = q.defer();
+function _getDatabases() {
+  const deferred = q.defer();
 
-    try{
-        config.mongoClient.command({listDatabases: 1},function(err, databaseStatList){
-            if(err) {            
-                deferred.reject(err);            
-            }else if(databaseStatList){  
-                //Exclude Databases                 
-                var excludeDBList=["_Analytics","_GLOBAL","local"];                
-                var databaseNameList=[];
-                for(var i=0;i<databaseStatList.databases.length;++i){
-                    if(excludeDBList.indexOf(databaseStatList.databases[i].name)<0){
-                        databaseNameList.push(databaseStatList.databases[i].name);
-                    }
-                }
+  try {
+    config.mongoClient.command({ listDatabases: 1 }, (err, databaseStatList) => {
+      if (err) {
+        deferred.reject(err);
+      } else if (databaseStatList) {
+        // Exclude Databases
+        const excludeDBList = ['_Analytics', '_GLOBAL', 'local'];
+        const databaseNameList = [];
+        for (let i = 0; i < databaseStatList.databases.length; ++i) {
+          if (excludeDBList.indexOf(databaseStatList.databases[i].name) < 0) {
+            databaseNameList.push(databaseStatList.databases[i].name);
+          }
+        }
 
-                deferred.resolve(databaseNameList);                                                                                         
-            }
-        });
+        deferred.resolve(databaseNameList);
+      }
+    });
+  } catch (err) {
+    winston.log('error', { error: String(err), stack: new Error().stack });
+  }
 
-    } catch(err){           
-        winston.log('error',{"error":String(err),"stack": new Error().stack});               
-    }
-
-    return deferred.promise;
+  return deferred.promise;
 }
 
 job.start();

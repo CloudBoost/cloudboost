@@ -3,138 +3,134 @@
 #     (c) 2014 HackerBay, Inc.
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
-var q = require('q');
-var FB = require('fb');
-var winston = require('winston');
+const q = require('q');
+const FB = require('fb');
+const winston = require('winston');
 
 module.exports = {
 
-    getLoginUrl: function (req, appId, authSettings) {
-        var deferred = q.defer();
+  getLoginUrl(req, appId, authSettings) {
+    const deferred = q.defer();
 
-        try {
+    try {
+      const fbAppId = authSettings.facebook.appId;
+      const fbAppSecret = authSettings.facebook.appSecret;
 
-            var fbAppId = authSettings.facebook.appId;
-            var fbAppSecret = authSettings.facebook.appSecret;
+      FB.options({
+        appId: fbAppId,
+        appSecret: fbAppSecret,
+        redirectUri: `${req.protocol}://${req.headers.host}/auth/${appId}/facebook/callback`,
+      });
 
-            FB.options({
-                appId: fbAppId,
-                appSecret: fbAppSecret,
-                redirectUri: req.protocol + '://' + req.headers.host + "/auth/" + appId + "/facebook/callback"
-            });
+      const url = FB.getLoginUrl({
+        scope: _getFbScopeString(authSettings),
+      });
 
-            var url = FB.getLoginUrl({
-                scope: _getFbScopeString(authSettings)
-            });
+      deferred.resolve({
+        loginUrl: url,
+      });
+    } catch (err) {
+      winston.log('error', {
+        error: String(err),
+        stack: new Error().stack,
+      });
+      deferred.reject(err);
+    }
 
-            deferred.resolve({
-                loginUrl: url
-            });
+    return deferred.promise;
+  },
 
-        } catch (err) {
-            winston.log('error', {
-                "error": String(err),
-                "stack": new Error().stack
-            });
-            deferred.reject(err);
+  getAccessToken(req, appId, authSettings, code) {
+    const deferred = q.defer();
+
+    try {
+      const fbAppId = authSettings.facebook.appId;
+      const fbAppSecret = authSettings.facebook.appSecret;
+
+      FB.options({
+        appId: fbAppId,
+        appSecret: fbAppSecret,
+        redirectUri: `${req.protocol}://${req.headers.host}/auth/${appId}/facebook/callback`,
+      });
+
+      FB.api('oauth/access_token', {
+        client_id: FB.options('appId'),
+        client_secret: FB.options('appSecret'),
+        redirect_uri: FB.options('redirectUri'),
+        code,
+      }, (results) => {
+        if (!results || results.error) {
+          deferred.reject(results.error);
+        } else {
+          deferred.resolve(results.access_token);
         }
+      });
+    } catch (err) {
+      winston.log('error', {
+        error: String(err),
+        stack: new Error().stack,
+      });
+      deferred.reject(err);
+    }
 
-        return deferred.promise;
-    },
+    return deferred.promise;
+  },
 
-    getAccessToken: function (req, appId, authSettings, code) {
-        var deferred = q.defer();
+  getUserByAccessToken(req, appId, authSettings, accessToken) {
+    const deferred = q.defer();
 
-        try {
-            var fbAppId = authSettings.facebook.appId;
-            var fbAppSecret = authSettings.facebook.appSecret;
+    try {
+      const fbAppId = authSettings.facebook.appId;
+      const fbAppSecret = authSettings.facebook.appSecret;
 
-            FB.options({
-                appId: fbAppId,
-                appSecret: fbAppSecret,
-                redirectUri: req.protocol + '://' + req.headers.host + "/auth/" + appId + "/facebook/callback"
-            });
+      FB.options({
+        appId: fbAppId,
+        appSecret: fbAppSecret,
+        redirectUri: `${req.protocol}://${req.headers.host}/auth/${appId}/facebook/callback`,
+      });
 
-            FB.api('oauth/access_token', {
-                client_id: FB.options('appId'),
-                client_secret: FB.options('appSecret'),
-                redirect_uri: FB.options('redirectUri'),
-                code: code
-            }, function (results) {
-                if (!results || results.error) {
-                    deferred.reject(results.error);
-                } else {
-                    deferred.resolve(results.access_token);
-                }
-            });
+      FB.setAccessToken(accessToken);
+      FB.api('me', {
+        fields: _getFbFieldString(authSettings),
+        access_token: accessToken,
+      }, (fbRes) => {
+        deferred.resolve(fbRes);
+      });
+    } catch (err) {
+      winston.log('error', {
+        error: String(err),
+        stack: new Error().stack,
+      });
+      deferred.reject(err);
+    }
 
-        } catch (err) {
-            winston.log('error', {
-                "error": String(err),
-                "stack": new Error().stack
-            });
-            deferred.reject(err);
-        }
-
-        return deferred.promise;
-    },
-
-    getUserByAccessToken: function (req, appId, authSettings, accessToken) {
-        var deferred = q.defer();
-
-        try {
-
-            var fbAppId = authSettings.facebook.appId;
-            var fbAppSecret = authSettings.facebook.appSecret;
-
-            FB.options({
-                appId: fbAppId,
-                appSecret: fbAppSecret,
-                redirectUri: req.protocol + '://' + req.headers.host + "/auth/" + appId + "/facebook/callback"
-            });
-
-            FB.setAccessToken(accessToken);
-            FB.api('me', {
-                fields: _getFbFieldString(authSettings),
-                access_token: accessToken
-            }, function (fbRes) {
-                deferred.resolve(fbRes);
-            });
-        } catch (err) {
-            winston.log('error', {
-                "error": String(err),
-                "stack": new Error().stack
-            });
-            deferred.reject(err);
-        }
-
-        return deferred.promise;
-    },
+    return deferred.promise;
+  },
 };
 
 
 function _getFbScopeString(authSettings) {
-    var json = authSettings.facebook.permissions;
+  const json = authSettings.facebook.permissions;
 
-    var scopeArray = [];
-    for (var key in json) {
-        if (json.hasOwnProperty(key) && json[key].enabled) {
-            scopeArray.push(json[key].scope);
-        }
+  const scopeArray = [];
+  for (const key in json) {
+    if (json.hasOwnProperty(key) && json[key].enabled) {
+      scopeArray.push(json[key].scope);
     }
+  }
 
-    return scopeArray.toString();
+  return scopeArray.toString();
 }
 
 function _getFbFieldString(authSettings) {
-    var json = authSettings.facebook.attributes;
+  const json = authSettings.facebook.attributes;
 
-    var fieldArray = [];
-    for (var key in json) {
-        if (json.hasOwnProperty(key) && json[key]) {
-            fieldArray.push(key.toString());
-        }
+  const fieldArray = [];
+  for (const key in json) {
+    if (json.hasOwnProperty(key) && json[key]) {
+      fieldArray.push(key.toString());
     }
+  }
 
-    return fieldArray;
+  return fieldArray;
 }

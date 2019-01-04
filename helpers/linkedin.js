@@ -4,111 +4,105 @@
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
-var q = require('q');
-var winston = require('winston');
+const q = require('q');
+const winston = require('winston');
 
 module.exports = {
 
-	getLoginUrl: function (req, appId, authSettings) {
-		var deferred = q.defer();
+  getLoginUrl(req, appId, authSettings) {
+    const deferred = q.defer();
 
-		try {
+    try {
+      const clienId = authSettings.linkedIn.appId;
+      const clientSecret = authSettings.linkedIn.appSecret;
 
-			var clienId = authSettings.linkedIn.appId;
-			var clientSecret = authSettings.linkedIn.appSecret;
+      const Linkedin = require('node-linkedin')(clienId, clientSecret);
 
-			var Linkedin = require('node-linkedin')(clienId, clientSecret);
+      Linkedin.setCallback(`${req.protocol}://${req.headers.host}/auth/${appId}/linkedin/callback`);
+      const scope = _getLinkedinScopeString(authSettings);
+      const url = Linkedin.auth.authorize(scope);
 
-			Linkedin.setCallback(req.protocol + '://' + req.headers.host + '/auth/' + appId + '/linkedin/callback');
-			var scope = _getLinkedinScopeString(authSettings);
-			var url = Linkedin.auth.authorize(scope);
+      deferred.resolve({
+        loginUrl: url,
+      });
+    } catch (err) {
+      winston.log('error', {
+        error: String(err),
+        stack: new Error().stack,
+      });
+      deferred.reject(err);
+    }
 
-			deferred.resolve({
-				loginUrl: url
-			});
+    return deferred.promise;
+  },
 
-		} catch (err) {
-			winston.log('error', {
-				"error": String(err),
-				"stack": new Error().stack
-			});
-			deferred.reject(err);
-		}
+  getAccessToken(req, appId, authSettings, res, code, state) {
+    const deferred = q.defer();
 
-		return deferred.promise;
-	},
+    try {
+      const clienId = authSettings.linkedIn.appId;
+      const clientSecret = authSettings.linkedIn.appSecret;
 
-	getAccessToken: function (req, appId, authSettings, res, code, state) {
-		var deferred = q.defer();
+      const Linkedin = require('node-linkedin')(clienId, clientSecret);
+      Linkedin.setCallback(`${req.protocol}://${req.headers.host}/auth/${appId}/linkedin/callback`);
 
-		try {
+      Linkedin.auth.getAccessToken(res, code, state, (err, results) => {
+        if (err) {
+          deferred.reject(err);
+        } else {
+          deferred.resolve(results.access_token);
+        }
+      });
+    } catch (err) {
+      winston.log('error', {
+        error: String(err),
+        stack: new Error().stack,
+      });
+      deferred.reject(err);
+    }
 
-			var clienId = authSettings.linkedIn.appId;
-			var clientSecret = authSettings.linkedIn.appSecret;
+    return deferred.promise;
+  },
 
-			var Linkedin = require('node-linkedin')(clienId, clientSecret);
-			Linkedin.setCallback(req.protocol + '://' + req.headers.host + '/auth/' + appId + '/linkedin/callback');
+  getUserByAccessToken(req, appId, authSettings, accessToken) {
+    const deferred = q.defer();
 
-			Linkedin.auth.getAccessToken(res, code, state, function (err, results) {
-				if (err) {
-					deferred.reject(err);
-				} else {
-					deferred.resolve(results.access_token);
-				}
-			});
+    try {
+      const clienId = authSettings.linkedIn.appId;
+      const clientSecret = authSettings.linkedIn.appSecret;
 
-		} catch (err) {
-			winston.log('error', {
-				"error": String(err),
-				"stack": new Error().stack
-			});
-			deferred.reject(err);
-		}
+      const Linkedin = require('node-linkedin')(clienId, clientSecret);
+      // Linkedin.setCallback(req.protocol + '://' + req.headers.host + '/auth/'+appId+'/linkedin/callback');
 
-		return deferred.promise;
-	},
+      const linkedin = Linkedin.init(accessToken);
 
-	getUserByAccessToken: function (req, appId, authSettings, accessToken) {
-		var deferred = q.defer();
+      linkedin.people.me((err, $in) => {
+        deferred.resolve($in);
+      });
+    } catch (err) {
+      winston.log('error', {
+        error: String(err),
+        stack: new Error().stack,
+      });
+      deferred.reject(err);
+    }
 
-		try {
-
-			var clienId = authSettings.linkedIn.appId;
-			var clientSecret = authSettings.linkedIn.appSecret;
-
-			var Linkedin = require('node-linkedin')(clienId, clientSecret);
-			//Linkedin.setCallback(req.protocol + '://' + req.headers.host + '/auth/'+appId+'/linkedin/callback');
-
-			var linkedin = Linkedin.init(accessToken);
-
-			linkedin.people.me(function (err, $in) {
-				deferred.resolve($in);
-			});
-
-		} catch (err) {
-			winston.log('error', {
-				"error": String(err),
-				"stack": new Error().stack
-			});
-			deferred.reject(err);
-		}
-
-		return deferred.promise;
-	},
+    return deferred.promise;
+  },
 
 
 };
 
 
 function _getLinkedinScopeString(authSettings) {
-	var json = authSettings.linkedIn.permissions;
+  const json = authSettings.linkedIn.permissions;
 
-	var scopeArray = [];
-	for (var key in json) {
-		if (json.hasOwnProperty(key) && json[key]) {
-			scopeArray.push(key.toString());
-		}
-	}
+  const scopeArray = [];
+  for (const key in json) {
+    if (json.hasOwnProperty(key) && json[key]) {
+      scopeArray.push(key.toString());
+    }
+  }
 
-	return scopeArray;
+  return scopeArray;
 }

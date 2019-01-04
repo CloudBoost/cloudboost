@@ -4,92 +4,87 @@
 #     (c) 2014 HackerBay, Inc.
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
-var q = require('q');
-var customService = require('../services/cloudObjects');
-var winston = require('winston');
+const q = require('q');
+const winston = require('winston');
+const customService = require('../services/cloudObjects');
 
-var authService = {
+const authService = {
 
-	/*Desc   : Upsert user with provider
+  /* Desc   : Upsert user with provider
 	  Params : appId, accessList, provider, providerUserId, providerAccessToken, providerAccessSecret
 	  Returns: Promise
 			   Resolve->user object
 			   Reject->Error on findOne()  or save()
 	*/
-	upsertUserWithProvider: function(appId, accessList, provider, providerUserId, providerAccessToken, providerAccessSecret){
+  upsertUserWithProvider(appId, accessList, provider, providerUserId, providerAccessToken, providerAccessSecret) {
+    const deferred = q.defer();
 
-		var deferred = q.defer();
+    try {
+      const isMasterKey = true;
+      const collectionName = 'User';
+      const select = {};
+      const sort = {};
+      const skip = 0;
 
-		try{
+      const query = {};
+      query.$include = [];
+      query.$includeList = [];
+      query.socialAuth = {
+        $elemMatch: {
+          provider,
+          id: providerUserId,
+        },
+      };
 
-			var isMasterKey=true;
-			var collectionName = "User";
-			var select = {};
-			var sort = {};
-			var skip = 0;
+      customService.findOne(appId, collectionName, query, select, sort, skip, accessList, isMasterKey).then((document) => {
+        if (document) {
+          for (let i = 0; i < document.socialAuth.length; ++i) {
+            if (document.socialAuth[i].provider === provider && document.socialAuth[i].id === providerUserId) {
+              document.socialAuth[i].accessToken = providerAccessToken;
+            }
+          }
+          document._modifiedColumns = ['socialAuth'];
+        } else {
+          document = {};
+          document._version = 0;
 
-			var query = {};
-			query.$include = [];
-			query.$includeList = [];
-			query["socialAuth"] = {
-				$elemMatch: {
-					provider:provider,
-					id:providerUserId
-				}
-			};
+          document.ACL = {};
+          document.ACL.read = { allow: { user: ['all'], role: [] }, deny: { user: [], role: [] } }; // by default allow read access to "all"
+          document.ACL.write = { allow: { user: ['all'], role: [] }, deny: { user: [], role: [] } }; // by default allow write access to "all"
+          document.ACL.parent = null;
 
-			customService.findOne(appId, collectionName, query, select, sort, skip, accessList, isMasterKey).then(function(document){
+          document.createdAt = new Date();
+          document.updatedAt = new Date();
+          document.expires = null;
 
-				if(document){
-					for(var i=0;i<document.socialAuth.length;++i){
-						if(document.socialAuth[i].provider===provider && document.socialAuth[i].id===providerUserId){
-							document.socialAuth[i].accessToken=providerAccessToken;
-						}
-					}
-					document._modifiedColumns=["socialAuth"];
-				}else{
-					document={};
-					document._version=0;
+          document.verified = true;
+          document.socialAuth = [{
+            provider,
+            id: providerUserId,
+            accessToken: providerAccessToken,
+            accessSecret: providerAccessSecret,
+          }];
 
-					document.ACL={};
-					document.ACL['read'] = {"allow":{"user":['all'],"role":[]},"deny":{"user":[],"role":[]}}; //by default allow read access to "all"
-					document.ACL['write'] = {"allow":{"user":['all'],"role":[]},"deny":{"user":[],"role":[]}}; //by default allow write access to "all"
-					document.ACL.parent = null;
+          document._modifiedColumns = ['createdAt', 'updatedAt', 'ACL', 'expires', 'verified', 'socialAuth'];
+        }
 
-					document.createdAt= new Date();
-					document.updatedAt= new Date();
-					document.expires= null;
+        document._isModified = true;
+        document._tableName = collectionName;
+        document._type = 'user';
 
-					document.verified=true;
-					document.socialAuth=[{
-						provider:provider,
-						id:providerUserId,
-						accessToken:providerAccessToken,
-						accessSecret:providerAccessSecret
-					}];
+        return customService.save(appId, collectionName, document, accessList, isMasterKey);
+      }).then((result) => {
+        deferred.resolve(result);
+      }, (error) => {
+        deferred.reject(error);
+      });
+    } catch (err) {
+      winston.log('error', { error: String(err), stack: new Error().stack });
+      deferred.reject(err);
+    }
 
-					document._modifiedColumns=["createdAt","updatedAt","ACL","expires","verified","socialAuth"];
-				}
-
-				document._isModified=true;
-				document._tableName=collectionName;
-				document._type="user";
-
-				return customService.save(appId, collectionName, document, accessList, isMasterKey);
-
-			}).then(function(result){
-				deferred.resolve(result);
-			},function(error){
-				deferred.reject(error);
-			});
-
-		} catch(err){
-			winston.log('error',{"error":String(err),"stack": new Error().stack});
-			deferred.reject(err);
-		}
-
-		return deferred.promise;
-	}
+    return deferred.promise;
+  },
 };
 
 module.exports = authService;

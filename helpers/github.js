@@ -5,117 +5,107 @@
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
-var q = require('q');
-var oauth = require("oauth").OAuth2;
-var github = require('octonode');
-var winston = require('winston');
+const q = require('q');
+const oauth = require('oauth').OAuth2;
+const github = require('octonode');
+const winston = require('winston');
 
 module.exports = {
 
-	getLoginUrl : function(req, appId, authSettings){
-		var deferred = q.defer();
+  getLoginUrl(req, appId, authSettings) {
+    const deferred = q.defer();
 
-		try{
+    try {
+      const githhubClientId = authSettings.github.appId;
+      const githubClientSecret = authSettings.github.appSecret;
 
-            var githhubClientId=authSettings.github.appId;
-            var githubClientSecret=authSettings.github.appSecret;
+      const OAuth2 = new oauth(githhubClientId, githubClientSecret, 'https://github.com/', 'login/oauth/authorize', 'login/oauth/access_token');
 
-            var OAuth2 = new oauth(githhubClientId, githubClientSecret, "https://github.com/", "login/oauth/authorize", "login/oauth/access_token");
+      const url = OAuth2.getAuthorizeUrl({
+        redirect_uri: `${req.protocol}://${req.headers.host}/auth/${appId}/github/callback`,
+        scope: _getGithubFieldString(authSettings).concat(_getGithubScopeString(authSettings)),
+      });
 
-            var url= OAuth2.getAuthorizeUrl({
-                redirect_uri: req.protocol + '://' + req.headers.host +'/auth/'+appId+'/github/callback',
-                scope: _getGithubFieldString(authSettings).concat(_getGithubScopeString(authSettings))
-            });
-
-            deferred.resolve({loginUrl:url});
-
-
-		}catch(err){
-            winston.log('error',{"error":String(err),"stack": new Error().stack});
-            deferred.reject(err);
-        }
-
-		return deferred.promise;
-	},
-
-    getOAuthAccessToken : function(req, appId, authSettings, code){
-        var deferred = q.defer();
-
-        try{
-
-            var githhubClientId=authSettings.github.appId;
-            var githubClientSecret=authSettings.github.appSecret;
-
-            var OAuth2 = new oauth(githhubClientId, githubClientSecret, "https://github.com/", "login/oauth/authorize", "login/oauth/access_token");
-
-            OAuth2.getOAuthAccessToken(code, {}, function (err, access_token) {
-                if (err) {
-                  deferred.reject(err);
-                }else{
-                    deferred.resolve(access_token);
-                }
-            });
-
-        }catch(err){
-            winston.log('error',{"error":String(err),"stack": new Error().stack});
-            deferred.reject(err);
-        }
-
-        return deferred.promise;
-    },
-
-    getUserByAccessToken : function(req, appId, authSettings, accessToken){
-
-        var deferred = q.defer();
-
-        try{
-
-            var client = github.client(accessToken);
-
-            client.get('/user', {}, function (err, status, body) {
-                if (err) {
-                  deferred.reject(err);
-                }else{
-                    deferred.resolve(body);
-                }
-            });
-
-        }catch(err){
-            winston.log('error',{"error":String(err),"stack": new Error().stack});
-            deferred.reject(err);
-        }
-
-        return deferred.promise;
+      deferred.resolve({ loginUrl: url });
+    } catch (err) {
+      winston.log('error', { error: String(err), stack: new Error().stack });
+      deferred.reject(err);
     }
 
+    return deferred.promise;
+  },
+
+  getOAuthAccessToken(req, appId, authSettings, code) {
+    const deferred = q.defer();
+
+    try {
+      const githhubClientId = authSettings.github.appId;
+      const githubClientSecret = authSettings.github.appSecret;
+
+      const OAuth2 = new oauth(githhubClientId, githubClientSecret, 'https://github.com/', 'login/oauth/authorize', 'login/oauth/access_token');
+
+      OAuth2.getOAuthAccessToken(code, {}, (err, access_token) => {
+        if (err) {
+          deferred.reject(err);
+        } else {
+          deferred.resolve(access_token);
+        }
+      });
+    } catch (err) {
+      winston.log('error', { error: String(err), stack: new Error().stack });
+      deferred.reject(err);
+    }
+
+    return deferred.promise;
+  },
+
+  getUserByAccessToken(req, appId, authSettings, accessToken) {
+    const deferred = q.defer();
+
+    try {
+      const client = github.client(accessToken);
+
+      client.get('/user', {}, (err, status, body) => {
+        if (err) {
+          deferred.reject(err);
+        } else {
+          deferred.resolve(body);
+        }
+      });
+    } catch (err) {
+      winston.log('error', { error: String(err), stack: new Error().stack });
+      deferred.reject(err);
+    }
+
+    return deferred.promise;
+  },
 
 
 };
 
 
+function _getGithubFieldString(authSettings) {
+  const json = authSettings.github.attributes;
 
-function _getGithubFieldString(authSettings){
-    var json=authSettings.github.attributes;
-
-    var scopeArray=[];
-    for (var key in json) {
-        if (json.hasOwnProperty(key) && json[key].enabled) {
-          scopeArray.push(json[key].scope);
-        }
+  const scopeArray = [];
+  for (const key in json) {
+    if (json.hasOwnProperty(key) && json[key].enabled) {
+      scopeArray.push(json[key].scope);
     }
+  }
 
-    return scopeArray;
+  return scopeArray;
 }
 
-function _getGithubScopeString(authSettings){
-    var json=authSettings.github.permissions;
+function _getGithubScopeString(authSettings) {
+  const json = authSettings.github.permissions;
 
-    var scopeArray=[];
-    for (var key in json) {
-        if (json.hasOwnProperty(key) && json[key].enabled) {
-          scopeArray.push(json[key].scope);
-        }
+  const scopeArray = [];
+  for (const key in json) {
+    if (json.hasOwnProperty(key) && json[key].enabled) {
+      scopeArray.push(json[key].scope);
     }
+  }
 
-    return scopeArray;
+  return scopeArray;
 }
