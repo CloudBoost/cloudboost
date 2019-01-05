@@ -5,6 +5,8 @@
 */
 
 const q = require('q');
+const winston = require('winston');
+const { Readable } = require('stream');
 const customHelper = require('../../helpers/custom.js');
 
 const apiTracker = require('../../database-connect/apiTracker');
@@ -14,107 +16,6 @@ const customService = require('../../services/cloudObjects');
 const appService = require('../../services/app');
 const fileService = require('../../services/cloudFiles');
 
-module.exports = function (app) {
-  app.post('/file/:appId', (req, res) => {
-    const appId = req.params.appId;
-    let document = req.body.fileObj;
-
-    if (typeof req.body.fileObj === 'string') {
-      document = JSON.parse(req.body.fileObj);
-    }
-
-    const appKey = req.body.key;
-
-    const sdk = req.body.sdk || 'REST';
-    if (document._id) {
-      appService.isMasterKey(appId, appKey).then(isMasterKey => customService.save(appId, '_File', document, customHelper.getAccessList(req), isMasterKey)).then((result) => {
-        res.status(200).send(result);
-      }, (error) => {
-        res.status(400).send(error);
-      });
-
-      apiTracker.log(appId, 'File / Save', req.url, sdk);
-    } else {
-      appService.isMasterKey(appId, appKey).then((isMasterKey) => {
-        _getFileStream(req).then((result) => {
-          config.fileUrl = `${config.myURL}/file/`;
-          return fileService.upload(appId, result.fileStream, result.contentType, result.fileObj, customHelper.getAccessList(req), isMasterKey);
-        }).then(file => res.status(200).send(file), err => res.status(500).send(err));
-      });
-
-      apiTracker.log(appId, 'File / Upload', req.url, sdk);
-    }
-  });
-
-  // Delete File
-  app.delete('/file/:appId/:fileId', _deleteFile);
-  app.put('/file/:appId/:fileId', _deleteFile);
-
-  function _deleteFile(req, res) {
-    const appId = req.params.appId;
-    const fileObj = req.body.fileObj;
-    const appKey = req.body.key;
-    const sdk = req.body.sdk || 'REST';
-    config.fileUrl = `${config.myURL}/file/`;
-    appService.isMasterKey(appId, appKey).then((isMasterKey) => {
-      fileService.delete(appId, fileObj, customHelper.getAccessList(req), isMasterKey).then(() => res.status(200).send(null), err => res.status(500).send(err));
-    });
-
-    apiTracker.log(appId, 'File / Delete', req.url, sdk);
-  }
-
-  app.get('/file/:appId/:fileId', _getFile);
-  app.post('/file/:appId/:fileId', _getFile);
-};
-
-function _getFile(req, res) {
-  const appId = req.params.appId;
-  const fileId = req.params.fileId;
-  const appKey = req.body.key;
-  const sdk = req.body.sdk || 'REST';
-  const resizeWidth = req.query.resizeWidth;
-  const resizeHeight = req.query.resizeHeight;
-  const quality = req.query.quality;
-  const opacity = req.query.opacity;
-  const scale = req.query.scale;
-  const containWidth = req.query.containWidth;
-  const containHeight = req.query.containHeight;
-  const rDegs = req.query.rDegs;
-  const bSigma = req.query.bSigma;
-  const cropX = req.query.cropX;
-  const cropY = req.query.cropY;
-  const cropW = req.query.cropW;
-  const cropH = req.query.cropH;
-
-  if (!fileId) {
-    return res.status(400).send('File ID is Required');
-  }
-  appService.isMasterKey(appId, appKey).then((isMasterKey) => {
-    fileService.getFile(appId, fileId, customHelper.getAccessList(req), isMasterKey).then((file) => {
-      if (typeof resizeWidth === 'undefined' && typeof resizeHeight === 'undefined' && typeof quality === 'undefined' && typeof opacity === 'undefined' && typeof scale === 'undefined' && typeof containWidth === 'undefined' && typeof containHeight === 'undefined' && typeof rDegs === 'undefined' && typeof bSigma === 'undefined') {
-        const fileStream = mongoService.document.getFileStreamById(appId, file._id);
-
-        res.set('Content-Type', file.contentType);
-        res.set('Content-Disposition', `inline; filename="${file.filename}"`);
-
-        fileStream.on('error', (err) => {
-          res.send(500, `Got error while processing stream ${err.message}`);
-          res.end();
-        });
-
-        fileStream.on('end', () => {
-          res.end();
-        });
-
-        fileStream.pipe(res);
-      } else {
-        fileService.processImage(appId, file, resizeWidth, resizeHeight, cropX, cropY, cropW, cropH, quality, opacity, scale, containWidth, containHeight, rDegs, bSigma).then(file => res.status(200).send(file), err => res.status(500).send(err));
-      }
-    }, err => res.status(500).send(err));
-  }, err => res.status(500).send(err));
-
-  apiTracker.log(appId, 'File / Get', req.url, sdk);
-}
 
 /* Desc   : Get file params from upload request
   Params : req
@@ -122,7 +23,7 @@ function _getFile(req, res) {
            Resolve->JSON{filestream,contentType,cloudBoostFileObj}
            Reject->
 */
-function _getFileStream(req) {
+const getFileStream = (req) => {
   const deferred = q.defer();
 
   const resObj = {
@@ -132,7 +33,6 @@ function _getFileStream(req) {
   };
 
   // Create a FileStream(add data)
-  const Readable = require('stream').Readable;
   const readableStream = new Readable();
 
   if (req.body.data) {
@@ -170,4 +70,123 @@ function _getFileStream(req) {
   }
 
   return deferred.promise;
-}
+};
+
+const deleteFile = async (req, res) => {
+  const { appId } = req.params;
+  const { fileObj, key: appKey, sdk = 'REST' } = req.body;
+  config.fileUrl = `${config.myURL}/file/`;
+  try {
+    const isMasterKey = await appService.isMasterKey(appId, appKey);
+    await fileService.delete(appId, fileObj, customHelper.getAccessList(req), isMasterKey);
+    apiTracker.log(appId, 'File / Delete', req.url, sdk);
+    res.status(200).send(null);
+  } catch (error) {
+    winston.error({ error });
+    res.status(500).send(error);
+  }
+};
+
+const getFile = async (req, res) => {
+  const { appId, fileId } = req.params;
+  const { key: appKey, sdk = 'REST' } = req.body;
+  const {
+    resizeWidth,
+    resizeHeight,
+    quality,
+    opacity,
+    scale,
+    containWidth,
+    containHeight,
+    rDegs,
+    bSigma,
+    cropX,
+    cropY,
+    cropW,
+    cropH,
+  } = req.query;
+
+  if (!fileId) {
+    return res.status(400).send('File ID is Required');
+  }
+  try {
+    const isMasterKey = await appService.isMasterKey(appId, appKey);
+    const file = await fileService.getFile(
+      appId, fileId, customHelper.getAccessList(req), isMasterKey,
+    );
+    apiTracker.log(appId, 'File / Get', req.url, sdk);
+    if (typeof resizeWidth === 'undefined' && typeof resizeHeight === 'undefined' && typeof quality === 'undefined' && typeof opacity === 'undefined' && typeof scale === 'undefined' && typeof containWidth === 'undefined' && typeof containHeight === 'undefined' && typeof rDegs === 'undefined' && typeof bSigma === 'undefined') {
+      // eslint-disable-next-line
+      const fileStream = mongoService.document.getFileStreamById(appId, file._id);
+
+      res.set('Content-Type', file.contentType);
+      res.set('Content-Disposition', `inline; filename="${file.filename}"`);
+
+      fileStream.on('error', (err) => {
+        res.send(500, `Got error while processing stream ${err.message}`);
+        res.end();
+      });
+
+      fileStream.on('end', () => {
+        res.end();
+      });
+
+      return fileStream.pipe(res);
+    }
+    const processedFile = await fileService.processImage(
+      appId, file, resizeWidth, resizeHeight, cropX, cropY,
+      cropW, cropH, quality, opacity, scale, containWidth, containHeight, rDegs, bSigma,
+    );
+    return res.status(200).send(processedFile);
+  } catch (error) {
+    winston.error({ error });
+    return res.status(500).send(error);
+  }
+};
+
+module.exports = (app) => {
+  app.post('/file/:appId', async (req, res) => {
+    const { appId } = req.params;
+    let document = req.body.fileObj;
+
+    if (typeof req.body.fileObj === 'string') {
+      document = JSON.parse(req.body.fileObj);
+    }
+
+    const { sdk = 'REST', key: appKey } = req.body;
+
+    if (document._id) { // eslint-disable-line no-underscore-dangle
+      apiTracker.log(appId, 'File / Save', req.url, sdk);
+      try {
+        const isMasterKey = await appService.isMasterKey(appId, appKey);
+        const result = await customService.save(appId, '_File', document, customHelper.getAccessList(req), isMasterKey);
+        res.status(200).send(result);
+      } catch (error) {
+        winston.error({ error });
+        res.status(400).send(error);
+      }
+    } else {
+      try {
+        apiTracker.log(appId, 'File / Upload', req.url, sdk);
+        const isMasterKey = await appService.isMasterKey(appId, appKey);
+        const result = await getFileStream(req);
+        config.fileUrl = `${config.myURL}/file/`;
+        const file = await fileService.upload(
+          appId, result.fileStream, result.contentType,
+          result.fileObj, customHelper.getAccessList(req), isMasterKey,
+        );
+        res.status(200).send(file);
+      } catch (error) {
+        winston.error({ error });
+        res.status(500).send(error);
+      }
+    }
+  });
+
+  // Delete File
+  app.delete('/file/:appId/:fileId', deleteFile);
+  app.put('/file/:appId/:fileId', deleteFile);
+
+  app.get('/file/:appId/:fileId', getFile);
+  app.post('/file/:appId/:fileId', getFile);
+};
