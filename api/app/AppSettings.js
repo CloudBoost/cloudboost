@@ -7,6 +7,7 @@
 const q = require('q');
 const _ = require('underscore');
 const winston = require('winston');
+const { Readable } = require('stream');
 const util = require('../../helpers/util.js');
 
 const config = require('../../config/config');
@@ -15,190 +16,13 @@ const mongoService = require('../../databases/mongo');
 const appService = require('../../services/app');
 const keyService = require('../../database-connect/keyService');
 
-module.exports = function (app) {
-  // Update Settings for the App
-  app.put('/settings/:appId/:category', (req, res) => {
-    const appId = req.params.appId;
-    const category = req.params.category;
-    const sdk = req.body.sdk || 'REST';
-    let settings = req.body.settings || {};
-    const appKey = req.body.key || req.params.key;
-
-    if (typeof settings === 'string') {
-      settings = JSON.parse(settings);
-    }
-
-    appService.isMasterKey(appId, appKey).then((isMasterKey) => {
-      if (isMasterKey) {
-        if (config.mongoDisconnected) {
-          return res.status(500).send('Storage / Cache Backend are temporarily down.');
-        }
-
-        appService.updateSettings(appId, category, settings).then(settings => res.status(200).send(settings), (err) => {
-          winston.error({
-            error: err,
-          });
-          return res.status(500).send('Error');
-        });
-      } else {
-        return res.status(401).send({ status: 'Unauthorized' });
-      }
-    }, (err) => {
-      winston.error({
-        error: err,
-      });
-      return res.status(500).send('Cannot retrieve security keys.');
-    });
-
-    apiTracker.log(appId, 'App / Settings', req.url, sdk);
-  });
-
-  // Get Settings for the App
-  app.post('/settings/:appId', (req, res) => {
-    const appId = req.params.appId;
-    const sdk = req.body.sdk || 'REST';
-    const appKey = req.body.key || req.params.key;
-
-    appService.isMasterKey(appId, appKey).then((isMasterKey) => {
-      if (isMasterKey) {
-        if (config.mongoDisconnected) {
-          return res.status(500).send('Storage / Cache Backend are temporarily down.');
-        }
-
-        appService.getAllSettings(appId).then(settings => res.status(200).send(settings), (err) => {
-          winston.error({
-            error: err,
-          });
-          return res.status(500).send('Error');
-        });
-      } else {
-        return res.status(401).send({ status: 'Unauthorized' });
-      }
-    }, (err) => {
-      winston.error({
-        error: err,
-      });
-      return res.status(500).send('Cannot retrieve security keys.');
-    });
-
-    apiTracker.log(appId, 'App / Settings', req.url, sdk);
-  });
-
-  /* stream file settings file to gridfs
-        1.Get fileStream from request
-        2.Check if masterKey is false
-        3.GetAppSettings and delete previous file if exists(in background)
-        4.Get ServerUrl to make fileUri
-        5.Save current file to gridfs
-    */
-  app.put('/settings/:appId/file/:category', (req, res) => {
-    const appId = req.params.appId;
-    const appKey = req.body.key || req.params.key;
-    const category = req.params.category;
-
-    let thisUri = null;
-    const promises = [];
-
-    promises.push(_getFileStream(req));
-    promises.push(appService.isMasterKey(appId, appKey));
-    promises.push(appService.getAllSettings(appId));
-    promises.push(keyService.getMyUrl());
-
-    q.all(promises).then((resultList) => {
-      // Check database connectivity
-      if (config.mongoDisconnected) {
-        return res.status(500).send('Storage / Cache Backend are temporarily down.');
-      }
-      // Check if masterKey is false
-      if (!resultList[1]) {
-        return res.status(401).send({ status: 'Unauthorized' });
-      }
-      // Delete previous file from gridfs
-      if (resultList[2] && resultList[2].length > 0) {
-        const categorySettings = _.where(resultList[2], { category });
-
-        if (categorySettings && categorySettings.length > 0) {
-          let fileName = appId;
-          // for category == general , filename is set to appId;
-
-          if (category == 'push') {
-            if (categorySettings[0].settings.apple.certificates.length > 0) {
-              // get the filename from fileUri
-              fileName = categorySettings[0].settings.apple.certificates[0].split('/').reverse()[0];
-            }
-          }
-
-          // Delete from gridFs
-          if (fileName) {
-            mongoService.document.deleteFileFromGridFs(appId, fileName);
-          }
-        }
-      }
-
-      // Server URI
-      thisUri = resultList[3];
-
-      let fileName = util.getId();
-      if (category == 'general') {
-        fileName = appId;
-      }
-      return mongoService.document.saveFileStream(appId, resultList[0].fileStream, fileName, resultList[0].contentType);
-    }).then((savedFile) => {
-      let fileUri = null;
-
-      fileUri = `${thisUri}/settings/${appId}/file/${savedFile.filename}`;
-      if (category == 'general') {
-        fileUri = `${thisUri}/appfile/${appId}/icon`;
-      }
-
-      return res.status(200).send(fileUri);
-    }, error => res.status(500).send(error));
-  });
-
-  // get file from gridfs
-  app.get('/settings/:appId/file/:fileName', (req, res) => {
-    const appId = req.params.appId;
-    const fileName = req.params.fileName;
-    const appKey = req.query.key || req.body.key || req.params.key;
-
-    if (!appKey) {
-      return res.status(500).send('Unauthorized');
-    }
-
-    appService.isMasterKey(appId, appKey).then((masterKey) => {
-      if (!masterKey) {
-        const unathorizedPromise = q.defer();
-        unathorizedPromise.reject('Unauthorized.');
-        return unathorizedPromise.promise;
-      }
-      return mongoService.document.getFile(appId, fileName.split('.')[0]);
-    }).then((file) => {
-      const fileStream = mongoService.document.getFileStreamById(appId, file._id);
-
-      res.set('Content-Type', file.contentType);
-      res.set('Content-Disposition', `attachment; filename="${file.filename}"`);
-
-      fileStream.on('error', (err) => {
-        res.send(500, `Got error while processing stream ${err.message}`);
-        res.end();
-      });
-
-      fileStream.on('end', () => {
-        res.end();
-      });
-
-      fileStream.pipe(res);
-    }, error => res.status(500).send(error));
-  });
-};
-
 /* Desc   : Get fileStream and contentType from upload request
   Params : req
   Returns: Promise
            Resolve->JSON{filestream,contentType}
            Reject->
 */
-function _getFileStream(req) {
+const getFileStream = (req) => {
   const deferred = q.defer();
 
   const resObj = {
@@ -207,7 +31,6 @@ function _getFileStream(req) {
   };
 
   // Create a FileStream(add data)
-  const Readable = require('stream').Readable;
   const readableStream = new Readable();
 
   if (req.body.data) {
@@ -250,4 +73,165 @@ function _getFileStream(req) {
   deferred.resolve(resObj);
 
   return deferred.promise;
-}
+};
+
+module.exports = (app) => {
+  // Update Settings for the App
+  app.put('/settings/:appId/:category', async (req, res) => {
+    const { appId, category, key: pkey } = req.params;
+    const { sdk = 'REST', key: appKey = pkey } = req.body;
+    let { settings = {} } = req.body;
+
+    if (typeof settings === 'string') {
+      settings = JSON.parse(settings);
+    }
+
+    apiTracker.log(appId, 'App / Settings', req.url, sdk);
+
+    try {
+      const isMasterKey = await appService.isMasterKey(appId, appKey);
+      if (isMasterKey) {
+        if (config.mongoDisconnected) {
+          res.status(500).send('Storage / Cache Backend are temporarily down.');
+        } else {
+          const updatedSettings = await appService.updateSettings(appId, category, settings);
+          res.status(200).send(updatedSettings);
+        }
+      } else {
+        res.status(401).send({ status: 'Unauthorized' });
+      }
+    } catch (error) {
+      winston.error({
+        error,
+      });
+      res.status(500).send('Error.');
+    }
+  });
+
+  // Get Settings for the App
+  app.post('/settings/:appId', async (req, res) => {
+    const { appId, key: pkey } = req.params;
+    const { sdk = 'REST', key: appKey = pkey } = req.body;
+
+    apiTracker.log(appId, 'App / Settings', req.url, sdk);
+
+    try {
+      const isMasterKey = await appService.isMasterKey(appId, appKey);
+      if (isMasterKey) {
+        if (config.mongoDisconnected) {
+          res.status(500).send('Storage / Cache Backend are temporarily down.');
+        } else {
+          const allSettings = await appService.getAllSettings(appId);
+          res.status(200).send(allSettings);
+        }
+      } else {
+        res.status(401).send({ status: 'Unauthorized' });
+      }
+    } catch (error) {
+      winston.error({ error });
+      res.status(500).send('Error.');
+    }
+  });
+
+  /* stream file settings file to gridfs
+        1.Get fileStream from request
+        2.Check if masterKey is false
+        3.GetAppSettings and delete previous file if exists(in background)
+        4.Get ServerUrl to make fileUri
+        5.Save current file to gridfs
+    */
+  app.put('/settings/:appId/file/:category', async (req, res) => {
+    const { appId, category, key: pkey } = req.params;
+    const { key: appKey = pkey } = req.body;
+
+    if (config.mongoDisconnected) {
+      return res.status(500).send('Storage / Cache Backend are temporarily down.');
+    }
+
+    try {
+      const isMasterKey = await appService.isMasterKey(appId, appKey);
+      const allSettings = await appService.getAllSettings(appId);
+      const myUrl = await keyService.getMyUrl();
+      const fileStream = await getFileStream(req);
+      if (!isMasterKey) {
+        return res.status(401).send({ status: 'Unauthorized' });
+      }
+
+      if (allSettings && allSettings.length > 0) {
+        const categorySettings = _.where(allSettings, { category });
+
+        if (categorySettings && categorySettings.length > 0) {
+          let fileName = appId;
+          // for category == general , filename is set to appId;
+
+          if (category === 'push') {
+            if (categorySettings[0].settings.apple.certificates.length > 0) {
+              // get the filename from fileUri
+              [fileName] = categorySettings[0].settings.apple.certificates[0].split('/').reverse();
+            }
+          }
+
+          // Delete from gridFs
+          if (fileName) {
+            mongoService.document.deleteFileFromGridFs(appId, fileName);
+          }
+        }
+      }
+
+      let fileName = util.getId();
+      if (category === 'general') {
+        fileName = appId;
+      }
+      const savedFile = await mongoService.document.saveFileStream(
+        appId, fileStream.fileStream, fileName, fileStream.contentType,
+      );
+      let fileUri = null;
+      fileUri = `${myUrl}/settings/${appId}/file/${savedFile.filename}`;
+      if (category === 'general') {
+        fileUri = `${myUrl}/appfile/${appId}/icon`;
+      }
+
+      return res.status(200).send(fileUri);
+    } catch (error) {
+      winston.error({ error });
+      return res.status(500).send(error);
+    }
+  });
+
+  // get file from gridfs
+  app.get('/settings/:appId/file/:fileName', async (req, res) => {
+    const { appId, fileName } = req.params;
+    const appKey = req.query.key || req.body.key || req.params.key;
+
+    if (!appKey) {
+      return res.status(500).send('Unauthorized');
+    }
+
+    try {
+      const isMasterKey = await appService.isMasterKey(appId, appKey);
+      if (!isMasterKey) {
+        return res.status(401).send('Unauthorized');
+      }
+      const file = await mongoService.document.getFile(appId, fileName.split('.')[0]);
+      // eslint-disable-next-line no-underscore-dangle
+      const fileStream = mongoService.document.getFileStreamById(appId, file._id);
+
+      res.set('Content-Type', file.contentType);
+      res.set('Content-Disposition', `attachment; filename="${file.filename}"`);
+
+      fileStream.on('error', (err) => {
+        res.send(500, `Got error while processing stream ${err.message}`);
+        res.end();
+      });
+
+      fileStream.on('end', () => {
+        res.end();
+      });
+
+      return fileStream.pipe(res);
+    } catch (error) {
+      winston.error({ error });
+      return res.status(500).send(error);
+    }
+  });
+};
