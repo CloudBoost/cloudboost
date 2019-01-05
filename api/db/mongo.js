@@ -6,7 +6,7 @@
 */
 const config = require('../../config/config');
 
-module.exports = function (app) {
+module.exports = (app) => {
   app.post('/db/mongo/Disconnect', (req, res) => {
     global.databaseTemp = global.database;
     global.database = null;
