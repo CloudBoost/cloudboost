@@ -67,6 +67,7 @@
     "socket.io": "^2.0.4",
     "socket.io-client": "^2.0.2",
     "socket.io-redis": "^5.2.0",
+    "typy": "^3.0.0",
     "underscore": "^1.7.0",
     "url-parse": "^1.4.3",
     "uuid": "^2.0.1",
