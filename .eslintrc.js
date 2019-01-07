@@ -11,6 +11,8 @@ module.exports = {
     "rules": {
         "for-direction": "off",
         "getter-return": "off",
+        "no-underscore-dangle": "off",
+        "no-restricted-globals": "off",
         "semi": [
             "error",
             "always"
