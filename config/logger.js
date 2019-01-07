@@ -4,7 +4,7 @@ const logglyTransport = require('winston-loggly-transport');
 const config = require('./config');
 
 
-module.exports = function () {
+module.exports = () => {
   winston.level = config.env === 'development' ? 'debug' : 'info';
 
   winston.remove(winston.transports.Console);

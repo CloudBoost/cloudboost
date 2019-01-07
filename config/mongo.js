@@ -1,14 +1,25 @@
 const winston = require('winston');
 const appConfig = require('./config');
 
-module.exports = function () {
+function loadConfig() {
+  try {
+    const config = require('./cloudboost'); // eslint-disable-line
+    return config;
+  } catch (e) {
+    return {};
+  }
+}
+
+module.exports = () => {
   const config = loadConfig();
   let mongoConnectionString = 'mongodb://';
   let isReplicaSet = false;
 
   appConfig.loadedConfig = config;
 
-  if ((!config.mongo && !process.env.MONGO_1_PORT_27017_TCP_ADDR && !process.env.KUBERNETES_STATEFUL_MONGO_URL)) {
+  if ((!config.mongo
+    && !process.env.MONGO_1_PORT_27017_TCP_ADDR
+    && !process.env.KUBERNETES_STATEFUL_MONGO_URL)) {
     winston.error('INFO : Not running on Docker. Use docker-compose (recommended) from https://github.com/cloudboost/docker');
   }
 
@@ -96,13 +107,3 @@ module.exports = function () {
 
   return _mongoConnectionString;
 };
-
-
-function loadConfig() {
-  try {
-    const config = require('./cloudboost');
-    return config;
-  } catch (e) {
-    return {};
-  }
-}

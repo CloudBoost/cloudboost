@@ -60,16 +60,17 @@ module.exports = {
         x_auth_access_type: 'write',
       });
 
-      twitter.getAccessToken(requestToken, twitterReqSecret, verifier, (err, accessToken, accessSecret) => {
-        if (err) {
-          deferred.reject(err);
-        } else {
-          deferred.resolve({
-            accessToken,
-            accessSecret,
-          });
-        }
-      });
+      twitter.getAccessToken(requestToken, twitterReqSecret, verifier,
+        (err, accessToken, accessSecret) => {
+          if (err) {
+            deferred.reject(err);
+          } else {
+            deferred.resolve({
+              accessToken,
+              accessSecret,
+            });
+          }
+        });
     } catch (err) {
       winston.log('error', {
         error: String(err),

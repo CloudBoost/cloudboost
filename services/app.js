@@ -4,6 +4,7 @@
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
+/* eslint no-use-before-define: 0 */
 const q = require('q');
 const crypto = require('crypto');
 const uuid = require('uuid');
@@ -24,33 +25,29 @@ module.exports = {
                Resolve->saved Settings Object
                Reject->Error on findOne() or failed to update
     */
-  updateSettings(appId, category, settings) {
+  async updateSettings(appId, category, settings) {
     const deferred = q.defer();
 
     try {
-      mongoService.document.findOne(appId, config.globalSettings, {
-        category,
-      }, null, null, 0, null, true).then((document) => {
-        if (!document) {
-          document = {};
-          document._id = util.getId();
-          document.category = category;
-        }
-        document.settings = settings;
-        document._tableName = config.globalSettings;
-
-        mongoService.document.save(appId, [
-          {
-            document,
-          },
-        ]).then((documents) => {
-          deferred.resolve(documents[0].value);
-        }, (error) => {
-          deferred.reject(error);
-        });
-      }, (error) => {
-        deferred.reject(error);
-      });
+      const doc = await mongoService.document.findOne(
+        appId, config.globalSettings, {
+          category,
+        },
+        null, null, 0, null, true,
+      );
+      const document = doc || {};
+      if (!doc) {
+        document._id = util.getId();
+        document.category = category;
+      }
+      document.settings = settings;
+      document._tableName = config.globalSettings;
+      const documents = await mongoService.document.save(appId, [
+        {
+          document,
+        },
+      ]);
+      deferred.resolve(documents[0].value);
     } catch (err) {
       winston.log('error', {
         error: String(err),
@@ -68,16 +65,16 @@ module.exports = {
                Resolve->Array of Setting JSON Objects
                Reject->Error on find
     */
-  getAllSettings(appId) {
+  async getAllSettings(appId) {
     const deferred = q.defer();
 
     try {
       // check redis cache first.
-      mongoService.document.find(appId, config.globalSettings, {}, null, null, 9999, 0, null, true).then((documents) => {
-        deferred.resolve(documents);
-      }, (error) => {
-        deferred.reject(error);
-      });
+      const documents = await mongoService.document.find(
+        appId, config.globalSettings, {}, null, null,
+        9999, 0, null, true,
+      );
+      deferred.resolve(documents);
     } catch (err) {
       winston.log('error', {
         error: String(err),
@@ -93,30 +90,26 @@ module.exports = {
 
     try {
       // check redis cache first.
-
-      config.redisClient.get(`${config.cacheAppPrefix}:${appId}`, (err, res) => {
-        if (res) {
-          res = JSON.parse(res);
-
-
-          deferred.resolve(res);
-        } else {
-          // if not found in cache then hit the Db.
-
-          const collection = config.mongoClient.db(config.globalDb).collection('projects');
-          const findQuery = collection.find({ appId });
-          findQuery.toArray((err, docs) => {
-            if (err) {
-              winston.log('error', err);
-              deferred.reject(err);
-            } else if (!docs || docs.length == 0) {
-              deferred.reject('App Not found');
-            } else if (docs.length > 0) {
-              config.redisClient.setex(`${config.cacheAppPrefix}:${appId}`, config.appExpirationTimeFromCache, JSON.stringify(docs[0]));
-              deferred.resolve(docs[0]);
-            }
-          });
+      config.redisClient.get(`${config.cacheAppPrefix}:${appId}`, async (err, res) => {
+        if (err) {
+          return deferred.reject(err);
         }
+        if (res) {
+          const response = JSON.parse(res);
+          return deferred.resolve(response);
+        }
+        // if not found in cache then hit the Db.
+        const collection = config.mongoClient.db(config.globalDb).collection('projects');
+        const docs = await collection.find({ appId }).toArray();
+        if (!docs || docs.length === 0) {
+          return deferred.reject('App Not found');
+        }
+        config.redisClient.setex(
+          `${config.cacheAppPrefix}:${appId}`,
+          config.appExpirationTimeFromCache,
+          JSON.stringify(docs[0]),
+        );
+        return deferred.resolve(docs[0]);
       });
     } catch (err) {
       winston.log('error', {
@@ -154,47 +147,33 @@ module.exports = {
     return deferred.promise;
   },
 
-  createApp(appId) {
+  async createApp(appId) {
     const deferred = q.defer();
     try {
       const promises = [];
       const collection = config.mongoClient.db(config.globalDb).collection('projects');
-      const findQuery = collection.find({ appId });
-      findQuery.toArray((err, projects) => {
-        if (err) {
-          winston.log('error', err);
-          deferred.reject(err);
-        }
-        if (projects.length > 0) {
-          deferred.reject('AppID already exists');
-        } else {
-          const document = {};
-          document.appId = appId;
-          document.keys = {};
-          document.keys.js = _generateKey();
-          document.keys.master = _generateKey();
+      const projects = await collection.find({ appId }).toArray();
+      if (projects.length > 0) {
+        deferred.reject('AppID already exists');
+      } else {
+        const document = {};
+        document.appId = appId;
+        document.keys = {};
+        document.keys.js = _generateKey();
+        document.keys.master = _generateKey();
+        document.keys.encryption_key = await getKeyAndIV();
 
-          getKeyAndIV((data) => { // using 64 byte key
-            document.keys.encryption_key = data;
-
-            const collection = config.mongoClient.db(config.globalDb).collection('projects');
-
-            collection.save(document, (err, project) => {
-              if (err) {
-                deferred.reject('Cannot create a new app now.');
-              } else if (project) {
-                // create a mongodb app.
-                promises.push(mongoUtil.app.create(appId));
-                q.all(promises).then(() => {
-                  deferred.resolve(document);
-                }, (err) => {
-                  deferred.reject(err);
-                });
-              }
-            });
+        const project = await collection.save(document);
+        if (project) {
+          // create a mongodb app.
+          promises.push(mongoUtil.app.create(appId));
+          q.all(promises).then(() => {
+            deferred.resolve(document);
+          }, (err) => {
+            deferred.reject(err);
           });
         }
-      });
+      }
     } catch (e) {
       winston.log('error', {
         error: String(e),
@@ -573,7 +552,7 @@ module.exports = {
               const index = tableColumns.indexOf(schema[i].name.toLowerCase());
               if (index >= 0) {
                 // column with the same name found in the table. Checking type...
-                if (schema[i].dataType !== table.columns[index].dataType || schema[i].relatedTo != table.columns[index].relatedTo || schema[i].relationType != table.columns[index].relationType || schema[i].isDeletable != table.columns[index].isDeletable || schema[i].isEditable != table.columns[index].isEditable || schema[i].isRenamable != table.columns[index].isRenamable || schema[i].editableByMasterKey != table.columns[index].editableByMasterKey || schema[i].isSearchable != table.columns[index].isSearchable) {
+                if (schema[i].dataType !== table.columns[index].dataType || schema[i].relatedTo !== table.columns[index].relatedTo || schema[i].relationType !== table.columns[index].relationType || schema[i].isDeletable !== table.columns[index].isDeletable || schema[i].isEditable !== table.columns[index].isEditable || schema[i].isRenamable !== table.columns[index].isRenamable || schema[i].editableByMasterKey !== table.columns[index].editableByMasterKey || schema[i].isSearchable !== table.columns[index].isSearchable) {
                   deferred.reject("Cannot Change Column's Property. Only Required and Unique Field can be changed.");
                   return deferred.promise;
                 }
@@ -626,7 +605,7 @@ module.exports = {
                 schema.forEach((newColumnObj) => {
                   // match column id of each columns
                   if (newColumnObj._id === oldColumnObj._id) {
-                    if (newColumnObj.name != oldColumnObj.name) {
+                    if (newColumnObj.name !== oldColumnObj.name) {
                       // column name is updated update previous records.
                       renameColumnObject[oldColumnObj.name] = newColumnObj.name;
                     }
@@ -940,7 +919,7 @@ module.exports = {
     try {
       fileData = JSON.parse(file.toString());
       for (const k in fileData) {
-        if (fileData[k].name == '_Schema') {
+        if (fileData[k].name === '_Schema') {
           validated = true;
         }
       }
@@ -958,7 +937,7 @@ module.exports = {
       }
       for (const k in Collections) {
         (function (k) {
-          if (Collections[k].name.split('.')[0] != 'system') { // skipping delete for system namespaces
+          if (Collections[k].name.split('.')[0] !== 'system') { // skipping delete for system namespaces
             collectionRemovePromises.push(new Promise(((resolve, reject) => {
               config.mongoClient.db(appId).collection(Collections[k].name).remove({}, (err) => {
                 if (err) {
@@ -980,7 +959,7 @@ module.exports = {
                 for (const j in fileData[i].documents[0]) {
                   (function (j) {
                     col.insert(fileData[i].documents[0][j], () => {
-                      if (i == (fileData.length - 1) && j == (fileData[i].documents[0].length - 1)) {
+                      if (i === (fileData.length - 1) && j === (fileData[i].documents[0].length - 1)) {
                         deferred.resolve(true);
                       }
                     });
@@ -1063,7 +1042,7 @@ function _checkDuplicateColumns(columns) {
     columns = _.filter(columns, value => value.toLowerCase());
     columns = _.uniq(columns);
 
-    if (length != columns.length) return 'Column with the same name found in the table';
+    if (length !== columns.length) return 'Column with the same name found in the table';
 
     return null;
   } catch (e) {
@@ -1079,17 +1058,17 @@ function _getDefaultColumnList(type) {
   try {
     const defaultColumn = ['id', 'expires', 'createdAt', 'updatedAt', 'ACL'];
 
-    if (type == 'user') {
+    if (type === 'user') {
       defaultColumn.concat(['username', 'email', 'password', 'roles']);
-    } else if (type == 'role') {
+    } else if (type === 'role') {
       defaultColumn.push('name');
-    } else if (type == 'device') {
+    } else if (type === 'device') {
       defaultColumn.concat(['channels', 'deviceToken', 'deviceOS', 'timezone', 'metadata']);
-    } else if (type == 'file') {
+    } else if (type === 'file') {
       defaultColumn.concat(['name', 'contentType', 'path', 'url', 'size']);
-    } else if (type == 'event') {
+    } else if (type === 'event') {
       defaultColumn.concat(['user', 'type', 'name', 'data']);
-    } else if (type == 'funnel') {
+    } else if (type === 'funnel') {
       defaultColumn.concat(['name', 'data']);
     }
     return defaultColumn;
@@ -1117,130 +1096,130 @@ function _checkValidDataType(columns, deafultDataType, tableType) {
       if (index < 0) return false;
 
       for (let l = 0; l < columns.length; l++) {
-        if (columns[l].name == key) {
+        if (columns[l].name === key) {
           index = l;
           l = columns.length;
         }
       }
 
       if (key === 'id') {
-        if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != true || columns[index].dataType != 'Id') return false;
+        if (columns[index].relationType !== null || columns[index].required !== true || columns[index].unique !== true || columns[index].dataType !== 'Id') return false;
       }
 
       // createdAt for every table
       if (key === 'createdAt') {
-        if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'DateTime') return false;
+        if (columns[index].relationType !== null || columns[index].required !== true || columns[index].unique !== false || columns[index].dataType !== 'DateTime') return false;
       }
 
       // updatedAt for every table
       if (key === 'updatedAt') {
-        if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'DateTime') return false;
+        if (columns[index].relationType !== null || columns[index].required !== true || columns[index].unique !== false || columns[index].dataType !== 'DateTime') return false;
       }
 
       // ACL for every table
       if (key === 'ACL') {
-        if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'ACL') return false;
+        if (columns[index].relationType !== null || columns[index].required !== true || columns[index].unique !== false || columns[index].dataType !== 'ACL') return false;
       }
 
       // username for user table
       if (key === 'username') {
-        if (columns[index].relationType != null || columns[index].required != false || columns[index].unique != true || columns[index].dataType != 'Text') return false;
+        if (columns[index].relationType !== null || columns[index].required !== false || columns[index].unique !== true || columns[index].dataType !== 'Text') return false;
       }
 
       // email for user table
       if (key === 'email') {
-        if (columns[index].relationType != null || columns[index].required != false || columns[index].unique != true || columns[index].dataType != 'Email') return false;
+        if (columns[index].relationType !== null || columns[index].required !== false || columns[index].unique !== true || columns[index].dataType !== 'Email') return false;
       }
 
       // password for user table
       if (key === 'password') {
-        if (columns[index].relationType != null || columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'EncryptedText') return false;
+        if (columns[index].relationType !== null || columns[index].required !== false || columns[index].unique !== false || columns[index].dataType !== 'EncryptedText') return false;
       }
 
       // roles property for user table
       if (key === 'roles') {
-        if (columns[index].relationType != 'table' || columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'List' || columns[index].relatedTo !== 'Role') return false;
+        if (columns[index].relationType !== 'table' || columns[index].required !== false || columns[index].unique !== false || columns[index].dataType !== 'List' || columns[index].relatedTo !== 'Role') return false;
       }
 
       // socialAuth property for user table
       if (key === 'socialAuth') {
-        if (columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'List' || columns[index].relatedTo !== 'Object') return false;
+        if (columns[index].required !== false || columns[index].unique !== false || columns[index].dataType !== 'List' || columns[index].relatedTo !== 'Object') return false;
       }
 
       // verified for user table
       if (key === 'verified') {
-        if (columns[index].relationType != null || columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'Boolean') return false;
+        if (columns[index].relationType !== null || columns[index].required !== false || columns[index].unique !== false || columns[index].dataType !== 'Boolean') return false;
       }
 
       // name for role table
       if (key === 'name' && tableType === 'role') {
-        if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != true || columns[index].dataType != 'Text') return false;
+        if (columns[index].relationType !== null || columns[index].required !== true || columns[index].unique !== true || columns[index].dataType !== 'Text') return false;
       }
 
       // name for file table
       if (key === 'name' && tableType === 'file') {
-        if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'Text') return false;
+        if (columns[index].relationType !== null || columns[index].required !== true || columns[index].unique !== false || columns[index].dataType !== 'Text') return false;
       }
       // name for event table
       if (key === 'name' && (tableType === 'event' || tableType === 'funnel')) {
-        if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'Text') return false;
+        if (columns[index].relationType !== null || columns[index].required !== true || columns[index].unique !== false || columns[index].dataType !== 'Text') return false;
       }
 
       // channels for device table
       if (key === 'channels') {
-        if (columns[index].relationType != null || columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'List') return false;
+        if (columns[index].relationType !== null || columns[index].required !== false || columns[index].unique !== false || columns[index].dataType !== 'List') return false;
       }
       // deviceToken for device table
       if (key === 'deviceToken') {
-        if (columns[index].relationType != null || columns[index].required != false || columns[index].unique != true || columns[index].dataType != 'Text') return false;
+        if (columns[index].relationType !== null || columns[index].required !== false || columns[index].unique !== true || columns[index].dataType !== 'Text') return false;
       }
       // deviceOS for device table
       if (key === 'deviceOS') {
-        if (columns[index].relationType != null || columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'Text') return false;
+        if (columns[index].relationType !== null || columns[index].required !== false || columns[index].unique !== false || columns[index].dataType !== 'Text') return false;
       }
       // timezone for device table
       if (key === 'timezone') {
-        if (columns[index].relationType != null || columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'Text') return false;
+        if (columns[index].relationType !== null || columns[index].required !== false || columns[index].unique !== false || columns[index].dataType !== 'Text') return false;
       }
       // metadata for device table
       if (key === 'metadata') {
-        if (columns[index].relationType != null || columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'Object') return false;
+        if (columns[index].relationType !== null || columns[index].required !== false || columns[index].unique !== false || columns[index].dataType !== 'Object') return false;
       }
 
       if (key === 'size') {
-        if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'Number') return false;
+        if (columns[index].relationType !== null || columns[index].required !== true || columns[index].unique !== false || columns[index].dataType !== 'Number') return false;
       }
       // url for file table
       if (key === 'url') {
-        if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != true || columns[index].dataType != 'URL') return false;
+        if (columns[index].relationType !== null || columns[index].required !== true || columns[index].unique !== true || columns[index].dataType !== 'URL') return false;
       }
       // path for file table
       if (key === 'path') {
-        if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'Text') return false;
+        if (columns[index].relationType !== null || columns[index].required !== true || columns[index].unique !== false || columns[index].dataType !== 'Text') return false;
       }
       // contentType for file table
       if (key === 'contentType') {
-        if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'Text') return false;
+        if (columns[index].relationType !== null || columns[index].required !== true || columns[index].unique !== false || columns[index].dataType !== 'Text') return false;
       }
 
       // user for event table
       if (key === 'user') {
-        if (columns[index].relationType != null || columns[index].required != false || columns[index].unique != false || columns[index].dataType != 'Relation') return false;
+        if (columns[index].relationType !== null || columns[index].required !== false || columns[index].unique !== false || columns[index].dataType !== 'Relation') return false;
       }
 
       // type for event table
       if (key === 'type') {
-        if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'Text') return false;
+        if (columns[index].relationType !== null || columns[index].required !== true || columns[index].unique !== false || columns[index].dataType !== 'Text') return false;
       }
 
       // type for event table
       if (key === 'type') {
-        if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'Text') return false;
+        if (columns[index].relationType !== null || columns[index].required !== true || columns[index].unique !== false || columns[index].dataType !== 'Text') return false;
       }
 
       // data for event table
       if (key === 'data') {
-        if (columns[index].relationType != null || columns[index].required != true || columns[index].unique != false || columns[index].dataType != 'Object') return false;
+        if (columns[index].relationType !== null || columns[index].required !== true || columns[index].unique !== false || columns[index].dataType !== 'Object') return false;
       }
 
       if (columns[index].isRenamable !== false || columns[index].isEditable !== false || columns[index].isDeletable !== false) {
@@ -1359,31 +1338,31 @@ function _getDefaultColumnWithDataType(type) {
     defaultColumn.ACL = 'ACL';
     defaultColumn.expires = 'DateTime';
 
-    if (type == 'user') {
+    if (type === 'user') {
       defaultColumn.username = 'Text';
       defaultColumn.email = 'Email';
       defaultColumn.password = 'EncryptedText';
       defaultColumn.roles = 'List';
-    } else if (type == 'role') {
+    } else if (type === 'role') {
       defaultColumn.name = 'Text';
-    } else if (type == 'device') {
+    } else if (type === 'device') {
       defaultColumn.channels = 'List';
       defaultColumn.deviceToken = 'Text';
       defaultColumn.deviceOS = 'Text';
       defaultColumn.timezone = 'Text';
       defaultColumn.metadata = 'Object';
-    } else if (type == 'file') {
+    } else if (type === 'file') {
       defaultColumn.name = 'Text';
       defaultColumn.size = 'Number';
       defaultColumn.url = 'URL';
       defaultColumn.path = 'Text';
       defaultColumn.contentType = 'Text';
-    } else if (type == 'event') {
+    } else if (type === 'event') {
       defaultColumn.user = 'Relation';
       defaultColumn.type = 'Text';
       defaultColumn.name = 'Text';
       defaultColumn.data = 'Object';
-    } else if (type == 'funnel') {
+    } else if (type === 'funnel') {
       defaultColumn.name = 'Text';
       defaultColumn.data = 'Object';
     }
@@ -1420,17 +1399,22 @@ function deleteAppFromRedis(appId) {
   return deferred.promise;
 }
 
-function getKeyAndIV(callback) {
+function getKeyAndIV() {
+  const deferred = q.defer();
   const key = makeid(48);
 
   crypto.pseudoRandomBytes(16, (err, ivBuffer) => {
-    const keyBuffer = (key instanceof Buffer) ? key : new Buffer(key);
+    if (err) {
+      return deferred.reject(err);
+    }
+    const keyBuffer = (key instanceof Buffer) ? key : Buffer.from(key);
 
-    callback({
+    return deferred.resolve({
       iv: ivBuffer,
       key: keyBuffer,
     });
   });
+  return deferred.promise;
 }
 
 function makeid(len) {

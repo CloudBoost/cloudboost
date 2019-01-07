@@ -1,8 +1,10 @@
+const winston = require('winston');
 const appService = require('../services/app');
 
-module.exports = function (req, res, next) {
-  const appId = req.params.appId;
-  appService.getApp(appId).then((app) => {
+module.exports = async (req, res, next) => {
+  const { appId } = req.params;
+  try {
+    const app = await appService.getApp(appId);
     if (app.disabled) {
       return res.status(401).json({
         message: 'App is disabled',
@@ -10,5 +12,8 @@ module.exports = function (req, res, next) {
       });
     }
     return next();
-  });
+  } catch (error) {
+    winston.error({ error });
+    return next(error);
+  }
 };
