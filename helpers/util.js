@@ -18,7 +18,7 @@ module.exports = {
       if (!obj.protocol || !obj.hostname) return false;
       return true;
     } catch (err) {
-      winston.log('error', {
+      return winston.log('error', {
         error: String(err),
         stack: new Error().stack,
       });
@@ -30,7 +30,7 @@ module.exports = {
       const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
       return re.test(data);
     } catch (err) {
-      winston.log('error', {
+      return winston.log('error', {
         error: String(err),
         stack: new Error().stack,
       });
@@ -41,12 +41,12 @@ module.exports = {
     try {
       let id = '';
       const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-      for (let i = 0; i < 8; i++) {
+      for (let i = 0; i < 8; i++) { // eslint-disable-line
         id += possible.charAt(Math.floor(Math.random() * possible.length));
       }
       return id;
     } catch (err) {
-      winston.log('error', {
+      return winston.log('error', {
         error: String(err),
         stack: new Error().stack,
       });
@@ -82,6 +82,7 @@ module.exports = {
     const radlat2 = Math.PI * lat2 / 180;
     const theta = lon1 - lon2;
     const radtheta = Math.PI * theta / 180;
+    // eslint-disable-next-line
     let dist = Math.sin(radlat1) * Math.sin(radlat2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
     dist = Math.acos(dist);
     dist = dist * 180 / Math.PI;
@@ -99,10 +100,10 @@ module.exports = {
         if (err) {
           return deferred.reject(err);
         }
-        deferred.resolve(data);
+        return deferred.resolve(data);
       });
     } catch (err) {
-      winston.log('error', {
+      return winston.log('error', {
         error: String(err),
         stack: new Error().stack,
       });
@@ -124,5 +125,8 @@ module.exports = {
       return _.isObject(json);
     }
   },
+
+  // eslint-disable-next-line
+  getNestedValue: (path, object) => path.reduce((acc, curr) => (acc && acc[curr]) ? acc[curr] : undefined, object),
 
 };

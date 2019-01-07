@@ -8,7 +8,8 @@ const q = require('q');
 const _ = require('underscore');
 const uuid = require('uuid');
 const winston = require('winston');
-const { t } = require('typy');
+
+const { getNestedValue } = require('../../helpers/util.js');
 const customHelper = require('../../helpers/custom.js');
 
 const twitterHelper = require('../../helpers/twitter.js');
@@ -117,11 +118,13 @@ module.exports = (app) => {
           _.first(_.where(appSettings, { category: 'auth' })),
           'settings',
         );
-        if (authSettings && authSettings.sessions && authSettings.sessions.sessionLength) {
-          const temp = Number(authSettings.sessions.sessionLength);
-          if (!isNaN(temp)) { // eslint-disable-line
-            sessionLength = temp;
-          }
+        const temp = Number(getNestedValue([
+          'sessions',
+          'sessionLength',
+        ], authSettings));
+
+        if (!isNaN(temp)) { // eslint-disable-line
+          sessionLength = temp;
         }
       }
 
@@ -197,9 +200,8 @@ module.exports = (app) => {
         return res.status(400).send('Authentication Settings not found.');
       }
 
-      const _temp = t(authSettings, 'sessions.sessionLength').safeObject;
       // Check Session Length from app Settings
-      const temp = Number(_temp);
+      const temp = Number(getNestedValue(['sessions', 'sessionLength'], authSettings));
       if (!isNaN(temp)) {
         sessionLength = temp;
       }
