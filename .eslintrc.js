@@ -13,6 +13,7 @@ module.exports = {
         "getter-return": "off",
         "no-underscore-dangle": "off",
         "no-restricted-globals": "off",
+        "no-throw-literal": "off",
         "no-plusplus": "off",
         "semi": [
             "error",

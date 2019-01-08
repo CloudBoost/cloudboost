@@ -4,7 +4,7 @@
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
-/* eslint no-use-before-define: 0 */
+/* eslint no-use-before-define: 0 operator-linebreak: 0 */
 const q = require('q');
 const crypto = require('crypto');
 const uuid = require('uuid');
@@ -42,11 +42,9 @@ module.exports = {
       }
       document.settings = settings;
       document._tableName = config.globalSettings;
-      const documents = await mongoService.document.save(appId, [
-        {
-          document,
-        },
-      ]);
+      const documents = await mongoService.document.save(appId, [{
+        document,
+      }]);
       deferred.resolve(documents[0].value);
     } catch (err) {
       winston.log('error', {
@@ -85,32 +83,32 @@ module.exports = {
     return deferred.promise;
   },
 
-  getApp(appId) {
+  async getApp(appId) {
     const deferred = q.defer();
 
     try {
       // check redis cache first.
-      config.redisClient.get(`${config.cacheAppPrefix}:${appId}`, async (err, res) => {
-        if (err) {
-          return deferred.reject(err);
-        }
-        if (res) {
-          const response = JSON.parse(res);
-          return deferred.resolve(response);
-        }
+      const cached = await config.redisClient.get(`${config.cacheAppPrefix}:${appId}`);
+      if (cached) {
+        const response = JSON.parse(cached);
+        deferred.resolve(response);
+      } else {
         // if not found in cache then hit the Db.
         const collection = config.mongoClient.db(config.globalDb).collection('projects');
-        const docs = await collection.find({ appId }).toArray();
+        const docs = await collection.find({
+          appId,
+        }).toArray();
         if (!docs || docs.length === 0) {
-          return deferred.reject('App Not found');
+          deferred.reject('App Not found');
+        } else {
+          config.redisClient.setex(
+            `${config.cacheAppPrefix}:${appId}`,
+            config.appExpirationTimeFromCache,
+            JSON.stringify(docs[0]),
+          );
+          deferred.resolve(docs[0]);
         }
-        config.redisClient.setex(
-          `${config.cacheAppPrefix}:${appId}`,
-          config.appExpirationTimeFromCache,
-          JSON.stringify(docs[0]),
-        );
-        return deferred.resolve(docs[0]);
-      });
+      }
     } catch (err) {
       winston.log('error', {
         error: String(err),
@@ -122,20 +120,13 @@ module.exports = {
     return deferred.promise;
   },
 
-  getAppList() {
+  async getAppList() {
     const deferred = q.defer();
 
     try {
       const collection = config.mongoClient.db(config.globalDb).collection('projects');
-      const findQuery = collection.find({});
-      findQuery.toArray((err, docs) => {
-        if (err) {
-          winston.log('error', err);
-          deferred.reject(err);
-        } else {
-          deferred.resolve(docs);
-        }
-      });
+      const docs = await collection.find({}).toArray();
+      deferred.resolve(docs);
     } catch (err) {
       winston.log('error', {
         error: String(err),
@@ -152,7 +143,9 @@ module.exports = {
     try {
       const promises = [];
       const collection = config.mongoClient.db(config.globalDb).collection('projects');
-      const projects = await collection.find({ appId }).toArray();
+      const projects = await collection.find({
+        appId,
+      }).toArray();
       if (projects.length > 0) {
         deferred.reject('AppID already exists');
       } else {
@@ -167,11 +160,8 @@ module.exports = {
         if (project) {
           // create a mongodb app.
           promises.push(mongoUtil.app.create(appId));
-          q.all(promises).then(() => {
-            deferred.resolve(document);
-          }, (err) => {
-            deferred.reject(err);
-          });
+          await q.all(promises);
+          deferred.resolve(document);
         }
       }
     } catch (e) {
@@ -186,14 +176,13 @@ module.exports = {
     return deferred.promise;
   },
 
-  deleteApp(appId, deleteReason) {
+  async deleteApp(appId, _deleteReason) {
     const deferred = q.defer();
-    if (!deleteReason) deleteReason = 'userInitiatedDeleteFromDashboard';
-    try {
-      const promises = [];
+    const deleteReason = _deleteReason || 'userInitiatedDeleteFromDashboard';
 
+    try {
       const collection = config.mongoClient.db(config.globalDb).collection('projects');
-      collection.findOneAndUpdate({
+      await collection.findOneAndUpdate({
         appId,
       }, {
         $set: {
@@ -202,26 +191,16 @@ module.exports = {
         },
       }, {
         new: true,
-      }, (err) => {
-        if (err) {
-          winston.log('error', err);
-          deferred.reject(err);
-        } else {
-          config.redisClient.del(`${config.cacheAppPrefix}:${appId}`); // delete the app from redis.
-
-          // delete  the app databases.
-          promises.push(mongoUtil.app.drop(appId)); // delete all mongo app data.
-
-          q.allSettled(promises).then((res) => {
-            if (res[0].state === 'fulfilled') {
-              deferred.resolve();
-            } else {
-              // TODO : Something wrong happened. Roll back.
-              deferred.resolve();
-            }
-          });
-        }
       });
+      config.redisClient.del(`${config.cacheAppPrefix}:${appId}`); // delete the app from redis.
+      // delete  the app databases.
+      const response = await mongoUtil.app.drop(appId);
+      if (response.state === 'fulfilled') {
+        deferred.resolve();
+      } else {
+        // TODO : Something wrong happened. Roll back.
+        deferred.resolve();
+      }
     } catch (err) {
       winston.log('error', {
         error: String(err),
@@ -234,22 +213,20 @@ module.exports = {
     return deferred.promise;
   },
 
-  getTable(appId, tableName) {
+  async getTable(appId, tableName) {
     const deferred = q.defer();
 
     try {
       const collection = config.mongoClient.db(appId).collection('_Schema');
-      const findQuery = collection.find({ name: tableName });
-      findQuery.toArray((err, tables) => {
-        if (err) {
-          deferred.reject('Error : Failed to retrieve the table.');
-        }
-        if (tables && tables.length > 0) {
-          deferred.resolve(tables[0]);
-        } else {
-          deferred.resolve(null);
-        }
+      const table = await collection.findOne({
+        name: tableName,
       });
+
+      if (table) {
+        deferred.resolve(table);
+      } else {
+        deferred.resolve(null);
+      }
     } catch (err) {
       winston.log('error', {
         error: String(err),
@@ -261,25 +238,20 @@ module.exports = {
     return deferred.promise;
   },
 
-  getAllTables(appId) {
+  async getAllTables(appId) {
     const deferred = q.defer();
 
     try {
       const collection = config.mongoClient.db(appId).collection('_Schema');
-      const findQuery = collection.find({});
-      findQuery.toArray((err, tables) => {
-        if (err) {
-          deferred.reject('Error : Failed to retrieve the table.');
-        }
-        if (tables.length > 0) {
-          // filtering out private '_Tables'
-          tables = tables.filter(table => table.name[0] !== '_');
+      const tables = await collection.find({}).toArray();
+      if (tables.length > 0) {
+        // filtering out private '_Tables'
+        const publictTables = tables.filter(table => table.name[0] !== '_');
 
-          deferred.resolve(tables);
-        } else {
-          deferred.resolve([]);
-        }
-      });
+        deferred.resolve(publictTables);
+      } else {
+        deferred.resolve([]);
+      }
     } catch (err) {
       winston.log('error', {
         error: String(err),
@@ -291,53 +263,43 @@ module.exports = {
     return deferred.promise;
   },
 
-  deleteTable(appId, tableName) {
+  async deleteTable(appId, tableName) {
     const deferred = q.defer();
 
     try {
       const collection = config.mongoClient.db(appId).collection('_Schema');
-
-      collection.deleteOne({
+      const doc = await collection.deleteOne({
         name: tableName,
       }, {
         w: 1, // returns the number of documents removed
-      }, (err, doc) => {
-        if (err || doc.result.n === 0) {
-          if (doc.result.n === 0) {
-            err = {
-              code: 401,
-              message: 'You do not have permission to delete',
-            };
-            winston.log('error', err);
-            deferred.reject(err);
-          }
-        }
-        if (err) {
-          winston.log('error', err);
-          deferred.reject(err);
-        } else if (doc.result.n !== 0) {
-          // send a post request to DataServices.
-
-
-          // delete table from cache.
-          config.redisClient.del(`${config.cacheSchemaPrefix}-${appId}:${tableName}`);
-
-          // delete this from all the databases as well.
-          // call
-          const promises = [];
-
-          promises.push(mongoUtil.collection.dropCollection(appId, tableName)); // delete all mongo app data.
-          q.allSettled(promises).then((res) => {
-            if (res[0].state === 'fulfilled') deferred.resolve(doc);
-            else {
-              // TODO : Something went wrong. Roll back code required.
-              deferred.resolve(doc);
-            }
-          });
-        } else {
-          deferred.reject({ code: 500, message: 'Server Error' });
-        }
       });
+      if (doc.result.n === 0) {
+        const err = {
+          code: 401,
+          message: 'You do not have permission to delete',
+        };
+        throw err;
+      }
+      if (doc.result.n !== 0) {
+        // send a post request to DataServices.
+        // delete table from cache.
+        config.redisClient.del(`${config.cacheSchemaPrefix}-${appId}:${tableName}`);
+        // delete this from all the databases as well.
+        // call
+        const response = await mongoUtil.collection.dropCollection(appId, tableName);
+        if (response.state === 'fulfilled') {
+          deferred.resolve(doc);
+        } else {
+          // TODO : Something went wrong. Roll back code required.
+          deferred.resolve(doc);
+        }
+      } else {
+        const err = {
+          code: 500,
+          message: 'Server Error',
+        };
+        throw err;
+      }
     } catch (err) {
       winston.log('error', {
         error: String(err),
@@ -349,20 +311,19 @@ module.exports = {
     return deferred.promise;
   },
 
-  deleteColumn(appId, collectionName, columnName, columnType) {
+  async deleteColumn(appId, collectionName, columnName, columnType) {
     const deferred = q.defer();
 
     try {
-      const promises = [];
-
-      promises.push(mongoUtil.collection.dropColumn(appId, collectionName, columnName, columnType));
-      q.allSettled(promises).then((res) => {
-        if (res[0].state === 'fulfilled') deferred.resolve('Success');
-        else {
-          // TODO : Soemthing went wrong. Rollback immediately.
-          deferred.resolve('Success');
-        }
-      });
+      const dropColumnResponse = await mongoUtil.collection.dropColumn(
+        appId, collectionName, columnName, columnType,
+      );
+      if (dropColumnResponse.state === 'fulfilled') {
+        deferred.resolve('Success');
+      } else {
+        // TODO : Soemthing went wrong. Rollback immediately.
+        deferred.resolve('Success');
+      }
     } catch (err) {
       winston.log('error', {
         error: String(err),
@@ -374,21 +335,18 @@ module.exports = {
     return deferred.promise;
   },
 
-  isMasterKey(appId, key) {
+  async isMasterKey(appId, key) {
     const deferred = q.defer();
 
     try {
       const _self = this;
-
-      _self.getApp(appId).then((project) => {
-        if (project.keys.master === key) {
-          deferred.resolve(true);
-        } else if (project.keys.js === key) {
-          deferred.resolve(false);
-        } else {
-          deferred.resolve(false);
-        }
-      }, () => { });
+      const project = await _self.getApp(appId);
+      const masterKey = util.getNestedValue(['keys', 'master'], project);
+      if (masterKey === key) {
+        deferred.resolve(true);
+      } else {
+        deferred.resolve(false);
+      }
     } catch (err) {
       winston.log('error', {
         error: String(err),
@@ -400,97 +358,87 @@ module.exports = {
     return deferred.promise;
   },
 
-  isKeyValid(appId, key) {
+  async isKeyValid(appId, key) {
     const deferred = q.defer();
 
     try {
       const _self = this;
-
-      _self.getApp(appId).then((project) => {
-        if (project.keys.master === key || project.keys.js === key) {
-          deferred.resolve(true);
-        } else {
-          deferred.resolve(false);
-        }
-      }, () => {
-        deferred.reject('Error in getting key');
-      });
+      const project = await _self.getApp(appId);
+      const masterKey = util.getNestedValue(['keys', 'master'], project);
+      const clientKey = util.getNestedValue(['keys', 'js'], project);
+      if (masterKey === key || clientKey === key) {
+        deferred.resolve(true);
+      } else {
+        deferred.resolve(false);
+      }
     } catch (err) {
       winston.log('error', {
         error: String(err),
         stack: new Error().stack,
       });
-      deferred.reject(err);
+      deferred.reject('Error in getting key');
     }
 
     return deferred.promise;
   },
 
-  isClientAuthorized(appId, appKey, level, table) {
+  async isClientAuthorized(appId, appKey, level, table) {
     const deferred = q.defer();
     const self = this;
-    self.isKeyValid(appId, appKey).then((isValidKey) => {
-      if (isValidKey) {
-        self.isMasterKey(appId, appKey).then((isMasterKey) => {
-          // resolve if masterKey
-          if (isMasterKey) {
-            deferred.resolve(true);
-          } else {
-            // else check with client keys acc to auth level
-            // levels = table level or app level
-            // for app level check in app settings , for table level check in table schema
-            if (level === 'table') {
-              if (table) {
-                deferred.resolve(!!table.isEditableByClientKey);
-              } else deferred.resolve(false);
-            } else {
-              self.getAllSettings(appId).then((settings) => {
-                if (settings) {
-                  // check for clientkey flag in genral settings
-                  const generalSetting = settings.filter((x => x.category === 'general'));
-                  if (generalSetting[0]) {
-                    deferred.resolve(!!generalSetting[0].settings.isTableEditableByClientKey);
-                  } else deferred.resolve(false);
-                } else deferred.resolve(false);
-              },
-              (error) => {
-                deferred.reject(error);
-              });
-            }
-          }
-        }, (error) => {
-          deferred.reject(error);
-        });
+    try {
+      const isValidKey = await self.isKeyValid(appId, appKey);
+      const isMasterKey = await self.isMasterKey(appId, appKey);
+      if (isValidKey && isMasterKey) {
+        deferred.resolve(true);
+        // else check with client keys acc to auth level
+        // levels = table level or app level
+        // for app level check in app settings , for table level check in table schema
+      } else if (level === 'table' && table) {
+        deferred.resolve(!!table.isEditableByClientKey);
       } else {
-        deferred.reject('Unauthorized');
+        const settings = await self.getAllSettings(appId);
+        if (settings) {
+          // check for clientkey flag in genral settings
+          const {
+            settings: generalSetting,
+          } = _.pick(
+            _.first(_.where(settings, {
+              category: 'general',
+            })),
+            'settings',
+          );
+          if (generalSetting) {
+            deferred.resolve(!!generalSetting.isTableEditableByClientKey);
+          } else deferred.resolve(false);
+        } else deferred.resolve(false);
       }
-    }, (err) => {
-      deferred.reject(err);
-    });
+    } catch (error) {
+      winston.error({
+        error,
+      });
+      deferred.reject(error);
+    }
 
     return deferred.promise;
   },
 
-  upsertTable(appId, tableName, schema, tableProps) {
+  async upsertTable(appId, tableName, schema, _tableProps) {
     const deferred = q.defer();
-    tableProps = tableProps || {
+    const tableProps = _tableProps || {
       isEditableByClientKey: false,
     };
     const updateColumnNameOfOldRecordsPromises = [];
+    const self = this;
+    let isNewTable = false;
+    let tableType = null;
 
     try {
-      const self = this;
-      let isNewTable = false;
-      let tableType = null;
-
       if (!tableName) {
-        deferred.reject('Table name is empty');
-        return deferred.promise;
+        throw 'Table name is empty';
       }
 
       if (typeof (tableName) !== 'string') {
-        deferred.reject('Table name is not a string.');
-        return deferred.promise;
+        throw 'Table name is not a string.';
       }
 
       // get the type of a table.
@@ -510,193 +458,140 @@ module.exports = {
         tableType = 'custom';
       }
 
-      // How many tables of this type can be in an app
-      let maxCount = null; // eslint-disable-line no-unused-vars
-      if (tableType === 'user' || tableType === 'role' || tableType === 'device' || tableType === 'file' || tableType === 'event' || tableType === 'funnel') {
-        maxCount = 1;
-      } else {
-        maxCount = 99999;
-      }
-
       // duplicate column value verification
       const errorDetails = _checkDuplicateColumns(schema);
       if (errorDetails) {
-        deferred.reject(errorDetails);
-        return deferred.promise;
+        throw errorDetails;
       }
 
       // dataType check.
       const defaultDataType = _getDefaultColumnWithDataType(tableType);
       const valid = _checkValidDataType(schema, defaultDataType, tableType);
       if (!valid) {
-        deferred.reject('Error : Invalid DataType Found.');
-        return deferred.promise;
+        throw 'Error : Invalid DataType Found.';
       }
 
       const collection = config.mongoClient.db(appId).collection('_Schema');
-      const findQuery = collection.find({ name: tableName });
-      findQuery.toArray((err, tables) => {
-        let oldColumns = null;
-        let table = tables[0];
-        if (err) {
-          deferred.reject(err);
-        } else if (table) {
-          oldColumns = table.columns;
-          // check duplicate columns, Pluck all name property of every columns.
-          const tableColumns = _.filter(_.pluck(table.columns, 'name'), value => value.toLowerCase());
-
-          const defaultColumns = _getDefaultColumnList(tableType);
-
-          try {
-            for (let i = 0; i < schema.length; i++) {
-              const index = tableColumns.indexOf(schema[i].name.toLowerCase());
-              if (index >= 0) {
-                // column with the same name found in the table. Checking type...
-                if (schema[i].dataType !== table.columns[index].dataType || schema[i].relatedTo !== table.columns[index].relatedTo || schema[i].relationType !== table.columns[index].relationType || schema[i].isDeletable !== table.columns[index].isDeletable || schema[i].isEditable !== table.columns[index].isEditable || schema[i].isRenamable !== table.columns[index].isRenamable || schema[i].editableByMasterKey !== table.columns[index].editableByMasterKey || schema[i].isSearchable !== table.columns[index].isSearchable) {
-                  deferred.reject("Cannot Change Column's Property. Only Required and Unique Field can be changed.");
-                  return deferred.promise;
-                }
-
-                if (schema[i].required !== table.columns[index].required && defaultColumns.indexOf(schema[i].name.toLowerCase()) >= 0) {
-                  deferred.reject('Error : Cannot change the required field of a default column.');
-                  return deferred.promise;
-                }
-
-                if (schema[i].unique !== table.columns[index].unique && defaultColumns.indexOf(schema[i].name.toLowerCase()) >= 0) {
-                  deferred.reject('Error : Cannot change the unique field of a default column.');
-                  return deferred.promise;
-                }
-              }
-            }
-          } catch (e) {
-            winston.log('error', {
-              error: String(e),
-              stack: new Error().stack,
-            });
-          }
-
-          table.columns = schema;
-          // update table props
-          table.isEditableByClientKey = !!tableProps.isEditableByClientKey;
-        } else {
-          isNewTable = true;
-
-          table = {};
-          table.id = util.getId();
-          table.columns = schema;
-
-          table.name = tableName;
-          table.type = tableType;
-          table._type = 'table';
-          table.isEditableByClientKey = !!tableProps.isEditableByClientKey;
-        }
-
-        const collection = config.mongoClient.db(appId).collection('_Schema');
-
-        // get previous schema object of current table if old table
-        const renameColumnObject = {};
-        if (!isNewTable) {
-          collection.findOne({ name: tableName }, (err, doc) => {
-            if (err) deferred.reject('Error : Failed to get the table. ');
-            else if (!doc) deferred.reject('Error : Failed to get the table. ');
-            else {
-              doc.columns.forEach((oldColumnObj) => {
-              // check column id
-                schema.forEach((newColumnObj) => {
-                  // match column id of each columns
-                  if (newColumnObj._id === oldColumnObj._id) {
-                    if (newColumnObj.name !== oldColumnObj.name) {
-                      // column name is updated update previous records.
-                      renameColumnObject[oldColumnObj.name] = newColumnObj.name;
-                    }
-                  }
-                });
-              });
-              updateColumnNameOfOldRecordsPromises.push(_updateColumnNameOfOldRecords(tableName, appId, renameColumnObject));
-            }
-          });
-        }
-
-        collection.findOneAndUpdate({
-          name: tableName,
-        }, {
-          $set: table,
-        }, {
-          upsert: true,
-          returnOriginal: false,
-        }, (err, response) => {
-          let table = null;
-
-          if (response && response.value) table = response.value;
-
-          if (err) {
-            deferred.reject('Error : Failed to save the table. ');
-          } else if (table) {
-            // clear the cache.
-            config.redisClient.del(`${config.cacheSchemaPrefix}-${appId}:${tableName}`);
-
-            const cloneOldColumns = [].concat(oldColumns || []);
-
-            if (isNewTable) {
-              const mongoPromise = mongoUtil.collection.create(appId, tableName, schema);
-              // Index all text fields
-              const mongoIndexTextPromise = mongoUtil.collection.deleteAndCreateTextIndexes(appId, tableName, cloneOldColumns, schema);
-
-              q.allSettled([mongoPromise, mongoIndexTextPromise]).then((res) => {
-                if (res[0].state === 'fulfilled' && res[1].state === 'fulfilled') {
-                  deferred.resolve(table);
-                } else {
-                  // TODO : Rollback.
-                  deferred.resolve(table);
-                }
-              }, () => {
-                // TODO : Rollback.
-                deferred.resolve(table);
-              });
-            } else {
-              // check if any column is deleted, if yes.. then delete it from everywhere.
-              if (oldColumns) {
-                const promises = [];
-
-                const columnsToDelete = _getColumnsToDelete(oldColumns, schema);
-
-                for (let i = 0; i < columnsToDelete.length; i++) {
-                  promises.push(self.deleteColumn(appId, tableName, columnsToDelete[i].name, columnsToDelete[i].dataType));
-                }
-
-                const columnsToAdd = _getColumnsToAdd(oldColumns, schema);
-
-                for (let i = 0; i < columnsToAdd.length; i++) {
-                  promises.push(self.createColumn(appId, tableName, columnsToAdd[i]));
-                }
-
-                // Index all text fields
-                promises.push(mongoUtil.collection.deleteAndCreateTextIndexes(appId, tableName, cloneOldColumns, schema));
-                // updateColumnNameOfOldRecordsPromises stores the promises for updating previous records.
-                q.all(promises.concat(updateColumnNameOfOldRecordsPromises)).then(() => {
-                  // confirm all colums are updated
-                  q.all(updateColumnNameOfOldRecordsPromises).then(() => {
-                    deferred.resolve(table);
-                  }, () => {
-                    // TODO : Rollback.
-                    deferred.resolve(table);
-                  });
-                }, () => {
-                  // TODO : Rollback.
-                  deferred.resolve(table);
-                });
-              }
-            }
-          }
-        });
+      let table = await collection.findOne({
+        name: tableName,
       });
+      const oldColumns = table && table.columns;
+      if (table) {
+        const errorType = _checkSchemaType({
+          schema,
+          table,
+          tableType,
+        });
+
+        if (errorType) throw errorType;
+
+        table.columns = schema;
+        // update table props
+        table.isEditableByClientKey = !!tableProps.isEditableByClientKey;
+      } else {
+        isNewTable = true;
+
+        table = {};
+        table.id = util.getId();
+        table.columns = schema;
+
+        table.name = tableName;
+        table.type = tableType;
+        table._type = 'table';
+        table.isEditableByClientKey = !!tableProps.isEditableByClientKey;
+      }
+
+      const renameColumnObject = {};
+      if (!isNewTable) {
+        const doc = await collection.findOne({
+          name: tableName,
+        });
+        if (!doc) {
+          throw 'Error : Failed to get the table. ';
+        } else {
+          doc.columns.forEach((oldColumnObj) => {
+            // check column id
+            schema.forEach((newColumnObj) => {
+              // match column id of each columns
+              if (newColumnObj._id === oldColumnObj._id) {
+                if (newColumnObj.name !== oldColumnObj.name) {
+                  // column name is updated update previous records.
+                  renameColumnObject[oldColumnObj.name] = newColumnObj.name;
+                }
+              }
+            });
+          });
+          updateColumnNameOfOldRecordsPromises.push(
+            _updateColumnNameOfOldRecords(tableName, appId, renameColumnObject),
+          );
+        }
+      }
+
+      const response = await collection.findOneAndUpdate({
+        name: tableName,
+      }, {
+        $set: table,
+      }, {
+        upsert: true,
+        returnOriginal: false,
+      });
+
+      if (response && response.value) table = response.value;
+      if (table) {
+        // clear the cache.
+        config.redisClient.del(`${config.cacheSchemaPrefix}-${appId}:${tableName}`);
+
+        const cloneOldColumns = [].concat(oldColumns || []);
+
+        if (isNewTable) {
+          const mongoPromise = mongoUtil.collection.create(appId, tableName, schema);
+          // Index all text fields
+          const mongoIndexTextPromise = mongoUtil.collection.deleteAndCreateTextIndexes(
+            appId, tableName, cloneOldColumns, schema,
+          );
+          const res = await q.allSettled([mongoPromise, mongoIndexTextPromise]);
+          if (res[0].state === 'fulfilled' && res[1].state === 'fulfilled') {
+            deferred.resolve(table);
+          } else {
+            // TODO : Rollback.
+            deferred.resolve(table);
+          }
+        } else if (oldColumns) {
+          // check if any column is deleted, if yes.. then delete it from everywhere.
+          const promises = [];
+
+          const columnsToDelete = _getColumnsToDelete(oldColumns, schema);
+
+          for (let i = 0; i < columnsToDelete.length; i++) {
+            promises.push(self.deleteColumn(
+              appId, tableName, columnsToDelete[i].name,
+              columnsToDelete[i].dataType,
+            ));
+          }
+
+          const columnsToAdd = _getColumnsToAdd(oldColumns, schema);
+
+          for (let i = 0; i < columnsToAdd.length; i++) {
+            promises.push(self.createColumn(appId, tableName, columnsToAdd[i]));
+          }
+
+          // Index all text fields
+          promises.push(
+            mongoUtil.collection.deleteAndCreateTextIndexes(
+              appId, tableName, cloneOldColumns, schema,
+            ),
+          );
+          // updateColumnNameOfOldRecordsPromises stores the promises for updating previous records.
+          await q.all(promises.concat(updateColumnNameOfOldRecordsPromises));
+          await q.all(updateColumnNameOfOldRecordsPromises);
+          deferred.resolve(table);
+        } else throw 'Error creating/updating table';
+      } else throw 'Error creating/updating table';
     } catch (e) {
       winston.log('error', {
         error: String(e),
         stack: new Error().stack,
       });
-
-
       deferred.reject(e);
     }
 
@@ -749,7 +644,9 @@ module.exports = {
           deferred.resolve(JSON.parse(res));
         } else {
           const collection = config.mongoClient.db(appId).collection('_Schema');
-          const findQuery = collection.find({ name: collectionName });
+          const findQuery = collection.find({
+            name: collectionName,
+          });
           findQuery.toArray((err, tables) => {
             const res = tables[0];
             if (err) {
@@ -983,15 +880,16 @@ module.exports = {
     const password = util.getId();
 
     config.mongoClient.db(appId).addUser(username, password, {
-      roles: [
-        {
-          role: 'readWrite',
-          db: appId,
-        },
-      ],
+      roles: [{
+        role: 'readWrite',
+        db: appId,
+      }, ],
     }, (err) => {
       if (err) deferred.reject(err);
-      else deferred.resolve({ username, password });
+      else deferred.resolve({
+        username,
+        password
+      });
     });
     return deferred.promise;
   },
@@ -1001,7 +899,9 @@ function _updateColumnNameOfOldRecords(tableName, appId, renameColumnObject) {
   const deferred = q.defer();
 
   const collection = config.mongoClient.db(appId).collection(tableName);
-  collection.updateMany({}, { $rename: renameColumnObject }, (err) => {
+  collection.updateMany({}, {
+    $rename: renameColumnObject
+  }, (err) => {
     if (err) deferred.reject();
     else deferred.resolve();
   });
@@ -1293,7 +1193,9 @@ function _getColumnsToDelete(oldColumns, newColumns) {
     const originalColumns = oldColumns;
 
     for (let i = 0; i < newColumns.length; i++) {
-      const column = _.first(_.where(originalColumns, { name: newColumns[i].name }));
+      const column = _.first(_.where(originalColumns, {
+        name: newColumns[i].name
+      }));
       originalColumns.splice(originalColumns.indexOf(column), 1);
     }
 
@@ -1314,7 +1216,9 @@ function _getColumnsToAdd(oldColumns, newColumns) {
     const addedColumns = [];
 
     for (let i = 0; i < newColumns.length; i++) {
-      const column = _.first(_.where(originalColumns, { name: newColumns[i].name }));
+      const column = _.first(_.where(originalColumns, {
+        name: newColumns[i].name
+      }));
       if (!column) {
         addedColumns.push(newColumns[i]);
       }
@@ -1424,4 +1328,40 @@ function makeid(len) {
   for (let i = 0; i < len; i++) text += possible.charAt(Math.floor(Math.random() * possible.length));
 
   return text;
+}
+
+function _checkSchemaType({ schema, table, tableType }) {
+  // check duplicate columns, Pluck all name property of every columns.
+  const tableColumns = _.filter(_.pluck(table.columns, 'name'), value => value.toLowerCase());
+
+  const defaultColumns = _getDefaultColumnList(tableType);
+
+  for (let i = 0; i < schema.length; i++) {
+    const index = tableColumns.indexOf(schema[i].name.toLowerCase());
+    if (index >= 0) {
+      // column with the same name found in the table. Checking type...
+      if (schema[i].dataType !== table.columns[index].dataType ||
+        schema[i].relatedTo !== table.columns[index].relatedTo ||
+        schema[i].relationType !== table.columns[index].relationType ||
+        schema[i].isDeletable !== table.columns[index].isDeletable ||
+        schema[i].isEditable !== table.columns[index].isEditable ||
+        schema[i].isRenamable !== table.columns[index].isRenamable ||
+        schema[i].editableByMasterKey !== table.columns[index].editableByMasterKey ||
+        schema[i].isSearchable !== table.columns[index].isSearchable) {
+        return 'Cannot Change Column\'s Property. Only Required and Unique Field can be changed.';
+      }
+
+      if (schema[i].required !== table.columns[index].required &&
+        defaultColumns.indexOf(schema[i].name.toLowerCase()) >= 0) {
+        return 'Error : Cannot change the required field of a default column.';
+      }
+
+      if (schema[i].unique !== table.columns[index].unique &&
+        defaultColumns.indexOf(schema[i].name.toLowerCase()) >= 0) {
+        return 'Error : Cannot change the unique field of a default column.';
+      }
+    }
+  }
+
+  return null;
 }

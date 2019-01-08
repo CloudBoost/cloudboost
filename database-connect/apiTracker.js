@@ -11,11 +11,7 @@ const obj = {};
 const winston = require('winston');
 const config = require('../config/config');
 
-function appLogger(message) {
-  return function () {
-    winston.info(message);
-  };
-}
+const appLogger = message => () => winston.info(message);
 
 const appReleased = appLogger('App Released');
 const appBlocked = appLogger('App Blocked');
@@ -31,14 +27,15 @@ function IsJsonString(str) {
   return true;
 }
 
-obj.log = function (appId, actionName, url, sdk, checkReleaseRequest) {
+obj.log = (appId, actionName, url, sdk, checkReleaseRequest) => {
   try {
+    let URL;
     if (checkReleaseRequest) {
-      url = `${config.analyticsUrl}/app/isReleased`;
+      URL = `${config.analyticsUrl}/app/isReleased`;
     } else {
-      url = `${config.analyticsUrl}/api/store`;
+      URL = `${config.analyticsUrl}/api/store`;
     }
-    const post_data = JSON.stringify({
+    const postData = JSON.stringify({
       host: config.secureKey,
       appId,
       category: actionName.split('/')[0] || null,
@@ -47,12 +44,12 @@ obj.log = function (appId, actionName, url, sdk, checkReleaseRequest) {
     });
 
     request.post({
-      url,
+      URL,
       headers: {
         'content-type': 'application/json',
-        'content-length': post_data.length,
+        'content-length': postData.length,
       },
-      body: post_data,
+      body: postData,
     }, (err, response, body) => {
       if (!err) {
         try {
@@ -84,7 +81,7 @@ obj.log = function (appId, actionName, url, sdk, checkReleaseRequest) {
 // Description : Checks weather the current app is in the Plan Limit.
 // Params : appId - ID of the App.
 // Returns : Promise - True for yes, It is in the plan limit. False if it exceeded.
-obj.isInPlanLimit = function (appId) {
+obj.isInPlanLimit = (appId) => {
   const deferred = q.defer();
 
   try {
@@ -112,7 +109,7 @@ obj.isInPlanLimit = function (appId) {
 // Description : Blocks the app
 // Params : appId - ID of the App.
 // Returns : Promise (void)
-obj.blockApp = function (appId) {
+obj.blockApp = (appId) => {
   const deferred = q.defer();
 
   try {
@@ -134,7 +131,7 @@ obj.blockApp = function (appId) {
 // Description : Releases the App.
 // Params : appId - ID of the App.
 // Returns : Promise (void)
-obj.releaseApp = function (appId) {
+obj.releaseApp = (appId) => {
   const deferred = q.defer();
   try {
     config.redisClient.hset('_CB_API_PLAN', appId, true, (err) => {
