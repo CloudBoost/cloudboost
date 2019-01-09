@@ -793,10 +793,12 @@ module.exports = {
       }],
     }, (err) => {
       if (err) deferred.reject(err);
-      else deferred.resolve({
-        username,
-        password
-      });
+      else {
+        deferred.resolve({
+          username,
+          password,
+        });
+      }
     });
     return deferred.promise;
   },
@@ -831,25 +833,23 @@ function _generateKey() {
 // check for duplicate column
 function _checkDuplicateColumns(columns) {
   try {
-    const length = columns.length;
-    columns = _.pluck(columns, 'name');
+    const { length } = columns;
+    const columnNames = _.pluck(columns, 'name');
 
     // check for null names.
-    for (let i = 0; i < columns.length; i++) {
-      if (columns[i].indexOf(' ') > -1) {
-        return `Column ${columns[i]} cannot contain any spaces.`;
+    for (let i = 0; i < columnNames.length; i++) {
+      if (columnNames[i].indexOf(' ') > -1) {
+        return `Column ${columnNames[i]} cannot contain any spaces.`;
       }
 
-      if (columns[i].length === 0) {
+      if (columnNames[i].length === 0) {
         return 'Column in the table has an empty name.';
       }
     }
 
-    columns = _.filter(columns, Boolean);
-    columns = _.filter(columns, value => value.toLowerCase());
-    columns = _.uniq(columns);
+    const uniqColumns = _.uniq(columns, item => item.name);
 
-    if (length !== columns.length) return 'Column with the same name found in the table';
+    if (length !== uniqColumns.length) return 'Column with the same name found in the table';
 
     return null;
   } catch (e) {
@@ -888,7 +888,7 @@ function _getDefaultColumnList(type) {
   }
 }
 
-function _checkValidDataType(columns, deafultDataType, tableType) {
+function _checkValidDataType(columns, defaultDataType, tableType) {
   try {
     let index;
     const defaultColumns = [];
@@ -896,10 +896,11 @@ function _checkValidDataType(columns, deafultDataType, tableType) {
       return false;
     }
 
-    let coloumnDataType = _.pluck(columns, 'dataType');
-    coloumnDataType = _.filter(coloumnDataType, Boolean);
-    for (const key in deafultDataType) {
-      index = coloumnDataType.indexOf(deafultDataType[key]);
+    const coloumnDataType = _.filter(_.pluck(columns, 'dataType'), Boolean);
+    const defaultDataTypeKeys = Object.keys(defaultDataType);
+    for (let i = 0; i <= defaultDataTypeKeys.length; i++) {
+      const key = defaultDataTypeKeys[i];
+      index = coloumnDataType.indexOf(defaultDataType[key]);
       if (index < 0) return false;
 
       for (let l = 0; l < columns.length; l++) {
@@ -1029,7 +1030,9 @@ function _checkValidDataType(columns, deafultDataType, tableType) {
         if (columns[index].relationType !== null || columns[index].required !== true || columns[index].unique !== false || columns[index].dataType !== 'Object') return false;
       }
 
-      if (columns[index].isRenamable !== false || columns[index].isEditable !== false || columns[index].isDeletable !== false) {
+      if (columns[index].isRenamable !== false ||
+          columns[index].isEditable !== false ||
+          columns[index].isDeletable !== false) {
         return false;
       }
 
@@ -1069,7 +1072,10 @@ function _checkValidDataType(columns, deafultDataType, tableType) {
             }
           } else if (columns[i].dataType === 'Email') {
             if (columns[i].defaultValue.match(/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/i)[0] !== columns[i].defaultValue) {
-              return false; // if the set dataType is not other string Datatypes (Text, EncryptedText, DateTime) available in cloudboost;
+              /* if the set dataType is not other string Datatypes (Text,
+              EncryptedText, DateTime) available in cloudboost;
+              */
+              return false;
             }
           } else if (['Text', 'EncryptedText', 'DateTime'].indexOf(columns[i].dataType) === -1) {
             return false;
@@ -1077,7 +1083,10 @@ function _checkValidDataType(columns, deafultDataType, tableType) {
         } else if (columns[i].defaultValue === null) {
           // Do nothing
         } else if (['number', 'boolean', 'object'].indexOf(typeof columns[i].defaultValue) > -1) {
-          // TODO : Doing a quick fix for undefined default Value -> should be fixed later.
+          /* TODO : Doing a quick fix
+            for undefined default Value -> should be fixed later.
+           */
+          // eslint-disable-next-line
           if (columns[i].dataType.toUpperCase() !== (typeof columns[i].defaultValue).toUpperCase()) {
             return false;
           }
@@ -1101,7 +1110,7 @@ function _getColumnsToDelete(oldColumns, newColumns) {
 
     for (let i = 0; i < newColumns.length; i++) {
       const column = _.first(_.where(originalColumns, {
-        name: newColumns[i].name
+        name: newColumns[i].name,
       }));
       originalColumns.splice(originalColumns.indexOf(column), 1);
     }
@@ -1124,7 +1133,7 @@ function _getColumnsToAdd(oldColumns, newColumns) {
 
     for (let i = 0; i < newColumns.length; i++) {
       const column = _.first(_.where(originalColumns, {
-        name: newColumns[i].name
+        name: newColumns[i].name,
       }));
       if (!column) {
         addedColumns.push(newColumns[i]);
@@ -1142,7 +1151,7 @@ function _getColumnsToAdd(oldColumns, newColumns) {
 
 function _getDefaultColumnWithDataType(type) {
   try {
-    const defaultColumn = new Object();
+    const defaultColumn = {};
     defaultColumn.id = 'Id';
     defaultColumn.createdAt = 'DateTime';
     defaultColumn.updatedAt = 'DateTime';
@@ -1232,6 +1241,7 @@ function makeid(len) {
   let text = '';
   const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
+  // eslint-disable-next-line
   for (let i = 0; i < len; i++) text += possible.charAt(Math.floor(Math.random() * possible.length));
 
   return text;

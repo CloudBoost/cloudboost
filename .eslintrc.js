@@ -15,6 +15,7 @@ module.exports = {
         "no-restricted-globals": "off",
         "no-throw-literal": "off",
         "no-plusplus": "off",
+        "no-useless-escape": "off",
         "semi": [
             "error",
             "always"
