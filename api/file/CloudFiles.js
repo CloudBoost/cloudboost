@@ -115,7 +115,15 @@ const getFile = async (req, res) => {
       appId, fileId, customHelper.getAccessList(req), isMasterKey,
     );
     apiTracker.log(appId, 'File / Get', req.url, sdk);
-    if (typeof resizeWidth === 'undefined' && typeof resizeHeight === 'undefined' && typeof quality === 'undefined' && typeof opacity === 'undefined' && typeof scale === 'undefined' && typeof containWidth === 'undefined' && typeof containHeight === 'undefined' && typeof rDegs === 'undefined' && typeof bSigma === 'undefined') {
+    if (typeof resizeWidth === 'undefined'
+        && typeof resizeHeight === 'undefined'
+        && typeof quality === 'undefined'
+        && typeof opacity === 'undefined'
+        && typeof scale === 'undefined'
+        && typeof containWidth === 'undefined'
+        && typeof containHeight === 'undefined'
+        && typeof rDegs === 'undefined'
+        && typeof bSigma === 'undefined') {
       // eslint-disable-next-line
       const fileStream = mongoService.document.getFileStreamById(appId, file._id);
 

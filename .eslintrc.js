@@ -16,6 +16,7 @@ module.exports = {
         "no-throw-literal": "off",
         "no-plusplus": "off",
         "no-useless-escape": "off",
+        "max-len": ["error", { "code": 240 }],
         "semi": [
             "error",
             "always"

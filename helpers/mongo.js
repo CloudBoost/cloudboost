@@ -4,9 +4,69 @@
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
+const { Db } = require('mongodb');
 const q = require('q');
 const winston = require('winston');
 const config = require('../config/config');
+// Private Functions
+function _dropIndex(appId, collectionName, indexString) {
+  const deferred = q.defer();
+
+  try {
+    if (indexString && indexString !== '') {
+      const collection = config.mongoClient.db(appId).collection(collectionName);
+      collection.dropIndex(indexString, (err, result) => {
+        if (err && err.message && err.message !== 'ns not found') {
+          winston.log('error', err);
+
+
+          deferred.reject(err);
+        } else {
+          deferred.resolve(result);
+        }
+      });
+    } else {
+      deferred.resolve('Nothing to drop');
+    }
+  } catch (err) {
+    winston.log('error', {
+      error: String(err),
+      stack: new Error().stack,
+    });
+    deferred.reject(err);
+  }
+  return deferred.promise;
+}
+
+function _unsetColumn(appId, collectionName, query) {
+  const deferred = q.defer();
+
+  try {
+    if (query && Object.keys(query).length > 0) {
+      const collection = config.mongoClient.db(appId).collection(collectionName);
+      collection.update({}, {
+        $unset: query,
+      }, {
+        multi: true,
+      }, (err, result) => {
+        if (err) {
+          deferred.reject(err);
+        } else {
+          deferred.resolve(result);
+        }
+      });
+    } else {
+      deferred.resolve('Nothing to unset');
+    }
+  } catch (err) {
+    winston.log('error', {
+      error: String(err),
+      stack: new Error().stack,
+    });
+    deferred.reject(err);
+  }
+  return deferred.promise;
+}
 
 const mongoService = {};
 
@@ -50,7 +110,7 @@ mongoService.app = {
         return deferred.promise;
       }
 
-      const Db = require('mongodb').Db;
+      // eslint-disable-next-line global-require
       const replSet = require('../database-connect/mongoConnect.js').replSet();
 
       const db = new Db(appId, replSet, { w: 1 });
@@ -81,8 +141,7 @@ mongoService.document = {
 
     try {
       if (config.mongoDisconnected || !global.database) {
-        deferred.reject('Database Not Connected');
-        return deferred.promise;
+        throw 'Database Not Connected';
       }
 
       const collection = config.mongoClient.db(appId).collection(_self.collection.getId(appId, collectionName));
@@ -478,6 +537,7 @@ mongoService.collection = {
         error: String(err),
         stack: new Error().stack,
       });
+      return err;
     }
   },
 
@@ -509,63 +569,3 @@ mongoService.collection = {
 };
 
 module.exports = mongoService;
-
-// Private Functions
-function _dropIndex(appId, collectionName, indexString) {
-  const deferred = q.defer();
-
-  try {
-    if (indexString && indexString != '') {
-      const collection = config.mongoClient.db(appId).collection(collectionName);
-      collection.dropIndex(indexString, (err, result) => {
-        if (err && err.message && err.message != 'ns not found') {
-          winston.log('error', err);
-
-
-          deferred.reject(err);
-        } else {
-          deferred.resolve(result);
-        }
-      });
-    } else {
-      deferred.resolve('Nothing to drop');
-    }
-  } catch (err) {
-    winston.log('error', {
-      error: String(err),
-      stack: new Error().stack,
-    });
-    deferred.reject(err);
-  }
-  return deferred.promise;
-}
-
-function _unsetColumn(appId, collectionName, query) {
-  const deferred = q.defer();
-
-  try {
-    if (query && Object.keys(query).length > 0) {
-      const collection = config.mongoClient.db(appId).collection(collectionName);
-      collection.update({}, {
-        $unset: query,
-      }, {
-        multi: true,
-      }, (err, result) => {
-        if (err) {
-          deferred.reject(err);
-        } else {
-          deferred.resolve(result);
-        }
-      });
-    } else {
-      deferred.resolve('Nothing to unset');
-    }
-  } catch (err) {
-    winston.log('error', {
-      error: String(err),
-      stack: new Error().stack,
-    });
-    deferred.reject(err);
-  }
-  return deferred.promise;
-}
