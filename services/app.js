@@ -194,13 +194,8 @@ module.exports = {
       });
       config.redisClient.del(`${config.cacheAppPrefix}:${appId}`); // delete the app from redis.
       // delete  the app databases.
-      const response = await mongoUtil.app.drop(appId);
-      if (response.state === 'fulfilled') {
-        deferred.resolve();
-      } else {
-        // TODO : Something wrong happened. Roll back.
-        deferred.resolve();
-      }
+      await mongoUtil.app.drop(appId);
+      deferred.resolve();
     } catch (err) {
       winston.log('error', {
         error: String(err),
@@ -286,13 +281,8 @@ module.exports = {
         config.redisClient.del(`${config.cacheSchemaPrefix}-${appId}:${tableName}`);
         // delete this from all the databases as well.
         // call
-        const response = await mongoUtil.collection.dropCollection(appId, tableName);
-        if (response.state === 'fulfilled') {
-          deferred.resolve(doc);
-        } else {
-          // TODO : Something went wrong. Roll back code required.
-          deferred.resolve(doc);
-        }
+        await mongoUtil.collection.dropCollection(appId, tableName);
+        deferred.resolve(doc);
       } else {
         const err = {
           code: 500,
@@ -315,15 +305,10 @@ module.exports = {
     const deferred = q.defer();
 
     try {
-      const dropColumnResponse = await mongoUtil.collection.dropColumn(
+      await mongoUtil.collection.dropColumn(
         appId, collectionName, columnName, columnType,
       );
-      if (dropColumnResponse.state === 'fulfilled') {
-        deferred.resolve('Success');
-      } else {
-        // TODO : Soemthing went wrong. Rollback immediately.
-        deferred.resolve('Success');
-      }
+      deferred.resolve('Success');
     } catch (err) {
       winston.log('error', {
         error: String(err),
@@ -549,13 +534,8 @@ module.exports = {
           const mongoIndexTextPromise = mongoUtil.collection.deleteAndCreateTextIndexes(
             appId, tableName, cloneOldColumns, schema,
           );
-          const res = await q.allSettled([mongoPromise, mongoIndexTextPromise]);
-          if (res[0].state === 'fulfilled' && res[1].state === 'fulfilled') {
-            deferred.resolve(table);
-          } else {
-            // TODO : Rollback.
-            deferred.resolve(table);
-          }
+          await q.allSettled([mongoPromise, mongoIndexTextPromise]);
+          deferred.resolve(table);
         } else if (oldColumns) {
           // check if any column is deleted, if yes.. then delete it from everywhere.
           const promises = [];
@@ -598,19 +578,12 @@ module.exports = {
     return deferred.promise;
   },
 
-  createColumn(appId, collectionName, column) {
+  async createColumn(appId, collectionName, column) {
     const deferred = q.defer();
 
     try {
-      const mongoPromise = mongoUtil.collection.addColumn(appId, collectionName, column);
-      q.allSettled([mongoPromise]).then((res) => {
-        if (res[0].state === 'fulfilled') {
-          deferred.resolve('Success');
-        } else {
-          // TODO : Rollback.
-          deferred.reject('Unable to create column');
-        }
-      });
+      await mongoUtil.collection.addColumn(appId, collectionName, column);
+      deferred.resolve('Success');
     } catch (err) {
       winston.log('error', {
         error: String(err),
@@ -634,40 +607,30 @@ module.exports = {
     ]);
   },
 
-  getSchema(appId, collectionName) {
+  async getSchema(appId, collectionName) {
     const deferred = q.defer();
     const appService = this;
 
     try {
-      config.redisClient.get(`${config.cacheSchemaPrefix}-${appId}:${collectionName}`, (err, res) => {
-        if (res) {
-          deferred.resolve(JSON.parse(res));
+      const res = await config.redisClient.get(`${config.cacheSchemaPrefix}-${appId}:${collectionName}`);
+      if (res) {
+        deferred.resolve(JSON.parse(res));
+      } else {
+        const collection = config.mongoClient.db(appId).collection('_Schema');
+        const foundTable = await collection.findOne({
+          name: collectionName,
+        });
+        if (!foundTable) {
+          // No table found. Create new table
+          const defaultSchema = tablesData.Custom;
+          const newTable = await appService.upsertTable(appId, collectionName, defaultSchema);
+          config.redisClient.setex(`${config.cacheSchemaPrefix}-${appId}:${collectionName}`, config.schemaExpirationTimeFromCache, JSON.stringify(newTable._doc));
+          deferred.resolve(newTable);
         } else {
-          const collection = config.mongoClient.db(appId).collection('_Schema');
-          const findQuery = collection.find({
-            name: collectionName,
-          });
-          findQuery.toArray((err, tables) => {
-            const res = tables[0];
-            if (err) {
-              winston.log('error', err);
-              deferred.reject(err);
-            } else if (!res) {
-              // No table found. Create new table
-              const defaultSchema = tablesData.Custom;
-              appService.upsertTable(appId, collectionName, defaultSchema).then((table) => {
-                config.redisClient.setex(`${config.cacheSchemaPrefix}-${appId}:${collectionName}`, config.schemaExpirationTimeFromCache, JSON.stringify(table._doc));
-                deferred.resolve(table);
-              }, (err) => {
-                deferred.reject(err);
-              });
-            } else {
-              config.redisClient.setex(`${config.cacheSchemaPrefix}-${appId}:${collectionName}`, config.schemaExpirationTimeFromCache, JSON.stringify(res._doc));
-              deferred.resolve(res);
-            }
-          });
+          config.redisClient.setex(`${config.cacheSchemaPrefix}-${appId}:${collectionName}`, config.schemaExpirationTimeFromCache, JSON.stringify(foundTable._doc));
+          deferred.resolve(foundTable);
         }
-      });
+      }
     } catch (err) {
       winston.log('error', {
         error: String(err),
@@ -679,7 +642,7 @@ module.exports = {
     return deferred.promise;
   },
 
-  changeAppClientKey(appId, value) {
+  async changeAppClientKey(appId, value) {
     const deferred = q.defer();
 
     try {
@@ -687,34 +650,24 @@ module.exports = {
         appId,
       };
 
-      // var newClientkey = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), config.secureKey, 100, 16).toString("base64");
-      let newClientkey = _generateKey();
-      if (value) {
-        newClientkey = value;
-      }
-
+      const newClientkey = value || _generateKey();
       const setJSON = {
         'keys.js': newClientkey,
       };
 
       const collection = config.mongoClient.db(config.globalDb).collection('projects');
-      collection.findOneAndUpdate(query, {
+      const newDoc = await collection.findOneAndUpdate(query, {
         $set: setJSON,
       }, {
         returnOriginal: false,
-      }, (err, newDoc) => {
-        if (err) {
-          winston.log('error', err);
-          deferred.reject(err);
-        }
-        if (newDoc) {
-          // delete project/app from redis so further request will make a new entry with new keys
-          deleteAppFromRedis(appId);
-          deferred.resolve(newDoc.value);
-        } else {
-          deferred.resolve(null);
-        }
       });
+      if (newDoc) {
+        // delete project/app from redis so further request will make a new entry with new keys
+        deleteAppFromRedis(appId);
+        deferred.resolve(newDoc.value);
+      } else {
+        deferred.resolve(null);
+      }
     } catch (err) {
       winston.log('error', {
         error: String(err),
@@ -726,7 +679,7 @@ module.exports = {
     return deferred.promise;
   },
 
-  changeAppMasterKey(appId, value) {
+  async changeAppMasterKey(appId, value) {
     const deferred = q.defer();
 
     try {
@@ -734,34 +687,26 @@ module.exports = {
         appId,
       };
 
-      // var newMasterkey = crypto.pbkdf2Sync(Math.random().toString(36).substr(2, 5), config.secureKey, 100, 16).toString("base64");
-      let newMasterkey = _generateKey();
-      if (value) {
-        newMasterkey = value;
-      }
+      const newMasterkey = value || _generateKey();
 
       const setJSON = {
         'keys.master': newMasterkey,
       };
 
       const collection = config.mongoClient.db(config.globalDb).collection('projects');
-      collection.findOneAndUpdate(query, {
+      const newDoc = await collection.findOneAndUpdate(query, {
         $set: setJSON,
       }, {
         returnOriginal: false,
-      }, (err, newDoc) => {
-        if (err) {
-          winston.log('error', err);
-          deferred.reject(err);
-        }
-        if (newDoc) {
-          // delete project/app from redis so further request will make a new entry with new keys
-          deleteAppFromRedis(appId);
-          deferred.resolve(newDoc.value);
-        } else {
-          deferred.resolve(null);
-        }
       });
+
+      if (newDoc) {
+        // delete project/app from redis so further request will make a new entry with new keys
+        deleteAppFromRedis(appId);
+        deferred.resolve(newDoc.value);
+      } else {
+        deferred.resolve(null);
+      }
     } catch (err) {
       winston.log('error', {
         error: String(err),
@@ -773,103 +718,65 @@ module.exports = {
     return deferred.promise;
   },
 
-  exportDatabase(appId) {
+  async exportDatabase(appId) {
     const deferred = q.defer();
-    const promises = [];
-    config.mongoClient.db(appId).listCollections().toArray((err, collections) => {
-      if (err) {
-        winston.log('error', err);
-        deferred.reject(err);
-      }
-      for (const k in collections) {
-        (function (k) {
-          const promise = new Promise(((resolve, reject) => {
-            collections[k].documents = [];
-            const data = config.mongoClient.db(appId).collection(collections[k].name).find();
-            data.toArray((err, data) => {
-              if (err) {
-                winston.log('error', err);
-                reject(err);
-              }
-              collections[k].documents.push(data);
-              resolve();
-            });
-          }));
-          promises.push(promise);
-        }(k));
-      }
-      Promise.all(promises).then(() => {
-        deferred.resolve(collections);
-      }, (err) => {
-        deferred.reject(err);
+
+    try {
+      const collections = await config.mongoClient.db(appId).listCollections().toArray();
+      const promises = collections.map(async (collection) => {
+        try {
+          const _collection = Object.assign({}, collection);
+          const data = await config.mongoClient.db(appId)
+            .collection(collection.name).find().toArray();
+          _collection.documents = data;
+          return _collection;
+        } catch (error) {
+          throw error;
+        }
       });
-    });
+      const exportData = await q.all(promises);
+      deferred.resolve(exportData);
+    } catch (error) {
+      winston.error({ error });
+      deferred.reject(error);
+    }
+
     return deferred.promise;
   },
 
-  importDatabase(appId, file) {
-    let fileData;
+  async importDatabase(appId, file) {
+    let fileArray;
     const deferred = q.defer();
-    const collectionRemovePromises = [];
-    let validated = false;
 
     try {
-      fileData = JSON.parse(file.toString());
-      for (const k in fileData) {
-        if (fileData[k].name === '_Schema') {
-          validated = true;
-        }
-      }
+      fileArray = JSON.parse(file.toString());
+      const validated = !_.isEmpty(_.where(fileArray, { name: '_Schema' }));
       if (!validated) {
-        deferred.reject('Invalid CloudBoost Database file');
+        throw 'Invalid CloudBoost Database file';
       }
-    } catch (e) {
-      deferred.reject('Invalid CloudBoost Database file');
-    }
-
-    config.mongoClient.db(appId).listCollections().toArray((err, Collections) => {
-      if (err) {
-        winston.log('error', err);
-        deferred.reject(err);
-      }
-      for (const k in Collections) {
-        (function (k) {
-          if (Collections[k].name.split('.')[0] !== 'system') { // skipping delete for system namespaces
-            collectionRemovePromises.push(new Promise(((resolve, reject) => {
-              config.mongoClient.db(appId).collection(Collections[k].name).remove({}, (err) => {
-                if (err) {
-                  reject(err);
-                }
-                resolve(true);
-              });
-            })));
-          }
-        }(k));
-      }
-      Promise.all(collectionRemovePromises).then(() => {
-        for (const i in fileData) {
-          (function (i) {
-            config.mongoClient.db(appId).createCollection(fileData[i].name, (err) => {
-              if (err) deferred.reject('Error creating Collections/Tables');
-              config.mongoClient.db(appId).collection(fileData[i].name, (err, col) => {
-                if (err) deferred.reject('Error getting Collections/Tables');
-                for (const j in fileData[i].documents[0]) {
-                  (function (j) {
-                    col.insert(fileData[i].documents[0][j], () => {
-                      if (i === (fileData.length - 1) && j === (fileData[i].documents[0].length - 1)) {
-                        deferred.resolve(true);
-                      }
-                    });
-                  }(j));
-                }
-              });
-            });
-          }(i));
+      const collections = await config.mongoClient.db(appId).listCollections().toArray();
+      const collectionRemovePromises = collections
+        .filter(col => col.name.split('.')[0] !== 'system') // skipping delete for system namespaces
+        .map(col => config.mongoClient.db(appId).collection(col.name).remove());
+      await q.all(collectionRemovePromises);
+      const createDocumentsPromise = fileArray.map(async (fileDoc) => {
+        try {
+          // eslint-disable-next-line
+          const newCollection = await config.mongoClient.db(appId).createCollection(fileDoc.name);
+          const collection = config.mongoClient.db(appId).collection(fileDoc.name);
+          const documents = fileDoc.documents.length
+            ? await collection.insertMany(fileDoc.documents)
+            : [];
+          return documents;
+        } catch (error) {
+          throw error;
         }
-      }, (err) => {
-        deferred.reject(err);
       });
-    });
+      const newDocuments = await q.all(createDocumentsPromise);
+      deferred.resolve(newDocuments);
+    } catch (e) {
+      deferred.reject(e);
+    }
     return deferred.promise;
   },
 
@@ -883,7 +790,7 @@ module.exports = {
       roles: [{
         role: 'readWrite',
         db: appId,
-      }, ],
+      }],
     }, (err) => {
       if (err) deferred.reject(err);
       else deferred.resolve({
@@ -900,7 +807,7 @@ function _updateColumnNameOfOldRecords(tableName, appId, renameColumnObject) {
 
   const collection = config.mongoClient.db(appId).collection(tableName);
   collection.updateMany({}, {
-    $rename: renameColumnObject
+    $rename: renameColumnObject,
   }, (err) => {
     if (err) deferred.reject();
     else deferred.resolve();

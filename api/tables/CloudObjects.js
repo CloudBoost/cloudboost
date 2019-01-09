@@ -178,8 +178,9 @@ module.exports = (app) => {
     } else {
       /** ****************SAVE API******************** */
 
-      const { appId, document, tableName: collectionName } = req.params;
+      const { appId, tableName: collectionName } = req.params;
       const appKey = req.body.key || req.params.key;
+      const { document } = req.body;
       const sdk = req.body.sdk || 'REST';
       const tableEvent = document._id // eslint-disable-line no-underscore-dangle
         ? 'Update' : 'Create';

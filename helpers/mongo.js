@@ -151,17 +151,17 @@ mongoService.collection = {
 
     try {
       if (config.mongoDisconnected) {
-        deferred.reject('Database Not Connected');
-        return deferred.promise;
+        throw 'Database Not Connected';
       }
 
       if (column.dataType === 'GeoPoint' || column.dataType === 'Text') {
-        mongoService.collection.createIndex(appId, collectionName, column.name, column.dataType).then(() => {
-          deferred.resolve('Index Created');
-        }, (err) => {
-          winston.log('error', err);
-          deferred.reject('Unable to create Index in Mongo');
-        });
+        mongoService.collection.createIndex(appId, collectionName, column.name, column.dataType)
+          .then(() => {
+            deferred.resolve('Index Created');
+          }, (err) => {
+            winston.log('error', err);
+            deferred.reject('Unable to create Index in Mongo');
+          });
       } else {
         deferred.resolve();
       }
@@ -409,8 +409,7 @@ mongoService.collection = {
 
     try {
       if (config.mongoDisconnected) {
-        deferred.reject('Database Not Connected');
-        return deferred.promise;
+        throw 'Database Not Connected';
       }
       const _self = mongoService;
 
