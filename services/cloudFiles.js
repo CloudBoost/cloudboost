@@ -19,9 +19,9 @@ module.exports = {
                Resolve->cloudBoostFileObj
                Reject->Error on getMyUrl() or saving filestream or saving cloudBoostFileObject
     */
-  upload(appId, fileStream, contentType, fileObj, accessList, isMasterKey) {
+  upload(appId, fileStream, contentType, _fileObj, accessList, isMasterKey) {
     const deferred = q.defer();
-
+    const fileObj = Object.assign({}, _fileObj);
     try {
       const promises = [];
 
@@ -104,7 +104,7 @@ module.exports = {
       customService.find(appId, collectionName, {
         _id: filename.split('.')[0],
       }, null, null, 1, 0, accessList, isMasterKey, null).then((file) => {
-        if (file.length == 1) {
+        if (file.length === 1) {
           mongoService.document.getFile(appId, filename.split('.')[0]).then((res) => {
             deferred.resolve(res);
           }, (err) => {
@@ -126,14 +126,11 @@ module.exports = {
     return deferred.promise;
   },
 
-  processImage(appId, fileName, resizeWidth, resizeHeight, cropX, cropY, cropW, cropH, quality, opacity, scale, containWidth, containHeight, rDegs, bSigma) {
+  async processImage(...args) {
     const deferred = q.defer();
     try {
-      _processImage(appId, fileName, resizeWidth, resizeHeight, cropX, cropY, cropW, cropH, quality, opacity, scale, containWidth, containHeight, rDegs, bSigma).then((image) => {
-        deferred.resolve(image);
-      }, (err) => {
-        deferred.reject(err);
-      });
+      const image = await _processImage(...args); // eslint-disable-line
+      deferred.resolve(image);
     } catch (err) {
       winston.log('error', {
         error: String(err),
@@ -145,51 +142,175 @@ module.exports = {
   },
 };
 
-function _processImage(appId, fileName, resizeWidth, resizeHeight, cropX, cropY, cropW, cropH, quality, opacity, scale, containWidth, containHeight, rDegs, bSigma) {
+function _processImage(appId, fileName, resizeWidth, resizeHeight,
+  cropX, cropY, cropW, cropH, quality,
+  opacity, scale, containWidth, containHeight, rDegs, bSigma) {
   const deferred = q.defer();
 
   try {
     const promises = [];
     jimp.read(fileName, (err, image) => {
       if (err) deferred.reject(err);
-      if (typeof resizeWidth !== 'undefined' && typeof resizeHeight !== 'undefined' && typeof quality !== 'undefined' && typeof opacity !== 'undefined' && typeof scale !== 'undefined' && typeof containWidth !== 'undefined' && typeof containHeight !== 'undefined' && typeof rDegs !== 'undefined' && typeof bSigma !== 'undefined' && typeof cropX !== 'undefined' && typeof cropY !== 'undefined' && typeof cropW !== 'undefined' && typeof cropH !== 'undefined') {
-        image.resize(resizeWidth, resizeHeight).crop(parseInt(cropX), parseInt(cropY), parseInt(cropW), parseInt(cropH)).quality(parseInt(quality)).opacity(parseFloat(opacity))
-          .scale(parseInt(scale))
-          .contain(parseInt(containWidth), parseInt(containHeight))
+      if (typeof resizeWidth !== 'undefined'
+      && typeof resizeHeight !== 'undefined'
+      && typeof quality !== 'undefined'
+      && typeof opacity !== 'undefined'
+      && typeof scale !== 'undefined'
+      && typeof containWidth !== 'undefined'
+      && typeof containHeight !== 'undefined'
+      && typeof rDegs !== 'undefined'
+      && typeof bSigma !== 'undefined'
+      && typeof cropX !== 'undefined'
+      && typeof cropY !== 'undefined'
+      && typeof cropW !== 'undefined'
+      && typeof cropH !== 'undefined') {
+        image.resize(resizeWidth, resizeHeight)
+          .crop(
+            parseInt(cropX, 10),
+            parseInt(cropY, 10),
+            parseInt(cropW, 10),
+            parseInt(cropH, 10),
+          )
+          .quality(parseInt(quality, 10))
+          .opacity(parseFloat(opacity))
+          .scale(parseInt(scale, 10))
+          .contain(
+            parseInt(containWidth, 10),
+            parseInt(containHeight, 10),
+          )
           .rotate(parseFloat(rDegs))
-          .blur(parseInt(bSigma), (err, processedImage) => {
+          .blur(parseInt(bSigma, 10), (err1, processedImage) => {
             promises.push(processedImage);
           });
-      } else if (typeof resizeWidth === 'undefined' && typeof resizeHeight === 'undefined' && typeof quality === 'undefined' && typeof opacity === 'undefined' && typeof scale === 'undefined' && typeof containWidth === 'undefined' && typeof containHeight === 'undefined' && typeof rDegs === 'undefined' && typeof bSigma !== 'undefined' && typeof cropX === 'undefined' && typeof cropY === 'undefined' && typeof cropW === 'undefined' && typeof cropH === 'undefined') {
-        image.blur(parseInt(bSigma), (err, processedImage) => {
+      } else if (typeof resizeWidth === 'undefined'
+      && typeof resizeHeight === 'undefined'
+      && typeof quality === 'undefined'
+      && typeof opacity === 'undefined'
+      && typeof scale === 'undefined'
+      && typeof containWidth === 'undefined'
+      && typeof containHeight === 'undefined'
+      && typeof rDegs === 'undefined'
+      && typeof bSigma !== 'undefined'
+      && typeof cropX === 'undefined'
+      && typeof cropY === 'undefined'
+      && typeof cropW === 'undefined'
+      && typeof cropH === 'undefined') {
+        image.blur(parseInt(bSigma, 10), (err2, processedImage) => {
           promises.push(processedImage);
         });
-      } else if (typeof resizeWidth !== 'undefined' && typeof resizeHeight !== 'undefined' && typeof quality === 'undefined' && typeof opacity === 'undefined' && typeof scale === 'undefined' && typeof containWidth === 'undefined' && typeof containHeight === 'undefined' && typeof rDegs === 'undefined' && typeof bSigma === 'undefined' && typeof cropX === 'undefined' && typeof cropY === 'undefined' && typeof cropW === 'undefined' && typeof cropH === 'undefined') {
-        image.resize(parseInt(resizeWidth), parseInt(resizeHeight), (err, processedImage) => {
+      } else if (typeof resizeWidth !== 'undefined'
+        && typeof resizeHeight !== 'undefined'
+        && typeof quality === 'undefined'
+        && typeof opacity === 'undefined'
+        && typeof scale === 'undefined'
+        && typeof containWidth === 'undefined'
+        && typeof containHeight === 'undefined'
+        && typeof rDegs === 'undefined'
+        && typeof bSigma === 'undefined'
+        && typeof cropX === 'undefined'
+        && typeof cropY === 'undefined'
+        && typeof cropW === 'undefined'
+        && typeof cropH === 'undefined') {
+        image.resize(parseInt(resizeWidth, 10), parseInt(resizeHeight, 10), (err3, processedImage) => {
           promises.push(processedImage);
         });
-      } else if (typeof resizeWidth === 'undefined' && typeof resizeHeight === 'undefined' && typeof quality === 'undefined' && typeof opacity === 'undefined' && typeof scale === 'undefined' && typeof containWidth === 'undefined' && typeof containHeight === 'undefined' && typeof rDegs === 'undefined' && typeof bSigma === 'undefined' && typeof cropX !== 'undefined' && typeof cropY !== 'undefined' && typeof cropW !== 'undefined' && typeof cropH !== 'undefined') {
-        image.crop(parseInt(cropX), parseInt(cropY), parseInt(cropW), parseInt(cropH), (err, processedImage) => {
+      } else if (typeof resizeWidth === 'undefined'
+        && typeof resizeHeight === 'undefined'
+        && typeof quality === 'undefined'
+        && typeof opacity === 'undefined'
+        && typeof scale === 'undefined'
+        && typeof containWidth === 'undefined'
+        && typeof containHeight === 'undefined'
+        && typeof rDegs === 'undefined'
+        && typeof bSigma === 'undefined'
+        && typeof cropX !== 'undefined'
+        && typeof cropY !== 'undefined'
+        && typeof cropW !== 'undefined'
+        && typeof cropH !== 'undefined') {
+        image.crop(
+          parseInt(cropX, 10),
+          parseInt(cropY, 10),
+          parseInt(cropW, 10),
+          parseInt(cropH, 10), (err4, processedImage) => promises.push(processedImage),
+        );
+      } else if (typeof resizeWidth === 'undefined'
+        && typeof resizeHeight === 'undefined'
+        && typeof quality !== 'undefined'
+        && typeof opacity === 'undefined'
+        && typeof scale === 'undefined'
+        && typeof containWidth === 'undefined'
+        && typeof containHeight === 'undefined'
+        && typeof rDegs === 'undefined'
+        && typeof bSigma === 'undefined'
+        && typeof cropX === 'undefined'
+        && typeof cropY === 'undefined'
+        && typeof cropW === 'undefined'
+        && typeof cropH === 'undefined') {
+        image.quality(parseInt(quality, 10), (err5, processedImage) => {
           promises.push(processedImage);
         });
-      } else if (typeof resizeWidth === 'undefined' && typeof resizeHeight === 'undefined' && typeof quality !== 'undefined' && typeof opacity === 'undefined' && typeof scale === 'undefined' && typeof containWidth === 'undefined' && typeof containHeight === 'undefined' && typeof rDegs === 'undefined' && typeof bSigma === 'undefined' && typeof cropX === 'undefined' && typeof cropY === 'undefined' && typeof cropW === 'undefined' && typeof cropH === 'undefined') {
-        image.quality(parseInt(quality), (err, processedImage) => {
+      } else if (typeof resizeWidth === 'undefined'
+        && typeof resizeHeight === 'undefined'
+        && typeof quality === 'undefined'
+        && typeof opacity === 'undefined'
+        && typeof scale !== 'undefined'
+        && typeof containWidth === 'undefined'
+        && typeof containHeight === 'undefined'
+        && typeof rDegs === 'undefined'
+        && typeof bSigma === 'undefined'
+        && typeof cropX === 'undefined'
+        && typeof cropY === 'undefined'
+        && typeof cropW === 'undefined'
+        && typeof cropH === 'undefined') {
+        image.scale(parseInt(scale, 10), (err6, processedImage) => {
           promises.push(processedImage);
         });
-      } else if (typeof resizeWidth === 'undefined' && typeof resizeHeight === 'undefined' && typeof quality === 'undefined' && typeof opacity === 'undefined' && typeof scale !== 'undefined' && typeof containWidth === 'undefined' && typeof containHeight === 'undefined' && typeof rDegs === 'undefined' && typeof bSigma === 'undefined' && typeof cropX === 'undefined' && typeof cropY === 'undefined' && typeof cropW === 'undefined' && typeof cropH === 'undefined') {
-        image.scale(parseInt(scale), (err, processedImage) => {
+      } else if (typeof resizeWidth === 'undefined'
+        && typeof resizeHeight === 'undefined'
+        && typeof quality === 'undefined'
+        && typeof opacity === 'undefined'
+        && typeof scale === 'undefined'
+        && typeof containWidth !== 'undefined'
+        && typeof containHeight !== 'undefined'
+        && typeof rDegs === 'undefined'
+        && typeof bSigma === 'undefined'
+        && typeof cropX === 'undefined'
+        && typeof cropY === 'undefined'
+        && typeof cropW === 'undefined'
+        && typeof cropH === 'undefined') {
+        image.contain(parseInt(containWidth, 10), parseInt(containHeight, 10), (err7, processedImage) => {
           promises.push(processedImage);
         });
-      } else if (typeof resizeWidth === 'undefined' && typeof resizeHeight === 'undefined' && typeof quality === 'undefined' && typeof opacity === 'undefined' && typeof scale === 'undefined' && typeof containWidth !== 'undefined' && typeof containHeight !== 'undefined' && typeof rDegs === 'undefined' && typeof bSigma === 'undefined' && typeof cropX === 'undefined' && typeof cropY === 'undefined' && typeof cropW === 'undefined' && typeof cropH === 'undefined') {
-        image.contain(parseInt(containWidth), parseInt(containHeight), (err, processedImage) => {
+      } else if (typeof resizeWidth === 'undefined'
+        && typeof resizeHeight === 'undefined'
+        && typeof quality === 'undefined'
+        && typeof opacity === 'undefined'
+        && typeof scale === 'undefined'
+        && typeof containWidth === 'undefined'
+        && typeof containHeight === 'undefined'
+        && typeof rDegs !== 'undefined'
+        && typeof bSigma === 'undefined'
+        && typeof cropX === 'undefined'
+        && typeof cropY === 'undefined'
+        && typeof cropW === 'undefined'
+        && typeof cropH === 'undefined') {
+        image.rotate(parseFloat(rDegs), (err8, processedImage) => {
           promises.push(processedImage);
         });
-      } else if (typeof resizeWidth === 'undefined' && typeof resizeHeight === 'undefined' && typeof quality === 'undefined' && typeof opacity === 'undefined' && typeof scale === 'undefined' && typeof containWidth === 'undefined' && typeof containHeight === 'undefined' && typeof rDegs !== 'undefined' && typeof bSigma === 'undefined' && typeof cropX === 'undefined' && typeof cropY === 'undefined' && typeof cropW === 'undefined' && typeof cropH === 'undefined') {
-        image.rotate(parseFloat(rDegs), (err, processedImage) => {
-          promises.push(processedImage);
-        });
-      } else if (typeof resizeWidth === 'undefined' && typeof resizeHeight === 'undefined' && typeof quality === 'undefined' && typeof opacity !== 'undefined' && typeof scale === 'undefined' && typeof containWidth === 'undefined' && typeof containHeight === 'undefined' && typeof rDegs === 'undefined' && typeof bSigma === 'undefined' && typeof cropX === 'undefined' && typeof cropY === 'undefined' && typeof cropW === 'undefined' && typeof cropH === 'undefined') {
-        image.opacity(parseFloat(opacity), (err, processedImage) => {
+      } else if (typeof resizeWidth === 'undefined'
+        && typeof resizeHeight === 'undefined'
+        && typeof quality === 'undefined'
+        && typeof opacity !== 'undefined'
+        && typeof scale === 'undefined'
+        && typeof containWidth === 'undefined'
+        && typeof containHeight === 'undefined'
+        && typeof rDegs === 'undefined'
+        && typeof bSigma === 'undefined'
+        && typeof cropX === 'undefined'
+        && typeof cropY === 'undefined'
+        && typeof cropW === 'undefined'
+        && typeof cropH === 'undefined') {
+        image.opacity(parseFloat(opacity), (err9, processedImage) => {
           promises.push(processedImage);
         });
       }

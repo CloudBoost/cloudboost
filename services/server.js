@@ -11,68 +11,21 @@ const request = require('request');
 const winston = require('winston');
 const appConfig = require('../config/config');
 
-module.exports = {
-  registerServer(secureKey) {
-    const deferred = Q.defer();
-    try {
-      _registerServerAnalytics(secureKey).then((result) => {
-        deferred.resolve(result);
-      }, (error) => {
-        deferred.reject(error);
-      });
-    } catch (err) {
-      winston.log('error', {
-        error: String(err),
-        stack: new Error().stack,
-      });
-      deferred.reject(err);
-    }
-
-    return deferred.promise;
-  },
-  getDBStatuses() {
-    const deferred = Q.defer();
-
-    try {
-      const promises = [];
-
-      promises.push(_mongoDbStatus());
-      promises.push(_redisDbStatus());
-
-      Q.all(promises).then((resultList) => {
-        if (resultList && resultList[0] && resultList[1]) {
-          deferred.resolve('All are running..');
-        }
-      }, (error) => {
-        deferred.reject(error.error);
-      });
-    } catch (err) {
-      winston.log('error', {
-        error: String(err),
-        stack: new Error().stack,
-      });
-      deferred.reject(err);
-    }
-
-    return deferred.promise;
-  },
-};
-
 function _registerServerAnalytics(secureKey) {
   const deferred = Q.defer();
 
   try {
-    let post_data = {};
-    post_data.secureKey = secureKey;
-    post_data = JSON.stringify(post_data);
+    let postData = {};
+    postData.secureKey = secureKey;
+    postData = JSON.stringify(postData);
 
     const url = `${appConfig.analyticsUrl}/server/register`;
     request.post(url, {
       headers: {
         'content-type': 'application/json',
-        'content-length': post_data.length,
+        'content-length': postData.length,
       },
-      body: post_data,
+      body: postData,
     }, (err, response, body) => {
       if (err || response.statusCode === 500 || body === 'Error') {
         deferred.reject(err);
@@ -95,7 +48,6 @@ function _registerServerAnalytics(secureKey) {
 
   return deferred.promise;
 }
-
 
 function _mongoDbStatus() {
   const deferred = Q.defer();
@@ -168,3 +120,50 @@ function _redisDbStatus() {
 
   return deferred.promise;
 }
+
+module.exports = {
+  registerServer(secureKey) {
+    const deferred = Q.defer();
+    try {
+      _registerServerAnalytics(secureKey).then((result) => {
+        deferred.resolve(result);
+      }, (error) => {
+        deferred.reject(error);
+      });
+    } catch (err) {
+      winston.log('error', {
+        error: String(err),
+        stack: new Error().stack,
+      });
+      deferred.reject(err);
+    }
+
+    return deferred.promise;
+  },
+  getDBStatuses() {
+    const deferred = Q.defer();
+
+    try {
+      const promises = [];
+
+      promises.push(_mongoDbStatus());
+      promises.push(_redisDbStatus());
+
+      Q.all(promises).then((resultList) => {
+        if (resultList && resultList[0] && resultList[1]) {
+          deferred.resolve('All are running..');
+        }
+      }, (error) => {
+        deferred.reject(error.error);
+      });
+    } catch (err) {
+      winston.log('error', {
+        error: String(err),
+        stack: new Error().stack,
+      });
+      deferred.reject(err);
+    }
+
+    return deferred.promise;
+  },
+};

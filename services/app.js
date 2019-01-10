@@ -4,7 +4,7 @@
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
-/* eslint no-use-before-define: 0 operator-linebreak: 0 */
+/* eslint no-use-before-define: 0 */
 const q = require('q');
 const crypto = require('crypto');
 const uuid = require('uuid');
@@ -624,10 +624,18 @@ module.exports = {
           // No table found. Create new table
           const defaultSchema = tablesData.Custom;
           const newTable = await appService.upsertTable(appId, collectionName, defaultSchema);
-          config.redisClient.setex(`${config.cacheSchemaPrefix}-${appId}:${collectionName}`, config.schemaExpirationTimeFromCache, JSON.stringify(newTable._doc));
+          config.redisClient.setex(
+            `${config.cacheSchemaPrefix}-${appId}:${collectionName}`,
+            config.schemaExpirationTimeFromCache,
+            JSON.stringify(newTable._doc),
+          );
           deferred.resolve(newTable);
         } else {
-          config.redisClient.setex(`${config.cacheSchemaPrefix}-${appId}:${collectionName}`, config.schemaExpirationTimeFromCache, JSON.stringify(foundTable._doc));
+          config.redisClient.setex(
+            `${config.cacheSchemaPrefix}-${appId}:${collectionName}`,
+            config.schemaExpirationTimeFromCache,
+            JSON.stringify(foundTable._doc),
+          );
           deferred.resolve(foundTable);
         }
       }
@@ -911,128 +919,207 @@ function _checkValidDataType(columns, defaultDataType, tableType) {
       }
 
       if (key === 'id') {
-        if (columns[index].relationType !== null || columns[index].required !== true || columns[index].unique !== true || columns[index].dataType !== 'Id') return false;
+        if (columns[index].relationType !== null
+          || columns[index].required !== true
+          || columns[index].unique !== true
+          || columns[index].dataType !== 'Id') return false;
       }
 
       // createdAt for every table
       if (key === 'createdAt') {
-        if (columns[index].relationType !== null || columns[index].required !== true || columns[index].unique !== false || columns[index].dataType !== 'DateTime') return false;
+        if (columns[index].relationType !== null
+        || columns[index].required !== true
+        || columns[index].unique !== false
+        || columns[index].dataType !== 'DateTime') return false;
       }
 
       // updatedAt for every table
       if (key === 'updatedAt') {
-        if (columns[index].relationType !== null || columns[index].required !== true || columns[index].unique !== false || columns[index].dataType !== 'DateTime') return false;
+        if (columns[index].relationType !== null
+        || columns[index].required !== true
+        || columns[index].unique !== false
+        || columns[index].dataType !== 'DateTime') return false;
       }
 
       // ACL for every table
       if (key === 'ACL') {
-        if (columns[index].relationType !== null || columns[index].required !== true || columns[index].unique !== false || columns[index].dataType !== 'ACL') return false;
+        if (columns[index].relationType !== null
+        || columns[index].required !== true
+        || columns[index].unique !== false
+        || columns[index].dataType !== 'ACL') return false;
       }
 
       // username for user table
       if (key === 'username') {
-        if (columns[index].relationType !== null || columns[index].required !== false || columns[index].unique !== true || columns[index].dataType !== 'Text') return false;
+        if (columns[index].relationType !== null
+        || columns[index].required !== false
+        || columns[index].unique !== true
+        || columns[index].dataType !== 'Text') return false;
       }
 
       // email for user table
       if (key === 'email') {
-        if (columns[index].relationType !== null || columns[index].required !== false || columns[index].unique !== true || columns[index].dataType !== 'Email') return false;
+        if (columns[index].relationType !== null
+        || columns[index].required !== false
+        || columns[index].unique !== true
+        || columns[index].dataType !== 'Email') return false;
       }
 
       // password for user table
       if (key === 'password') {
-        if (columns[index].relationType !== null || columns[index].required !== false || columns[index].unique !== false || columns[index].dataType !== 'EncryptedText') return false;
+        if (columns[index].relationType !== null
+        || columns[index].required !== false
+        || columns[index].unique !== false
+        || columns[index].dataType !== 'EncryptedText') return false;
       }
 
       // roles property for user table
       if (key === 'roles') {
-        if (columns[index].relationType !== 'table' || columns[index].required !== false || columns[index].unique !== false || columns[index].dataType !== 'List' || columns[index].relatedTo !== 'Role') return false;
+        if (columns[index].relationType !== 'table'
+        || columns[index].required !== false
+        || columns[index].unique !== false
+        || columns[index].dataType !== 'List'
+        || columns[index].relatedTo !== 'Role') return false;
       }
 
       // socialAuth property for user table
       if (key === 'socialAuth') {
-        if (columns[index].required !== false || columns[index].unique !== false || columns[index].dataType !== 'List' || columns[index].relatedTo !== 'Object') return false;
+        if (columns[index].required !== false
+        || columns[index].unique !== false
+        || columns[index].dataType !== 'List'
+        || columns[index].relatedTo !== 'Object') return false;
       }
 
       // verified for user table
       if (key === 'verified') {
-        if (columns[index].relationType !== null || columns[index].required !== false || columns[index].unique !== false || columns[index].dataType !== 'Boolean') return false;
+        if (columns[index].relationType !== null
+        || columns[index].required !== false
+        || columns[index].unique !== false
+        || columns[index].dataType !== 'Boolean') return false;
       }
 
       // name for role table
       if (key === 'name' && tableType === 'role') {
-        if (columns[index].relationType !== null || columns[index].required !== true || columns[index].unique !== true || columns[index].dataType !== 'Text') return false;
+        if (columns[index].relationType !== null
+        || columns[index].required !== true
+        || columns[index].unique !== true
+        || columns[index].dataType !== 'Text') return false;
       }
 
       // name for file table
       if (key === 'name' && tableType === 'file') {
-        if (columns[index].relationType !== null || columns[index].required !== true || columns[index].unique !== false || columns[index].dataType !== 'Text') return false;
+        if (columns[index].relationType !== null
+        || columns[index].required !== true
+        || columns[index].unique !== false
+        || columns[index].dataType !== 'Text') return false;
       }
       // name for event table
       if (key === 'name' && (tableType === 'event' || tableType === 'funnel')) {
-        if (columns[index].relationType !== null || columns[index].required !== true || columns[index].unique !== false || columns[index].dataType !== 'Text') return false;
+        if (columns[index].relationType !== null
+        || columns[index].required !== true
+        || columns[index].unique !== false
+        || columns[index].dataType !== 'Text') return false;
       }
 
       // channels for device table
       if (key === 'channels') {
-        if (columns[index].relationType !== null || columns[index].required !== false || columns[index].unique !== false || columns[index].dataType !== 'List') return false;
+        if (columns[index].relationType !== null
+        || columns[index].required !== false
+        || columns[index].unique !== false
+        || columns[index].dataType !== 'List') return false;
       }
       // deviceToken for device table
       if (key === 'deviceToken') {
-        if (columns[index].relationType !== null || columns[index].required !== false || columns[index].unique !== true || columns[index].dataType !== 'Text') return false;
+        if (columns[index].relationType !== null
+        || columns[index].required !== false
+        || columns[index].unique !== true
+        || columns[index].dataType !== 'Text') return false;
       }
       // deviceOS for device table
       if (key === 'deviceOS') {
-        if (columns[index].relationType !== null || columns[index].required !== false || columns[index].unique !== false || columns[index].dataType !== 'Text') return false;
+        if (columns[index].relationType !== null
+        || columns[index].required !== false
+        || columns[index].unique !== false
+        || columns[index].dataType !== 'Text') return false;
       }
       // timezone for device table
       if (key === 'timezone') {
-        if (columns[index].relationType !== null || columns[index].required !== false || columns[index].unique !== false || columns[index].dataType !== 'Text') return false;
+        if (columns[index].relationType !== null
+        || columns[index].required !== false
+        || columns[index].unique !== false
+        || columns[index].dataType !== 'Text') return false;
       }
       // metadata for device table
       if (key === 'metadata') {
-        if (columns[index].relationType !== null || columns[index].required !== false || columns[index].unique !== false || columns[index].dataType !== 'Object') return false;
+        if (columns[index].relationType !== null
+        || columns[index].required !== false
+        || columns[index].unique !== false
+        || columns[index].dataType !== 'Object') return false;
       }
 
       if (key === 'size') {
-        if (columns[index].relationType !== null || columns[index].required !== true || columns[index].unique !== false || columns[index].dataType !== 'Number') return false;
+        if (columns[index].relationType !== null
+        || columns[index].required !== true
+        || columns[index].unique !== false
+        || columns[index].dataType !== 'Number') return false;
       }
       // url for file table
       if (key === 'url') {
-        if (columns[index].relationType !== null || columns[index].required !== true || columns[index].unique !== true || columns[index].dataType !== 'URL') return false;
+        if (columns[index].relationType !== null
+        || columns[index].required !== true
+        || columns[index].unique !== true
+        || columns[index].dataType !== 'URL') return false;
       }
       // path for file table
       if (key === 'path') {
-        if (columns[index].relationType !== null || columns[index].required !== true || columns[index].unique !== false || columns[index].dataType !== 'Text') return false;
+        if (columns[index].relationType !== null
+        || columns[index].required !== true
+        || columns[index].unique !== false
+        || columns[index].dataType !== 'Text') return false;
       }
       // contentType for file table
       if (key === 'contentType') {
-        if (columns[index].relationType !== null || columns[index].required !== true || columns[index].unique !== false || columns[index].dataType !== 'Text') return false;
+        if (columns[index].relationType !== null
+        || columns[index].required !== true
+        || columns[index].unique !== false
+        || columns[index].dataType !== 'Text') return false;
       }
 
       // user for event table
       if (key === 'user') {
-        if (columns[index].relationType !== null || columns[index].required !== false || columns[index].unique !== false || columns[index].dataType !== 'Relation') return false;
+        if (columns[index].relationType !== null
+        || columns[index].required !== false
+        || columns[index].unique !== false
+        || columns[index].dataType !== 'Relation') return false;
       }
 
       // type for event table
       if (key === 'type') {
-        if (columns[index].relationType !== null || columns[index].required !== true || columns[index].unique !== false || columns[index].dataType !== 'Text') return false;
+        if (columns[index].relationType !== null
+        || columns[index].required !== true
+        || columns[index].unique !== false
+        || columns[index].dataType !== 'Text') return false;
       }
 
       // type for event table
       if (key === 'type') {
-        if (columns[index].relationType !== null || columns[index].required !== true || columns[index].unique !== false || columns[index].dataType !== 'Text') return false;
+        if (columns[index].relationType !== null
+        || columns[index].required !== true
+        || columns[index].unique !== false
+        || columns[index].dataType !== 'Text') return false;
       }
 
       // data for event table
       if (key === 'data') {
-        if (columns[index].relationType !== null || columns[index].required !== true || columns[index].unique !== false || columns[index].dataType !== 'Object') return false;
+        if (columns[index].relationType !== null
+        || columns[index].required !== true
+        || columns[index].unique !== false
+        || columns[index].dataType !== 'Object') return false;
       }
 
-      if (columns[index].isRenamable !== false ||
-          columns[index].isEditable !== false ||
-          columns[index].isDeletable !== false) {
+      if (columns[index].isRenamable !== false
+      || columns[index].isEditable !== false
+      || columns[index].isDeletable !== false) {
         return false;
       }
 
@@ -1067,11 +1154,13 @@ function _checkValidDataType(columns, defaultDataType, tableType) {
 
         if (typeof columns[i].defaultValue === 'string') {
           if (columns[i].dataType === 'URL') {
-            if (columns[i].defaultValue.match(/^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/i)[0] !== columns[i].defaultValue) {
+            const re = /^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/i;
+            if (columns[i].defaultValue.match(re)[0] !== columns[i].defaultValue) {
               return false;
             }
           } else if (columns[i].dataType === 'Email') {
-            if (columns[i].defaultValue.match(/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/i)[0] !== columns[i].defaultValue) {
+            const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/i;
+            if (columns[i].defaultValue.match(re)[0] !== columns[i].defaultValue) {
               /* if the set dataType is not other string Datatypes (Text,
               EncryptedText, DateTime) available in cloudboost;
               */
@@ -1257,24 +1346,24 @@ function _checkSchemaType({ schema, table, tableType }) {
     const index = tableColumns.indexOf(schema[i].name.toLowerCase());
     if (index >= 0) {
       // column with the same name found in the table. Checking type...
-      if (schema[i].dataType !== table.columns[index].dataType ||
-        schema[i].relatedTo !== table.columns[index].relatedTo ||
-        schema[i].relationType !== table.columns[index].relationType ||
-        schema[i].isDeletable !== table.columns[index].isDeletable ||
-        schema[i].isEditable !== table.columns[index].isEditable ||
-        schema[i].isRenamable !== table.columns[index].isRenamable ||
-        schema[i].editableByMasterKey !== table.columns[index].editableByMasterKey ||
-        schema[i].isSearchable !== table.columns[index].isSearchable) {
+      if (schema[i].dataType !== table.columns[index].dataType
+      || schema[i].relatedTo !== table.columns[index].relatedTo
+      || schema[i].relationType !== table.columns[index].relationType
+      || schema[i].isDeletable !== table.columns[index].isDeletable
+      || schema[i].isEditable !== table.columns[index].isEditable
+      || schema[i].isRenamable !== table.columns[index].isRenamable
+      || schema[i].editableByMasterKey !== table.columns[index].editableByMasterKey
+      || schema[i].isSearchable !== table.columns[index].isSearchable) {
         return 'Cannot Change Column\'s Property. Only Required and Unique Field can be changed.';
       }
 
-      if (schema[i].required !== table.columns[index].required &&
-        defaultColumns.indexOf(schema[i].name.toLowerCase()) >= 0) {
+      if (schema[i].required !== table.columns[index].required
+       && defaultColumns.indexOf(schema[i].name.toLowerCase()) >= 0) {
         return 'Error : Cannot change the required field of a default column.';
       }
 
-      if (schema[i].unique !== table.columns[index].unique &&
-        defaultColumns.indexOf(schema[i].name.toLowerCase()) >= 0) {
+      if (schema[i].unique !== table.columns[index].unique
+       && defaultColumns.indexOf(schema[i].name.toLowerCase()) >= 0) {
         return 'Error : Cannot change the unique field of a default column.';
       }
     }

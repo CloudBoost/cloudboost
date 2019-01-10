@@ -1,41 +1,8 @@
+/* eslint camelcase : 0 */
 const Slack = require('slack-node');
 const request = require('request');
+const winston = require('winston');
 const appService = require('../services/app');
-
-const integrationService = {
-  integrationNotification(appId, document, collection_name, table_event) {
-    const integration_api = ['slack', 'zapier'];
-    appService.getApp(appId).then((application) => {
-      const appName = application.name;
-      appService.getAllSettings(appId).then(function (settings) {
-        let integrationSettings;
-        settings.forEach((element) => {
-          if (element.category == 'integrations') {
-            integrationSettings = element.settings;
-          }
-        }, this);
-        if (integrationSettings) {
-          for (let i = 0; i < integration_api.length; i++) {
-            switch (integration_api[i]) {
-              case 'slack':
-                if (collection_name == '_Event' && integrationSettings.slack.enabled) {
-                  notifyOnSlack(integrationSettings.slack, document, appName);
-                }
-                break;
-              case 'zapier':
-                if (integrationSettings.zapier.enabled) {
-                  notifyOnZapier(integrationSettings.zapier, document, collection_name, table_event, appName);
-                }
-                break;
-            }
-          }
-        }
-      });
-    });
-  },
-};
-
-module.exports = integrationService;
 
 function notifyOnSlack(integrationSettings, document, appName) {
   let apiToken;
@@ -87,6 +54,7 @@ function notifyOnSlack(integrationSettings, document, appName) {
         pretext: text,
         author_name: 'Event Notifications',
         author_link: 'https://www.cloudboost.io/',
+        // eslint-disable-next-line max-len
         author_icon: 'https://d1qb2nb5cznatu.cloudfront.net/startups/i/490103-917cc2864d0246e313e9521971422f09-medium_jpg.jpg?buster=1430997518',
         title: `User ${event_type} Notification`,
         title_link: 'https://www.cloudboost.io/',
@@ -103,18 +71,17 @@ function notifyOnSlack(integrationSettings, document, appName) {
           },
         ],
         footer: 'CloudBoost',
+        // eslint-disable-next-line max-len
         footer_icon: 'https://d1qb2nb5cznatu.cloudfront.net/startups/i/490103-917cc2864d0246e313e9521971422f09-medium_jpg.jpg?buster=1430997518',
         ts: timeStamp,
       },
       ]),
     }, () => {});
-    return true;
   }
-  return false;
 }
 
 function notifyOnZapier(integrationSettings, document, collection_name, table_event) {
-  const zapier_events = integrationSettings.zapier_events;
+  const { zapier_events } = integrationSettings;
   const zapier_webhook = integrationSettings.webhook_url || null;
   let eventObject = null;
   for (let i = 0; i < zapier_events.length; i++) {
@@ -138,3 +105,42 @@ function notifyOnZapier(integrationSettings, document, collection_name, table_ev
     request(options, () => {});
   }
 }
+
+const integrationService = {
+  async integrationNotification(appId, document, collection_name, table_event) {
+    const integration_api = ['slack', 'zapier'];
+    try {
+      const application = await appService.getApp(appId);
+      const appName = application.name;
+      const settings = await appService.getAllSettings(appId);
+      let integrationSettings;
+      settings.forEach((element) => {
+        if (element.category === 'integrations') {
+          integrationSettings = element.settings;
+        }
+      }, this);
+      if (integrationSettings) {
+        for (let i = 0; i < integration_api.length; i++) {
+          switch (integration_api[i]) {
+            case 'slack':
+              if (collection_name === '_Event' && integrationSettings.slack.enabled) {
+                notifyOnSlack(integrationSettings.slack, document, appName);
+              }
+              break;
+            case 'zapier':
+              if (integrationSettings.zapier.enabled) {
+                notifyOnZapier(integrationSettings.zapier, document, collection_name, table_event, appName);
+              }
+              break;
+            default:
+              break;
+          }
+        }
+      }
+    } catch (error) {
+      winston.error({ error });
+    }
+  },
+};
+
+module.exports = integrationService;

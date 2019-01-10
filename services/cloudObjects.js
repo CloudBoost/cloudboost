@@ -1,4 +1,5 @@
-/* eslint-disable no-redeclare */
+/* eslint-disable */
+
 /*
 #     CloudBoost - Core Engine that powers Bakend as a Service
 #     (c) 2014 HackerBay, Inc.
@@ -20,27 +21,17 @@ const tableService = require('./table');
 
 module.exports = {
 
-  find(appId, collectionName, query, select, sort, limit, skip, accessList, isMasterKey, opts) {
+  async find(appId, collectionName, query, select, sort, limit, skip, accessList, isMasterKey, opts) {
     const deferred = q.defer();
 
     try {
-      if (opts && opts.ignoreSchema || collectionName === '_File') {
-        mongoService.document.find(appId, collectionName, query, select, sort, limit, skip, accessList, isMasterKey).then((doc) => {
-          deferred.resolve(doc);
-        }, (err) => {
-          deferred.reject(err);
-        });
+      if ((opts && opts.ignoreSchema) || (collectionName === '_File')) {
+        const doc = await mongoService.document.find(appId, collectionName, query, select, sort, limit, skip, accessList, isMasterKey);
+        deferred.resolve(doc);
       } else {
-        _modifyFieldsInQuery(appId, collectionName, query)
-          .then((query) => {
-            mongoService.document.find(appId, collectionName, query, select, sort, limit, skip, accessList, isMasterKey).then((doc) => {
-              deferred.resolve(doc);
-            }, (err) => {
-              deferred.reject(err);
-            });
-          }, (error) => {
-            deferred.reject(error);
-          });
+        const _query = await _modifyFieldsInQuery(appId, collectionName, query);
+        const doc = await mongoService.document.find(appId, collectionName, _query, select, sort, limit, skip, accessList, isMasterKey);
+        deferred.resolve(doc);
       }
     } catch (err) {
       winston.log('error', {
@@ -52,19 +43,13 @@ module.exports = {
 
     return deferred.promise;
   },
-  count(appId, collectionName, query, limit, skip, accessList, isMasterKey) {
+  async count(appId, collectionName, query, limit, skip, accessList, isMasterKey) {
     const deferred = q.defer();
 
     try {
-      _modifyFieldsInQuery(appId, collectionName, query).then((query) => {
-        mongoService.document.count(appId, collectionName, query, limit, skip, accessList, isMasterKey).then((doc) => {
-          deferred.resolve(doc);
-        }, (err) => {
-          deferred.reject(err);
-        });
-      }, (error) => {
-        deferred.reject(error);
-      });
+      const _query = await _modifyFieldsInQuery(appId, collectionName, query);
+      const doc = await mongoService.document.count(appId, collectionName, _query, limit, skip, accessList, isMasterKey);
+      deferred.resolve(doc);
     } catch (err) {
       winston.log('error', {
         error: String(err),
@@ -75,19 +60,16 @@ module.exports = {
 
     return deferred.promise;
   },
-  distinct(appId, collectionName, onKey, query, select, sort, limit, skip, accessList, isMasterKey) {
+  async distinct(appId, collectionName, onKey, query, select, sort, limit, skip, accessList, isMasterKey) {
     const deferred = q.defer();
 
     try {
-      _modifyFieldsInQuery(appId, collectionName, query).then((query) => {
-        mongoService.document.distinct(appId, collectionName, onKey, query, select, sort, limit, skip, accessList, isMasterKey).then((doc) => {
-          deferred.resolve(doc);
-        }, (err) => {
-          deferred.reject(err);
-        });
-      }, (error) => {
-        deferred.reject(error);
-      });
+      const _query = await _modifyFieldsInQuery(appId, collectionName, query);
+      const doc = await mongoService.document.distinct(
+        appId, collectionName, onKey, _query, select,
+        sort, limit, skip, accessList, isMasterKey,
+      );
+      deferred.resolve(doc);
     } catch (err) {
       winston.log('error', {
         error: String(err),
@@ -98,19 +80,13 @@ module.exports = {
     return deferred.promise;
   },
 
-  findOne(appId, collectionName, query, select, sort, skip, accessList, isMasterKey) {
+  async findOne(appId, collectionName, query, select, sort, skip, accessList, isMasterKey) {
     const deferred = q.defer();
 
     try {
-      _modifyFieldsInQuery(appId, collectionName, query).then((query) => {
-        mongoService.document.findOne(appId, collectionName, query, select, sort, skip, accessList, isMasterKey).then((doc) => {
-          deferred.resolve(doc);
-        }, (err) => {
-          deferred.reject(err);
-        });
-      }, (error) => {
-        deferred.reject(error);
-      });
+      const _query = await _modifyFieldsInQuery(appId, collectionName, query);
+      const doc = await mongoService.document.findOne(appId, collectionName, _query, select, sort, skip, accessList, isMasterKey);
+      deferred.resolve(doc);
     } catch (err) {
       winston.log('error', {
         error: String(err),

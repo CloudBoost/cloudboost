@@ -6,37 +6,34 @@ const appService = require('./app');
 
 
 module.exports = {
-  getSchema(appId, collectionName) {
+  async getSchema(appId, collectionName) {
     const deferred = q.defer();
 
     try {
-      config.redisClient.get(`${config.cacheSchemaPrefix}-${appId}:${collectionName}`, (err, res) => {
-        if (res) {
-          deferred.resolve(JSON.parse(res));
+      const res = await config.redisClient.get(`${config.cacheSchemaPrefix}-${appId}:${collectionName}`);
+      if (res) {
+        deferred.resolve(JSON.parse(res));
+      } else {
+        const collection = config.mongoClient.db(appId).collection('_Schema');
+        const table = await collection.findOne({ name: collectionName });
+        if (!table) {
+          // No table found. Create new table
+          const defaultSchema = tablesData.Custom;
+          const newTable = await appService.upsertTable(appId, collectionName, defaultSchema);
+          config.redisClient.setex(
+            `${config.cacheSchemaPrefix}-${appId}:${collectionName}`,
+            config.schemaExpirationTimeFromCache,
+            JSON.stringify(newTable._doc),
+          );
+          deferred.resolve(newTable);
         } else {
-          const collection = config.mongoClient.db(appId).collection('_Schema');
-          const findQuery = collection.find({ name: collectionName });
-          findQuery.toArray((err, tables) => {
-            const res = tables[0];
-            if (err) {
-              winston.log('error', err);
-              deferred.reject(err);
-            } else if (!res) {
-              // No table found. Create new table
-              const defaultSchema = tablesData.Custom;
-              appService.upsertTable(appId, collectionName, defaultSchema).then((table) => {
-                config.redisClient.setex(`${config.cacheSchemaPrefix}-${appId}:${collectionName}`, config.schemaExpirationTimeFromCache, JSON.stringify(table._doc));
-                deferred.resolve(table);
-              }, (err) => {
-                deferred.reject(err);
-              });
-            } else {
-              config.redisClient.setex(`${config.cacheSchemaPrefix}-${appId}:${collectionName}`, config.schemaExpirationTimeFromCache, JSON.stringify(res._doc));
-              deferred.resolve(res);
-            }
-          });
+          config.redisClient.setex(
+            `${config.cacheSchemaPrefix}-${appId}:${collectionName}`,
+            config.schemaExpirationTimeFromCache, JSON.stringify(table._doc),
+          );
+          deferred.resolve(table);
         }
-      });
+      }
     } catch (err) {
       winston.log('error', {
         error: String(err),

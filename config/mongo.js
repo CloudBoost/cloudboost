@@ -73,7 +73,7 @@ module.exports = () => {
             host: process.env[`MONGO_${count}_PORT_27017_TCP_ADDR`],
             port: process.env[`MONGO_${count}_PORT_27017_TCP_PORT`],
           });
-
+          // eslint-disable-next-line max-len
           mongoConnectionString += `${process.env[`MONGO_${count}_PORT_27017_TCP_ADDR`]}:${process.env[`MONGO_${count}_PORT_27017_TCP_PORT`]}`;
           mongoConnectionString += ',';
           count++;

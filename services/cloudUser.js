@@ -3,21 +3,21 @@
 #     (c) 2014 HackerBay, Inc.
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
+/* eslint-disable */
 
-
+const winston = require('winston');
 const crypto = require('crypto');
 const q = require('q');
 const _ = require('underscore');
 const Collections = require('../database-connect/collections.js');
 
-const cipher_alg = 'aes-256-ctr';
 const config = require('../config/config');
 const mongoService = require('../databases/mongo');
 const customService = require('../services/cloudObjects');
 const appService = require('../services/app');
 const mailService = require('../services/mail');
-const winston = require('winston');
 
+const cipher_alg = 'aes-256-ctr';
 const userService = {
 
   login(appId, username, password, accessList, isMasterKey, encryption_key) {
