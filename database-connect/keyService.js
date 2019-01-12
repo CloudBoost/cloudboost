@@ -34,7 +34,7 @@ module.exports = {
 
   async getSettingsVariables(dbc) {
     const deferred = q.defer();
-    const collection = db(config.globalDb).collection(config.globalSettings);
+    const collection = dbc.db(config.globalDb).collection(config.globalSettings);
     try {
       const docs = await collection.find({}).toArray();
       if (docs.length) {
