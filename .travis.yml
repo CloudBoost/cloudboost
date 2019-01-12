@@ -25,7 +25,6 @@ before_install:
 install:
 - npm install grunt-cli -g
 - npm install eslint -g
-- npm install
 - docker build -t cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER .
 - if [ "$TRAVIS_BRANCH" == "release" ]; then
     docker tag cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER cloudboost/cloudboost:latest;
