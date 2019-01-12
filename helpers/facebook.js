@@ -7,6 +7,28 @@ const q = require('q');
 const FB = require('fb');
 const winston = require('winston');
 
+
+function _getFbScopeString(authSettings) {
+  const json = authSettings.facebook.permissions;
+
+  const scopeArray = Object.keys(json)
+    .filter(key => Object.prototype.hasOwnProperty.call(json, key) && json[key].enable)
+    .map(key => json[key].scope);
+
+  return scopeArray.toString();
+}
+
+function _getFbFieldString(authSettings) {
+  const json = authSettings.facebook.attributes;
+
+  const fieldArray = Object.keys(json)
+    .filter(key => Object.prototype.hasOwnProperty.call(json, key) && json[key])
+    .map(key => key.toString());
+
+  return fieldArray;
+}
+
+
 module.exports = {
 
   getLoginUrl(req, appId, authSettings) {
@@ -107,30 +129,3 @@ module.exports = {
     return deferred.promise;
   },
 };
-
-
-function _getFbScopeString(authSettings) {
-  const json = authSettings.facebook.permissions;
-
-  const scopeArray = [];
-  for (const key in json) {
-    if (json.hasOwnProperty(key) && json[key].enabled) {
-      scopeArray.push(json[key].scope);
-    }
-  }
-
-  return scopeArray.toString();
-}
-
-function _getFbFieldString(authSettings) {
-  const json = authSettings.facebook.attributes;
-
-  const fieldArray = [];
-  for (const key in json) {
-    if (json.hasOwnProperty(key) && json[key]) {
-      fieldArray.push(key.toString());
-    }
-  }
-
-  return fieldArray;
-}

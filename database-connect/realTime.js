@@ -10,7 +10,62 @@ const socketQueryHelper = require('../helpers/socketQuery');
 const aclHelper = require('../helpers/ACL');
 const appService = require('../services/app');
 
-module.exports = function (io) {
+function _buildSocketId(socketId, appId, tableName, eventType) {
+  return socketId + (`${appId}table${tableName}${eventType}`).toLowerCase();
+}
+
+function _sendNotification(appId, document, socket, eventType) {
+  const deferred = q.defer();
+  try {
+    socketSessionHelper.getSession(socket.id, (err, _session) => {
+      if (err) {
+        deferred.reject();
+      }
+
+      const session = _session || {};
+
+      socketQueryHelper.getData(_buildSocketId(socket.id, appId, document._tableName, eventType), eventType, (err1, _socketData) => {
+        const socketData = _socketData || { timestamp: '' };
+        let socketQueryValidate = true;
+        if (socketData.query) {
+          socketQueryValidate = socketQueryHelper.validateSocketQuery(document, socketData.query.query);
+        }
+
+        if (socketQueryValidate) {
+          // check if public access is enabled or the current session user is allowed
+          if (aclHelper.isAllowedReadAccess(session.userId, session.roles, document.ACL)) {
+            socket.emit(`${appId.toLowerCase()}table${document._tableName.toLowerCase()}${eventType.toLowerCase()}${socketData.timestamp}`,
+              JSON.stringify(document));
+
+            deferred.resolve();
+          } else if (socketData.appKey) {
+            // if no access then only emit if listen is using master key
+            appService.isMasterKey(appId, socketData.appKey).then((isMaster) => {
+              if (isMaster) {
+                // eslint-disable-next-line max-len
+                socket.emit(`${appId.toLowerCase()}table${document._tableName.toLowerCase()}${eventType.toLowerCase()}${socketData.timestamp}`, JSON.stringify(document));
+              }
+              deferred.resolve();
+            });
+          } else {
+            deferred.resolve();
+          }
+        } else {
+          deferred.resolve();
+        }
+      });
+    });
+  } catch (e) {
+    winston.log('error', {
+      error: String(e),
+      stack: new Error().stack,
+    });
+    deferred.reject(e);
+  }
+  return deferred.promise;
+}
+
+module.exports = (io) => {
   const g = {};
   io.use((socket, next) => {
     next();
@@ -149,24 +204,24 @@ module.exports = function (io) {
     }
   });
 
-  g.sendObjectNotification = function (appId, document, eventType) {
+  g.sendObjectNotification = (appId, document, eventType) => {
     try {
       // event type can be created, updated, deleted.
       if (document && document._tableName) {
         // if this doucment is an instance of a table Object.
         const roomSockets = io.to(`${appId.toLowerCase()}table${document._tableName.toLowerCase()}${eventType.toLowerCase()}`);
-        const sockets = roomSockets.sockets;
+        const { sockets } = roomSockets;
 
         const promises = [];
 
         // check for ACL and then send.
 
-        if (typeof sockets === 'object') {
-          for (const key in sockets) {
-            if (sockets[key]) {
+        if (typeof sockets === 'object' && !Array.isArray(sockets)) {
+          Object.keys(sockets).forEach((key) => {
+            if (Object.prototype.hasOwnProperty.call(sockets, key) && sockets[key]) {
               promises.push(_sendNotification(appId, document, sockets[key], eventType));
             }
-          }
+          });
         } else {
           for (let i = 0; i < sockets.length; i++) {
             const socket = sockets[i];
@@ -193,58 +248,3 @@ module.exports = function (io) {
 
 /**
  */
-
-function _sendNotification(appId, document, socket, eventType) {
-  const deferred = q.defer();
-  try {
-    socketSessionHelper.getSession(socket.id, (err, session) => {
-      if (err) {
-        deferred.reject();
-      }
-
-      session = session || {};
-
-      socketQueryHelper.getData(_buildSocketId(socket.id, appId, document._tableName, eventType), eventType, (err, socketData) => {
-        socketData = socketData || { timestamp: '' };
-        let socketQueryValidate = true;
-        if (socketData.query) {
-          socketQueryValidate = socketQueryHelper.validateSocketQuery(document, socketData.query.query);
-        }
-
-        if (socketQueryValidate) {
-          // check if public access is enabled or the current session user is allowed
-          if (aclHelper.isAllowedReadAccess(session.userId, session.roles, document.ACL)) {
-            socket.emit(`${appId.toLowerCase()}table${document._tableName.toLowerCase()}${eventType.toLowerCase()}${socketData.timestamp}`, JSON.stringify(document));
-
-            deferred.resolve();
-          } else {
-            // if no access then only emit if listen is using master key
-            if (socketData.appKey) {
-              appService.isMasterKey(appId, socketData.appKey).then((isMaster) => {
-                if (isMaster) {
-                  socket.emit(`${appId.toLowerCase()}table${document._tableName.toLowerCase()}${eventType.toLowerCase()}${socketData.timestamp}`, JSON.stringify(document));
-                }
-                deferred.resolve();
-              });
-            } else {
-              deferred.resolve();
-            }
-          }
-        } else {
-          deferred.resolve();
-        }
-      });
-    });
-  } catch (e) {
-    winston.log('error', {
-      error: String(e),
-      stack: new Error().stack,
-    });
-    deferred.reject(e);
-  }
-  return deferred.promise;
-}
-
-function _buildSocketId(socketId, appId, tableName, eventType) {
-  return socketId + (`${appId}table${tableName}${eventType}`).toLowerCase();
-}

@@ -7,55 +7,10 @@
 
 const q = require('q');
 const winston = require('winston');
+const { CronJob } = require('cron');
 const mongoUtil = require('../helpers/mongo');
 const fileService = require('../services/cloudFiles');
 const config = require('../config/config');
-
-const CronJob = require('cron').CronJob;
-
-const job = new CronJob('00 00 22 * * *', (() => {
-  try {
-    _getDatabases().then((databaseNameList) => {
-      if (databaseNameList && databaseNameList.length > 0) {
-        for (let j = 0; j < databaseNameList.length; ++j) {
-          var appId = databaseNameList[j];
-
-          var curr = new Date();
-
-          const collectionName = '_Schema';
-          const collection = config.mongoClient.db(appId).collection(collectionName);
-
-          collection.find({}).toArray().then((res) => {
-            const resp = res.length;
-
-            for (let i = 0; i < resp; i++) {
-              const collectionName = res[i].name;
-              if (global.database && global.esClient) {
-                if (collectionName !== 'File') {
-                  mongodb(appId, collectionName, curr);
-                } else {
-                  removeFiles(appId, curr);
-                }
-              }
-            }
-          }, (error) => {
-            winston.error({
-              error,
-            });
-          });
-        }
-      }
-    }, (error) => {
-      winston.error({
-        error,
-      });
-    });
-  } catch (err) {
-    winston.log('error', { error: String(err), stack: new Error().stack });
-  }
-}),
-
-null, false, 'America/Los_Angeles');
 
 
 function removeFiles(appId, curr) {
@@ -114,5 +69,49 @@ function _getDatabases() {
 
   return deferred.promise;
 }
+
+const job = new CronJob('00 00 22 * * *', (() => {
+  try {
+    _getDatabases().then((databaseNameList) => {
+      if (databaseNameList && databaseNameList.length > 0) {
+        for (let j = 0; j < databaseNameList.length; ++j) {
+          const appId = databaseNameList[j];
+
+          const curr = new Date();
+
+          const collectionName = '_Schema';
+          const collection = config.mongoClient.db(appId).collection(collectionName);
+
+          collection.find({}).toArray().then((res) => {
+            const resp = res.length;
+
+            for (let i = 0; i < resp; i++) {
+              const _collectionName = res[i].name;
+              if (global.database && global.esClient) {
+                if (_collectionName !== 'File') {
+                  mongodb(appId, _collectionName, curr);
+                } else {
+                  removeFiles(appId, curr);
+                }
+              }
+            }
+          }, (error) => {
+            winston.error({
+              error,
+            });
+          });
+        }
+      }
+    }, (error) => {
+      winston.error({
+        error,
+      });
+    });
+  } catch (err) {
+    winston.log('error', { error: String(err), stack: new Error().stack });
+  }
+}),
+
+null, false, 'America/Los_Angeles');
 
 job.start();

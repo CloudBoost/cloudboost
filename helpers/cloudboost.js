@@ -7,10 +7,8 @@
 
 const winston = require('winston');
 
-module.exports = function () {
-  let obj = {};
-
-  obj = {
+module.exports = () => {
+  const obj = {
     getAllDataTypesInclId() {
       try {
         const types = ['Object', 'ACL', 'DateTime', 'Boolean', 'EncryptedText', 'URL', 'Email', 'Text', 'File', 'Number',
@@ -18,6 +16,7 @@ module.exports = function () {
         return types;
       } catch (err) {
         winston.log('error', { error: String(err), stack: new Error().stack });
+        return err;
       }
     },
 
@@ -32,6 +31,7 @@ module.exports = function () {
         return false;
       } catch (err) {
         winston.log('error', { error: String(err), stack: new Error().stack });
+        return err;
       }
     },
   };

@@ -3,11 +3,12 @@
 #     (c) 2014 HackerBay, Inc.
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
-
+/* eslint no-use-before-define: 0, consistent-return: 0, no-param-reassign: 0 */
 const q = require('q');
-const mongoUtil = require('../services/mongo');
+const winston = require('winston');
+const { CronJob } = require('cron');
+const mongoUtil = require('../helpers/mongo');
 const config = require('../config/config');
-const CronJob = require('cron').CronJob;
 
 const job = new CronJob('15 * * * * *', (() => {
   getMessages();
@@ -15,7 +16,6 @@ const job = new CronJob('15 * * * * *', (() => {
 null, false, 'America/Los_Angeles');
 
 job.start();
-const winston = require('winston');
 
 function getMessages() {
   try {

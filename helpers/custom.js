@@ -1,3 +1,4 @@
+/* eslint no-param-reassign: 0 */
 /*
 #     CloudBoost - Core Engine that powers Bakend as a Service
 #     (c) 2014 HackerBay, Inc.
@@ -40,7 +41,13 @@ module.exports = {
 
     try {
       const promises = [];
-      for (let i = 0; i < documents.length; i++) promises.push(this.verifyWriteACLAndUpdateVersion(appId, documents[i]._tableName, documents[i], accessList, isMasterKey));
+      for (let i = 0; i < documents.length; i++) {
+        promises.push(
+          this.verifyWriteACLAndUpdateVersion(
+            appId, documents[i]._tableName, documents[i], accessList, isMasterKey,
+          ),
+        );
+      }
       q.all(promises).then((docs) => {
         deferred.resolve(docs);
       }, (err) => {
@@ -85,10 +92,11 @@ module.exports = {
         error: String(err),
         stack: new Error().stack,
       });
+      return err;
     }
   },
 
-  verifyWriteACLAndUpdateVersion(appId, collectionName, document, accessList, isMasterKey) {
+  async verifyWriteACLAndUpdateVersion(appId, collectionName, document, accessList, isMasterKey) {
     const deferred = q.defer();
 
     try {

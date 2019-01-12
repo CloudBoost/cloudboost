@@ -7,6 +7,16 @@
 const q = require('q');
 const winston = require('winston');
 
+function _getLinkedinScopeString(authSettings) {
+  const json = authSettings.linkedIn.permissions;
+
+  const scopeArray = Object.keys(json)
+    .filter(key => Object.prototype.hasOwnProperty.call(json, key) && json[key])
+    .map(key => key.toString());
+
+  return scopeArray;
+}
+
 module.exports = {
 
   getLoginUrl(req, appId, authSettings) {
@@ -16,7 +26,7 @@ module.exports = {
       const clienId = authSettings.linkedIn.appId;
       const clientSecret = authSettings.linkedIn.appSecret;
 
-      const Linkedin = require('node-linkedin')(clienId, clientSecret);
+      const Linkedin = require('node-linkedin')(clienId, clientSecret); // eslint-disable-line
 
       Linkedin.setCallback(`${req.protocol}://${req.headers.host}/auth/${appId}/linkedin/callback`);
       const scope = _getLinkedinScopeString(authSettings);
@@ -43,7 +53,7 @@ module.exports = {
       const clienId = authSettings.linkedIn.appId;
       const clientSecret = authSettings.linkedIn.appSecret;
 
-      const Linkedin = require('node-linkedin')(clienId, clientSecret);
+      const Linkedin = require('node-linkedin')(clienId, clientSecret); // eslint-disable-line
       Linkedin.setCallback(`${req.protocol}://${req.headers.host}/auth/${appId}/linkedin/callback`);
 
       Linkedin.auth.getAccessToken(res, code, state, (err, results) => {
@@ -71,7 +81,7 @@ module.exports = {
       const clienId = authSettings.linkedIn.appId;
       const clientSecret = authSettings.linkedIn.appSecret;
 
-      const Linkedin = require('node-linkedin')(clienId, clientSecret);
+      const Linkedin = require('node-linkedin')(clienId, clientSecret); // eslint-disable-line
       // Linkedin.setCallback(req.protocol + '://' + req.headers.host + '/auth/'+appId+'/linkedin/callback');
 
       const linkedin = Linkedin.init(accessToken);
@@ -92,17 +102,3 @@ module.exports = {
 
 
 };
-
-
-function _getLinkedinScopeString(authSettings) {
-  const json = authSettings.linkedIn.permissions;
-
-  const scopeArray = [];
-  for (const key in json) {
-    if (json.hasOwnProperty(key) && json[key]) {
-      scopeArray.push(key.toString());
-    }
-  }
-
-  return scopeArray;
-}

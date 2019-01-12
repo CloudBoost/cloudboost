@@ -11,6 +11,38 @@ const google = require('googleapis');
 const OAuth2Client = google.auth.OAuth2;
 const plus = google.plus('v1');
 const winston = require('winston');
+const { getNestedValue: gnv } = require('./util');
+
+function _getGoogleFieldString(authSettings) {
+  const json = gnv(['google', 'attributes'], authSettings) || {};
+
+  let isFirst = false;
+  const scopeString = Object.keys(json).reduce((acc, key) => {
+    if (Object.prototype.hasOwnProperty.call(json, key) && json[key].enabled) {
+      let _scope;
+      if (!isFirst) {
+        _scope = json[key].scope;
+        isFirst = true;
+      } else {
+        _scope = ` ${json[key].scope}`;
+      }
+      return acc.concat(_scope);
+    }
+    return acc;
+  }, '');
+
+  return scopeString;
+}
+
+function _getGoogleScopeString(authSettings) {
+  const json = gnv(['google', 'permissions'], authSettings) || {};
+
+  const scopeString = Object.keys(json)
+    .filter(key => Object.prototype.hasOwnProperty.call(json, key) && json[key].enabled)
+    .reduce((acc, key) => acc.concat(` ${json[key].scope}`), '');
+
+  return scopeString;
+}
 
 module.exports = {
 
@@ -109,39 +141,3 @@ module.exports = {
     return deferred.promise;
   },
 };
-
-
-function _getGoogleFieldString(authSettings) {
-  const json = authSettings.google.attributes;
-
-  let scopeString = '';
-  let isFirst = false;
-
-  for (const key in json) {
-    if (json.hasOwnProperty(key) && json[key].enabled) {
-      var scope;
-      if (!isFirst) {
-        scope = json[key].scope;
-        isFirst = true;
-      } else {
-        scope = ` ${json[key].scope}`;
-      }
-      scopeString = scopeString.concat(scope);
-    }
-  }
-
-  return scopeString;
-}
-
-function _getGoogleScopeString(authSettings) {
-  const json = authSettings.google.permissions;
-
-  let scopeString = '';
-  for (const key in json) {
-    if (json.hasOwnProperty(key) && json[key].enabled) {
-      scopeString = scopeString.concat(` ${json[key].scope}`);
-    }
-  }
-
-  return scopeString;
-}

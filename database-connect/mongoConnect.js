@@ -7,7 +7,9 @@
 
 const q = require('q');
 const winston = require('winston');
+const { ReplSet, Server, MongoClient } = require('mongodb');
 const config = require('../config/config');
+const { getNestedValue: gnv } = require('../helpers/util');
 
 module.exports = {
 
@@ -16,28 +18,25 @@ module.exports = {
       return config.mongoClient.db(appId);
     } catch (e) {
       winston.log('error', { error: String(e), stack: new Error().stack });
+      throw e;
     }
   },
 
   replSet() {
     try {
-      const ReplSet = require('mongodb').ReplSet;
-
-
-      const Server = require('mongodb').Server;
-
       const servers = [];
-      if (config.loadedConfig && config.loadedConfig.mongo) {
-        if (config.loadedConfig.mongo.length === 0) {
+      const mongoConfig = gnv('loadedConfig.mongo', config);
+      if (mongoConfig) {
+        if (mongoConfig.length === 0) {
           return null;
         }
 
-        if (config.loadedConfig.mongo.length === 1) {
-          return new Server(config.loadedConfig.mongo[0].host, config.loadedConfig.mongo[0].port);
+        if (mongoConfig.length === 1) {
+          return new Server(mongoConfig[0].host, mongoConfig[0].port);
         }
 
-        for (let i = 0; i < config.loadedConfig.mongo.length; i++) {
-          servers.push(new Server(config.loadedConfig.mongo[i].host, parseInt(config.loadedConfig.mongo[i].port)));
+        for (let i = 0; i < mongoConfig.length; i++) {
+          servers.push(new Server(mongoConfig[i].host, parseInt(mongoConfig[i].port, 10)));
         }
       } else {
         return null;
@@ -52,19 +51,11 @@ module.exports = {
     }
   },
 
-  connect() {
+  async connect() {
     const deferred = q.defer();
     try {
-      const mongoClient = require('mongodb').MongoClient;
-      mongoClient.connect(config.mongoConnectionString, {
-        poolSize: 200,
-      }, (err, db) => {
-        if (err) {
-          deferred.reject(err);
-        } else {
-          deferred.resolve(db);
-        }
-      });
+      const db = await MongoClient.connect(config.mongoConnectionString);
+      deferred.resolve(db);
     } catch (e) {
       winston.log('error', { error: String(e), stack: new Error().stack });
       deferred.reject(e);

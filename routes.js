@@ -1,9 +1,10 @@
+/* eslint global-require: 0 */
 const winston = require('winston');
 const config = require('./config/config');
 const pjson = require('./package.json');
 
 
-module.exports = function (app) {
+module.exports = (app) => {
   app.get('/', (req, res) => {
     res.setHeader('Content-Type', 'application/json');
     res.send(JSON.stringify({

@@ -1,4 +1,4 @@
-/* eslint-disable no-redeclare */
+/* eslint no-lonely-if:0 no-param-reassign:0 */
 /*
 #     CloudBoost - Core Engine that powers Bakend as a Service
 #     (c) 2014 HackerBay, Inc.
@@ -8,7 +8,17 @@ const winston = require('winston');
 const util = require('../helpers/util.js');
 const config = require('../config/config');
 
-var obj = {
+function trimStart(character, string) {
+  let startIndex = 0;
+
+  while (string[startIndex] === character) {
+    startIndex++;
+  }
+
+  return string.substr(startIndex);
+}
+
+const obj = {
 
   /* Gets the query connected to a socketId.
      * @socketId : Its a string.
@@ -58,15 +68,17 @@ var obj = {
   },
   validateSocketQuery(cloudObject, query) {
     // validate query.
-    for (const key in query) {
+    const queryKeys = Object.keys(query);
+    for (let i = 0; i < queryKeys.length; i++) {
+      const key = queryKeys[i];
       if (query[key]) {
-        var value = query[key];
+        const value = query[key];
         if (typeof value === 'object') {
           if (key === '$or') {
             if (query[key].length > 0) {
               let isTrue = false;
-              for (var i = 0; i < query[key].length; i++) {
-                if (obj.validateSocketQuery(cloudObject, query[key][i])) {
+              for (let j = 0; j < query[key].length; j++) {
+                if (obj.validateSocketQuery(cloudObject, query[key][j])) {
                   isTrue = true;
                   break;
                 }
@@ -77,20 +89,16 @@ var obj = {
               }
             }
           } else {
-            for (const objectKeys in value) {
+            const valueKeys = Object.keys(value);
+            for (let k = 0; k < valueKeys.length; k++) {
+              const objectKeys = valueKeys[k];
               // near query
               if (objectKeys === '$near') {
                 const cbVal = cloudObject[key];
                 const qVal = query[key].$near;
                 const lat1 = cbVal.latitude;
-
-
                 const lon1 = cbVal.longitude;
-
-
                 const lat2 = qVal.$geometry.coordinates[1];
-
-
                 const lon2 = qVal.$geometry.coordinates[0];
                 let maxDistance = qVal.$maxDistance;
                 let minDistance = qVal.$minDistance;
@@ -156,36 +164,37 @@ var obj = {
                 const reg = new RegExp(query[key][objectKeys]);
 
                 if (!query[key].$options) {
-                  if (!reg.test(cloudObject[key])) // test actial regex.
-                  { return false; }
+                  if (!reg.test(cloudObject[key])) { // test actial regex.
+                    return false;
+                  }
                 } else if (query[key].$options === 'im') { // test starts with.
                   // starts with.
-                  var value = trimStart('^', query[key][objectKeys]);
-                  if (cloudObject[key].indexOf(value) !== 0) return false;
+                  const val = trimStart('^', query[key][objectKeys]);
+                  if (cloudObject[key].indexOf(val) !== 0) return false;
                 }
               }
 
               // containedIn.
               if (objectKeys === '$in') {
                 if (query[key][objectKeys]) {
-                  var arr = query[key][objectKeys];
-                  var value = null;
+                  const arr = query[key][objectKeys];
+                  let val = null;
                   if (key.indexOf('.') > -1) { // for CloudObjects
-                    var tempKey = key.substr(0, key.indexOf('.'));
-                    value = cloudObject[tempKey];
+                    const tempKey = key.substr(0, key.indexOf('.'));
+                    val = cloudObject[tempKey];
                   } else {
-                    value = cloudObject[key];
+                    val = cloudObject[key];
                   }
 
-                  if (Object.prototype.toString.call(value) === '[object Array]') {
-                    var exists = false;
-                    for (var i = 0; i < value.length; i++) {
-                      if (value[i]._type === 'custom') {
-                        if (arr.indexOf(value[i]._id) > -1) {
+                  if (Object.prototype.toString.call(val) === '[object Array]') {
+                    let exists = false;
+                    for (let l = 0; l < val.length; l++) {
+                      if (value[l]._type === 'custom') {
+                        if (arr.indexOf(val[l]._id) > -1) {
                           exists = true;
                           break;
                         }
-                      } else if (arr.indexOf(value[i]) > -1) {
+                      } else if (arr.indexOf(val[l]) > -1) {
                         exists = true;
                         break;
                       }
@@ -196,7 +205,7 @@ var obj = {
                     }
                   } else {
                     // if the element is not in the array then return false;
-                    if (arr.indexOf(value) === -1) return false;
+                    if (arr.indexOf(val) === -1) return false; // eslint-disable-line
                   }
                 }
               }
@@ -204,24 +213,24 @@ var obj = {
               // doesNot containedIn.
               if (objectKeys === '$nin') {
                 if (query[key][objectKeys]) {
-                  var arr = query[key][objectKeys];
-                  var value = null;
+                  const arr = query[key][objectKeys];
+                  let val = null;
                   if (key.indexOf('.') > -1) { // for CloudObjects
-                    var tempKey = key.substr(0, key.indexOf('.'));
-                    value = cloudObject[tempKey];
+                    const tempKey = key.substr(0, key.indexOf('.'));
+                    val = cloudObject[tempKey];
                   } else {
-                    value = cloudObject[key];
+                    val = cloudObject[key];
                   }
 
-                  if (Object.prototype.toString.call(value) === '[object Array]') {
-                    var exists = false;
-                    for (var i = 0; i < value.length; i++) {
-                      if (value[i]._type === 'custom') {
-                        if (arr.indexOf(value[i]._id) !== -1) {
+                  if (Object.prototype.toString.call(val) === '[object Array]') {
+                    let exists = false;
+                    for (let j = 0; j < val.length; j++) {
+                      if (val[j]._type === 'custom') {
+                        if (arr.indexOf(val[j]._id) !== -1) {
                           exists = true;
                           break;
                         }
-                      } else if (arr.indexOf(value[i]) !== -1) {
+                      } else if (arr.indexOf(val[i]) !== -1) {
                         exists = true;
                         break;
                       }
@@ -232,7 +241,7 @@ var obj = {
                     }
                   } else {
                     // if the element is not in the array then return false;
-                    if (arr.indexOf(value) !== -1) return false;
+                    if (arr.indexOf(val) !== -1) return false;
                   }
                 }
               }
@@ -240,28 +249,28 @@ var obj = {
               // containsAll.
               if (objectKeys === '$all') {
                 if (query[key][objectKeys]) {
-                  var arr = query[key][objectKeys];
-                  var value = null;
+                  const arr = query[key][objectKeys];
+                  let val = null;
                   if (key.indexOf('.') > -1) { // for CloudObjects
-                    var tempKey = key.substr(0, key.indexOf('.'));
-                    value = cloudObject[tempKey];
+                    const tempKey = key.substr(0, key.indexOf('.'));
+                    val = cloudObject[tempKey];
                   } else {
-                    value = cloudObject[key];
+                    val = cloudObject[key];
                   }
 
-                  if (Object.prototype.toString.call(value) === '[object Array]') {
-                    for (var i = 0; i < value.length; i++) {
-                      if (value[i]._type === 'custom') {
-                        if (arr.indexOf(value[i]._id) === -1) {
+                  if (Object.prototype.toString.call(val) === '[object Array]') {
+                    for (let j = 0; j < val.length; j++) {
+                      if (val[j]._type === 'custom') {
+                        if (arr.indexOf(val[j]._id) === -1) {
                           return false;
                         }
-                      } else if (arr.indexOf(value[i]) === -1) {
+                      } else if (arr.indexOf(val[j]) === -1) {
                         return false;
                       }
                     }
                   } else {
                     // if the element is not in the array then return false;
-                    if (arr.indexOf(value) === -1) return false;
+                    if (arr.indexOf(val) === -1) return false;
                   }
                 }
               }
@@ -289,15 +298,5 @@ var obj = {
     return true;
   },
 };
-
-function trimStart(character, string) {
-  let startIndex = 0;
-
-  while (string[startIndex] === character) {
-    startIndex++;
-  }
-
-  return string.substr(startIndex);
-}
 
 module.exports = obj;

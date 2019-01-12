@@ -6,9 +6,31 @@
 */
 
 const q = require('q');
-const oauth = require('oauth').OAuth2;
+const Oauth = require('oauth').OAuth2;
 const github = require('octonode');
 const winston = require('winston');
+const { getNestedValue: gnv } = require('./util');
+
+
+function _getGithubFieldString(authSettings) {
+  const json = gnv(['github', 'attributes'], authSettings) || {};
+
+  const scopeArray = Object.keys(json)
+    .filter(key => Object.prototype.hasOwnProperty.call(json, key) && json[key].enabled)
+    .map(key => json[key].scope);
+
+  return scopeArray;
+}
+
+function _getGithubScopeString(authSettings) {
+  const json = gnv(['github', 'permissions'], authSettings) || {};
+
+  const scopeArray = Object.keys(json)
+    .filter(key => Object.prototype.hasOwnProperty.call(json, key) && json[key].enabled)
+    .map(key => json[key].scope);
+
+  return scopeArray;
+}
 
 module.exports = {
 
@@ -19,7 +41,13 @@ module.exports = {
       const githhubClientId = authSettings.github.appId;
       const githubClientSecret = authSettings.github.appSecret;
 
-      const OAuth2 = new oauth(githhubClientId, githubClientSecret, 'https://github.com/', 'login/oauth/authorize', 'login/oauth/access_token');
+      const OAuth2 = new Oauth(
+        githhubClientId,
+        githubClientSecret,
+        'https://github.com/',
+        'login/oauth/authorize',
+        'login/oauth/access_token',
+      );
 
       const url = OAuth2.getAuthorizeUrl({
         redirect_uri: `${req.protocol}://${req.headers.host}/auth/${appId}/github/callback`,
@@ -42,13 +70,19 @@ module.exports = {
       const githhubClientId = authSettings.github.appId;
       const githubClientSecret = authSettings.github.appSecret;
 
-      const OAuth2 = new oauth(githhubClientId, githubClientSecret, 'https://github.com/', 'login/oauth/authorize', 'login/oauth/access_token');
+      const OAuth2 = new Oauth(
+        githhubClientId,
+        githubClientSecret,
+        'https://github.com/',
+        'login/oauth/authorize',
+        'login/oauth/access_token',
+      );
 
-      OAuth2.getOAuthAccessToken(code, {}, (err, access_token) => {
+      OAuth2.getOAuthAccessToken(code, {}, (err, accessToken) => {
         if (err) {
           deferred.reject(err);
         } else {
-          deferred.resolve(access_token);
+          deferred.resolve(accessToken);
         }
       });
     } catch (err) {
@@ -82,30 +116,3 @@ module.exports = {
 
 
 };
-
-
-function _getGithubFieldString(authSettings) {
-  const json = authSettings.github.attributes;
-
-  const scopeArray = [];
-  for (const key in json) {
-    if (json.hasOwnProperty(key) && json[key].enabled) {
-      scopeArray.push(json[key].scope);
-    }
-  }
-
-  return scopeArray;
-}
-
-function _getGithubScopeString(authSettings) {
-  const json = authSettings.github.permissions;
-
-  const scopeArray = [];
-  for (const key in json) {
-    if (json.hasOwnProperty(key) && json[key].enabled) {
-      scopeArray.push(json[key].scope);
-    }
-  }
-
-  return scopeArray;
-}

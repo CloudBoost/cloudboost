@@ -127,7 +127,10 @@ module.exports = {
     }
   },
 
-  // eslint-disable-next-line
-  getNestedValue: (path, object) => path.reduce((acc, curr) => (acc && acc[curr]) ? acc[curr] : undefined, object),
+  getNestedValue: (path, object) => {
+    const _path = Array.isArray(path) ? path : path.split('.');
+    // eslint-disable-next-line no-confusing-arrow
+    return _path.reduce((acc, curr) => acc && acc[curr] ? acc[curr] : undefined, object);
+  },
 
 };

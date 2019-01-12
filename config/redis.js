@@ -1,4 +1,4 @@
-
+/* eslint-disable global-require */
 
 const Redis = require('ioredis');
 
@@ -7,13 +7,25 @@ const ioRedisAdapter = require('socket.io-redis');
 const winston = require('winston');
 const appConfig = require('./config');
 
+function loadConfig() {
+  try {
+    const config = require('./cloudboost');
+    return config;
+  } catch (e) {
+    return {};
+  }
+}
 
 function constructUrl(io) {
   const config = loadConfig();
 
   try {
     // Set up Redis.
-    if (!config.redis && !process.env.REDIS_1_PORT_6379_TCP_ADDR && !process.env.REDIS_SENTINEL_SERVICE_HOST && !process.env.REDIS_PORT_6379_TCP_ADDR) {
+    if (!config.redis
+    && !process.env.REDIS_1_PORT_6379_TCP_ADDR
+    && !process.env.REDIS_SENTINEL_SERVICE_HOST
+    && !process.env.REDIS_PORT_6379_TCP_ADDR) {
+      // eslint-disable-next-line max-len
       winston.error('FATAL : Redis Cluster Not found. Use docker-compose from https://github.com/cloudboost/docker or Kubernetes from https://github.com/cloudboost/kubernetes');
     }
 
@@ -21,7 +33,8 @@ function constructUrl(io) {
 
     let isCluster = false;
 
-    if (config.redis && config.redis.length > 0) {
+    if (config.redis
+    && config.redis.length > 0) {
       // take from config file
       for (let i = 0; i < config.redis.length; i++) {
         hosts.push({
@@ -45,7 +58,7 @@ function constructUrl(io) {
       if (process.env.KUBERNETES_STATEFUL_REDIS_URL) {
         winston.info('REDIS running on kube cluster');
 
-        process.env.KUBERNETES_STATEFUL_REDIS_URL.split(',').map((x) => {
+        process.env.KUBERNETES_STATEFUL_REDIS_URL.split(',').forEach((x) => {
           hosts.push({
             host: x.split(':')[0],
             port: x.split(':')[1],
@@ -55,37 +68,39 @@ function constructUrl(io) {
 
         isCluster = true;
       } else {
-        const redis_obj = {
+        const redisObj = {
           host: process.env.REDIS_SENTINEL_SERVICE_HOST,
           port: process.env.REDIS_SENTINEL_SERVICE_PORT,
           enableReadyCheck: false,
         };
-        hosts.push(redis_obj);
+        hosts.push(redisObj);
       }
     } else {
       // take from env variables.
 
       let count = 1;
 
-      if (process.env.REDIS_PORT_6379_TCP_ADDR && process.env.REDIS_PORT_6379_TCP_PORT) {
-        const redis_port_obj = {
+      if (process.env.REDIS_PORT_6379_TCP_ADDR
+      && process.env.REDIS_PORT_6379_TCP_PORT) {
+        const redisPortObj = {
           host: process.env.REDIS_PORT_6379_TCP_ADDR,
           port: process.env.REDIS_PORT_6379_TCP_PORT,
           enableReadyCheck: false,
         };
 
-        hosts.push(redis_port_obj);
+        hosts.push(redisPortObj);
       } else {
-        while (process.env[`REDIS_${count}_PORT_6379_TCP_ADDR`] && process.env[`REDIS_${count}_PORT_6379_TCP_PORT`]) {
+        while (process.env[`REDIS_${count}_PORT_6379_TCP_ADDR`]
+        && process.env[`REDIS_${count}_PORT_6379_TCP_PORT`]) {
           if (count > 1) {
             isCluster = true;
           }
-          const redis_replica = {
+          const redisReplica = {
             host: process.env[`REDIS_${count}_PORT_6379_TCP_ADDR`],
             port: process.env[`REDIS_${count}_PORT_6379_TCP_PORT`],
             enableReadyCheck: false,
           };
-          hosts.push(redis_replica);
+          hosts.push(redisReplica);
           count++;
         }
       }
@@ -93,13 +108,13 @@ function constructUrl(io) {
 
     // If everything else failsm then try local redis.
     if (hosts.length === 0) {
-      const redis_raw = {
+      const redisRaw = {
         host: '127.0.0.1',
         port: '6379',
         enableReadyCheck: false,
       };
 
-      hosts.push(redis_raw);
+      hosts.push(redisRaw);
     }
 
     if (isCluster) {
@@ -126,15 +141,6 @@ function constructUrl(io) {
       error: String(err),
       stack: new Error().stack,
     });
-  }
-}
-
-function loadConfig() {
-  try {
-    const config = require('./cloudboost');
-    return config;
-  } catch (e) {
-    return {};
   }
 }
 

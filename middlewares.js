@@ -6,7 +6,65 @@ const utilHelper = require('./helpers/util');
 const sessionHelper = require('./helpers/session');
 const appService = require('./services/app');
 
-module.exports = function (app) {
+
+function ignoreUrl(requestUrl) {
+  try {
+    const ignoreUrls = [ // for the routes to check whether the particular service is active/not
+      '/api/userService',
+      '/api/customService',
+      '/api/roleService',
+      '/api/status',
+      '/file',
+      '/api/createIndex',
+      '/pages',
+      '/status',
+    ];
+
+    for (let i = 0; i < ignoreUrls.length; i++) {
+      if (requestUrl.indexOf(ignoreUrls[i]) >= 0) {
+        return true;
+      }
+    }
+    return false;
+  } catch (err) {
+    winston.log('error', {
+      error: String(err),
+      stack: new Error().stack,
+    });
+    throw err;
+  }
+}
+
+function _setSession(req, res) {
+  try {
+    if (!req.session) {
+      req.session = {};
+      req.session.id = uuid.v1();
+    }
+
+    res.header('sessionID', req.session.id);
+
+    const obj = {
+      id: req.session.id,
+      userId: null,
+      loggedIn: false,
+      appId: null,
+      email: null,
+      roles: null,
+    };
+
+    req.session = obj;
+    const expireDays = 30; // Default
+    sessionHelper.saveSession(obj, expireDays);
+  } catch (err) {
+    winston.log('error', {
+      error: String(err),
+      stack: new Error().stack,
+    });
+  }
+}
+
+module.exports = (app) => {
   app.use((req, res, next) => {
     if (req.is('text/*')) {
       req.text = '';
@@ -71,9 +129,13 @@ module.exports = function (app) {
       } else {
         const appKey = req.body.key || req.params.key; // key is extracted from body/url parameters
 
-        const appId = req.params.appId;
+        const { appId } = req.params;
         if (!appKey) {
-          return res.status(401).send({ status: 'error', message: "Key not found. You need to have your Client Key or Master Key in the body or url parameter 'key' when you make this request" });
+          res.status(401).send({
+            status: 'error',
+            // eslint-disable-next-line max-len
+            message: "Key not found. You need to have your Client Key or Master Key in the body or url parameter 'key' when you make this request",
+          });
         }
 
         // check if app is in the plan.
@@ -86,14 +148,12 @@ module.exports = function (app) {
           if (!isInPlan) {
             // check if the appIsReleased.
             apiTracker.log(appId, 'isReleased/isReleased', '', 'JavaScript', true);
-
-            return res.status(402).send('Reached Plan Limit. Upgrade Plan.');
+            res.status(402).send('Reached Plan Limit. Upgrade Plan.');
+          } else if (!isAppKeyValid) {
+            res.status(401).send('App ID or App Key is invalid.');
+          } else {
+            next();
           }
-
-          if (!isAppKeyValid) {
-            return res.status(401).send('App ID or App Key is invalid.');
-          }
-          next();
         }, err => res.status(500).send(err.message));
       }
     } catch (err) {
@@ -134,60 +194,3 @@ module.exports = function (app) {
     }
   });
 };
-
-function ignoreUrl(requestUrl) {
-  try {
-    const ignoreUrl = [ // for the routes to check whether the particular service is active/not
-      '/api/userService',
-      '/api/customService',
-      '/api/roleService',
-      '/api/status',
-      '/file',
-      '/api/createIndex',
-      '/pages',
-      '/status',
-    ];
-
-    for (let i = 0; i < ignoreUrl.length; i++) {
-      if (requestUrl.indexOf(ignoreUrl[i]) >= 0) {
-        return true;
-      }
-    }
-    return false;
-  } catch (err) {
-    winston.log('error', {
-      error: String(err),
-      stack: new Error().stack,
-    });
-  }
-}
-
-
-function _setSession(req, res) {
-  try {
-    if (!req.session) {
-      req.session = {};
-      req.session.id = uuid.v1();
-    }
-
-    res.header('sessionID', req.session.id);
-
-    const obj = {
-      id: req.session.id,
-      userId: null,
-      loggedIn: false,
-      appId: null,
-      email: null,
-      roles: null,
-    };
-
-    req.session = obj;
-    const expireDays = 30; // Default
-    sessionHelper.saveSession(obj, expireDays);
-  } catch (err) {
-    winston.log('error', {
-      error: String(err),
-      stack: new Error().stack,
-    });
-  }
-}

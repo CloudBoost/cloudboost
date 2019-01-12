@@ -17,10 +17,6 @@ module.exports = {
         "no-plusplus": "off",
         "no-useless-escape": "off",
         "max-len": ["error", { "code": 140, "ignoreRegExpLiterals": true }],
-        "camelcase": [
-            "error",
-            { "allow": ["encryption_key", "x_auth_access_type", "webhook_url", "icon_url"] }
-        ],
         "semi": [
             "error",
             "always"

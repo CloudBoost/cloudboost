@@ -5,8 +5,11 @@
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
+/* eslint no-use-before-define: 0, no-param-reassign: 0 */
+
 const q = require('q');
 const _ = require('underscore');
+const mongodb = require('mongodb');
 const Grid = require('gridfs-stream');
 const winston = require('winston');
 const config = require('../config/config');
@@ -50,7 +53,7 @@ obj.document = {
       const promises = [];
       include.sort();
       for (let i = 0; i < include.length; i++) {
-        var columnName = include[i].split('.')[0];
+        const [columnName] = include[i].split('.');
         join.push(columnName);
         for (let k = 1; k < include.length; k++) {
           if (columnName === include[k].split('.')[0]) {
@@ -60,10 +63,10 @@ obj.document = {
           }
         }
         // include this column and merge.
-        var idList = [];
-        var collectionName = null;
+        const idList = [];
+        let collectionName = null;
         _.each(docs, (doc) => {
-          if (doc[columnName] != null) {
+          if (doc[columnName] !== null) {
             // checks if the doc[columnName] is an list of relations or a relation
             if (Object.getPrototypeOf(doc[columnName]) === Object.prototype) {
               if (doc[columnName] && doc[columnName]._id) {
@@ -99,30 +102,30 @@ obj.document = {
 
       q.all(promises).then((arrayOfDocs) => {
         const pr = [];
-        const r_include = [];
+        const rInclude = [];
         for (let i = 0; i < join.length; i++) {
-          for (var k = 0; k < include.length; k++) {
-            if (join[i] === include[k].split('.')[0]) r_include.push(include[k]);
+          for (let k = 0; k < include.length; k++) {
+            if (join[i] === include[k].split('.')[0]) rInclude.push(include[k]);
           }
-          for (var k = 0; k < r_include.length; k++) {
-            r_include[k] = r_include[k].split('.').splice(1, 1).join('.');
+          for (let k = 0; k < rInclude.length; k++) {
+            rInclude[k] = rInclude[k].split('.').splice(1, 1).join('.');
           }
-          for (var k = 0; k < r_include.length; k++) {
-            if (r_include[k] === join[i] || r_include[k] === '') {
-              r_include.splice(k, 1);
+          for (let k = 0; k < rInclude.length; k++) {
+            if (rInclude[k] === join[i] || rInclude[k] === '') {
+              rInclude.splice(k, 1);
               k -= 1;
             }
           }
-          if (r_include.length > 0) {
-            pr.push(_self.document._include(appId, r_include, arrayOfDocs[i]));
+          if (rInclude.length > 0) {
+            pr.push(_self.document._include(appId, rInclude, arrayOfDocs[i]));
           } else {
-            const new_promise = q.defer();
-            new_promise.resolve(arrayOfDocs[i]);
-            pr.push(new_promise.promise);
+            const newPromise = q.defer();
+            newPromise.resolve(arrayOfDocs[i]);
+            pr.push(newPromise.promise);
           }
         }
 
-        q.all(pr).then((arrayOfDocs) => {
+        q.all(pr).then((_arrayOfDocs) => {
           for (let i = 0; i < docs.length; i++) {
             for (let j = 0; j < join.length; j++) {
               // if the doc contains an relation with a columnName.
@@ -131,9 +134,9 @@ obj.document = {
                 let rel = null;
                 if (relationalDoc.constructor === Array) {
                   for (let m = 0; m < relationalDoc.length; m++) {
-                    for (var k = 0; k < arrayOfDocs[j].length; k++) {
-                      if (arrayOfDocs[j][k]._id.toString() === relationalDoc[m]._id.toString()) {
-                        rel = arrayOfDocs[j][k];
+                    for (let k = 0; k < _arrayOfDocs[j].length; k++) {
+                      if (_arrayOfDocs[j][k]._id.toString() === relationalDoc[m]._id.toString()) {
+                        rel = _arrayOfDocs[j][k];
                         break;
                       }
                     }
@@ -142,9 +145,9 @@ obj.document = {
                     }
                   }
                 } else {
-                  for (var k = 0; k < arrayOfDocs[j].length; k++) {
-                    if (arrayOfDocs[j][k]._id.toString() === relationalDoc._id.toString()) {
-                      rel = arrayOfDocs[j][k];
+                  for (let k = 0; k < _arrayOfDocs[j].length; k++) {
+                    if (_arrayOfDocs[j][k]._id.toString() === relationalDoc._id.toString()) {
+                      rel = _arrayOfDocs[j][k];
                       break;
                     }
                   }
@@ -235,26 +238,26 @@ obj.document = {
           },
         ];
       } else {
-        old_query = query.$or;
-        if (old_query[0].$include) {
-          if (old_query[0].$include.length > 0) {
-            include = include.concat(old_query[0].$include);
+        oldQuery = query.$or;
+        if (oldQuery[0].$include) {
+          if (oldQuery[0].$include.length > 0) {
+            include = include.concat(oldQuery[0].$include);
           }
-          delete old_query[0].$include;
-          delete old_query[0].$includeList;
+          delete oldQuery[0].$include;
+          delete oldQuery[0].$includeList;
         }
-        if (old_query[1]) {
-          if (old_query[1].$include) {
-            if (old_query[1].$include.length > 0) {
-              include = include.concat(old_query[1].$include);
+        if (oldQuery[1]) {
+          if (oldQuery[1].$include) {
+            if (oldQuery[1].$include.length > 0) {
+              include = include.concat(oldQuery[1].$include);
             }
-            delete old_query[1].$include;
-            delete old_query[1].$includeList;
+            delete oldQuery[1].$include;
+            delete oldQuery[1].$includeList;
           }
         }
         query.$and = [
           {
-            $or: old_query,
+            $or: oldQuery,
           }, {
             $or: [
               {
@@ -288,7 +291,9 @@ obj.document = {
       }
       // default sort added
       /*
-                without sort if limit and skip are used, the records are returned out of order. To solve this default sort in ascending order of 'createdAt' is added
+                without sort if limit and skip are used,
+                the records are returned out of order.
+                To solve this default sort in ascending order of 'createdAt' is added
             */
 
       if (!sort.createdAt) sort.createdAt = 1;
@@ -300,7 +305,7 @@ obj.document = {
       if (!isMasterKey) {
         // if its not master key then apply ACL.
         if (accessList.userId) {
-          const acl_query = [
+          const aclQuery = [
             {
               $or: [
                 {
@@ -327,8 +332,8 @@ obj.document = {
               ],
             },
           ];
-          if (query.$and) query.$and.push({ $and: acl_query });
-          else query.$and = acl_query;
+          if (query.$and) query.$and.push({ $and: aclQuery });
+          else query.$and = aclQuery;
         } else {
           query['ACL.read.allow.user'] = 'all';
         }
@@ -359,15 +364,15 @@ obj.document = {
 
       findQuery = findQuery.limit(limit);
 
-      findQuery.toArray((err, docs) => {
+      findQuery.toArray((err, _docs) => {
         if (err) {
           deferred.reject(err);
         } else if (!include || include.length === 0) {
-          docs = _deserialize(docs);
-          deferred.resolve(docs);
+          docs = _deserialize(_docs);
+          deferred.resolve(_docs);
         } else {
-          obj.document._include(appId, include, docs).then((docs) => {
-            deferred.resolve(docs);
+          obj.document._include(appId, include, _docs).then((newDocs) => {
+            deferred.resolve(newDocs);
           }, (error) => {
             deferred.reject(error);
           });
@@ -495,7 +500,7 @@ obj.document = {
       }
 
       if (skip) {
-        skip = parseInt(skip);
+        skip = parseInt(skip, 10);
       }
 
       const collection = config.mongoClient.db(appId).collection(mongoUtil.collection.getId(appId, collectionName));
@@ -589,11 +594,11 @@ obj.document = {
         },
       });
 
-      if (skip && skip != 0) {
+      if (skip && skip !== 0) {
         pipeline.push({ $skip: skip });
       }
 
-      if (limit && limit != 0) {
+      if (limit && limit !== 0) {
         pipeline.push({ $limit: limit });
       }
 
@@ -609,7 +614,7 @@ obj.document = {
         if (err) {
           deferred.reject(err);
         } else {
-          const docs = [];
+          let docs = [];
 
           // filter out
           for (let i = 0; i < res.length; i++) {
@@ -617,8 +622,8 @@ obj.document = {
           }
 
           // include.
-          obj.document._include(appId, include, docs).then((docs) => {
-            docs = _deserialize(docs);
+          obj.document._include(appId, include, docs).then((_docs) => {
+            docs = _deserialize(_docs);
             deferred.resolve(docs);
           }, (error) => {
             winston.log('error', error);
@@ -656,7 +661,7 @@ obj.document = {
       if (!isMasterKey) {
         // if its not master key then apply ACL.
         if (accessList.userId) {
-          const acl_query = [
+          const aclQuery = [
             {
               $or: [
                 {
@@ -683,8 +688,8 @@ obj.document = {
               ],
             },
           ];
-          if (query.$and) query.$and.push({ $and: acl_query });
-          else query.$and = acl_query;
+          if (query.$and) query.$and.push({ $and: aclQuery });
+          else query.$and = aclQuery;
         } else {
           query['ACL.read.allow.user'] = 'all';
         }
@@ -704,11 +709,11 @@ obj.document = {
 
       pipeline.unshift({ $match: query }); // add item to the begining of the pipeline.
 
-      if (skip && skip != 0) {
+      if (skip && skip !== 0) {
         pipeline.push({ $skip: skip });
       }
 
-      if (limit && limit != 0) {
+      if (limit && limit !== 0) {
         pipeline.push({ $limit: limit });
       }
 
@@ -858,19 +863,19 @@ obj.document = {
     const deferred = q.defer();
 
     try {
-      const gfs = Grid(config.mongoClient.db(appId), require('mongodb'));
+      const gfs = Grid(config.mongoClient.db(appId), mongodb);
 
       gfs.findOne({
         filename,
       }, (err, file) => {
         if (err) {
-          deferred.reject(err);
+          return deferred.reject(err);
         }
         if (!file) {
           return deferred.resolve(null);
         }
 
-        deferred.resolve(file);
+        return deferred.resolve(file);
       });
     } catch (err) {
       winston.log('error', {
@@ -888,7 +893,7 @@ obj.document = {
     */
   getFileStreamById(appId, fileId) {
     try {
-      const gfs = Grid(config.mongoClient.db(appId), require('mongodb'));
+      const gfs = Grid(config.mongoClient.db(appId), mongodb);
 
       const readstream = gfs.createReadStream({ _id: fileId });
 
@@ -911,7 +916,7 @@ obj.document = {
     const deferred = q.defer();
 
     try {
-      const gfs = Grid(config.mongoClient.db(appId), require('mongodb'));
+      const gfs = Grid(config.mongoClient.db(appId), mongodb);
 
       // File existence checking
       gfs.exist({
@@ -924,9 +929,9 @@ obj.document = {
         if (found) {
           gfs.remove({
             filename,
-          }, (err) => {
-            if (err) {
-              deferred.reject(err);
+          }, (err1) => {
+            if (err1) {
+              deferred.reject(err1);
               // unable to delete
             } else {
               deferred.resolve(true);
@@ -960,7 +965,7 @@ obj.document = {
     const deferred = q.defer();
 
     try {
-      const gfs = Grid(config.mongoClient.db(appId), require('mongodb'));
+      const gfs = Grid(config.mongoClient.db(appId), mongodb);
 
       // streaming to gridfs
       const writestream = gfs.createWriteStream({ filename: fileName, mode: 'w', content_type: contentType });
@@ -1002,13 +1007,13 @@ function _sanitizeQuery(query) {
   }
 
   if (query && query.$or && query.$or.length > 0) {
-    for (var i = 0; i < query.$or.length; ++i) {
+    for (let i = 0; i < query.$or.length; ++i) {
       query.$or[i] = _sanitizeQuery(query.$or[i]);
     }
   }
 
   if (query && query.$and && query.$and.length > 0) {
-    for (var i = 0; i < query.$and.length; ++i) {
+    for (let i = 0; i < query.$and.length; ++i) {
       query.$and[i] = _sanitizeQuery(query.$and[i]);
     }
   }
@@ -1046,14 +1051,14 @@ function _save(appId, collectionName, document) {
 
 function _serialize(document) {
   try {
-    for (key in document) {
+    Object.keys(document).forEach((key) => {
       if (document[key]) {
         if (document[key].constructor === Object && document[key]._type) {
           if (document[key]._type === 'point') {
-            const obj = {};
-            obj.type = 'Point';
-            obj.coordinates = document[key].coordinates;
-            document[key] = obj;
+            const _obj = {};
+            _obj.type = 'Point';
+            _obj.coordinates = document[key].coordinates;
+            document[key] = _obj;
           }
         }
 
@@ -1063,71 +1068,82 @@ function _serialize(document) {
           }
         }
       }
-    }
+    });
     return document;
   } catch (err) {
     winston.log('error', {
       error: String(err),
       stack: new Error().stack,
     });
+    throw err;
   }
 }
 function _deserialize(docs) {
   try {
     if (docs.length > 0) {
       for (let i = 0; i < docs.length; i++) {
-        var document = docs[i];
-        for (key in document) {
+        const document = docs[i];
+        const docKeys = Object.keys(document);
+        for (let j = 0; j < docKeys.length; j++) {
+          const key = docKeys[j];
           if (document[key]) {
             if (document[key].constructor === Object && document[key].type) {
               if (document[key].type === 'Point') {
-                var obj = {};
-                obj._type = 'point';
-                obj.coordinates = document[key].coordinates;
-                obj.latitude = obj.coordinates[1];
-                obj.longitude = obj.coordinates[0];
-                document[key] = obj;
+                const _obj = {};
+                _obj._type = 'point';
+                _obj.coordinates = document[key].coordinates;
+                _obj.latitude = _obj.coordinates[1]; // eslint-disable-line
+                _obj.longitude = _obj.coordinates[0]; // eslint-disable-line
+                document[key] = _obj;
               }
-            } else if (document[key].constructor === Array && document[key][0] && document[key][0].type && document[key][0].type === 'Point') {
-              var arr = [];
-              for (var j = 0; j < document[key].length; j++) {
-                var obj = {};
-                obj._type = 'point';
-                obj.coordinates = document[key][j].coordinates;
-                obj.latitude = obj.coordinates[1];
-                obj.longitude = obj.coordinates[0];
-                arr.push(obj);
+            } else if (document[key].constructor === Array
+              && document[key][0]
+              && document[key][0].type
+              && document[key][0].type === 'Point') {
+              const arr = [];
+              for (let k = 0; k < document[key].length; k++) {
+                const _obk = {};
+                _obk._type = 'point';
+                _obk.coordinates = document[key][k].coordinates;
+                _obk.latitude = _obk.coordinates[1]; // eslint-disable-line
+                _obk.longitude = _obk.coordinates[0]; // eslint-disable-line
+                arr.push(_obk);
               }
-              document[key] = obj;
+              document[key] = arr;
             }
           }
         }
         docs[i] = document;
       }
     } else {
-      var document = docs;
-      for (var key in document) {
+      const document = docs;
+      const docKeys = Object.keys(document);
+      for (let k = 0; k < docKeys.length; k++) {
+        const key = docKeys[k];
         if (document[key]) {
           if (document[key].constructor === Object && document[key].type) {
             if (document[key].type === 'Point') {
-              var obj = {};
-              obj._type = 'point';
-              obj.coordinates = document[key].coordinates;
-              obj.latitude = obj.coordinates[1];
-              obj.longitude = obj.coordinates[0];
-              document[key] = obj;
+              const _obj = {};
+              _obj._type = 'point';
+              _obj.coordinates = document[key].coordinates;
+              _obj.latitude = _obj.coordinates[1]; // eslint-disable-line
+              _obj.longitude = _obj.coordinates[0]; // eslint-disable-line
+              document[key] = _obj;
             }
-          } else if (document[key].constructor === Array && document[key][0] && document[key][0].type && document[key][0].type === 'Point') {
-            var arr = [];
-            for (var j = 0; j < document[key].length; j++) {
-              var obj = {};
-              obj._type = 'point';
-              obj.coordinates = document[key][j].coordinates;
-              obj.latitude = obj.coordinates[1];
-              obj.longitude = obj.coordinates[0];
-              arr.push(obj);
+          } else if (document[key].constructor === Array
+            && document[key][0]
+            && document[key][0].type
+            && document[key][0].type === 'Point') {
+            const arr = [];
+            for (let j = 0; j < document[key].length; j++) {
+              const _obj = {};
+              _obj._type = 'point';
+              _obj.coordinates = document[key][j].coordinates;
+              _obj.latitude = _obj.coordinates[1]; // eslint-disable-line
+              _obj.longitude = _obj.coordinates[0]; // eslint-disable-line
+              arr.push(_obj);
             }
-            document[key] = obj;
+            document[key] = arr;
           }
         }
       }
@@ -1139,5 +1155,6 @@ function _deserialize(docs) {
       error: String(err),
       stack: new Error().stack,
     });
+    throw err;
   }
 }
