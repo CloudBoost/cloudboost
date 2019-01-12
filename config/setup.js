@@ -16,7 +16,7 @@ module.exports = async () => {
     winston.info(`Secure Key: ${settings.secureKey}`);
     winston.info(`Cluster Key: ${settings.clusterKey}`);
     winston.info('IMPORTANT: Please keep Secure Key private. Revealing it would make your server vulnerable.');
-    await serverService.registerServer(settings.secureKey);
+    serverService.registerServer(settings.secureKey);
   } catch (err) {
     winston.error('Failed to initialize Secure Key. Please check if MongoDB is connected and restart server.');
     winston.log('error', {
