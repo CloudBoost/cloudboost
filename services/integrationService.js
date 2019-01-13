@@ -138,7 +138,10 @@ const integrationService = {
         }
       }
     } catch (error) {
-      winston.error({ error });
+      winston.error({
+        error: String(error),
+        stack: new Error().stack,
+      });
     }
   },
 };

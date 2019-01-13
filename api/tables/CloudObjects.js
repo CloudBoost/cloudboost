@@ -30,7 +30,10 @@ const deleteApi = async (req, res) => { // delete a document matching the <objec
     integrationService.integrationNotification(appId, document, collectionName, 'Delete');
     res.json(result);
   } catch (error) {
-    winston.error({ error });
+    winston.error({
+      error: String(error),
+      stack: new Error().stack,
+    });
     res.status(400).send(error);
   }
 };
@@ -65,7 +68,10 @@ const getData = async (req, res) => {
     );
     res.json(results);
   } catch (error) {
-    winston.error({ error });
+    winston.error({
+      error: String(error),
+      stack: new Error().stack,
+    });
     res.status(400).send(error);
   }
 };
@@ -95,7 +101,10 @@ const count = async (req, res) => { // get document(s) object based on query and
     );
     res.json(result);
   } catch (error) {
-    winston.error({ error });
+    winston.error({
+      error: String(error),
+      stack: new Error().stack,
+    });
     res.status(400).send(error);
   }
 };
@@ -132,7 +141,10 @@ const distinct = async (req, res) => {
     );
     res.json(results);
   } catch (error) {
-    winston.error({ error });
+    winston.error({
+      error: String(error),
+      stack: new Error().stack,
+    });
     res.status(400).send(error);
   }
 };
@@ -164,45 +176,52 @@ const findOne = async (req, res) => { // get a single document matching the sear
     );
     res.json(results);
   } catch (error) {
-    winston.error({ error });
+    winston.error({
+      error: String(error),
+      stack: new Error().stack,
+    });
     res.status(400).send(error);
   }
 };
 
-module.exports = (app) => {
-  app.put('/data/:appId/:tableName', async (req, res) => { // save a new document into <tableName> of app
-    if (req.body && req.body.method === 'DELETE') {
-      /** ****************DELETE API******************** */
-      deleteApi(req, res);
-      /** ****************DELETE API******************** */
-    } else {
-      /** ****************SAVE API******************** */
+const updateTable = async (req, res) => { // save a new document into <tableName> of app
+  if (req.body && req.body.method === 'DELETE') {
+    /** ****************DELETE API******************** */
+    deleteApi(req, res);
+    /** ****************DELETE API******************** */
+  } else {
+    /** ****************SAVE API******************** */
 
-      const { appId, tableName: collectionName } = req.params;
-      const appKey = req.body.key || req.params.key;
-      const { document } = req.body;
-      const sdk = req.body.sdk || 'REST';
-      const tableEvent = document._id // eslint-disable-line no-underscore-dangle
-        ? 'Update' : 'Create';
-      /** ****************SAVE API******************** */
+    const { appId, tableName: collectionName } = req.params;
+    const appKey = req.body.key || req.params.key;
+    const { document } = req.body;
+    const sdk = req.body.sdk || 'REST';
+    const tableEvent = document._id // eslint-disable-line no-underscore-dangle
+      ? 'Update' : 'Create';
+    /** ****************SAVE API******************** */
+    try {
       apiTracker.log(appId, 'Object / Save', req.url, sdk);
-      try {
-        const isMasterKey = await appService.isMasterKey(appId, appKey);
-        const application = await appService.getApp(appId);
-        const result = await customService.save(
-          appId,
-          collectionName,
-          document,
-          customHelper.getAccessList(req),
-          isMasterKey, null, application.keys.encryption_key,
-        );
-        integrationService.integrationNotification(appId, document, collectionName, tableEvent);
-        res.status(200).send(result);
-      } catch (error) {
-        res.status(400).send(error);
-      }
+      const isMasterKey = await appService.isMasterKey(appId, appKey);
+      const application = await appService.getApp(appId);
+      const result = await customService.save(
+        appId,
+        collectionName,
+        document,
+        customHelper.getAccessList(req),
+        isMasterKey,
+        null,
+        application.keys.encryption_key,
+      );
+      integrationService.integrationNotification(appId, document, collectionName, tableEvent);
+      res.status(200).send(result);
+    } catch (error) {
+      res.status(400).send(error);
     }
-  });
+  }
+};
+
+module.exports = (app) => {
+  app.put('/data/:appId/:tableName', updateTable);
 
   app.get('/data/:appId/:tableName/find', getData);
   app.post('/data/:appId/:tableName/find', getData);

@@ -81,3 +81,5 @@ http.listen(PORT, () => {
     process.exit(1);
   }
 });
+
+process.on('unhandledRejection', error => winston.error('unhandledRejection', error));

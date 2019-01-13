@@ -13,7 +13,10 @@ module.exports = async (req, res, next) => {
     }
     return next();
   } catch (error) {
-    winston.error({ error });
+    winston.error({
+      error: String(error),
+      stack: new Error().stack,
+    });
     return next(error);
   }
 };

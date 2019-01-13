@@ -72,7 +72,10 @@ const getAppSettings = async (req, res, next) => {
     };
     return next();
   } catch (error) {
-    winston.error({ error });
+    winston.error({
+      error: String(error),
+      stack: new Error().stack,
+    });
     return res.status(400).send(error);
   }
 };
@@ -86,7 +89,10 @@ module.exports = (app) => {
         url: responseData.loginUrl,
       });
     } catch (error) {
-      winston.error({ error });
+      winston.error({
+        error: String(error),
+        stack: new Error().stack,
+      });
       return res.status(500).send(error);
     }
   });
@@ -177,7 +183,10 @@ module.exports = (app) => {
       const session = setSession(req, appId, sessionLength, savedUser, res);
       return res.redirect(`${authSettings.general.callbackURL}?cbtoken=${session.id}`);
     } catch (error) {
-      winston.error({ error });
+      winston.error({
+        error: String(error),
+        stack: new Error().stack,
+      });
       return res.status(400).json({
         error,
       });
@@ -266,7 +275,10 @@ module.exports = (app) => {
       const session = setSession(req, appId, sessionLength, result, res);
       return res.redirect(`${authSettings.general.callbackURL}?cbtoken=${session.id}`);
     } catch (error) {
-      winston.error({ error });
+      winston.error({
+        error: String(error),
+        stack: new Error().stack,
+      });
       return res.status(500).send(error);
     }
   });

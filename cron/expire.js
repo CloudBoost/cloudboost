@@ -104,7 +104,8 @@ const job = new CronJob('00 00 22 * * *', (() => {
       }
     }, (error) => {
       winston.error({
-        error,
+        error: String(error),
+        stack: new Error().stack,
       });
     });
   } catch (err) {

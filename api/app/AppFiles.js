@@ -35,7 +35,10 @@ module.exports = (app) => {
 
       return fileStream.pipe(res);
     } catch (error) {
-      winston.error({ error });
+      winston.error({
+        error: String(error),
+        stack: new Error().stack,
+      });
       return res.status(500).send(error);
     }
   });

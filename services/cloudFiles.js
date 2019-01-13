@@ -38,7 +38,10 @@ module.exports = {
           promises.push(mongoService.document.saveFileStream(appId, fileStream, fileObj._id, contentType));
           promises.push(customService.save(appId, collectionName, fileObj, accessList, isMasterKey));
         } catch (error) {
-          winston.error(error);
+          winston.error({
+            error: String(error),
+            stack: new Error().stack,
+          });
         }
         // promises.push(mongoService.document.saveFileStream(appId, fileStream, fileObj._id, contentType));
         // promises.push(customService.save(appId, collectionName, fileObj, accessList, isMasterKey));

@@ -48,7 +48,8 @@ const getTable = async (req, res) => {
       });
     } catch (error) {
       winston.error({
-        error,
+        error: String(error),
+        stack: new Error().stack,
       });
       return res.status(500).send('Error');
     }
@@ -147,7 +148,8 @@ module.exports = (app) => {
       return res.status(401).send('Unauthorized');
     } catch (error) {
       winston.error({
-        error,
+        error: String(error),
+        stack: new Error().stack,
       });
       return res.status(500).json({
         error,
@@ -231,7 +233,8 @@ module.exports = (app) => {
       }
     } catch (error) {
       winston.error({
-        error,
+        error: String(error),
+        stack: new Error().stack,
       });
       res.status(500).send('Error');
     }
@@ -265,7 +268,8 @@ module.exports = (app) => {
       });
     } catch (error) {
       winston.error({
-        error,
+        error: String(error),
+        stack: new Error().stack,
       });
       return res.status(500).send('Cannot retrieve security keys.');
     }
@@ -299,7 +303,8 @@ module.exports = (app) => {
       return res.status(200).send(data);
     } catch (error) {
       winston.error({
-        error,
+        error: String(error),
+        stack: new Error().stack,
       });
       return res.status(500).send('Cannot retrieve security keys.');
     }
@@ -337,7 +342,10 @@ module.exports = (app) => {
       const result = await otherService.importTable(req, isMasterKey);
       return res.status(200).json(result);
     } catch (error) {
-      winston.error({ error });
+      winston.error({
+        error: String(error),
+        stack: new Error().stack,
+      });
       return res.status(500).send(error);
     }
   });

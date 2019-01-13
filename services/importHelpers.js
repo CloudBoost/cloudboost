@@ -93,7 +93,7 @@ function dataValidation(data, header) {
 }
 
 function validateData(tableHeaders, nonTHeaders, document) {
-  document.ForEach((data) => {
+  document.forEach((data) => {
     tableHeaders.forEach((header) => {
       if (isEmpty(data[header.colName])) {
         emptyDataValidation(data, header);

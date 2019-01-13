@@ -326,7 +326,7 @@ module.exports = {
     try {
       const _self = this;
       const project = await _self.getApp(appId);
-      const masterKey = util.getNestedValue(['keys', 'master'], project);
+      const masterKey = util.getNestedValue('keys.master', project);
       if (masterKey === key) {
         deferred.resolve(true);
       } else {
@@ -399,7 +399,8 @@ module.exports = {
       }
     } catch (error) {
       winston.error({
-        error,
+        error: String(error),
+        stack: new Error().stack,
       });
       deferred.reject(error);
     }
@@ -745,7 +746,10 @@ module.exports = {
       const exportData = await q.all(promises);
       deferred.resolve(exportData);
     } catch (error) {
-      winston.error({ error });
+      winston.error({
+        error: String(error),
+        stack: new Error().stack,
+      });
       deferred.reject(error);
     }
 
@@ -906,7 +910,7 @@ function _checkValidDataType(columns, defaultDataType, tableType) {
 
     const coloumnDataType = _.filter(_.pluck(columns, 'dataType'), Boolean);
     const defaultDataTypeKeys = Object.keys(defaultDataType);
-    for (let i = 0; i <= defaultDataTypeKeys.length; i++) {
+    for (let i = 0; i < defaultDataTypeKeys.length; i++) {
       const key = defaultDataTypeKeys[i];
       index = coloumnDataType.indexOf(defaultDataType[key]);
       if (index < 0) return false;

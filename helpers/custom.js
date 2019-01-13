@@ -58,7 +58,7 @@ module.exports = {
         error: String(err),
         stack: new Error().stack,
       });
-      deferred.reject(err);
+      deferred.reject('Unauthorized to modify');
     }
     return deferred.promise;
   },

@@ -133,4 +133,5 @@ module.exports = {
     return _path.reduce((acc, curr) => acc && acc[curr] ? acc[curr] : undefined, object);
   },
 
+  handleException: fn => (req, res, next) => fn(req, res).catch(error => next(error)),
 };

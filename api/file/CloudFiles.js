@@ -82,7 +82,10 @@ const deleteFile = async (req, res) => {
     apiTracker.log(appId, 'File / Delete', req.url, sdk);
     res.status(200).send(null);
   } catch (error) {
-    winston.error({ error });
+    winston.error({
+      error: String(error),
+      stack: new Error().stack,
+    });
     res.status(500).send(error);
   }
 };
@@ -147,7 +150,10 @@ const getFile = async (req, res) => {
     );
     return res.status(200).send(processedFile);
   } catch (error) {
-    winston.error({ error });
+    winston.error({
+      error: String(error),
+      stack: new Error().stack,
+    });
     return res.status(500).send(error);
   }
 };
@@ -170,7 +176,10 @@ module.exports = (app) => {
         const result = await customService.save(appId, '_File', document, customHelper.getAccessList(req), isMasterKey);
         res.status(200).send(result);
       } catch (error) {
-        winston.error({ error });
+        winston.error({
+          error: String(error),
+          stack: new Error().stack,
+        });
         res.status(400).send(error);
       }
     } else {
@@ -185,7 +194,10 @@ module.exports = (app) => {
         );
         res.status(200).send(file);
       } catch (error) {
-        winston.error({ error });
+        winston.error({
+          error: String(error),
+          stack: new Error().stack,
+        });
         res.status(500).send(error);
       }
     }

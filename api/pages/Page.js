@@ -48,7 +48,10 @@ module.exports = (app) => {
         authSettings,
       });
     } catch (error) {
-      winston.error({ error });
+      winston.error({
+        error: String(error),
+        stack: new Error().stack,
+      });
       res.status(400).send(error);
     }
   });
@@ -82,7 +85,10 @@ module.exports = (app) => {
       apiTracker.log(appId, 'User / Reset User Password', req.url, sdk);
       return res.status(200).json({ message: 'Password changed successfully' });
     } catch (error) {
-      winston.error({ error });
+      winston.error({
+        error: String(error),
+        stack: new Error().stack,
+      });
       return res.status(400).json({ error });
     }
   });
@@ -123,7 +129,10 @@ module.exports = (app) => {
         authSettings,
       });
     } catch (error) {
-      winston.error({ error });
+      winston.error({
+        error: String(error),
+        stack: new Error().stack,
+      });
       res.status(400).send(error);
     }
   });
@@ -161,7 +170,8 @@ module.exports = (app) => {
       });
     } catch (error) {
       winston.error({
-        error,
+        error: String(error),
+        stack: new Error().stack,
       });
       return res.render(`${config.rootPath}/page-templates/user/signup-activate`, {
         verified: false,

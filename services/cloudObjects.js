@@ -97,7 +97,7 @@ module.exports = {
     return deferred.promise;
   },
 
-  save(appId, collectionName, document, accessList, isMasterKey, opts, encryption_key) {
+  async save(appId, collectionName, document, accessList, isMasterKey, opts, encryption_key) {
     const deferred = q.defer();
 
     try {
@@ -112,7 +112,7 @@ module.exports = {
 
           promises.push(_save(appId, collectionName, document[i], accessList, isMasterKey, reqType, opts, encryption_key));
         }
-        q.allSettled(promises).then((res) => {
+        const res = await q.allSettled(promises)
           let status = true;
           const success = [];
           const error = [];
@@ -131,14 +131,9 @@ module.exports = {
           } else {
             deferred.resolve(error);
           }
-        });
       } else {
-        _save(appId, collectionName, document, accessList, isMasterKey, null, opts, encryption_key)
-          .then((res) => {
-            deferred.resolve(res);
-          }, (err) => {
-            deferred.reject(err);
-          });
+        const res = await _save(appId, collectionName, document, accessList, isMasterKey, null, opts, encryption_key);
+        deferred.resolve(res);
       }
     } catch (err) {
       winston.log('error', {
@@ -215,7 +210,7 @@ module.exports = {
 };
 
 
-function _save(appId, collectionName, document, accessList, isMasterKey, reqType, opts, encryption_key) {
+async function _save(appId, collectionName, document, accessList, isMasterKey, reqType, opts, encryption_key) {
   const deferred = q.defer();
   try {
     const docToSave = document;
@@ -238,37 +233,28 @@ function _save(appId, collectionName, document, accessList, isMasterKey, reqType
 
     document = _getModifiedDocs(document, unModDoc);
     if (document && Object.keys(document).length > 0) {
-      customHelper.checkWriteAclAndUpdateVersion(appId, document, accessList, isMasterKey).then((listOfDocs) => {
-        let obj = _seperateDocs(listOfDocs);
-        listOfDocs = obj.newDoc;
-        obj = obj.oldDoc;
+      let listOfDocs = await customHelper.checkWriteAclAndUpdateVersion(appId, document, accessList, isMasterKey);
+      let obj = _seperateDocs(listOfDocs);
+      listOfDocs = obj.newDoc;
+      obj = obj.oldDoc;
+      const newListOfDocs = await _validateSchema(appId, listOfDocs, accessList, isMasterKey, encryption_key)
+      const mongoDocs = newListOfDocs.map(doc => Object.assign({}, doc));
 
-        _validateSchema(appId, listOfDocs, accessList, isMasterKey, encryption_key).then((listOfDocs) => {
-          const mongoDocs = listOfDocs.map(doc => Object.assign({}, doc));
-
-          promises.push(mongoService.document.save(appId, mongoDocs));
-          q.allSettled(promises).then((array) => {
-            if (array[0].state === 'fulfilled') {
-              _sendNotification(appId, array[0], reqType);
-              unModDoc = _merge(parentId, array[0].value, unModDoc);
-
-
-              deferred.resolve(unModDoc);
-            } else {
-              _rollBack(appId, array, listOfDocs, obj).then((res) => {
-                winston.log('error', res);
-                deferred.reject('Unable to Save the document at this time');
-              }, (err) => {
-                winston.log('error', err);
-                deferred.reject(err);
-              });
-            }
+      promises.push(mongoService.document.save(appId, mongoDocs));
+      q.allSettled(promises).then((array) => {
+        if (array[0].state === 'fulfilled') {
+          _sendNotification(appId, array[0], reqType);
+          unModDoc = _merge(parentId, array[0].value, unModDoc);
+          deferred.resolve(unModDoc);
+        } else {
+          _rollBack(appId, array, listOfDocs, obj).then((res) => {
+            winston.log('error', res);
+            deferred.reject('Unable to Save the document at this time');
+          }, (err) => {
+            winston.log('error', err);
+            deferred.reject(err);
           });
-        }, (err) => {
-          deferred.reject(err);
-        });
-      }, () => {
-        deferred.reject('Unauthorized to modify');
+        }
       });
     } else {
       deferred.resolve(docToSave);
@@ -306,7 +292,10 @@ function _delete(appId, collectionName, document, accessList, isMasterKey) {
           });
         }
       }, (err) => {
-        winston.error(err);
+        winston.error({
+          error: String(err),
+          stack: new Error().stack,
+        });
         deferred.reject('You do not have permission to delete the Object');
       });
     } else {
@@ -322,16 +311,13 @@ function _delete(appId, collectionName, document, accessList, isMasterKey) {
   return deferred.promise;
 }
 
-function _validateSchema(appId, listOfDocs, accessList, isMasterKey, encryption_key) {
+async function _validateSchema(appId, listOfDocs, accessList, isMasterKey, encryption_key) {
   const deferred = q.defer();
   try {
     const promises = [];
     for (let i = 0; i < listOfDocs.length; i++) promises.push(_isSchemaValid(appId, listOfDocs[i]._tableName, listOfDocs[i], accessList, isMasterKey, encryption_key));
-    q.all(promises).then((docs) => {
-      deferred.resolve(docs);
-    }, (err) => {
-      deferred.reject(err);
-    });
+    const docs = await q.all(promises);
+    deferred.resolve(docs);
   } catch (err) {
     winston.log('error', {
       error: String(err),
@@ -363,23 +349,21 @@ function _sendNotification(appId, res, reqType) {
   }
 }
 
-function _isSchemaValid(appId, collectionName, document, accessList, isMasterKey, encryption_key) {
+async function _isSchemaValid(appId, collectionName, document, accessList, isMasterKey, encryption_key) {
   const mainPromise = q.defer();
   let columnNotFound = false;
 
   try {
     const promises = [];
     if (!document) {
-      mainPromise.reject('Document is undefined');
-      return mainPromise.promise;
+      await mainPromise.reject('Document is undefined');
     }
     const modifiedDocuments = document._modifiedColumns;
-    tableService.getSchema(appId, collectionName).then((table) => {
-      const columns = table.columns;
+    const table = await tableService.getSchema(appId, collectionName);
+    const columns = table.columns;
       // check for required.
       if (!document._tableName || !document._type) {
-        mainPromise.reject('Not a type of table');
-        return mainPromise.promise;
+        await mainPromise.reject('Not a type of table');
       }
       for (let i = 0; i < columns.length; i++) {
         if (columns[i].name === 'id') continue; // ignore.
@@ -407,8 +391,7 @@ function _isSchemaValid(appId, collectionName, document, accessList, isMasterKey
 
         if (columns[i].required) {
           if (document[columns[i].name] === null || document[columns[i].name] === undefined) {
-            mainPromise.reject(`${columns[i].name} is required`);
-            return mainPromise.promise;
+            await mainPromise.reject(`${columns[i].name} is required`);
           }
         }
 
@@ -472,8 +455,7 @@ function _isSchemaValid(appId, collectionName, document, accessList, isMasterKey
           else if (key === '_id') {
             // check if this is a string..
             if (typeof document[key] !== 'string') {
-              mainPromise.reject(`Invalid data in ID of type ${collectionName}. It should be of type string`);
-              return mainPromise.promise;
+              await mainPromise.reject(`Invalid data in ID of type ${collectionName}. It should be of type string`);
             }
           } else {
             const col = _.first(_.where(columns, { name: key })); // get the column of this key.
@@ -512,8 +494,7 @@ function _isSchemaValid(appId, collectionName, document, accessList, isMasterKey
               if (_isBasicDataType(datatype)) {
                 const res = _checkBasicDataTypes(document[key], datatype, key, collectionName); // check for basic datatypes
                 if (res.message) {
-                  mainPromise.reject(res.message);
-                  return mainPromise.promise;
+                  await mainPromise.reject(res.message);
                 }
                 document[key] = res.data;
               }
@@ -528,8 +509,7 @@ function _isSchemaValid(appId, collectionName, document, accessList, isMasterKey
                   document[key]._type = _getTableType(col.relatedTo);
                   continue;
                 } else {
-                  mainPromise.reject(`Invalid data in column ${key}. It should be of type 'CloudObject' which belongs to table '${col.relatedTo}'`);
-                  return mainPromise.promise;
+                  await mainPromise.reject(`Invalid data in column ${key}. It should be of type 'CloudObject' which belongs to table '${col.relatedTo}'`);
                 }
               }
               if (document[key] && datatype === 'Relation' && typeof document[key] === 'object') {
@@ -538,8 +518,7 @@ function _isSchemaValid(appId, collectionName, document, accessList, isMasterKey
                   document[key]._tableName = col.relatedTo;
                 }
                 if (!document[key]._id && !document[key].id) {
-                  mainPromise.reject(`Invalid data in column ${key}. It should be of type 'CloudObject' which belongs to table '${col.relatedTo}'`);
-                  return mainPromise.promise;
+                  await mainPromise.reject(`Invalid data in column ${key}. It should be of type 'CloudObject' which belongs to table '${col.relatedTo}'`);
                 }
                 document[key]._id = document[key]._id || document[key].id;
                 delete document[key].id;
@@ -550,16 +529,14 @@ function _isSchemaValid(appId, collectionName, document, accessList, isMasterKey
                 if (document[key]._tableName === col.relatedTo) {
                   continue;
                 } else {
-                  mainPromise.reject(`Invalid data in column ${key}. It should be of type 'CloudObject' which belongs to table '${col.relatedTo}'`);
-                  return mainPromise.promise;
+                  await mainPromise.reject(`Invalid data in column ${key}. It should be of type 'CloudObject' which belongs to table '${col.relatedTo}'`);
                 }
               }
 
               // / List check
               if (document[key] && datatype === 'List' && Object.prototype.toString.call(document[key]) !== '[object Array]') {
                 // if it is a list.
-                mainPromise.reject(`Invalid data in column ${key}. It should be of type 'CloudObject' which belongs to table '${col.relatedTo}'`);
-                return mainPromise.promise;
+                await mainPromise.reject(`Invalid data in column ${key}. It should be of type 'CloudObject' which belongs to table '${col.relatedTo}'`);
               }
               if (document[key] && datatype === 'List' && Object.prototype.toString.call(document[key]) === '[object Array]') {
                 if (document[key].length !== 0) {
@@ -567,20 +544,17 @@ function _isSchemaValid(appId, collectionName, document, accessList, isMasterKey
                     const res = _checkBasicDataTypes(document[key], col.relatedTo, key, document._tableName);
                     if (res.message) {
                       // if something is wrong.
-                      mainPromise.reject(res.message);
-                      return mainPromise.promise;
+                      await mainPromise.reject(res.message);
                     }
                     document[key] = res.data;
                   } else {
                     for (let i = 0; i < document[key].length; i++) {
                       if (document[key][i]._tableName) {
                         if (col.relatedTo !== document[key][i]._tableName) {
-                          mainPromise.reject(`Invalid data in column ${key}. It should be Array of 'CloudObjects' which belongs to table '${col.relatedTo}'.`);
-                          return mainPromise.promise;
+                          await mainPromise.reject(`Invalid data in column ${key}. It should be Array of 'CloudObjects' which belongs to table '${col.relatedTo}'.`);
                         }
                       } else {
-                        mainPromise.reject(`Invalid data in column ${key}. It should be Array of 'CloudObjects' which belongs to table '${col.relatedTo}'.`);
-                        return mainPromise.promise;
+                        await mainPromise.reject(`Invalid data in column ${key}. It should be Array of 'CloudObjects' which belongs to table '${col.relatedTo}'.`);
                       }
                     }
                   }
@@ -630,9 +604,6 @@ function _isSchemaValid(appId, collectionName, document, accessList, isMasterKey
         obj.schema = columns;
         mainPromise.resolve(obj); // resolve this promise.
       }
-    }, (error) => {
-      mainPromise.reject(error);
-    });
   } catch (err) {
     winston.log('error', {
       error: String(err),

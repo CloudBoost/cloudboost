@@ -22,7 +22,10 @@ async function _saveSettings(params) {
     const _docs = await collection.save(doc);
     deferred.resolve(_docs);
   } catch (error) {
-    winston.error({ error });
+    winston.error({
+      error: String(error),
+      stack: new Error().stack,
+    });
     deferred.reject(error);
   }
 
@@ -43,7 +46,10 @@ module.exports = {
         throw 'No configuration found.';
       }
     } catch (error) {
-      winston.error({ error });
+      winston.error({
+        error: String(error),
+        stack: new Error().stack,
+      });
       deferred.reject(error);
     }
 
@@ -73,7 +79,10 @@ module.exports = {
         deferred.resolve(newDoc);
       }
     } catch (error) {
-      winston.error({ error });
+      winston.error({
+        error: String(error),
+        stack: new Error().stack,
+      });
       deferred.reject(error);
     }
 

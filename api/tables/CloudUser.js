@@ -89,7 +89,10 @@ module.exports = (app) => {
       );
       return res.json(results);
     } catch (error) {
-      winston.error({ error });
+      winston.error({
+        error: String(error),
+        stack: new Error().stack,
+      });
       return res.status(400).send(error);
     }
   });
@@ -139,7 +142,10 @@ module.exports = (app) => {
       setSession(req, appId, sessionLength, result, res);
       res.json(result);
     } catch (error) {
-      winston.error({ error });
+      winston.error({
+        error: String(error),
+        stack: new Error().stack,
+      });
       res.status(401).json({
         error,
       });
@@ -248,7 +254,10 @@ module.exports = (app) => {
       }
       return res.status(400).send('Invalid accessToken');
     } catch (error) {
-      winston.error({ error });
+      winston.error({
+        error: String(error),
+        stack: new Error().stack,
+      });
       return res.status(400).send(error);
     }
   });
@@ -299,7 +308,10 @@ module.exports = (app) => {
         res.send(null);
       }
     } catch (error) {
-      winston.error({ error });
+      winston.error({
+        error: String(error),
+        stack: new Error().stack,
+      });
       res.status(400).json({
         error,
       });
@@ -377,7 +389,10 @@ module.exports = (app) => {
       );
       return res.json(result);
     } catch (error) {
-      winston.error({ error });
+      winston.error({
+        error: String(error),
+        stack: new Error().stack,
+      });
       return res.json(400, {
         error,
       });
@@ -413,8 +428,11 @@ module.exports = (app) => {
         message: 'Password reset email sent.',
       });
     } catch (error) {
-      winston.error({ error });
-      return res.json(400, {
+      winston.error({
+        error: String(error),
+        stack: new Error().stack,
+      });
+      return res.status(400).json({
         error,
       });
     }
@@ -442,7 +460,10 @@ module.exports = (app) => {
       );
       res.json(result);
     } catch (error) {
-      winston.error({ error });
+      winston.error({
+        error: String(error),
+        stack: new Error().stack,
+      });
       res.json(400, {
         error,
       });
@@ -467,7 +488,10 @@ module.exports = (app) => {
       );
       res.json(result);
     } catch (error) {
-      winston.error({ error });
+      winston.error({
+        error: String(error),
+        stack: new Error().stack,
+      });
       res.status(400).json({
         error,
       });

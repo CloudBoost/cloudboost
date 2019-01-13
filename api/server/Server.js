@@ -50,7 +50,10 @@ module.exports = (app) => {
         message: 'Service status : OK',
       });
     } catch (error) {
-      winston.error({ error });
+      winston.error({
+        error: String(error),
+        stack: new Error().stack,
+      });
       return res.status(500).send(error);
     }
   });

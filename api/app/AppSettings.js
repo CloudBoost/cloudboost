@@ -102,7 +102,8 @@ module.exports = (app) => {
       }
     } catch (error) {
       winston.error({
-        error,
+        error: String(error),
+        stack: new Error().stack,
       });
       res.status(500).send('Error.');
     }
@@ -128,7 +129,10 @@ module.exports = (app) => {
         res.status(401).send({ status: 'Unauthorized' });
       }
     } catch (error) {
-      winston.error({ error });
+      winston.error({
+        error: String(error),
+        stack: new Error().stack,
+      });
       res.status(500).send('Error.');
     }
   });
@@ -193,7 +197,10 @@ module.exports = (app) => {
 
       return res.status(200).send(fileUri);
     } catch (error) {
-      winston.error({ error });
+      winston.error({
+        error: String(error),
+        stack: new Error().stack,
+      });
       return res.status(500).send(error);
     }
   });
@@ -230,7 +237,10 @@ module.exports = (app) => {
 
       return fileStream.pipe(res);
     } catch (error) {
-      winston.error({ error });
+      winston.error({
+        error: String(error),
+        stack: new Error().stack,
+      });
       return res.status(500).send(error);
     }
   });
