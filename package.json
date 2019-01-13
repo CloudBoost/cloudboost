@@ -1,6 +1,6 @@
 {
   "name": "cloudboost-server",
-  "version": "1.0.132",
+  "version": "1.0.133",
   "main": "server.js",
   "engines": {
     "node": ">=7.8.0"
@@ -123,7 +123,7 @@
   "snyk": true,
   "husky": {
     "hooks": {
-      "pre-push": "eslint . --ext .js --fix"
+      "pre-commit": "eslint . --ext .js --fix"
     }
   }
 }
