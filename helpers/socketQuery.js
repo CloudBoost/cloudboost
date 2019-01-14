@@ -189,7 +189,7 @@ const obj = {
                   if (Object.prototype.toString.call(val) === '[object Array]') {
                     let exists = false;
                     for (let l = 0; l < val.length; l++) {
-                      if (value[l]._type === 'custom') {
+                      if (val[l] && val[l]._type === 'custom') {
                         if (arr.indexOf(val[l]._id) > -1) {
                           exists = true;
                           break;

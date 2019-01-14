@@ -11,6 +11,7 @@ module.exports = () => {
   winston.add(winston.transports.Console, {
     level: 'debug',
     stderrLevels: ['error', 'debug', 'info'],
+    colorize: true,
   });
 
   if (config.logglySubDomain) {

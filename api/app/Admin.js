@@ -19,7 +19,8 @@ module.exports = (app) => {
         return res.status(200).json(response);
       } catch (error) {
         winston.error({
-          error,
+          error: String(error),
+          stack: new Error().stack,
         });
         return res.status(500).send('Error');
       }
@@ -39,7 +40,8 @@ module.exports = (app) => {
         return res.status(200).json(responseJson);
       } catch (error) {
         winston.error({
-          error,
+          error: String(error),
+          stack: new Error().stack,
         });
         return res.status(500).send('Error');
       }
@@ -66,7 +68,8 @@ module.exports = (app) => {
         });
       } catch (error) {
         winston.error({
-          error,
+          error: String(error),
+          stack: new Error().stack,
         });
         return res.status(500).send('Error');
       }

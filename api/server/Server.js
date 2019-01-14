@@ -32,7 +32,8 @@ module.exports = (app) => {
         });
       } catch (error) {
         winston.error({
-          error,
+          error: String(error),
+          stack: new Error().stack,
         });
         return res.status(500).send('Error, Cannot change the cluster URL at this time.');
       }
