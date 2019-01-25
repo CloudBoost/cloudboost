@@ -29,17 +29,17 @@ cache:
 # - sleep 5s
 # - docker exec $(docker ps -aqf "name=mongo") mongo _GLOBAL --eval "db.getCollection('_Settings').insertOne({secureKey:'1227d1c4-1385-4d5f-ae73-23e99f74b006',clusterKey:'1227d1c4-1385-4d5f-ae73-23e99f74b006',myURL:'http://localhost:4730'});"
 
-install:
+# install:
 # - npm install grunt-cli -g
 # - npm install eslint -g
 # - npm install
-- docker build -t cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER .
+# - docker build -t cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER .
 # - if [ "$TRAVIS_BRANCH" == "release" ]; then
 #     docker tag cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER cloudboost/cloudboost:latest;
 #   fi
-- if [ "$TRAVIS_BRANCH" == "deploy-update" ]; then
-    docker tag cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER cloudboost/cloudboost:master-2.0.$TRAVIS_BUILD_NUMBER;
-  fi
+# - if [ "$TRAVIS_BRANCH" == "deploy-update" ]; then
+#     docker tag cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER cloudboost/cloudboost:master-2.0.$TRAVIS_BUILD_NUMBER;
+#   fi
 # - docker run --name cloudboost
 #     -e  ANALYTICS_URL=$ANALYTICS_URL
 #     -e  ANALYTICS_KEY=$ANALYTICS_KEY

@@ -3,7 +3,7 @@
 set -e
 
 echo "$DOCKERPASSWORD" | docker login -u "$DOCKERUSERNAME" --password-stdin;
-docker push cloudboost/cloudboost:master-2.0.$TRAVIS_BUILD_NUMBER;
+# docker push cloudboost/cloudboost:master-2.0.$TRAVIS_BUILD_NUMBER;
 
 echo $GCLOUD_SERVICE_KEY_PRD | base64 --decode -i > ${HOME}/gcloud-service-key.json
 gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json
@@ -16,5 +16,5 @@ gcloud --quiet container clusters get-credentials $CLUSTER_NAME_PRD
 kubectl config view
 kubectl config current-context
 
-kubectl set image deployment cloudboost-api cloudboost-api=cloudboost/cloudboost:master-2.0.$TRAVIS_BUILD_NUMBER;
+kubectl set image deployment cloudboost-api cloudboost-api=cloudboost/cloudboost:master-2.0.860;
 kubectl rollout status deployment cloudboost-api;
