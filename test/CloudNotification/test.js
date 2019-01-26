@@ -37,12 +37,12 @@ describe("CloudNotification", function() {
 				},
 				error : function(err){
 					//error
-					throw 'Error publishing to a channel in CloudNotification.';
+					done('Error publishing to a channel in CloudNotification.');
 				}
 			});
       	},
       	error : function(){
-      		throw 'Error subscribing to a CloudNotification.';
+      		done('Error subscribing to a CloudNotification.');
       	}
 
       });
