@@ -24,7 +24,7 @@ cache:
   - "$HOME/google-cloud-sdk/"
 
 before_install:
-- docker run --name mongo -p 27017:27017 -d mongo:3.2
+- docker run --name mongo -p 27017:27017 -d mongo
 - docker run --name redis -p 6379:6379 -d redis:3.0
 - sleep 5s
 - docker exec $(docker ps -aqf "name=mongo") mongo _GLOBAL --eval "db.getCollection('_Settings').insertOne({secureKey:'1227d1c4-1385-4d5f-ae73-23e99f74b006',clusterKey:'1227d1c4-1385-4d5f-ae73-23e99f74b006',myURL:'http://localhost:4730'});"
@@ -57,16 +57,15 @@ install:
 
 after_success:
   - echo "$DOCKERPASSWORD" | docker login -u "$DOCKERUSERNAME" --password-stdin;
+  - if [ ! -d "$HOME/google-cloud-sdk/bin" ]; then
+      rm -rf $HOME/google-cloud-sdk; export CLOUDSDK_CORE_DISABLE_PROMPTS=1; 
+      curl https://sdk.cloud.google.com | bash; 
+    fi
+  - source /home/travis/google-cloud-sdk/path.bash.inc;
+  - gcloud --quiet version;
+  - gcloud --quiet components update;
+  - gcloud --quiet components update kubectl;
   - if [ "$TRAVIS_BRANCH" == "release" ]; then
-      if [ ! -d "$HOME/google-cloud-sdk/bin" ]; then
-        rm -rf $HOME/google-cloud-sdk; export CLOUDSDK_CORE_DISABLE_PROMPTS=1; 
-        curl https://sdk.cloud.google.com | bash; 
-      fi
-      source /home/travis/google-cloud-sdk/path.bash.inc;
-      gcloud --quiet version;
-      gcloud --quiet components update;
-      gcloud --quiet components update kubectl;
-
       docker push cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER;
       docker push cloudboost/cloudboost:latest;
       echo $GCLOUD_SERVICE_KEY_PRD | base64 --decode -i > ${HOME}/gcloud-service-key.json;
@@ -83,15 +82,6 @@ after_success:
       kubectl rollout status deployment cloudboost-api;
     fi
   - if [ "$TRAVIS_BRANCH" == "master" ]; then
-      if [ ! -d "$HOME/google-cloud-sdk/bin" ]; then
-        rm -rf $HOME/google-cloud-sdk; export CLOUDSDK_CORE_DISABLE_PROMPTS=1; 
-        curl https://sdk.cloud.google.com | bash; 
-      fi
-      source /home/travis/google-cloud-sdk/path.bash.inc;
-      gcloud --quiet version;
-      gcloud --quiet components update;
-      gcloud --quiet components update kubectl;
-
       docker push cloudboost/cloudboost:master-2.0.$TRAVIS_BUILD_NUMBER;
       echo $GCLOUD_SERVICE_KEY_STG | base64 --decode -i > ${HOME}/gcloud-service-key.json;
       gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json;
