@@ -53,6 +53,7 @@ install:
       -p 4730:4730 -it --link redis:redis --link mongo:mongo -d cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER
   - sleep 5s
   - docker logs cloudboost
+  - grunt
   - webpack
 
 after_success:
