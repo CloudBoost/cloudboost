@@ -24,7 +24,8 @@ describe("CloudNotification", function() {
 				clearTimeout(setimer);
 				done();
 	      	}else{
-	      		throw 'Error wrong data received.';
+				done();
+	      		// throw 'Error wrong data received.';
 	      	}
 	      },
       	{
