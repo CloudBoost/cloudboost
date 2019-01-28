@@ -69,7 +69,7 @@ http.listen(PORT, function () {
         require('./config/mongo')(); // Setup mongo server
         require('./config/analytics')(); // Setup the analytics server
         require('./config/setup')(); // Setup cloudboost server
-        require('./middlewares')(app); //Setup middlewares               
+        require('./middlewares')(app); //Setup middlewares
 
         require('./routes')(app); //Setup routes
 

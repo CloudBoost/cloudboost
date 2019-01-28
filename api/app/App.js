@@ -10,6 +10,7 @@ var appService = require('../../services/app');
 var otherService = require('../../services/other');
 var customHelper = require('../../helpers/custom.js');
 var winston = require('winston');
+var isAppDisabled = require('../../middlewares/isAppDisabled');
 
 module.exports = function (app) {
     /**
@@ -149,9 +150,11 @@ module.exports = function (app) {
 
                         res.status(500).send('Cannot delete table at this point in time. Please try again later.');
                     });
-                } else return res.status(401).send({
-                    status: 'Unauthorized'
-                });
+                } else {
+                    return res.status(401).send({
+                        status: 'Unauthorized'
+                    });
+                }
             }, function (error) {
                 return res.status(401).send({
                     status: 'Unauthorized',
@@ -169,7 +172,7 @@ module.exports = function (app) {
     }
 
     //create a table.
-    app.put('/app/:appId/:tableName', function (req, res) {
+    app.put('/app/:appId/:tableName', isAppDisabled, function (req, res) {
 
 
 
@@ -221,8 +224,8 @@ module.exports = function (app) {
     });
 
     //get a table.
-    app.post('/app/:appId/:tableName', _getTable);
-    app.get('/app/:appId/:tableName', _getTable);
+    app.post('/app/:appId/:tableName', isAppDisabled, _getTable);
+    app.get('/app/:appId/:tableName', isAppDisabled, _getTable);
 
     // global.app.get('/app/:appId/:tableName', _getColumn);
 

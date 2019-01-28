@@ -11,15 +11,17 @@ module.exports = function () {
             try {
                 config.mongoClient = dbc;
                 //Init Secure key for this cluster. Secure key is used for Encryption / Creating apps , etc.
-                keyService.initSecureKey().then(function (key) {
-                    winston.info("Secure Key: " + key);
+                keyService.initSettingsVariable().then(function (settings) {
+                    config.secureKey = settings.secureKey;
+                    config.clusterKey = settings.clusterKey;
+                    config.myURL = settings.myURL;
+                    winston.info("Secure Key: " + settings.secureKey);
+                    winston.info("Cluster Key: " + settings.clusterKey);
                     winston.info("IMPORTANT: Please keep Secure Key private. Revealing it would make your server vulnerable.");
-                    serverService.registerServer(key);
+                    serverService.registerServer(settings.secureKey);
                 }, function () {
                     winston.error("Failed to initialize Secure Key. Please check if MongoDB is connected and restart server.");
                 });
-                //Cluster Key is used to differentiate which cluster is the request coming from in Analytics.
-                keyService.initClusterKey();
             } catch (e) {
                 winston.log('error', {
                     "error": String(e),

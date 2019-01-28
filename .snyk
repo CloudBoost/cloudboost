@@ -1,5 +1,5 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
-version: v1.12.0
+version: v1.13.1
 ignore: {}
 # patches apply the minimum changes required to fix a vulnerability
 patch:
@@ -15,6 +15,10 @@ patch:
   'npm:request:20160119':
     - winston-bishop-slack > winston > request:
         patched: '2017-11-21T04:47:12.009Z'
+    - phantomjs > request:
+        patched: '2018-12-04T03:56:58.545Z'
+    - winston-bishop-slack > winston > request:
+        patched: '2018-12-04T03:56:58.545Z'
   'npm:hoek:20180212':
     - winston-loggly-transport > loggly > request > hawk > hoek:
         patched: '2018-06-21T13:36:16.241Z'
@@ -24,3 +28,46 @@ patch:
         patched: '2018-06-21T13:36:16.241Z'
     - winston-loggly-transport > loggly > request > hawk > cryptiles > boom > hoek:
         patched: '2018-06-21T13:36:16.241Z'
+    - phantomjs > request > hawk > hoek:
+        patched: '2018-12-04T03:56:58.545Z'
+    - winston-loggly-transport > loggly > request > hawk > hoek:
+        patched: '2018-12-04T03:56:58.545Z'
+    - phantomjs > request > hawk > boom > hoek:
+        patched: '2018-12-04T03:56:58.545Z'
+    - winston-loggly > loggly > request > hawk > sntp > hoek:
+        patched: '2018-12-04T03:56:58.545Z'
+    - winston-loggly > loggly > request > hawk > boom > hoek:
+        patched: '2018-12-04T03:56:58.545Z'
+    - phantomjs > request > hawk > cryptiles > boom > hoek:
+        patched: '2018-12-04T03:56:58.545Z'
+    - winston-loggly > loggly > request > hawk > cryptiles > boom > hoek:
+        patched: '2018-12-04T03:56:58.545Z'
+    - winston-loggly-transport > loggly > request > hawk > boom > hoek:
+        patched: '2018-12-04T03:56:58.545Z'
+    - winston-loggly > loggly > request > hawk > hoek:
+        patched: '2018-12-04T03:56:58.545Z'
+    - winston-loggly-transport > loggly > request > hawk > sntp > hoek:
+        patched: '2018-12-04T03:56:58.545Z'
+    - winston-loggly-transport > loggly > request > hawk > cryptiles > boom > hoek:
+        patched: '2018-12-04T03:56:58.545Z'
+    - phantomjs > request > hawk > sntp > hoek:
+        patched: '2018-12-04T03:56:58.545Z'
+  'npm:mime:20170907':
+    - winston-bishop-slack > winston > request > form-data > mime:
+        patched: '2018-12-04T03:56:58.545Z'
+    - winston-bishop-slack > winston > request > mime:
+        patched: '2018-12-04T03:56:58.545Z'
+    - winston-bishop-slack > superagent > mime:
+        patched: '2018-12-04T03:56:58.545Z'
+    - winston-bishop-slack > superagent > form-data > mime:
+        patched: '2018-12-04T03:56:58.545Z'
+  'npm:tough-cookie:20170905':
+    - phantomjs > request > tough-cookie:
+        patched: '2018-12-04T03:56:58.545Z'
+  'npm:tunnel-agent:20170305':
+    - winston-loggly-transport > loggly > request > tunnel-agent:
+        patched: '2018-12-04T03:56:58.545Z'
+    - winston-loggly > loggly > request > tunnel-agent:
+        patched: '2018-12-04T03:56:58.545Z'
+    - phantomjs > request > tunnel-agent:
+        patched: '2018-12-04T03:56:58.545Z'
