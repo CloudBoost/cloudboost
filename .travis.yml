@@ -21,7 +21,7 @@ node_js:
 cache:
   directories:
   - node_modules # NPM packages
-  - "$HOME/google-cloud-sdk/"
+  - /home/travis/google-cloud-sdk
 
 before_install:
 - docker run --name mongo -p 27017:27017 -d mongo
@@ -32,7 +32,6 @@ before_install:
 install:
   - npm install grunt-cli -g
   - npm install eslint -g
-  - npm install
   - docker build -t cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER .
   - if [ "$TRAVIS_BRANCH" == "release" ]; then
       docker tag cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER cloudboost/cloudboost:latest;
@@ -54,7 +53,6 @@ install:
   - sleep 5s
   - docker logs cloudboost
   - grunt
-  - webpack
 
 after_success:
   - echo "$DOCKERPASSWORD" | docker login -u "$DOCKERUSERNAME" --password-stdin;
@@ -63,9 +61,9 @@ after_success:
         rm -rf $HOME/google-cloud-sdk;
         export CLOUDSDK_CORE_DISABLE_PROMPTS=1; 
         curl https://sdk.cloud.google.com | bash; 
+        source /home/travis/google-cloud-sdk/path.bash.inc;
       fi
 
-      source /home/travis/google-cloud-sdk/path.bash.inc;
       gcloud --quiet version;
       gcloud --quiet components update;
       gcloud --quiet components update kubectl;
@@ -89,9 +87,9 @@ after_success:
         rm -rf $HOME/google-cloud-sdk;
         export CLOUDSDK_CORE_DISABLE_PROMPTS=1; 
         curl https://sdk.cloud.google.com | bash; 
+        source /home/travis/google-cloud-sdk/path.bash.inc;
       fi
 
-      source /home/travis/google-cloud-sdk/path.bash.inc;
       gcloud --quiet version;
       gcloud --quiet components update;
       gcloud --quiet components update kubectl;
