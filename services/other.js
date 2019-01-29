@@ -1,6 +1,6 @@
 
 var q = require('q');
-var json2csv = require('json2csv');
+const json2csv = require('json2csv');
 var fs = require('fs');
 var path = require('path');
 
@@ -13,7 +13,7 @@ var mongoService = require('../databases/mongo');
 var appService = require('./app');
 
 module.exports = {
-     exportTable: function (appId, tableName, exportType, isMasterKey, accessList) {
+    exportTable: function (appId, tableName, exportType, isMasterKey, accessList) {
 
         var deferred = q.defer();
         customService.find(appId, tableName, {}, null, null, 999999, null, accessList, isMasterKey).then(function (tables) {
@@ -28,8 +28,12 @@ module.exports = {
                 docs._type ? delete docs._type : null;
             });
             if (exportType === 'csv') {
-                var result = json2csv({ data: tables });
-                deferred.resolve(result);
+                try {
+                    var result = json2csv({ data: tables });
+                    deferred.resolve(result);
+                } catch (err) {
+                    return deferred.reject(err);
+                }
             } else if (exportType === 'xlsx' || exportType === 'xls') {
                 var random = util.getId();
                 var fileName = '/tmp/tempfile' + random + '.xlsx';
@@ -126,7 +130,7 @@ module.exports = {
                     deferred.reject(error);
                 });
             } else {
-                deferred.reject({ message: 'Unparsed file error'});
+                deferred.reject({ message: 'Unparsed file error' });
             }
         });
         return deferred.promise;

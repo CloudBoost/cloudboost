@@ -8,6 +8,8 @@
 const q = require('q');
 var _ = require('underscore');
 var Grid = require('gridfs-stream');
+
+var mongodb = require('mongodb');
 var config = require('../config/config');
 var winston = require('winston');
 
@@ -361,7 +363,7 @@ obj.document = {
             //delete $include and $includeList recursively
             query = _sanitizeQuery(query);
 
-            var findQuery = collection.find(query, select);
+            var findQuery = collection.find(query).project(select);
 
             if (Object.keys(sort).length > 0) {
                 findQuery = findQuery.sort(sort);
@@ -644,28 +646,32 @@ obj.document = {
                 });
             }
 
-            collection.aggregate(pipeline, function(err, res) {
+            collection.aggregate(pipeline, function (err, cursor) {
                 if (err) {
                     deferred.reject(err);
                 } else {
                     var docs = [];
-
-                    //filter out
-                    for (var i = 0; i < res.length; i++) {
-                        docs.push(res[i].document);
-                    }
-
-                    //include.
-                    obj.document._include(appId, include, docs).then(function(docs) {
-                        docs = _deserialize(docs);
-                        deferred.resolve(docs);
-                    }, function(error) {
-                        winston.log('error', error);
-                        deferred.reject(error);
+                    cursor.toArray(function (error, res) {
+                        if (error) {
+                            winston.log('error', error);
+                            deferred.reject(error);
+                        } else {
+                            //filter out
+                            for (var i = 0; i < res.length; i++) {
+                                docs.push(res[i].document);
+                            }
+                            //include.
+                            obj.document._include(appId, include, docs).then(function (docs) {
+                                docs = _deserialize(docs);
+                                deferred.resolve(docs);
+                            }, function (error) {
+                                winston.log('error', error);
+                                deferred.reject(error);
+                            });
+                        }
                     });
                 }
             });
-
         } catch (err) {
             winston.log('error', {
                 "error": String(err),
@@ -756,11 +762,13 @@ obj.document = {
                 pipeline.push({$limit: limit});
             }
 
-            collection.aggregate(pipeline, function(err, res) {
+            collection.aggregate(pipeline, function (err, cursor) {
                 if (err) {
                     deferred.reject(err);
                 } else {
-                    deferred.resolve(res);
+                    cursor.toArray(function (err, res) {
+                        (err) ? deferred.reject(err) : deferred.resolve(res);
+                    });
                 }
             });
 
@@ -911,18 +919,15 @@ obj.document = {
         var deferred = q.defer();
 
         try {
-            var gfs = Grid(config.mongoClient.db(appId), require('mongodb'));
-
-            gfs.findOne({
+            config.mongoClient.db(appId).collection("fs.files").findOne({
                 filename: filename
             }, function(err, file) {
                 if (err) {
                     deferred.reject(err);
                 }
                 if (!file) {
-                    return deferred.resolve(null);
+                    deferred.resolve(null);
                 }
-
                 deferred.resolve(file);
             });
 
@@ -943,9 +948,7 @@ obj.document = {
     getFileStreamById: function(appId, fileId) {
         try {
             var gfs = Grid(config.mongoClient.db(appId), require('mongodb'));
-
             var readstream = gfs.createReadStream({_id: fileId});
-
             return readstream;
 
         } catch (err) {
@@ -967,36 +970,30 @@ obj.document = {
         var deferred = q.defer();
 
         try {
-            var gfs = Grid(config.mongoClient.db(appId), require('mongodb'));
-
-            //File existence checking
-            gfs.exist({
-                filename: filename
-            }, function(err, found) {
+            config.mongoClient.db(appId).collection("fs.files").findOne({
+                filename:filename
+            },(err,found)=>{
                 if (err) {
-                    //Error while checking file existence
                     deferred.reject(err);
                 }
-                if (found) {
-                    gfs.remove({
-                        filename: filename
-                    }, function(err) {
-                        if (err) {
+                if(found){
+                    var id=found._id;
+                    config.mongoClient.db(appId).collection("fs").deleteMany({
+                        _id:id
+                    },(err)=>{
+                        if(err){
+                            //Unable to delete
                             deferred.reject(err);
-                            //unable to delete
-                        } else {
+                        }else{
+                            //Deleted
                             deferred.resolve(true);
-                            //deleted
                         }
-
                         return deferred.resolve("Success");
                     });
-                } else {
-                    //file does not exists
-                    deferred.reject("file does not exists");
+                }else{
+                    deferred.reject("File does not exist");
                 }
             });
-
         } catch (err) {
             winston.log('error', {
                 "error": String(err),
@@ -1018,22 +1015,18 @@ obj.document = {
         var deferred = q.defer();
 
         try {
-            var gfs = Grid(config.mongoClient.db(appId), require('mongodb'));
-
-            //streaming to gridfs
-            var writestream = gfs.createWriteStream({filename: fileName, mode: 'w', content_type: contentType});
-
-            fileStream.pipe(writestream);
-
-            writestream.on('close', function(file) {
-                deferred.resolve(file);
-
+            var bucket = new mongodb.GridFSBucket(config.mongoClient.db(appId));
+            var writeStream = bucket.openUploadStream(fileName,{
+                contentType:contentType,
+                w:1
             });
-
-            writestream.on('error', function(error) {
-                deferred.reject(error);
-                writestream.destroy();
-
+            fileStream.pipe(writeStream)
+            .on('error',(err)=>{
+                deferred.reject(err);
+                writeStream.destroy();
+            })
+            .on('finish',(file)=>{
+                deferred.resolve(file);
             });
 
         } catch (err) {

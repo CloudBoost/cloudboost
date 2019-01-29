@@ -11,8 +11,57 @@ var _ = require('underscore');
 var winston = require('winston');
 
 module.exports = {
-
-    isUrlValid: function(data) {
+    addDefaultACL: (obj)=>{
+        obj.ACL = {
+            "read": {
+                "allow": {
+                    "user": ["all"],
+                    "role": []
+                }, "deny": {
+                    "user": [],
+                    "role": []
+                }
+            },
+            "write": {
+                "allow": {
+                    "user": ["all"],
+                    "role": []
+                }, "deny": {
+                    "user": [],
+                    "role": []
+                }
+            }
+        };
+        return obj;
+    },
+    importCSV: (list,tableName) => {
+        var util = require('../helpers/util.js');
+        //Sets the properties on each JSON
+        list.expires ? list.expires : list.expires = null;
+        list._id = util.getId();
+        list._version ? list._version : list._version = "1";
+        list._type ? list._type : list._type = "custom";
+        if (list.createdAt) {
+            if (new Date(list.createdAt) == "Invalid Date") {
+                list.created = list.createdAt;
+            }
+        }else{
+            list.createdAt = "";
+        }
+        if (list.updatedAt) {
+            if (new Date(list.updatedAt) == "Invalid Date") {
+                list.updated = list.updatedAt;
+             }
+        }else{
+            list.updatedAt = "";
+        }
+        list.ACL ? list.ACL = JSON.parse(list.ACL):util.addDefaultACL(list);
+        list._modifiedColumns = Object.keys(list);
+        list._isModified = true;
+        list._tableName = tableName;
+        return list;
+    },
+    isUrlValid: function (data) {
         try {
             var obj = URL.parse(data);
             if (!obj.protocol || !obj.hostname)
@@ -26,7 +75,7 @@ module.exports = {
         }
     },
 
-    isEmailValid: function(data) {
+    isEmailValid: function (data) {
         try {
             var re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
             return re.test(data);
@@ -38,7 +87,7 @@ module.exports = {
         }
     },
 
-    getId: function() {
+    getId: function () {
         try {
             var id = "";
             var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -55,7 +104,7 @@ module.exports = {
         }
     },
 
-    isJsonString: function(str) {
+    isJsonString: function (str) {
         try {
 
             JSON.parse(str);
@@ -69,11 +118,11 @@ module.exports = {
             return false;
         }
     },
-    isJsonObject: function(obj) {
+    isJsonObject: function (obj) {
         try {
 
-             JSON.stringify(obj);
-             return true;
+            JSON.stringify(obj);
+            return true;
 
         } catch (err) {
             winston.log('error', {
@@ -83,29 +132,29 @@ module.exports = {
             return false;
         }
     },
-    getLatLongDistance: function(lat1, lon1, lat2, lon2) {
-        var radlat1 = Math.PI * lat1 / 180 ;
-        var radlat2 = Math.PI * lat2 / 180 ;
-        var theta = lon1 - lon2 ;
-        var radtheta = Math.PI * theta / 180 ;
+    getLatLongDistance: function (lat1, lon1, lat2, lon2) {
+        var radlat1 = Math.PI * lat1 / 180;
+        var radlat2 = Math.PI * lat2 / 180;
+        var theta = lon1 - lon2;
+        var radtheta = Math.PI * theta / 180;
         var dist = Math.sin(radlat1) * Math.sin(radlat2) + Math.cos(radlat1) * Math.cos(radlat2) * Math.cos(radtheta);
-        dist = Math.acos(dist) ;
-        dist = dist * 180 / Math.PI ;
-        dist = dist * 60 * 1.1515 ;
-        dist = dist * 1609.344 ;
+        dist = Math.acos(dist);
+        dist = dist * 180 / Math.PI;
+        dist = dist * 60 * 1.1515;
+        dist = dist * 1609.344;
 
         return dist;
     },
 
     _checkFileExists: function (filePath) {
 
-    var deferred = q.defer();
+        var deferred = q.defer();
 
         try {
 
-            fs.readFile(filePath, function(err, data) {
+            fs.readFile(filePath, function (err, data) {
                 if (err) {
-                    
+
                     return deferred.reject(err);
                 }
                 deferred.resolve(data);
@@ -123,7 +172,7 @@ module.exports = {
 
     _isJSON: function (json) {
         //String
-        if (json && typeof(json) === "string") {
+        if (json && typeof (json) === "string") {
             try {
                 JSON.parse(json);
                 return true;
