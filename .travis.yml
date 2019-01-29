@@ -1,10 +1,19 @@
 sudo: required
+
 services:
 - docker
 env:
   global:
     # Ensure the install happens without prompts
+    - GOOGLE_APPLICATION_CREDENTIALS=~/gcloud-service-key.json
+    - PROJECT_NAME_STG=cloudboost-staging
+    - CLUSTER_NAME_STG=cloudboost-staging
+    - PROJECT_NAME_PRD=cloudboost-production
+    - CLUSTER_NAME_PRD=cloudboost-production
+    - CLOUDSDK_COMPUTE_ZONE=us-central1-a
+    - NODE_ENV=CI
     - CLOUDSDK_CORE_DISABLE_PROMPTS=1
+
 language: node_js
 node_js:
 - '6'
@@ -12,76 +21,93 @@ node_js:
 cache:
   directories:
   - node_modules # NPM packages
+  - /home/travis/google-cloud-sdk
 
 before_install:
-- curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
-- chmod +x ./kubectl
-- sudo mv ./kubectl /usr/local/bin/kubectl
-- docker run --name mongo -p 27017:27017 -d mongo:3.2
+- docker run --name mongo -p 27017:27017 -d mongo
 - docker run --name redis -p 6379:6379 -d redis:3.0
 - sleep 5s
 - docker exec $(docker ps -aqf "name=mongo") mongo _GLOBAL --eval "db.getCollection('_Settings').insertOne({secureKey:'1227d1c4-1385-4d5f-ae73-23e99f74b006',clusterKey:'1227d1c4-1385-4d5f-ae73-23e99f74b006',myURL:'http://localhost:4730'});"
 
 install:
-- npm install grunt-cli -g
-- npm install eslint -g
-- docker build -t cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER .
-- if [ "$TRAVIS_BRANCH" == "release" ]; then
-    docker tag cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER cloudboost/cloudboost:latest;
-  fi
-- if [ "$TRAVIS_BRANCH" == "master" ]; then
-    docker tag cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER cloudboost/cloudboost:master-2.0.$TRAVIS_BUILD_NUMBER;
-  fi
-- docker run --name cloudboost
-    -e  ANALYTICS_URL=$ANALYTICS_URL
-    -e  ANALYTICS_KEY=$ANALYTICS_KEY
-    -e  LOGGLY_TOKEN=$LOGGLY_TOKEN
-    -e  LOGGLY_SUBDOMAIN=$LOGGLY_SUBDOMAIN
-    -e  LOGGLY_TAGS=$LOGGLY_TAGS
-    -e  MAIL_PROVIDER_API_KEY=$MAIL_PROVIDER_API_KEY
-    -e  DOMAIN=$DOMAIN
-    -e  FROM_EMAIL=$FROM_EMAIL
-    -e  FROM_NAME=$FROM_NAME
-    -p 4730:4730 -it --link redis:redis --link mongo:mongo -d cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER
-- sleep 5s
-- docker logs cloudboost
-- webpack
-- grunt
+  - npm install grunt-cli -g
+  - npm install eslint -g
+  - docker build -t cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER .
+  - if [ "$TRAVIS_BRANCH" == "release" ]; then
+      docker tag cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER cloudboost/cloudboost:latest;
+    fi
+  - if [ "$TRAVIS_BRANCH" == "master" ]; then
+      docker tag cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER cloudboost/cloudboost:master-2.0.$TRAVIS_BUILD_NUMBER;
+    fi
+  - docker run --name cloudboost
+      -e  ANALYTICS_URL=$ANALYTICS_URL
+      -e  ANALYTICS_KEY=$ANALYTICS_KEY
+      -e  LOGGLY_TOKEN=$LOGGLY_TOKEN
+      -e  LOGGLY_SUBDOMAIN=$LOGGLY_SUBDOMAIN
+      -e  LOGGLY_TAGS=$LOGGLY_TAGS
+      -e  MAIL_PROVIDER_API_KEY=$MAIL_PROVIDER_API_KEY
+      -e  DOMAIN=$DOMAIN
+      -e  FROM_EMAIL=$FROM_EMAIL
+      -e  FROM_NAME=$FROM_NAME
+      -p 4730:4730 -it --link redis:redis --link mongo:mongo -d cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER
+  - sleep 5s
+  - docker logs cloudboost
+  - grunt
 
 after_success:
-- if [ "$TRAVIS_BRANCH" == "master" ]; then
-    echo "$DOCKERPASSWORD" | docker login -u "$DOCKERUSERNAME" --password-stdin;
-    docker push cloudboost/cloudboost:master-2.0.$TRAVIS_BUILD_NUMBER;
-    git clone https://github.com/CloudBoost/kube-cred.git;
-    cd kube-cred;
-    openssl enc -in config.enc -out config -d -aes256 -k $KUBE_ENC;
-    mkdir ~/.kube;
-    mv config ~/.kube/;
-    kubectl config use-context cloudboost-staging;
-    kubectl set image deployment cloudboost-api cloudboost-api=cloudboost/cloudboost:master-2.0.$TRAVIS_BUILD_NUMBER;
-    kubectl rollout status deployment cloudboost-api;
-  fi
-- if [ "$TRAVIS_BRANCH" == "release" ]; then
-    echo "$DOCKERPASSWORD" | docker login -u "$DOCKERUSERNAME" --password-stdin;
-    docker push cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER;
-    docker push cloudboost/cloudboost:latest;
-    git clone https://github.com/CloudBoost/kube-cred.git;
-    cd kube-cred;
-    openssl enc -in config.enc -out config -d -aes256 -k $KUBE_ENC;
-    mkdir ~/.kube;
-    mv config ~/.kube/;
-    kubectl config use-context cb-productionmgmt;
-    kubectl rolling-update cloudboost-api --image=cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER --image-pull-policy=Always;
-    cd sdk;
-    npm install;
-    npm set init.author.name $NPM_USERNAME;
-    npm set init.author.email $NPM_EMAIL;
-    npm set init.author.url "https://cloudboost.io";
-    npm --no-git-tag-version version 2.0.$TRAVIS_BUILD_NUMBER --force;
-    echo -e "$NPM_USERNAME\n$NPM_PASSWORD\n$NPM_EMAIL" | npm login;
-    sleep 10s;
-    npm publish;
-  fi
+  - echo "$DOCKERPASSWORD" | docker login -u "$DOCKERUSERNAME" --password-stdin;
+  - if [ "$TRAVIS_BRANCH" == "release" ]; then
+      if [ ! -d "$HOME/google-cloud-sdk/bin" ]; then
+        rm -rf $HOME/google-cloud-sdk;
+        export CLOUDSDK_CORE_DISABLE_PROMPTS=1; 
+        curl https://sdk.cloud.google.com | bash; 
+        source /home/travis/google-cloud-sdk/path.bash.inc;
+      fi
+
+      gcloud --quiet version;
+      gcloud --quiet components update;
+      gcloud --quiet components update kubectl;
+
+      docker push cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER;
+      docker push cloudboost/cloudboost:latest;
+      echo $GCLOUD_SERVICE_KEY_PRD | base64 --decode -i > ${HOME}/gcloud-service-key.json;
+      gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json;
+
+      gcloud --quiet config set project $PROJECT_NAME_PRD;
+      gcloud --quiet config set container/cluster $CLUSTER_NAME_PRD;
+      gcloud --quiet container clusters get-credentials $CLUSTER_NAME_PRD;
+
+      kubectl config current-context;
+
+      kubectl set image deployment cloudboost-api cloudboost-api=cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER;
+      kubectl rollout status deployment cloudboost-api;
+    fi
+  - if [ "$TRAVIS_BRANCH" == "master" ]; then
+      if [ ! -d "$HOME/google-cloud-sdk/bin" ]; then
+        rm -rf $HOME/google-cloud-sdk;
+        export CLOUDSDK_CORE_DISABLE_PROMPTS=1; 
+        curl https://sdk.cloud.google.com | bash; 
+        source /home/travis/google-cloud-sdk/path.bash.inc;
+      fi
+
+      gcloud --quiet version;
+      gcloud --quiet components update;
+      gcloud --quiet components update kubectl;
+
+      docker push cloudboost/cloudboost:master-2.0.$TRAVIS_BUILD_NUMBER;
+      
+      echo $GCLOUD_SERVICE_KEY_STG | base64 --decode -i > ${HOME}/gcloud-service-key.json;
+      gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json;
+
+      gcloud --quiet config set project $PROJECT_NAME_STG;
+      gcloud --quiet config set container/cluster $CLUSTER_NAME_STG;
+      gcloud --quiet container clusters get-credentials $CLUSTER_NAME_STG;
+
+      kubectl config current-context;
+
+      kubectl set image deployment cloudboost-api cloudboost-api=cloudboost/cloudboost:master-2.0.$TRAVIS_BUILD_NUMBER;
+      kubectl rollout status deployment cloudboost-api;
+    fi
 
 before_deploy:
   - git config --global user.email "builds@travis-ci.com"
@@ -91,13 +117,14 @@ before_deploy:
   - git push -q https://$GITLOGIN@github.com/CloudBoost/cloudboost --tags
 
 deploy:
-  provider: releases
-  api_key: $GH_TOKEN
-  file: "README.md"
-  skip_cleanup: true
-  on:
-    tags: false
-    branch: release
+  - provider: releases
+    api_key: $GH_TOKEN
+    file: "README.md"
+    skip_cleanup: true
+    on:
+      tags: false
+      branch: release
+
 #Notify Team on Slack
 notifications:
   slack: hackerbaycompany:gm7nWJDLDtBRyF75VKLKOoMW
