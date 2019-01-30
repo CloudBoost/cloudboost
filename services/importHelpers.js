@@ -1,6 +1,7 @@
 /* eslint no-continue: 0 no-param-reassign: 0 */
 const q = require('q');
-const csv = require('csvtojson');
+const csv2json = require('csv2json');
+const stream = require('stream');
 const xlsx = require('node-xlsx');
 const _ = require('underscore');
 const util = require('../helpers/util.js');
@@ -143,11 +144,8 @@ function verifyRequiredCols(schema, document) {
 }
 
 function detectDataType(data, colProp) {
-  if (isJson(data)) {
-    try {
-      data = JSON.parse(data);
-      // eslint-disable-next-line
-        } catch (e) {}
+  if (util.isJsonString(data)) {
+    data = JSON.parse(data);
   }
   if (colProp === 'relatedTo') {
     data = _.first(data);
@@ -215,99 +213,27 @@ const importHelpers = {
   importCSVFile(fileStream, table) {
     const deferred = q.defer();
     const tableName = table.replace(/\s/g, '');
-    const csvJson = [];
-    csv()
-      .fromStream(fileStream)
-      .on('json', (_json) => {
-        const json = _json || {};
-        json.expires = json.expires || null;
-        json._id = util.getId();
-        json._version = json._version || '1';
-        json._type = json._type || 'custom';
-        if (json.createdAt) {
-          if (new Date(json.createdAt) === 'Invalid Date') {
-            json.created = json.createdAt;
-            json.createdAt = '';
-          }
-        } else {
-          json.createdAt = '';
-        }
-        if (json.updatedAt) {
-          if (new Date(json.updatedAt) === 'Invalid Date') {
-            json.updated = json.updatedAt;
-            json.updatedAt = '';
-          }
-        } else {
-          json.updatedAt = '';
-        }
-        try {
-          json.ACL = JSON.parse(json.ACL)
-            || {
-              read: {
-                allow: {
-                  user: [
-                    'all',
-                  ],
-                  role: [],
-                },
-                deny: {
-                  user: [],
-                  role: [],
-                },
-              },
-              write: {
-                allow: {
-                  user: [
-                    'all',
-                  ],
-                  role: [],
-                },
-                deny: {
-                  user: [],
-                  role: [],
-                },
-              },
-            };
-        } catch (err) {
-          json.ACL = {
-            read: {
-              allow: {
-                user: [
-                  'all',
-                ],
-                role: [],
-              },
-              deny: {
-                user: [],
-                role: [],
-              },
-            },
-            write: {
-              allow: {
-                user: [
-                  'all',
-                ],
-                role: [],
-              },
-              deny: {
-                user: [],
-                role: [],
-              },
-            },
-          };
-        }
-        json._modifiedColumns = Object.keys(json);
-        json._isModified = true;
-        json._tableName = tableName;
-        csvJson.push(json);
-      })
-      .on('done', (error) => {
-        if (error) {
-          deferred.reject(error);
-        } else {
-          deferred.resolve(csvJson);
-        }
-      });
+    const jsonWriteStream = new stream.Writable();
+    let jsonStr = '';
+    // Store the Data from Stream
+    jsonWriteStream._write = (chunk, encoding, cb) => {
+      jsonStr += chunk;
+      cb();
+    };
+    fileStream
+      .pipe(csv2json({}))
+      .pipe(jsonWriteStream);
+    jsonWriteStream.on('finish', () => {
+      try {
+        // To correctly parse the data to csvToJson
+        let escapedStr = jsonStr.toString().replace(/([\\]+[\w"])/g, '');
+        escapedStr = JSON.parse(escapedStr);
+        const csvArr = escapedStr.map(data => util.importCSV(data, tableName));
+        deferred.resolve(csvArr);
+      } catch (err) {
+        deferred.reject(err);
+      }
+    });
     return deferred.promise;
   },
 
@@ -343,32 +269,7 @@ const importHelpers = {
                     try {
                       obj.ACL = JSON.parse(element.data[i][j]);
                     } catch (err) {
-                      obj.ACL = {
-                        read: {
-                          allow: {
-                            user: [
-                              'all',
-                            ],
-                            role: [],
-                          },
-                          deny: {
-                            user: [],
-                            role: [],
-                          },
-                        },
-                        write: {
-                          allow: {
-                            user: [
-                              'all',
-                            ],
-                            role: [],
-                          },
-                          deny: {
-                            user: [],
-                            role: [],
-                          },
-                        },
-                      };
+                      obj.ACL = util.addDefaultACL();
                     }
                     continue;
                   }
@@ -382,32 +283,7 @@ const importHelpers = {
                   obj[headers[j]] = element.data[i][j] === 'null' ? null : element.data[i][j];
                 }
               }
-              obj.ACL = obj.ACL || {
-                read: {
-                  allow: {
-                    user: [
-                      'all',
-                    ],
-                    role: [],
-                  },
-                  deny: {
-                    user: [],
-                    role: [],
-                  },
-                },
-                write: {
-                  allow: {
-                    user: [
-                      'all',
-                    ],
-                    role: [],
-                  },
-                  deny: {
-                    user: [],
-                    role: [],
-                  },
-                },
-              };
+              obj.ACL = obj.ACL || util.addDefaultACL();
               obj.expires = obj.expires || null;
               if (obj._id) {
                 delete obj._id;
@@ -470,33 +346,7 @@ const importHelpers = {
             }
             jSON.data[i]._version = jSON.data[i]._version || '1';
             jSON.data[i]._type = jSON.data[i]._type || 'custom';
-            jSON.data[i].ACL = jSON.data[i].ACL
-              || {
-                read: {
-                  allow: {
-                    user: [
-                      'all',
-                    ],
-                    role: [],
-                  },
-                  deny: {
-                    user: [],
-                    role: [],
-                  },
-                },
-                write: {
-                  allow: {
-                    user: [
-                      'all',
-                    ],
-                    role: [],
-                  },
-                  deny: {
-                    user: [],
-                    role: [],
-                  },
-                },
-              };
+            jSON.data[i].ACL = jSON.data[i].ACL || util.addDefaultACL();
             jSON.data[i]._modifiedColumns = Object.keys(jSON.data[i]);
             jSON.data[i]._isModified = true;
             jSON.data[i]._tableName = tableName;

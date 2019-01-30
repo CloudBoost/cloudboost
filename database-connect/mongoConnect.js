@@ -54,7 +54,11 @@ module.exports = {
   async connect() {
     const deferred = q.defer();
     try {
-      const db = await MongoClient.connect(config.mongoConnectionString);
+      const db = await MongoClient.connect(config.mongoConnectionString, {
+        poolSize: 200,
+        // Parses the ConnectionString according to Connection String standards of MongoDB v3
+        useNewUrlParser: true,
+      });
       deferred.resolve(db);
     } catch (e) {
       winston.log('error', { error: String(e), stack: new Error().stack });

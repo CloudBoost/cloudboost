@@ -9,9 +9,10 @@
 
 const q = require('q');
 const _ = require('underscore');
-const mongodb = require('mongodb');
 const Grid = require('gridfs-stream');
 const winston = require('winston');
+
+const mongodb = require('mongodb');
 const config = require('../config/config');
 
 const mongoUtil = require('../helpers/mongo');
@@ -863,19 +864,16 @@ obj.document = {
     const deferred = q.defer();
 
     try {
-      const gfs = Grid(config.mongoClient.db(appId), mongodb);
-
-      gfs.findOne({
+      config.mongoClient.db(appId).collection('fs.files').findOne({
         filename,
       }, (err, file) => {
         if (err) {
-          return deferred.reject(err);
+          deferred.reject(err);
         }
         if (!file) {
-          return deferred.resolve(null);
+          deferred.resolve(null);
         }
-
-        return deferred.resolve(file);
+        deferred.resolve(file);
       });
     } catch (err) {
       winston.log('error', {
@@ -894,9 +892,7 @@ obj.document = {
   getFileStreamById(appId, fileId) {
     try {
       const gfs = Grid(config.mongoClient.db(appId), mongodb);
-
       const readstream = gfs.createReadStream({ _id: fileId });
-
       return readstream;
     } catch (err) {
       winston.log('error', {
@@ -912,39 +908,29 @@ obj.document = {
                Resolve->true
                Reject->Error on exist() or remove() or file does not exists
     */
-  deleteFileFromGridFs(appId, filename) {
+  async deleteFileFromGridFs(appId, filename) {
     const deferred = q.defer();
-
     try {
-      const gfs = Grid(config.mongoClient.db(appId), mongodb);
-
-      // File existence checking
-      gfs.exist({
+      const found = await config.mongoClient.db(appId).collection('fs.files').findOne({
         filename,
-      }, (err, found) => {
-        if (err) {
-          // Error while checking file existence
-          deferred.reject(err);
-        }
-        if (found) {
-          gfs.remove({
-            filename,
-          }, (err1) => {
-            if (err1) {
-              deferred.reject(err1);
-              // unable to delete
-            } else {
-              deferred.resolve(true);
-              // deleted
-            }
-
-            return deferred.resolve('Success');
-          });
-        } else {
-          // file does not exists
-          deferred.reject('file does not exists');
-        }
       });
+      if (found) {
+        const id = found._id;
+        config.mongoClient.db(appId).collection('fs').deleteMany({
+          _id: id,
+        }, (err) => {
+          if (err) {
+            // Unable to delete
+            deferred.reject(err);
+          } else {
+            // Deleted
+            deferred.resolve(true);
+          }
+          return deferred.resolve('Success');
+        });
+      } else {
+        deferred.reject('File does not exist');
+      }
     } catch (err) {
       winston.log('error', {
         error: String(err),
@@ -963,23 +949,20 @@ obj.document = {
     */
   saveFileStream(appId, fileStream, fileName, contentType) {
     const deferred = q.defer();
-
     try {
-      const gfs = Grid(config.mongoClient.db(appId), mongodb);
-
-      // streaming to gridfs
-      const writestream = gfs.createWriteStream({ filename: fileName, mode: 'w', content_type: contentType });
-
-      fileStream.pipe(writestream);
-
-      writestream.on('close', (file) => {
-        deferred.resolve(file);
+      const bucket = new mongodb.GridFSBucket(config.mongoClient.db(appId));
+      const writeStream = bucket.openUploadStream(fileName, {
+        contentType,
+        w: 1,
       });
-
-      writestream.on('error', (error) => {
-        deferred.reject(error);
-        writestream.destroy();
-      });
+      fileStream.pipe(writeStream)
+        .on('error', (err) => {
+          deferred.reject(err);
+          writeStream.destroy();
+        })
+        .on('finish', (file) => {
+          deferred.resolve(file);
+        });
     } catch (err) {
       winston.log('error', {
         error: String(err),

@@ -51,22 +51,18 @@ function _registerServerAnalytics(secureKey) {
 
 function _mongoDbStatus() {
   const deferred = Q.defer();
-
   try {
     const responseJson = {};
     responseJson.serviceName = 'mongodb';
     responseJson.success = null;
     responseJson.error = null;
-
-    appConfig.mongoClient.command({
+    appConfig.mongoClient.db(appConfig.globalDb).command({
       serverStatus: 1,
     }, (err, status) => {
       if (err) {
         responseJson.error = 'Unable to know CBEngine Mongodb status';
         deferred.reject(responseJson);
       }
-
-
       if (status && status.ok === 1) {
         responseJson.success = 'CBEngine Mongodb status is okay';
         deferred.resolve(responseJson);
@@ -82,7 +78,6 @@ function _mongoDbStatus() {
     });
     deferred.reject(err);
   }
-
   return deferred.promise;
 }
 
