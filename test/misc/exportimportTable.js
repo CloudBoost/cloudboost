@@ -248,7 +248,6 @@ describe("Export & Import Table", function () {
         var url = CB.apiUrl + "/export/" + CB.appId + "/Hospital";
         var exportParams = { exportType: "csv", key: CB.appKey };
         if (!window) {
-            var Buffer = require('buffer/').Buffer;
             CB._request('POST', url, exportParams).then(function (exportData) {
                 var exportData = exportData.replace(/\\"/g, '"');
                 var exportData = exportData.replace(/""/g, "'");
@@ -261,12 +260,11 @@ describe("Export & Import Table", function () {
                 for (var i = 0; i < csvStrings.length; i++) {
                     importString += csvStrings[i] + "\n";
                 }
-                var importCSV = Buffer.from(importString, 'utf8');
                 var name = 'abc.csv';
                 var type = 'text/csv';
                 var obj = new CB.CloudTable('abc2');
                 obj.save().then(function (res) {
-                    var fileObj = new CB.CloudFile(name, importCSV.toString('utf-8'), type);
+                    var fileObj = new CB.CloudFile(name, importString, type);
                     fileObj.save().then(function (file) {
                         if (file.url) {
                             var params = {};

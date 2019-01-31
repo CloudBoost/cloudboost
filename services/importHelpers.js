@@ -503,8 +503,8 @@ const importHelpers = {
 
   compareSchema(document, actualSchema, generatedSchema) {
     const deferred = q.defer();
-    if (actualSchema.columns
-    && generatedSchema.data.columns) {
+    if (generatedSchema && actualSchema && actualSchema.columns
+    && generatedSchema.data && generatedSchema.data.columns) {
       const actCols = actualSchema.columns;
       const genCols = generatedSchema.data.columns;
 
