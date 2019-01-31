@@ -10,8 +10,8 @@ const crypto = require('crypto');
 const uuid = require('uuid');
 const _ = require('underscore');
 const winston = require('winston');
-const util = require('../helpers/util.js');
 
+const util = require('../helpers/util.js');
 const tablesData = require('../helpers/cloudTable');
 const config = require('../config/config');
 
@@ -470,8 +470,15 @@ module.exports = {
         });
 
         if (errorType) throw errorType;
+        const newColumns = schema
+          .filter(column => !column._id)
+          .map((column) => {
+            const _column = _.clone(column);
+            _column._id = util.getId();
+            return _column;
+          });
 
-        table.columns = schema;
+        table.columns = schema.filter(col => col._id).concat(newColumns);
         // update table props
         table.isEditableByClientKey = !!tableProps.isEditableByClientKey;
       } else {
@@ -479,7 +486,11 @@ module.exports = {
 
         table = {};
         table.id = util.getId();
-        table.columns = schema;
+        table.columns = schema.map((column) => {
+          const _column = _.clone(column);
+          _column._id = util.getId();
+          return _column;
+        });
 
         table.name = tableName;
         table.type = tableType;
@@ -507,9 +518,11 @@ module.exports = {
               }
             });
           });
-          updateColumnNameOfOldRecordsPromises.push(
-            _updateColumnNameOfOldRecords(tableName, appId, renameColumnObject),
-          );
+          if (!_.isEmpty(renameColumnObject)) {
+            updateColumnNameOfOldRecordsPromises.push(
+              _updateColumnNameOfOldRecords(tableName, appId, renameColumnObject),
+            );
+          }
         }
       }
 
@@ -823,7 +836,7 @@ function _updateColumnNameOfOldRecords(tableName, appId, renameColumnObject) {
   collection.updateMany({}, {
     $rename: renameColumnObject,
   }, (err) => {
-    if (err) deferred.reject();
+    if (err) deferred.reject(err);
     else deferred.resolve();
   });
 
