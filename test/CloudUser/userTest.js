@@ -20,11 +20,9 @@ describe("CloudUser", function () {
                 done();
             }
             else {
-                throw "create user error"
+                done(new Error("create user error"));
             }
-        }, function (error) {
-            throw error;
-        });
+        }, done);
     });
 
     it("Should create new user and change the password.", function (done) {
@@ -44,7 +42,7 @@ describe("CloudUser", function () {
         obj.signUp().then(function (list) {
             if (list.get('username'))
                 CB.CloudUser.current.changePassword(oldPassword, 'newPassword', {
-                    success: function (user) {
+                    success: function () {
                         done();
                     }, error: function (error) {
                         done(error);
@@ -52,9 +50,7 @@ describe("CloudUser", function () {
                 });
             else
                 done("create user error");
-        }, function (error) {
-            throw error;
-        });
+        }, done);
 
     });
 
@@ -126,9 +122,7 @@ describe("CloudUser", function () {
                 });
             else
                 done("create user error");
-        }, function (error) {
-            throw error;
-        });
+        }, done);
 
     });
 
@@ -158,9 +152,7 @@ describe("CloudUser", function () {
                 });
             else
                 done("create user error");
-        }, function (error) {
-            throw error;
-        });
+        }, done);
 
     });
 
@@ -227,10 +219,8 @@ describe("CloudUser", function () {
                     }
                 });
             else
-                throw "create user error"
-        }, function (error) {
-            throw error;
-        });
+                done("create user error");
+        }, done);
 
     });
 
@@ -270,9 +260,9 @@ describe("CloudUser", function () {
                 done();
             }
             else
-                throw "create user error"
+                done("create user error");
         }, function () {
-            throw "user create error";
+            done("user create error");
         });
     });
 
@@ -295,17 +285,14 @@ describe("CloudUser", function () {
         user.signUp().then(function (list) {
             if (list.get('username') === usrname && list.get('_version') >= 0) {
                 var query = new CB.CloudQuery('User');
-                query.findById(user.get('id')).then(function (obj) {
-
+                query.findById(user.get('id')).then(function () {
                     done();
-                }, function (err) {
-
                 });
             }
             else
-                throw "create user error"
+                done(new Error("create user error"));
         }, function () {
-            throw "user create error";
+            done(new Error("user create error"));
         });
 
     });
@@ -321,9 +308,7 @@ describe("CloudUser", function () {
         this.timeout(30000);
         CB.CloudUser.current.logOut().then(function () {
             done();
-        }, function () {
-            throw "err";
-        });
+        }, done);
     });
 
 
@@ -340,10 +325,9 @@ describe("CloudUser", function () {
         obj.set('username', username);
         obj.set('password', passwd);
         obj.logIn().then(function (list) {
-            if (list.get("username") === username)
-                done();
+            done();
         }, function () {
-            throw "user login error";
+            done(new Error("user login error"));
         });
 
     });
@@ -393,14 +377,10 @@ describe("CloudUser", function () {
                         }
                     });
 
-                }, function (error) {
-                    throw error;
-                });
-            }, function (error) {
-                throw error;
-            });
+                }, done);
+            }, done);
         }, function () {
-            throw "role create error";
+            done(new Error("role create error"));
         })
 
     });
@@ -453,18 +433,10 @@ describe("CloudUser", function () {
                             }
                         });
 
-                    }, function (error) {
-                        done(error);
-                    });
-                }, function (error) {
-                    done(error);
-                });
-            }, function (error) {
-                done(error);
-            });
-        }, function (error) {
-            done(error);
-        });
+                    }, done);
+                }, done);
+            }, done);
+        }, done);
 
     });
 
@@ -535,11 +507,11 @@ describe("CloudUser", function () {
         obj.set('email', util.makeEmail());
         obj.save().then(function (obj) {
             if (obj.get('password') === pass)
-                throw "Password is not encrypted.";
+                done(new Error("Password is not encrypted."));
             else
                 done();
         }, function (err) {
-            throw "user create error";
+            done(err, "user create error");
         });
 
     });
@@ -558,13 +530,13 @@ describe("CloudUser", function () {
                 if (res1) {
                     done();
                 } else {
-                    throw "Unable to retrieve User";
+                    done(new Error("Unable to retrieve User"));
                 }
             }, function () {
-                throw "Unable to Get User By ID";
+                done(new Error("Unable to Get User By ID"));
             })
         }, function (err) {
-            throw "Unable to Create User";
+            done(new Error("Unable to Create User"));
         });
     });
 
@@ -582,13 +554,13 @@ describe("CloudUser", function () {
                 if (res1) {
                     done();
                 } else {
-                    throw "Unable to retrieve User";
+                    done("Unable to retrieve User");
                 }
             }, function () {
-                throw "Unable to Get User By ID";
+                done("Unable to Get User By ID");
             })
         }, function (err) {
-            throw "Unable to Create User";
+            done("Unable to Create User");
         });
     });
 
@@ -606,13 +578,13 @@ describe("CloudUser", function () {
                 if (res1) {
                     done();
                 } else {
-                    throw "Unable to retrieve User";
+                    done("Unable to retrieve User");
                 }
             }, function () {
-                throw "Unable to Get User By ID";
+                done("Unable to Get User By ID");
             })
         }, function (err) {
-            throw "Unable to Create User";
+            done("Unable to Create User");
         });
     });
 
@@ -627,9 +599,7 @@ describe("CloudUser", function () {
         this.timeout(30000);
         CB.CloudUser.current.logOut().then(function () {
             done();
-        }, function () {
-            throw "err";
-        });
+        }, done);
     });
 
     it("should send a Reset Email with Email Settings with default Template.", function (done) {
@@ -878,9 +848,7 @@ describe("CloudUser", function () {
                     done();
                 });
 
-            }, function (error) {
-                throw error;
-            });
+            }, done);
         }
 
         if (!window) {

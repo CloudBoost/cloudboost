@@ -130,3 +130,6 @@ deploy:
 #Notify Team on Slack
 notifications:
   slack: hackerbaycompany:gm7nWJDLDtBRyF75VKLKOoMW
+
+after_script:
+  - docker logs cloudboost
