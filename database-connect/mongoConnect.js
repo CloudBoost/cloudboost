@@ -1,79 +1,69 @@
 
 /*
 #     CloudBoost - Core Engine that powers Bakend as a Service
-#     (c) 2014 HackerBay, Inc. 
+#     (c) 2014 HackerBay, Inc.
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
-var q = require("q");
-var config = require('../config/config');
-var winston = require('winston');
+const q = require('q');
+const winston = require('winston');
+const { ReplSet, Server, MongoClient } = require('mongodb');
+const config = require('../config/config');
+const { getNestedValue: gnv } = require('../helpers/util');
 
 module.exports = {
 
-    dbConnect: function (appId) {
-        try {
-            return config.mongoClient.db(appId);
-        } catch (e) {
-            winston.log('error', { "error": String(e), "stack": new Error().stack });
-        }
-
-    },
-
-    replSet: function () {
-
-        try {
-
-            var ReplSet = require('mongodb').ReplSet,
-                Server = require('mongodb').Server;
-
-            var servers = [];
-            if(config.loadedConfig && config.loadedConfig.mongo) {
-                if (config.loadedConfig.mongo.length === 0) {
-                    return null;
-                }
-    
-                if (config.loadedConfig.mongo.length === 1) {
-                    return new Server(config.loadedConfig.mongo[0].host, config.loadedConfig.mongo[0].port);
-                }
-    
-                for (var i = 0; i < config.loadedConfig.mongo.length; i++) {
-                    servers.push(new Server(config.loadedConfig.mongo[i].host, parseInt(config.loadedConfig.mongo[i].port)));
-                }
-            } else {
-                return null;
-            }
-
-            var replSet = new ReplSet(servers);
-
-            return replSet;
-        } catch (e) {
-            winston.log('error', { "error": String(e), "stack": new Error().stack });
-            return null;
-        }
-    },
-
-    connect: function () {
-
-        var deferred = q.defer();
-        try {
-            var mongoClient = require('mongodb').MongoClient;
-            mongoClient.connect(config.mongoConnectionString, {
-                poolSize: 200,
-                //Parses the ConnectionString according to Connection String standards of MongoDB v3
-                useNewUrlParser:true
-              }, function (err, db) {
-                if (err) {
-                    deferred.reject(err);
-                } else {
-                    deferred.resolve(db);
-                }
-            });
-
-        } catch (e) {
-            winston.log('error', { "error": String(e), "stack": new Error().stack });
-            deferred.reject(e);
-        }
-        return deferred.promise;
+  dbConnect(appId) {
+    try {
+      return config.mongoClient.db(appId);
+    } catch (e) {
+      winston.log('error', { error: String(e), stack: new Error().stack });
+      throw e;
     }
+  },
+
+  replSet() {
+    try {
+      const servers = [];
+      const mongoConfig = gnv('loadedConfig.mongo', config);
+      if (mongoConfig) {
+        if (mongoConfig.length === 0) {
+          return null;
+        }
+
+        if (mongoConfig.length === 1) {
+          return new Server(mongoConfig[0].host, mongoConfig[0].port);
+        }
+
+        for (let i = 0; i < mongoConfig.length; i++) {
+          servers.push(new Server(mongoConfig[i].host, parseInt(mongoConfig[i].port, 10)));
+        }
+      } else {
+        return null;
+      }
+
+      const replSet = new ReplSet(servers);
+
+      return replSet;
+    } catch (e) {
+      winston.log('error', { error: String(e), stack: new Error().stack });
+      return null;
+    }
+  },
+
+  async connect() {
+    const deferred = q.defer();
+    try {
+      const db = await MongoClient.connect(config.mongoConnectionString, {
+        poolSize: 200,
+        // Parses the ConnectionString according to Connection String standards of MongoDB v3
+        useNewUrlParser: true,
+      });
+      deferred.resolve(db);
+    } catch (e) {
+      winston.log('error', { error: String(e), stack: new Error().stack });
+      deferred.reject(e);
+    }
+    return deferred.promise;
+  },
 };

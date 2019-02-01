@@ -1,197 +1,181 @@
 
 /*
 #     CloudBoost - Core Engine that powers Backend as a Service
-#     (c) 2014 HackerBay, Inc. 
+#     (c) 2014 HackerBay, Inc.
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
 
+const _ = require('underscore');
+const winston = require('winston');
+const customHelper = require('../../helpers/custom.js');
+const apiTracker = require('../../database-connect/apiTracker');
+const userService = require('../../services/cloudUser');
+const appService = require('../../services/app');
+const config = require('../../config/config');
 
-var _ = require('underscore');
-var customHelper = require('../../helpers/custom.js');
-var q = require('q');
-var apiTracker = require('../../database-connect/apiTracker');
-var userService = require('../../services/cloudUser');
-var appService = require('../../services/app');
-var config = require('../../config/config');
-var winston = require('winston');
+module.exports = (app) => {
+  app.get('/page/:appId/reset-password', async (req, res) => {
+    const { appId = null } = req.params;
+    const { sdk = 'REST' } = req.body;
 
-module.exports = function(app) {
-    
+    apiTracker.log(appId, 'User / Reset User Password', req.url, sdk);
 
-    app.get('/page/:appId/reset-password', function(req, res) {           
-        var appId = req.params.appId || null;      
-        var sdk = req.body.sdk || "REST";     
-        
-        var promises=[];
-        promises.push(appService.getApp(appId));
-        promises.push(appService.getAllSettings(appId));        
+    try {
+      const appObject = await appService.getApp(appId);
+      const appSettingsObject = await appService.getAllSettings(appId);
+      const appKeys = {};
+      appKeys.appId = appId;
+      appKeys.masterKey = appObject.keys.master;
+      if (appObject.keys.encryption_key) {
+        delete appObject.keys.encryption_key;
+      }
+      const general = _.first(_.where(appSettingsObject, { category: 'general' }));
+      const auth = _.first(_.where(appSettingsObject, { category: 'auth' }));
 
-        q.all(promises).then(function(list){
-            var appKeys={};
-            appKeys.appId=appId;
+      let generalSettings = null;
+      if (general) {
+        generalSettings = general.settings;
+      }
+      let authSettings = null;
+      if (auth) {
+        authSettings = auth.settings;
+      }
 
-            appKeys.masterKey=list[0].keys.master;
-            var appSettingsObject=list[1];
-            list[0].keys.encryption_key ? delete list[0].keys.encryption_key : null;
+      res.render(`${config.rootPath}/page-templates/user/password-reset`, {
+        appKeys,
+        generalSettings,
+        authSettings,
+      });
+    } catch (error) {
+      winston.error({
+        error: String(error),
+        stack: new Error().stack,
+      });
+      res.status(400).send(error);
+    }
+  });
 
-            var general=_.first(_.where(appSettingsObject, {category: "general"}));
-            var auth=_.first(_.where(appSettingsObject, {category: "auth"}));
+  /*
+    Reset Password : This API is used from CloudBoost Reset Password Page.
+    */
+  app.post('/page/:appId/reset-user-password', async (req, res) => {
+    const appId = req.params.appId || null;
+    const username = req.body.username || null;
+    const sdk = req.body.sdk || 'REST';
+    const resetKey = req.body.resetKey || '';
+    const newPassword = req.body.newPassword || '';
 
-            var generalSettings=null;
-            if(general){
-                generalSettings=general.settings;
-            }
-            var authSettings=null;
-            if(auth){
-                authSettings=auth.settings;
-            }
+    if (!newPassword || newPassword === '') {
+      return res.status(400).json({
+        message: 'New Password is required.',
+      });
+    }
+    try {
+      const application = await appService.getApp(appId);
+      await userService.resetPassword(
+        appId,
+        username,
+        newPassword,
+        resetKey,
+        customHelper.getAccessList(req),
+        true,
+        application.keys.encryption_key,
+      );
+      apiTracker.log(appId, 'User / Reset User Password', req.url, sdk);
+      return res.status(200).json({ message: 'Password changed successfully' });
+    } catch (error) {
+      winston.error({
+        error: String(error),
+        stack: new Error().stack,
+      });
+      return res.status(400).json({ error });
+    }
+  });
 
-            res.render(config.rootPath+'/page-templates/user/password-reset',{
-                appKeys:appKeys,
-                generalSettings: generalSettings,
-                authSettings: authSettings,                       
-            });
-
-        },function(error){
-            res.status(400).send(error);
-        });   
-            
-        apiTracker.log(appId,"User / Reset User Password", req.url,sdk);
-       
-    });
-
-    /*
-    Reset Password : This API is used from CloudBoost Reset Password Page. 
-    */    
-    app.post('/page/:appId/reset-user-password', function(req, res) { 
-        var appId = req.params.appId || null;
-        var username = req.body.username || null;
-        var sdk = req.body.sdk || "REST";
-        var resetKey = req.body.resetKey || "";
-        var newPassword = req.body.newPassword || "";
-        
-        if(!newPassword || newPassword === ""){
-            res.status(400).json({
-                "message": "New Password is required."
-            });
-        }
-        
-        appService.getApp(appId).then(function (application) {
-            userService.resetUserPassword(appId, username, newPassword, resetKey, customHelper.getAccessList(req), true, application.keys.encryption_key)
-            .then(function() {
-                res.json({message : "Password changed successfully."});
-            }, function(error) {
-                res.json(400, {
-                    error: error
-                });
-            });
-        });
-        
-        apiTracker.log(appId,"User / Reset User Password", req.url,sdk);
-    });
-
-    /*Desc   : Render Authentication Page
+  /* Desc   : Render Authentication Page
       Params : appId
       Returns: Authentication html page
     */
-    app.get('/page/:appId/authentication', function(req, res) { 
+  app.get('/page/:appId/authentication', async (req, res) => {
+    const appId = req.params.appId || null;
+    const sdk = req.body.sdk || 'REST';
 
-        var appId = req.params.appId || null;      
-        var sdk = req.body.sdk || "REST";     
+    apiTracker.log(appId, 'User / Reset User Password', req.url, sdk);
 
-        var promises=[];
-        promises.push(appService.getApp(appId));
-        promises.push(appService.getAllSettings(appId));        
+    try {
+      const application = await appService.getApp(appId);
+      const appSettingsObject = await appService.getAllSettings(appId);
+      const appKeys = {};
+      appKeys.appId = appId;
+      appKeys.masterKey = application.keys.master;
 
-        q.all(promises).then(function(list){            
-            var appKeys={};
-            appKeys.appId=appId;
+      const { settings: generalSettings } = _.pick(_.first(_.where(appSettingsObject, { category: 'general' })), 'settings');
+      const { settings: authSettings } = _.pick(_.first(_.where(appSettingsObject, { category: 'auth' })), 'settings');
 
-            appKeys.masterKey=list[0].keys.master;
-            var appSettingsObject=list[1];
+      if (authSettings
+        && authSettings.resetPasswordEmail
+        && authSettings.resetPasswordEmail.template) {
+        delete authSettings.resetPasswordEmail.template;
+      }
 
-            var general=_.first(_.where(appSettingsObject, {category: "general"}));
-            var auth=_.first(_.where(appSettingsObject, {category: "auth"}));
+      if (authSettings && authSettings.signupEmail && authSettings.signupEmail.template) {
+        delete authSettings.signupEmail.template;
+      }
 
-            var generalSettings=null;
-            if(general){
-                generalSettings=general.settings;
-            }
-            var authSettings=null;
-            if(auth){
-                authSettings=auth.settings;
-            }
-
-            if(authSettings && authSettings.resetPasswordEmail && authSettings.resetPasswordEmail.template){
-                delete authSettings.resetPasswordEmail.template;
-            }
-
-            if(authSettings && authSettings.signupEmail && authSettings.signupEmail.template){
-                delete authSettings.signupEmail.template;
-            }
-            
-            res.render(config.rootPath+'/page-templates/user/login',{
-                appKeys: appKeys,
-                generalSettings: generalSettings,
-                authSettings: authSettings     
-            });
-
-        },function(error){
-            res.status(400).send(error);
-        });   
-        
-        
-        apiTracker.log(appId,"User / Reset User Password", req.url,sdk);
-    });
+      res.render(`${config.rootPath}/page-templates/user/login`, {
+        appKeys,
+        generalSettings,
+        authSettings,
+      });
+    } catch (error) {
+      winston.error({
+        error: String(error),
+        stack: new Error().stack,
+      });
+      res.status(400).send(error);
+    }
+  });
 
 
-    /*Desc   : Verify User Account And render Activation page
+  /* Desc   : Verify User Account And render Activation page
       Params : appId
       Returns: Activation html page
     */
-    app.get('/page/:appId/verify', function(req, res) { 
+  app.get('/page/:appId/verify', async (req, res) => {
+    const appId = req.params.appId || null;
+    const sdk = req.body.sdk || 'REST';
+    const activateCode = req.query.activateKey;
 
-        
+    apiTracker.log(appId, 'User / Reset User Password', req.url, sdk);
 
-        var appId = req.params.appId || null;      
-        var sdk = req.body.sdk || "REST"; 
-        var activateCode = req.query.activateKey; 
+    if (!activateCode) {
+      return res.status(400).send('ActivateCode not found');
+    }
 
-        if(!activateCode){
-           res.status(400).send("ActivateCode not found"); 
-        }       
-        
-
-        var promises=[];
-        promises.push(userService.verifyActivateCode(appId, activateCode, customHelper.getAccessList(req)));
-        promises.push(appService.getAllSettings(appId));        
-
-        q.all(promises).then(function(list){            
-           
-            var appSettingsObject=list[1];
-
-            var general=_.first(_.where(appSettingsObject, {category: "general"}));
-           
-            var generalSettings=null;
-            if(general){
-                generalSettings=general.settings;
-            }            
-
-            res.render(config.rootPath+'/page-templates/user/signup-activate',{               
-                generalSettings: generalSettings,
-                verified:true                                   
-            });
-
-        },function(err){
-            winston.error({
-                error: err
-            });
-            res.render(config.rootPath+'/page-templates/user/signup-activate',{               
-                verified:false                                   
-            });
-        });
-        
-        apiTracker.log(appId,"User / Reset User Password", req.url,sdk);
-    });
+    try {
+      await userService.verifyActivateCode(
+        appId,
+        activateCode,
+        customHelper.getAccessList(req),
+      );
+      const appSettingsObject = await appService.getAllSettings(appId);
+      const { settings: generalSettings } = _.pick(
+        _.first(_.where(appSettingsObject, { category: 'general' })),
+        'settings',
+      );
+      return res.render(`${config.rootPath}/page-templates/user/signup-activate`, {
+        generalSettings,
+        verified: true,
+      });
+    } catch (error) {
+      winston.error({
+        error: String(error),
+        stack: new Error().stack,
+      });
+      return res.render(`${config.rootPath}/page-templates/user/signup-activate`, {
+        verified: false,
+      });
+    }
+  });
 };

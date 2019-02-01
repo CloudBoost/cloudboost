@@ -1,421 +1,331 @@
-
 /*
 #     CloudBoost - Core Engine that powers Bakend as a Service
-#     (c) 2014 HackerBay, Inc. 
+#     (c) 2014 HackerBay, Inc.
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
 
-
-
-var q = require("q");
-var _ = require('underscore');
-var uuid = require('uuid');
-
-var customHelper = require('../../helpers/custom.js');
-
-var twitterHelper = require('../../helpers/twitter.js');
-var githubHelper = require('../../helpers/github.js');
-var linkedinHelper = require('../../helpers/linkedin.js');
-var googleHelper = require('../../helpers/google.js');
-var facebookHelper = require('../../helpers/facebook.js');
-
-var sessionHelper = require('../../helpers/session');
-var appService = require('../../services/app');
-var authService = require('../../services/auth');
-
-module.exports = function(app) {  
-
-    app.get("/auth/:appId/twitter", function(req, res) {     
-    
-        _getAppSettings(req, res).then(function(respObj){
-
-            var appId=respObj.appId;
-            var authSettings=respObj.authSettings;            
-
-            twitterHelper.getLoginUrl(req, appId, authSettings).then(function(data){
-                return res.status(200).json({url:data.loginUrl});
-            },function(err){
-                res.status(500).send(err);
-            }); 
-
-        });                
-    }); 
-
-    app.get("/auth/:appId/twitter/callback", function(req, res) {
-
-        var requestToken = req.query.oauth_token;
-        var verifier = req.query.oauth_verifier;
-
-        var sessionLength=30;//Default
-
-        _getAppSettings(req, res).then(function(respObj){
-
-            var appId=respObj.appId;
-            var authSettings=respObj.authSettings;           
-
-            //Check Session Length from app Settings                      
-            if(authSettings.sessions && authSettings.sessions.sessionLength){
-                var temp=Number(authSettings.sessions.sessionLength);
-                if(!isNaN(temp)){
-                    sessionLength=temp;
-                }
-            }
-
-            var twitterTokens=null; 
-            var twitterReqSecret=null;           
-
-            //Make twitter requests
-            twitterHelper.getAccessToken(req, appId, authSettings ,requestToken, twitterReqSecret, verifier)
-            .then(function(data){
-
-                twitterTokens=data;
-                delete req.session.twitterReqSecret;     
-
-                return twitterHelper.getUserByTokens(req, appId, authSettings, data.accessToken, data.accessSecret);
-
-            }).then(function(user){
-
-                
-
-                var provider="twitter";
-                var providerUserId=user.id;
-                var providerAccessToken=twitterTokens.accessToken;
-                var providerAccessSecret=twitterTokens.accessSecret;
-
-                //save the user
-                return authService.upsertUserWithProvider(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken, providerAccessSecret);
-
-            }).then(function(result){
-
-                //create sessions
-                var session=setSession(req, appId, sessionLength, result,res);                        
-                return res.redirect(authSettings.general.callbackURL+"?cbtoken="+session.id);
-
-            },function(err){
-                delete req.session.twitterReqSecret;
-                res.status(500).send(err);
-            });         
-
-        });        
-    }); 
-
-
-    app.get("/auth/:appId/github", function(req, res) {  
-
-        _getAppSettings(req, res).then(function(respObj){
-
-            var appId=respObj.appId;
-            var authSettings=respObj.authSettings;            
-
-            githubHelper.getLoginUrl(req, appId, authSettings).then(function(data){
-                return res.status(200).json({url:data.loginUrl});
-            },function(error){
-                res.status(500).send(error);
-            });           
-
-        });         
-    });    
-
-    app.get('/auth/:appId/github/callback',function(req, res) { 
-
-        var code = req.query.code;  
-
-        var sessionLength=30;//Default
-        _getAppSettings(req, res).then(function(respObj){
-
-            var appId=respObj.appId;
-            var authSettings=respObj.authSettings;  
-
-            //Check Session Length from app Settings                      
-            if(authSettings.sessions && authSettings.sessions.sessionLength){
-                var temp=Number(authSettings.sessions.sessionLength);
-                if(!isNaN(temp)){
-                    sessionLength=temp;
-                }
-            }
-
-            var githubAccessToken=null;          
-
-            githubHelper.getOAuthAccessToken(req, appId, authSettings, code).then(function(accessToken){
-                githubAccessToken=accessToken;
-                return githubHelper.getUserByAccessToken(req, appId, authSettings, accessToken);
-            }).then(function(user){
-
-                var provider="github";
-                var providerUserId=user.id;                
-                var providerAccessToken=githubAccessToken;
-                var providerAccessSecret=null;                
-
-                return authService.upsertUserWithProvider(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken,providerAccessSecret);
-
-            }).then(function(result){
-
-                //create sessions
-                var session=setSession(req, appId, sessionLength,result,res);                        
-                return res.redirect(authSettings.general.callbackURL+"?cbtoken="+session.id);
-
-            },function(error){
-                res.status(400).json({
-                    error: error
-                });
-            });            
-            
-        });
-    }); 
-
-    app.get('/auth/:appId/linkedin', function(req, res) {
-
-        _getAppSettings(req, res).then(function(respObj){
-
-            var appId=respObj.appId;
-            var authSettings=respObj.authSettings;
-           
-            linkedinHelper.getLoginUrl(req, appId, authSettings).then(function(data){
-                return res.status(200).json({url:data.loginUrl});
-            },function(error){
-                res.status(500).send(error);
-            });         
-           
-        });        
-    }); 
-
-    app.get('/auth/:appId/linkedin/callback', function(req, res) {
-
-        var sessionLength=30;//Default
-        _getAppSettings(req, res).then(function(respObj){
-
-            var appId=respObj.appId;
-            var authSettings=respObj.authSettings;
-
-            //Check Session Length from app Settings                      
-            if(authSettings.sessions && authSettings.sessions.sessionLength){
-                var temp=Number(authSettings.sessions.sessionLength);
-                if(!isNaN(temp)){
-                    sessionLength=temp;
-                }
-            }
-
-            var linkedinAccessToken=null;
-           
-            linkedinHelper.getAccessToken(req, appId, authSettings, res, req.query.code, req.query.state)
-            .then(function(accessToken){
-
-                linkedinAccessToken=accessToken;
-                
-                linkedinHelper.getUserByAccessToken(req, appId, authSettings, accessToken).then(function(user){
-
-                    var provider="linkedin";
-                    var providerUserId=user.id;
-                    var providerAccessToken=linkedinAccessToken;
-                    var providerAccessSecret=null;                    
-
-                    authService.upsertUserWithProvider(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken,providerAccessSecret)
-                    .then(function(result){
-                        //create sessions
-                        var session=setSession(req, appId, sessionLength, result,res);                        
-                        return res.redirect(authSettings.general.callbackURL+"?cbtoken="+session.id);
-                    },function(error){
-                        res.status(500).send(error);
-                    });
-
-                },function(error){
-                    res.status(500).send(error);
-                });
-
-            },function(error){
-                res.status(500).send(error);
-            });          
-           
-        });
-    }); 
-
-
-    app.get('/auth/:appId/google', function(req, res) { 
-        
-        _getAppSettings(req, res).then(function(respObj){
-
-            var appId=respObj.appId;
-            var authSettings=respObj.authSettings;
-            
-            googleHelper.getLoginUrl(req, appId, authSettings).then(function(data){
-                return res.status(200).json({url:data.loginUrl});
-            },function(error){
-                res.status(500).send(error);
-            });             
-
-        });         
-    }); 
-
-    app.get('/auth/:appId/google/callback', function(req, res) {  
-           
-        var code = req.query.code;                
-
-        var sessionLength=30;//Default
-        _getAppSettings(req, res).then(function(respObj){
-
-            var appId=respObj.appId;
-            var authSettings=respObj.authSettings;
-
-            //Check Session Length from app Settings                      
-            if(authSettings.sessions && authSettings.sessions.sessionLength){
-                var temp=Number(authSettings.sessions.sessionLength);
-                if(!isNaN(temp)){
-                    sessionLength=temp;
-                }
-            }
-
-            var googleTokens=null;
-            googleHelper.getToken(req, appId, authSettings, code).then(function(tokens){
-                googleTokens=tokens;
-                return googleHelper.getUserByTokens(req, appId, authSettings, tokens.access_token, tokens.refresh_token);
-            }).then(function(profile){
-
-                var provider="google";
-                var providerUserId=profile.id;
-                var providerAccessToken=googleTokens.access_token;
-                var providerAccessSecret=null;                
-
-                return authService.upsertUserWithProvider(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken,providerAccessSecret);
-
-            }).then(function(result){
-
-                //create sessions
-                var session=setSession(req, appId, sessionLength, result,res);                        
-                return res.redirect(authSettings.general.callbackURL+"?cbtoken="+session.id);
-
-            },function(error){
-                res.status(500).send(error);
-            });              
-              
-        });      
-    }); 
-
-    app.get('/auth/:appId/facebook', function(req, res) {
-
-        _getAppSettings(req, res).then(function(respObj){
-
-            var appId=respObj.appId;
-            var authSettings=respObj.authSettings;
-            
-            facebookHelper.getLoginUrl(req, appId, authSettings).then(function(data){
-                return res.status(200).json({url:data.loginUrl});
-            },function(error){
-                res.status(500).send(error);
-            });                     
-
-        });
-        
-    }); 
-
-    app.get('/auth/:appId/facebook/callback', function(req, res) {  
-        
-        var code = req.query.code;
-
-        var sessionLength=30;//Default
-        _getAppSettings(req, res).then(function(respObj){
-
-            var appId=respObj.appId;            
-            var authSettings=respObj.authSettings;
-
-             //Check Session Length from app Settings                      
-            if(authSettings.sessions && authSettings.sessions.sessionLength){
-                var temp=Number(authSettings.sessions.sessionLength);
-                if(!isNaN(temp)){
-                    sessionLength=temp;
-                }
-            }
-
-            var fbAccessToken=null;
-            facebookHelper.getAccessToken(req, appId, authSettings, code).then(function(accessToken){
-                fbAccessToken=accessToken;
-                return facebookHelper.getUserByAccessToken(req, appId, authSettings, accessToken);
-
-            }).then(function(user){
-
-                var provider="facebook";
-                var providerUserId=user.id;
-                var providerAccessToken=fbAccessToken;
-                var providerAccessSecret=null;                
-
-                return authService.upsertUserWithProvider(appId,customHelper.getAccessList(req),provider,providerUserId,providerAccessToken,providerAccessSecret);
-                        
-            }).then(function(result){
-
-                //create sessions
-                var session=setSession(req, appId, sessionLength,result,res);                        
-                return res.redirect(authSettings.general.callbackURL+"?cbtoken="+session.id);
-
-            },function(error){
-                res.status(500).send(error);
-            });         
-        });
-    });  
-};    
-
-/************************ Private Functions *************************/
-
-function setSession(req, appId, sessionLength, result,res) {
-    if(!req.session.id) {
-        req.session = {};
-        req.session.id = uuid.v1();
+const winston = require('winston');
+const _ = require('underscore');
+const uuid = require('uuid');
+
+const customHelper = require('../../helpers/custom.js');
+
+const twitterHelper = require('../../helpers/twitter.js');
+const githubHelper = require('../../helpers/github.js');
+const linkedinHelper = require('../../helpers/linkedin.js');
+const googleHelper = require('../../helpers/google.js');
+const facebookHelper = require('../../helpers/facebook.js');
+
+const sessionHelper = require('../../helpers/session');
+const appService = require('../../services/app');
+const authService = require('../../services/auth');
+
+const setSession = (req, appId, sessionLength, result, res) => {
+  if (!req.session.id) {
+    req.session = {};
+    req.session.id = uuid.v1();
+  }
+  res.header('sessionID', req.session.id);
+
+  const obj = {
+    id: req.session.id,
+    userId: result._id, // eslint-disable-line no-underscore-dangle
+    loggedIn: true,
+    appId,
+    roles: _.map(result.roles, role => role._id), // eslint-disable-line no-underscore-dangle
+  };
+
+  req.session = obj;
+
+  sessionHelper.saveSession(obj, sessionLength);
+  return req.session;
+};
+
+const getAppSettings = async (req, res, next) => {
+  const appId = req.params.appId || null;
+
+  if (!appId) {
+    return res.status(400).send('AppId is invalid.');
+  }
+
+  try {
+    const allSettings = await appService.getAllSettings(appId);
+    if (!allSettings || allSettings.length === 0) {
+      return res.status(400).send('App Settings not found.');
     }
-    res.header('sessionID',req.session.id);     
-    
-    var obj = {
-        id : req.session.id,
-        userId : result._id,
-        loggedIn : true,
-        appId : appId,
-        roles : _.map(result.roles, function (role) { return role._id ; })        
+
+    const auth = _.first(_.where(allSettings, {
+      category: 'auth',
+    }));
+    let authSettings;
+    if (auth) {
+      authSettings = auth.settings;
+    }
+
+    if (!authSettings) {
+      return res.status(400).send('Authentication Settings not found.');
+    }
+
+    req.responseObject = {
+      appId,
+      authSettings,
     };
+    return next();
+  } catch (error) {
+    winston.error({
+      error: String(error),
+      stack: new Error().stack,
+    });
+    return res.status(400).send(error);
+  }
+};
 
-    req.session = obj;
-    
-    sessionHelper.saveSession(obj,sessionLength);
-    return req.session;
-}
+module.exports = (app) => {
+  app.get('/auth/:appId/twitter', getAppSettings, async (req, res) => {
+    const { appId, authSettings } = req.responseObject;
+    try {
+      const responseData = await twitterHelper.getLoginUrl(req, appId, authSettings);
+      return res.status(200).json({
+        url: responseData.loginUrl,
+      });
+    } catch (error) {
+      winston.error({
+        error: String(error),
+        stack: new Error().stack,
+      });
+      return res.status(500).send(error);
+    }
+  });
 
-function _getAppSettings(req,res){
+  app.get('/auth/:appId/twitter/callback', getAppSettings, async (req, res) => {
+    const requestToken = req.query.oauth_token;
+    const verifier = req.query.oauth_verifier;
 
-    var deferred = q.defer();
+    let sessionLength = 30; // Default
+    const { appId, authSettings } = req.responseObject;
 
-    var appId = req.params.appId || null; 
-
-    if(!appId){
-        return res.status(400).send("AppId is invalid.");
+    // Check Session Length from app Settings
+    if (authSettings.sessions && authSettings.sessions.sessionLength) {
+      const temp = Number(authSettings.sessions.sessionLength);
+      if (!isNaN(temp)) { // eslint-disable-line no-restricted-globals
+        sessionLength = temp;
+      }
     }
 
-    var promises=[];
+    const twitterReqSecret = null;
+    try {
+      // Make twitter requests
+      const twitterTokens = await twitterHelper.getAccessToken(
+        req, appId, authSettings, requestToken, twitterReqSecret, verifier,
+      );
+      delete req.session.twitterReqSecret;
+      const user = await twitterHelper.getUserByTokens(
+        req, appId, authSettings, twitterTokens.accessToken, twitterTokens.accessSecret,
+      );
 
-    promises.push(appService.getAllSettings(appId));    
-    q.all(promises).then(function(list){       
+      const provider = 'twitter';
+      const providerUserId = user.id;
+      const providerAccessToken = twitterTokens.accessToken;
+      const providerAccessSecret = twitterTokens.accessSecret;
+      // save the user
+      const savedUser = await authService.upsertUserWithProvider(
+        appId, customHelper.getAccessList(req),
+        provider, providerUserId, providerAccessToken, providerAccessSecret,
+      );
+      // create sessions
+      const session = setSession(req, appId, sessionLength, savedUser, res);
+      return res.redirect(`${authSettings.general.callbackURL}?cbtoken=${session.id}`);
+    } catch (error) {
+      delete req.session.twitterReqSecret;
+      return res.status(500).send(error);
+    }
+  });
 
-        if(!list[0] || list[0].length==0){
-            return res.status(400).send("App Settings not found.");
+
+  app.get('/auth/:appId/github', getAppSettings, async (req, res) => {
+    const { appId, authSettings } = req.responseObject;
+    try {
+      const data = await githubHelper.getLoginUrl(req, appId, authSettings);
+      return res.status(200).json({ url: data.loginUrl });
+    } catch (error) {
+      return res.status(500).send(error);
+    }
+  });
+
+  app.get('/auth/:appId/github/callback', getAppSettings, async (req, res) => {
+    const { code } = req.query;
+    const { appId, authSettings } = req.responseObject;
+
+    let sessionLength = 30; // Default
+    try {
+      if (authSettings.sessions && authSettings.sessions.sessionLength) {
+        const temp = Number(authSettings.sessions.sessionLength);
+        if (!isNaN(temp)) { // eslint-disable-line no-restricted-globals
+          sessionLength = temp;
         }
+      }
+      const githubAccessToken = await githubHelper.getOAuthAccessToken(
+        req, appId, authSettings, code,
+      );
+      const user = await githubHelper.getUserByAccessToken(
+        req, appId, authSettings, githubAccessToken,
+      );
+      const provider = 'github';
+      const providerUserId = user.id;
+      const providerAccessToken = githubAccessToken;
+      const providerAccessSecret = null;
 
-        var auth=_.first(_.where(list[0], {category: "auth"}));           
-        if(auth){
-            var authSettings=auth.settings;
+      const savedUser = await authService.upsertUserWithProvider(
+        appId, customHelper.getAccessList(req), provider,
+        providerUserId, providerAccessToken, providerAccessSecret,
+      );
+      // create sessions
+      const session = setSession(req, appId, sessionLength, savedUser, res);
+      return res.redirect(`${authSettings.general.callbackURL}?cbtoken=${session.id}`);
+    } catch (error) {
+      winston.error({
+        error: String(error),
+        stack: new Error().stack,
+      });
+      return res.status(400).json({
+        error,
+      });
+    }
+  });
+
+  app.get('/auth/:appId/linkedin', getAppSettings, async (req, res) => {
+    const { appId, authSettings } = req.responseObject;
+    try {
+      const data = await linkedinHelper.getLoginUrl(req, appId, authSettings);
+      return res.status(200).json({ url: data.loginUrl });
+    } catch (error) {
+      return res.status(500).send(error);
+    }
+  });
+
+  app.get('/auth/:appId/linkedin/callback', getAppSettings, async (req, res) => {
+    const { appId, authSettings } = req.responseObject;
+    const { code, state } = req.query;
+
+    let sessionLength = 30; // Default
+    try {
+      if (authSettings.sessions && authSettings.sessions.sessionLength) {
+        const temp = Number(authSettings.sessions.sessionLength);
+        if (!isNaN(temp)) { // eslint-disable-line no-restricted-globals
+          sessionLength = temp;
         }
+      }
+      const linkedinAccessToken = await linkedinHelper
+        .getAccessToken(req, appId, authSettings, res, code, state);
+      const user = await linkedinHelper
+        .getUserByAccessToken(req, appId, authSettings, linkedinAccessToken);
+      const provider = 'linkedin';
+      const providerUserId = user.id;
+      const providerAccessToken = linkedinAccessToken;
+      const providerAccessSecret = null;
+      const result = await authService.upsertUserWithProvider(
+        appId, customHelper.getAccessList(req), provider,
+        providerUserId, providerAccessToken, providerAccessSecret,
+      );
+      // create sessions
+      const session = setSession(req, appId, sessionLength, result, res);
+      return res.redirect(`${authSettings.general.callbackURL}?cbtoken=${session.id}`);
+    } catch (error) {
+      return res.status(500).send(error);
+    }
+  });
 
-        if(!authSettings){
-            return res.status(400).send("Authentication Settings not found.");
+
+  app.get('/auth/:appId/google', getAppSettings, async (req, res) => {
+    const { appId, authSettings } = req.responseObject;
+    try {
+      const data = await googleHelper.getLoginUrl(req, appId, authSettings);
+      return res.status(200).json({ url: data.loginUrl });
+    } catch (error) {
+      return res.status(500).send(error);
+    }
+  });
+
+  app.get('/auth/:appId/google/callback', getAppSettings, async (req, res) => {
+    const { code } = req.query;
+    const { appId, authSettings } = req.responseObject;
+
+    let sessionLength = 30; // Default
+    try {
+      if (authSettings.sessions && authSettings.sessions.sessionLength) {
+        const temp = Number(authSettings.sessions.sessionLength);
+        if (!isNaN(temp)) { // eslint-disable-line no-restricted-globals
+          sessionLength = temp;
         }
+      }
+      const googleTokens = await googleHelper.getToken(req, appId, authSettings, code);
+      const profile = await googleHelper.getUserByTokens(
+        req, appId, authSettings, googleTokens.access_token, googleTokens.refresh_token,
+      );
+      const provider = 'google';
+      const providerUserId = profile.id;
+      const providerAccessToken = googleTokens.access_token;
+      const providerAccessSecret = null;
 
-        var response={
-            appId:appId,            
-            authSettings:authSettings
-        };
-        deferred.resolve(response);
+      const result = await authService.upsertUserWithProvider(
+        appId, customHelper.getAccessList(req), provider,
+        providerUserId, providerAccessToken, providerAccessSecret,
+      );
+      // create sessions
+      const session = setSession(req, appId, sessionLength, result, res);
+      return res.redirect(`${authSettings.general.callbackURL}?cbtoken=${session.id}`);
+    } catch (error) {
+      winston.error({
+        error: String(error),
+        stack: new Error().stack,
+      });
+      return res.status(500).send(error);
+    }
+  });
 
-    },function(error){
-        return res.status(400).send(error);
-    });
+  app.get('/auth/:appId/facebook', getAppSettings, async (req, res) => {
+    const { appId, authSettings } = req.responseObject;
+    try {
+      const data = await facebookHelper.getLoginUrl(req, appId, authSettings);
+      return res.status(200).json({ url: data.loginUrl });
+    } catch (error) {
+      return res.status(500).send(error);
+    }
+  });
 
-    return deferred.promise ;   
-}
+  app.get('/auth/:appId/facebook/callback', getAppSettings, async (req, res) => {
+    const { code } = req.query;
+    const { appId, authSettings } = req.responseObject;
 
+    let sessionLength = 30; // Default
+    try {
+      // Check Session Length from app Settings
+      if (authSettings.sessions && authSettings.sessions.sessionLength) {
+        const temp = Number(authSettings.sessions.sessionLength);
+        if (!isNaN(temp)) { // eslint-disable-line no-restricted-globals
+          sessionLength = temp;
+        }
+      }
+      const fbAccessToken = await facebookHelper.getAccessToken(
+        req, appId, authSettings, code,
+      );
+      const user = await facebookHelper.getUserByAccessToken(
+        req, appId, authSettings, fbAccessToken,
+      );
+      const provider = 'facebook';
+      const providerUserId = user.id;
+      const providerAccessToken = fbAccessToken;
+      const providerAccessSecret = null;
 
-
-
+      const result = await authService.upsertUserWithProvider(
+        appId, customHelper.getAccessList(req), provider,
+        providerUserId, providerAccessToken, providerAccessSecret,
+      );
+      // create sessions
+      const session = setSession(req, appId, sessionLength, result, res);
+      return res.redirect(`${authSettings.general.callbackURL}?cbtoken=${session.id}`);
+    } catch (error) {
+      return res.status(500).send(error);
+    }
+  });
+};

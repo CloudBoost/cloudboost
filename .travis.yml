@@ -16,12 +16,12 @@ env:
 
 language: node_js
 node_js:
-- '6'
+- '8'
 
-cache:
-  directories:
-  - node_modules # NPM packages
-  - /home/travis/google-cloud-sdk
+# cache:
+#   directories:
+#   - node_modules # NPM packages
+#   - /home/travis/google-cloud-sdk
 
 before_install:
 - docker run --name mongo -p 27017:27017 -d mongo
@@ -32,6 +32,7 @@ before_install:
 install:
   - npm install grunt-cli -g
   - npm install eslint -g
+  - npm install
   - docker build -t cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER .
   - if [ "$TRAVIS_BRANCH" == "release" ]; then
       docker tag cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER cloudboost/cloudboost:latest;
@@ -45,6 +46,7 @@ install:
       -e  LOGGLY_TOKEN=$LOGGLY_TOKEN
       -e  LOGGLY_SUBDOMAIN=$LOGGLY_SUBDOMAIN
       -e  LOGGLY_TAGS=$LOGGLY_TAGS
+      -e  MAIL_PROVIDER=$MAIL_PROVIDER
       -e  MAIL_PROVIDER_API_KEY=$MAIL_PROVIDER_API_KEY
       -e  DOMAIN=$DOMAIN
       -e  FROM_EMAIL=$FROM_EMAIL
@@ -52,6 +54,7 @@ install:
       -p 4730:4730 -it --link redis:redis --link mongo:mongo -d cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER
   - sleep 5s
   - docker logs cloudboost
+  - webpack
   - grunt
 
 after_success:
@@ -128,3 +131,6 @@ deploy:
 #Notify Team on Slack
 notifications:
   slack: hackerbaycompany:gm7nWJDLDtBRyF75VKLKOoMW
+
+after_script:
+  - docker logs cloudboost

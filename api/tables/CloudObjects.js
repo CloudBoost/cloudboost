@@ -3,177 +3,237 @@
 #     (c) 2014 HackerBay, Inc.
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
+const winston = require('winston');
+const customHelper = require('../../helpers/custom.js');
+const integrationService = require('../../services/integrationService');
 
-var customHelper = require('../../helpers/custom.js');
-var integrationService = require('../../services/integrationService');
+const apiTracker = require('../../database-connect/apiTracker');
+const customService = require('../../services/cloudObjects');
+const appService = require('../../services/app');
 
-var apiTracker = require('../../database-connect/apiTracker');
-var customService = require('../../services/cloudObjects');
-var appService = require('../../services/app');
+const deleteApi = async (req, res) => { // delete a document matching the <objectId>
+  const { appId, tableName: collectionName } = req.params;
+  const { document, sdk = 'REST' } = req.body;
+  const appKey = req.body.key || req.param('key');
 
-module.exports = function (app) {
+  apiTracker.log(appId, 'Object / Delete', req.url, sdk);
 
-    app.put('/data/:appId/:tableName', function (req, res) { //save a new document into <tableName> of app
-        if (req.body && req.body.method == "DELETE") {
-            /******************DELETE API*********************/
-            _deleteApi(req, res);
-            /******************DELETE API*********************/
-        } else {
-            /******************SAVE API*********************/
-
-            var appId = req.params.appId;
-            var document = req.body.document;
-            var collectionName = req.params.tableName;
-            var appKey = req.body.key || req.params.key;
-            var sdk = req.body.sdk || "REST";
-            var table_event = "";
-
-            if (document._id) {
-                table_event = "Update";
-            } else {
-                table_event = "Create";
-            }
-            appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
-                appService.getApp(appId).then(function (application) {
-                    customService.save(appId, collectionName, document, customHelper.getAccessList(req), isMasterKey, null, application.keys.encryption_key).then(function (result) {
-                        integrationService.integrationNotification(appId, document, collectionName, table_event);
-                        res.status(200).send(result);
-                    }, function (error) {
-                        res.status(400).send(error);
-                    });
-                }, function () {
-                    res.status(400).send("App not found.");
-                });
-            });
-
-            apiTracker.log(appId, "Object / Save", req.url, sdk);
-            /******************SAVE API*********************/
-        }
+  try {
+    const isMasterKey = await appService.isMasterKey(appId, appKey);
+    const result = await customService.delete(
+      appId,
+      collectionName,
+      document,
+      customHelper.getAccessList(req),
+      isMasterKey,
+    );
+    integrationService.integrationNotification(appId, document, collectionName, 'Delete');
+    res.json(result);
+  } catch (error) {
+    winston.error({
+      error: String(error),
+      stack: new Error().stack,
     });
-
-    app.get('/data/:appId/:tableName/find', _getData);
-    app.post('/data/:appId/:tableName/find', _getData);
-
-    app.get('/data/:appId/:tableName/count', _count);
-    app.post('/data/:appId/:tableName/count', _count);
-
-    app.get('/data/:appId/:tableName/distinct', _distinct);
-    app.post('/data/:appId/:tableName/distinct', _distinct);
-
-    app.get('/data/:appId/:tableName/findOne', _findOne);
-    app.post('/data/:appId/:tableName/findOne', _findOne);
-
-    app.delete('/data/:appId/:tableName', _deleteApi);
-
-    function _deleteApi(req, res) { //delete a document matching the <objectId>
-
-        var appId = req.params.appId;
-        var collectionName = req.params.tableName;
-        var document = req.body.document;
-        var appKey = req.body.key || req.param('key');
-        var sdk = req.body.sdk || "REST";
-
-        appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
-            return customService.delete(appId, collectionName, document, customHelper.getAccessList(req), isMasterKey);
-        }).then(function (result) {
-            integrationService.integrationNotification(appId, document, collectionName, "Delete");
-            res.json(result);
-        }, function (error) {
-            res.status(400).send(error);
-        });
-
-        apiTracker.log(appId, "Object / Delete", req.url, sdk);
-
-    }
-
+    res.status(400).send(error);
+  }
 };
 
-function _getData(req, res) { //get document(s) object based on query and various parameters
+// get document(s) object based on query and various parameters
+const getData = async (req, res) => {
+  const { appId, tableName: collectionName } = req.params;
+  const {
+    query,
+    select,
+    sort,
+    limit,
+    skip,
+    sdk = 'REST',
+  } = req.body;
+  const appKey = req.body.key || req.param('key');
 
-    var appId = req.params.appId;
-    var collectionName = req.params.tableName;
-    var query = req.body.query;
-    var select = req.body.select;
-    var sort = req.body.sort;
-    var limit = req.body.limit;
-    var skip = req.body.skip;
-    var appKey = req.body.key || req.param('key');
-    var sdk = req.body.sdk || "REST";
+  apiTracker.log(appId, 'Object / Find', req.url, sdk);
 
-    appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
-        return customService.find(appId, collectionName, query, select, sort, limit, skip, customHelper.getAccessList(req), isMasterKey);
-    }).then(function (results) {
-        res.json(results);
-    }, function (error) {
-        res.status(400).send(error);
+  try {
+    const isMasterKey = await appService.isMasterKey(appId, appKey);
+    const results = await customService.find(
+      appId,
+      collectionName,
+      query,
+      select,
+      sort,
+      limit,
+      skip,
+      customHelper.getAccessList(req),
+      isMasterKey,
+    );
+    res.json(results);
+  } catch (error) {
+    winston.error({
+      error: String(error),
+      stack: new Error().stack,
     });
+    res.status(400).send(error);
+  }
+};
 
-    apiTracker.log(appId, "Object / Find", req.url, sdk);
-}
+const count = async (req, res) => { // get document(s) object based on query and various parameters
+  const { appId, tableName: collectionName } = req.params;
+  const {
+    query,
+    limit,
+    skip,
+    sdk = 'REST',
+  } = req.body;
+  const appKey = req.body.key || req.param('key');
 
-function _count(req, res) { //get document(s) object based on query and various parameters
+  apiTracker.log(appId, 'Object / Count', req.url, sdk);
 
-    var appId = req.params.appId;
-    var collectionName = req.params.tableName;
-    var query = req.body.query;
-    var limit = req.body.limit;
-    var skip = req.body.skip;
-    var appKey = req.body.key || req.param('key');
-    var sdk = req.body.sdk || "REST";
-
-    appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
-        return customService.count(appId, collectionName, query, limit, skip, customHelper.getAccessList(req), isMasterKey);
-    }).then(function (result) {
-        res.json(result);
-    }, function (error) {
-        res.status(400).send(error);
+  try {
+    const isMasterKey = await appService.isMasterKey(appId, appKey);
+    const result = await customService.count(
+      appId,
+      collectionName,
+      query,
+      limit,
+      skip,
+      customHelper.getAccessList(req),
+      isMasterKey,
+    );
+    res.json(result);
+  } catch (error) {
+    winston.error({
+      error: String(error),
+      stack: new Error().stack,
     });
+    res.status(400).send(error);
+  }
+};
 
-    apiTracker.log(appId, "Object / Count", req.url, sdk);
-}
+// get document(s) object based on query and various parameters
+const distinct = async (req, res) => {
+  const { appId, tableName: collectionName } = req.params;
+  const {
+    onKey,
+    query,
+    limit,
+    skip,
+    sdk = 'REST',
+    select,
+    sort,
+  } = req.body;
+  const appKey = req.body.key || req.param('key');
 
-function _distinct(req, res) { //get document(s) object based on query and various parameters
+  apiTracker.log(appId, 'Object / Distinct', req.url, sdk);
 
-    var appId = req.params.appId;
-    var collectionName = req.params.tableName;
-    var onKey = req.body.onKey;
-    var query = req.body.query;
-    var select = req.body.select;
-    var sort = req.body.sort;
-    var limit = req.body.limit;
-    var skip = req.body.skip;
-    var appKey = req.body.key || req.param('key');
-    var sdk = req.body.sdk || "REST";
-
-    appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
-        return customService.distinct(appId, collectionName, onKey, query, select, sort, limit, skip, customHelper.getAccessList(req), isMasterKey);
-    }).then(function (results) {
-        res.json(results);
-    }, function (error) {
-        res.status(400).send(error);
+  try {
+    const isMasterKey = await appService.isMasterKey(appId, appKey);
+    const results = await customService.distinct(
+      appId,
+      collectionName,
+      onKey,
+      query,
+      select,
+      sort,
+      limit,
+      skip,
+      customHelper.getAccessList(req),
+      isMasterKey,
+    );
+    res.json(results);
+  } catch (error) {
+    winston.error({
+      error: String(error),
+      stack: new Error().stack,
     });
+    res.status(400).send(error);
+  }
+};
 
-    apiTracker.log(appId, "Object / Distinct", req.url, sdk);
-}
+const findOne = async (req, res) => { // get a single document matching the search query
+  const { appId, tableName: collectionName } = req.params;
+  const {
+    query,
+    select,
+    sort,
+    skip,
+    sdk = 'REST',
+  } = req.body;
+  const appKey = req.body.key || req.param('key');
 
-function _findOne(req, res) { //get a single document matching the search query
+  apiTracker.log(appId, 'Object / FindOne', req.url, sdk);
 
-    var appId = req.params.appId;
-    var collectionName = req.params.tableName;
-    var query = req.body.query;
-    var select = req.body.select;
-    var sort = req.body.sort;
-    var skip = req.body.skip;
-    var appKey = req.body.key || req.param('key');
-    var sdk = req.body.sdk || "REST";
-
-    appService.isMasterKey(appId, appKey).then(function (isMasterKey) {
-        return customService.findOne(appId, collectionName, query, select, sort, skip, customHelper.getAccessList(req), isMasterKey);
-    }).then(function (result) {
-        res.json(result);
-    }, function (error) {
-        res.status(400).send(error);
+  try {
+    const isMasterKey = await appService.isMasterKey(appId, appKey);
+    const results = await customService.findOne(
+      appId,
+      collectionName,
+      query,
+      select,
+      sort,
+      skip,
+      customHelper.getAccessList(req),
+      isMasterKey,
+    );
+    res.json(results);
+  } catch (error) {
+    winston.error({
+      error: String(error),
+      stack: new Error().stack,
     });
+    res.status(400).send(error);
+  }
+};
 
-    apiTracker.log(appId, "Object / FindOne", req.url, sdk);
-}
+const updateTable = async (req, res) => { // save a new document into <tableName> of app
+  if (req.body && req.body.method === 'DELETE') {
+    /** ****************DELETE API******************** */
+    deleteApi(req, res);
+    /** ****************DELETE API******************** */
+  } else {
+    /** ****************SAVE API******************** */
+
+    const { appId, tableName: collectionName } = req.params;
+    const appKey = req.body.key || req.params.key;
+    const { document } = req.body;
+    const sdk = req.body.sdk || 'REST';
+    const tableEvent = document._id // eslint-disable-line no-underscore-dangle
+      ? 'Update' : 'Create';
+    /** ****************SAVE API******************** */
+    try {
+      apiTracker.log(appId, 'Object / Save', req.url, sdk);
+      const isMasterKey = await appService.isMasterKey(appId, appKey);
+      const application = await appService.getApp(appId);
+      const result = await customService.save(
+        appId,
+        collectionName,
+        document,
+        customHelper.getAccessList(req),
+        isMasterKey,
+        null,
+        application.keys.encryption_key,
+      );
+      integrationService.integrationNotification(appId, document, collectionName, tableEvent);
+      res.status(200).send(result);
+    } catch (error) {
+      res.status(400).send(error);
+    }
+  }
+};
+
+module.exports = (app) => {
+  app.put('/data/:appId/:tableName', updateTable);
+
+  app.get('/data/:appId/:tableName/find', getData);
+  app.post('/data/:appId/:tableName/find', getData);
+
+  app.get('/data/:appId/:tableName/count', count);
+  app.post('/data/:appId/:tableName/count', count);
+
+  app.get('/data/:appId/:tableName/distinct', distinct);
+  app.post('/data/:appId/:tableName/distinct', distinct);
+
+  app.get('/data/:appId/:tableName/findOne', findOne);
+  app.post('/data/:appId/:tableName/findOne', findOne);
+
+  app.delete('/data/:appId/:tableName', deleteApi);
+};

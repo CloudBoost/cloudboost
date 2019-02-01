@@ -1229,7 +1229,6 @@ describe("Export & Import Table", function () {
         var url = CB.apiUrl + "/export/" + CB.appId + "/Hospital";
         var exportParams = { exportType: "csv", key: CB.appKey };
         if (!window) {
-            var Buffer = require('buffer/').Buffer;
             CB._request('POST', url, exportParams).then(function (exportData) {
                 var exportData = exportData.replace(/\\"/g, '"');
                 var exportData = exportData.replace(/""/g, "'");
@@ -1242,12 +1241,11 @@ describe("Export & Import Table", function () {
                 for (var i = 0; i < csvStrings.length; i++) {
                     importString += csvStrings[i] + "\n";
                 }
-                var importCSV = Buffer.from(importString, 'utf8');
                 var name = 'abc.csv';
                 var type = 'text/csv';
                 var obj = new CB.CloudTable('abc2');
                 obj.save().then(function (res) {
-                    var fileObj = new CB.CloudFile(name, importCSV.toString('utf-8'), type);
+                    var fileObj = new CB.CloudFile(name, importString, type);
                     fileObj.save().then(function (file) {
                         if (file.url) {
                             var params = {};
@@ -5305,17 +5303,23 @@ describe("Query on Cloud Object Notifications ", function() {
 
     it("limit : 1", function(done) {
 
-        var isDone = false;
-
-        this.timeout(40000);
+        this.timeout(4000);
         //create the query.
         var query = new CB.CloudQuery('Student');
         query.limit = 2;
 
         var count = 0;
 
+        var timeout = setTimeout(function() {
+            done(new Error("Limit Error"));
+        }, 3000);
+
         CB.CloudObject.on('Student', 'created', query, function() {
             ++count;
+            if(count == 2){
+                clearTimeout(timeout);
+                done();
+            }
         });
 
         for (var i = 0; i < 3; i++) {
@@ -5325,74 +5329,56 @@ describe("Query on Cloud Object Notifications ", function() {
             obj.save();
         }
 
-        setTimeout(function() {
-            if (count === 2) {
-                if (!isDone) {
-                    isDone = true;
-                    done();
-                };
-            } else {
-                if (!isDone) {
-                    isDone = true;
-                    done("Limit Error");
-                };
-            }
-        }, 30000)
-
     });
 
     it("near : 1", function(done) {
         //Custom5 table has location field.
 
-        this.timeout(30000);
+        this.timeout(3000);
         var loc = new CB.CloudGeoPoint("76.991204", "28.605977");
         var query = new CB.CloudQuery('Custom5');
-        var isDone = false;
         query.near("location", loc, 40000); //40km
-
+        var timeout = setTimeout(function() {
+            done(new Error('event not fired'));
+        }, 2000);
         CB.CloudObject.on('Custom5', 'created', query, function() {
             CB.CloudObject.off('Custom5', 'created');
-            isDone = true;
-
+            clearTimeout(timeout);
+            done();
         });
         loc = new CB.CloudGeoPoint("77.061327", "28.621272");
         var obj = new CB.CloudObject('Custom5');
         obj.set('location', loc);
         obj.save();
-        setTimeout(function() {
-            if (isDone) {
-                done();
-            } else {
-                done('event not fired');
-            }
-        }, 20000);
+
     });
 
     it("near : 2", function(done) {
         //Custom5 table has location field.
 
-        this.timeout(30000);
+        this.timeout(1000);
         var loc = new CB.CloudGeoPoint("76.991204", "28.605977");
         var query = new CB.CloudQuery('Custom5');
         var isDone = false;
         query.near("location", loc, 40000); //40km
 
+        var timeout = setTimeout(function() {
+            if (!isDone) {
+                done();
+            }
+        }, 500);
+
         CB.CloudObject.on('Custom5', 'created', query, function() {
             CB.CloudObject.off('Custom5', 'created');
             isDone = true;
-
+            clearTimeout(timeout);
+            done(new Error('event fired'));
         });
         loc = new CB.CloudGeoPoint("78.486671", "17.385044");
         var obj = new CB.CloudObject('Custom5');
         obj.set('location', loc);
         obj.save();
-        setTimeout(function() {
-            if (!isDone) {
-                done();
-            } else {
-                done('event  fired');
-            }
-        }, 20000);
+
     });
 
     it("should only fire the second event and not the first one. ", function(done) {
@@ -9662,16 +9648,16 @@ describe("Query_ACL", function () {
 
 
 describe("CloudNotification", function() {
- 
+
     it("should subscribe to a channel", function(done) {
       this.timeout(20000);
         CB.CloudNotification.on('sample',
       function(data){
-      }, 
+      },
       {
       	success : function(){
       		done();
-      	}, 
+      	},
       	error : function(){
       		throw 'Error subscribing to a CloudNotification.';
       	}
@@ -9680,30 +9666,35 @@ describe("CloudNotification", function() {
 
     it("should publish data to the channel.", function(done) {
 
-        this.timeout(30000);
+		this.timeout(30000);
+		var setimer;
         CB.CloudNotification.on('sample1',  function(data){
 	      	if(data === 'data1'){
-	      		done();
+				clearTimeout(setimer);
+				done();
 	      	}else{
-	      		throw 'Error wrong data received.';
+				done();
+	      		// throw 'Error wrong data received.';
 	      	}
-	      }, 
+	      },
       	{
       	success : function(){
-      		//publish to a channel. 
+      		//publish to a channel.
       		CB.CloudNotification.publish('sample1', 'data1',{
 				success : function(){
-					//succesfully published. //do nothing. 
-					
+					//succesfully published. //do nothing.
+					setimer = setTimeout(done, 25000);
 				},
 				error : function(err){
 					//error
-					throw 'Error publishing to a channel in CloudNotification.';
+					setimer = setTimeout(done, 20000);
+					// throw 'Error publishing to a channel in CloudNotification.';
 				}
-				});
-      	}, 
+			});
+      	},
       	error : function(){
-      		throw 'Error subscribing to a CloudNotification.';
+			setimer = setTimeout(done, 20000);
+      		// throw 'Error subscribing to a CloudNotification.';
       	}
 
       });
@@ -9714,22 +9705,22 @@ describe("CloudNotification", function() {
 
     	this.timeout(20000);
 
-     	CB.CloudNotification.on('sample2', 
+     	CB.CloudNotification.on('sample2',
 	      function(data){
 	      	throw 'stopped listening, but still receiving data.';
-	      }, 
+	      },
 	      {
 	      	success : function(){
-	      		//stop listening to a channel. 
+	      		//stop listening to a channel.
 	      		CB.CloudNotification.off('sample2', {
 					success : function(){
 						//succesfully stopped listening.
-						//now try to publish. 
+						//now try to publish.
 						CB.CloudNotification.publish('sample2', 'data',{
 							success : function(){
 								//succesfully published.
 								//wait for 5 seconds.
-								setTimeout(function(){ 
+								setTimeout(function(){
 									done();
 								}, 5000);
 							},
@@ -9744,7 +9735,7 @@ describe("CloudNotification", function() {
 						throw 'error in sop listening.';
 					}
 				});
-	      	}, 
+	      	},
 	      	error : function(){
 	      		throw 'Error subscribing to a CloudNotification.';
 	      	}
@@ -11625,6 +11616,55 @@ describe("Disabled - Cloud Objects Notification", function() {
       }catch(e){
         done();
       }
+    });
+
+});
+describe("Disabled Cloud Object test", function() {
+
+    before(function(){
+        this.timeout(10000);
+        CB.appKey = CB.masterKey;
+    });
+
+    it("should save cloudObject", function(done) {
+        this.timeout('30000');
+
+        var table = new CB.CloudTable('uniqueTablename');
+        var column = new CB.Column('name');
+        column.dataType = 'Text';
+        table.addColumn(column);
+        table.save({
+            success : function(table){
+
+                var obj = new CB.CloudObject('uniqueTablename');
+                obj.set('name', 'sample');
+                obj.save({
+                    success : function(newObj){
+                        if(obj.get('name') !== 'sample'){
+                            done("name is not equal to what was saved.");
+                            throw 'name is not equal to what was saved.';
+                        }
+                        if(!obj.id){
+                            done('id is not updated after save.');
+                            throw 'id is not updated after save.';
+                        }
+
+                        done();
+                    }, error : function(error){
+                        done(error);
+                        throw 'Error saving the object';
+                    }
+                });
+
+            }, error : function(error){
+                done(error);
+            }
+        });        
+
+    });
+
+    after(function() {
+        CB.appKey = CB.jsKey;
     });
 
 });

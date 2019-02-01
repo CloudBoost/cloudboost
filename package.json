@@ -3,7 +3,7 @@
   "version": "1.0.136",
   "main": "server.js",
   "engines": {
-    "node": ">=5.0.0"
+    "node": ">=7.8.0"
   },
   "repository": {
     "type": "git",
@@ -76,23 +76,26 @@
     "winston-loggly-transport": "^1.0.3"
   },
   "devDependencies": {
-    "babel-core": "^6.17.0",
+    "babel-core": "^6.26.3",
     "babel-loader": "^6.2.5",
     "babel-preset-es2015": "^6.16.0",
     "babel-preset-es2015-without-strict": "0.0.4",
     "chai": "^3.5.0",
     "chance": "^1.0.1",
-    "eslint": "^3.16.1",
+    "eslint": "^5.11.1",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.14.0",
     "grunt": "~0.4.5",
+    "grunt-babel": "^6.0.0",
     "grunt-bump": "^0.3.1",
-    "grunt-env": "^0.4.4",
     "grunt-bumpup": "^0.6.3",
     "grunt-contrib-concat": "^0.5.1",
     "grunt-contrib-uglify": "^0.9.1",
     "grunt-contrib-watch": "^0.6.1",
+    "grunt-env": "^0.4.4",
     "grunt-eslint": "^19.0.0",
-    "grunt-release": "^0.13.0",
-    "grunt-babel": "^6.0.0",
+    "grunt-release": "^0.14.0",
+    "husky": "^1.3.1",
     "json-loader": "^0.5.4",
     "mocha": "^2.4.5",
     "mocha-phantomjs": "^4.1.0",
@@ -117,5 +120,10 @@
       "es2015"
     ]
   },
-  "snyk": true
+  "snyk": true,
+  "husky": {
+    "hooks": {
+      "pre-commit": "eslint . --ext .js --fix"
+    }
+  }
 }
