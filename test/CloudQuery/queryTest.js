@@ -1537,6 +1537,8 @@ describe("CloudQuery", function(done) {
                         }
                     }
                 done();
+            } else {
+                done("no list returned");
             }
         }, function() {
             done("find data error");
