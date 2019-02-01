@@ -18,7 +18,7 @@
         obj.save().then(function() {
             done();
         }, function () { 
-            throw "Relation Save error";
+            done("Relation Save error");
         });
 
     });
@@ -42,7 +42,7 @@
         obj.save().then(function() {
             done();
         }, function () {
-            throw "Relation Save error";
+            done("Relation Save error");
         });
 
     });
@@ -76,18 +76,19 @@
                         var room=student_obj.get('newColumn');
                         var address=list[i].get('newColumn2');
                         if(!student_obj.get('name') || !room.get('room') || !address.get('address'))
-                            throw "Unsuccessful Join";
+                            done("Unsuccessful Join");
                     }
                     done();
                 }else{
-                    throw "Cannot retrieve a saved relation.";
+                    done("Cannot retrieve a saved relation.");
                 }
             }, function(error){
-                    throw "Cannot find";
+                done(error);
+                    // done("Cannot find");
             });
             
         }, function () { 
-            throw "Relation Save error";
+            done("Relation Save error");
         });
     });
 
@@ -170,16 +171,18 @@
                         if(status === true){
                             done();
                         }else{
-                            throw "Cannot retrieve a saved relation.";
+                            done("Cannot retrieve a saved relation.");
                         }
                     }else{
-                        throw "Cannot retrieve a saved relation.";
+                        done("Cannot retrieve a saved relation.");
                     }
                 }, function(error){
-                    throw "Unsuccessful join"
+                    done(error);
+                    // done("Unsuccessful join");
                 });
             }, error : function(error){
-                throw "Cannot save a CloudObject";
+                done(error);
+                // done("Cannot save a CloudObject");
             }
         })
     });
@@ -199,11 +202,11 @@
                     //
                     done();
                 }, function () {
-                    throw "";
+                    done("");
                 });
                 //
             },function(){
-                throw "unable to save data";
+                done("unable to save data");
             })
     });
 
@@ -226,13 +229,13 @@
                     if(list.length>0){
                         done();
                     }else{
-                        throw "Cannot query";
+                        done("Cannot query");
                     }
                 }, function(error){
-                    throw "Cannot query";
+                    done("Cannot query");
                 });
             }, function(error){
-                throw "Cannot save an object";
+                done("Cannot save an object");
             });
 
             
@@ -257,13 +260,13 @@
                     if(list.length>0){
                         done();
                     }else{
-                        throw "Cannot query";
+                        done("Cannot query");
                     }
                 }, function(error){
-                    throw "Cannot query";
+                    done("Cannot query");
                 });
             }, function(error){
-                throw "Cannot save an object";
+                done("Cannot save an object");
             });
 
             
@@ -285,16 +288,16 @@
                      if(obj.get('newColumn7')[0].get('newColumn1') === 'sample'){
                         done();
                      }else{
-                        throw "did not include sub documents";
+                        done("did not include sub documents");
                      }
                    }else{
-                        throw "Cannot get the list";
+                        done("Cannot get the list");
                    }
                 }, function(error){
-                    throw "Cannot query";
+                    done("Cannot query");
                 });
             }, function(error){
-                throw "Cannot save an object";
+                done("Cannot save an object");
             });            
     });
 
