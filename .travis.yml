@@ -46,6 +46,7 @@ install:
       -e  LOGGLY_TOKEN=$LOGGLY_TOKEN
       -e  LOGGLY_SUBDOMAIN=$LOGGLY_SUBDOMAIN
       -e  LOGGLY_TAGS=$LOGGLY_TAGS
+      -e  MAIL_PROVIDER=$MAIL_PROVIDER
       -e  MAIL_PROVIDER_API_KEY=$MAIL_PROVIDER_API_KEY
       -e  DOMAIN=$DOMAIN
       -e  FROM_EMAIL=$FROM_EMAIL
@@ -53,8 +54,8 @@ install:
       -p 4730:4730 -it --link redis:redis --link mongo:mongo -d cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER
   - sleep 5s
   - docker logs cloudboost
-  - grunt
   - webpack
+  - grunt
 
 after_success:
   - echo "$DOCKERPASSWORD" | docker login -u "$DOCKERUSERNAME" --password-stdin;

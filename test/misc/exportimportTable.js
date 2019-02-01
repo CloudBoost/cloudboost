@@ -21,9 +21,7 @@ describe("Export & Import Table", function () {
         obj.addColumn(Name);
         obj.save().then(function (res) {
             done();
-        }, function (err) {
-            throw err
-        });
+        }, done);
     });
 
     it("should add data to table", function (done) {
@@ -119,30 +117,26 @@ describe("Export & Import Table", function () {
                                             if (file.url === null)
                                                 done();
                                             else
-                                                throw "file delete error"
+                                                done("file delete error");
                                         }, function (err) {
                                             done(err);
-                                            throw "unable to delete file";
+                                            // throw "unable to delete file";
                                         });
                                     }
                                 }, function (error) {
                                     done(error);
-                                    throw error;
+                                    // throw error;
                                 });
                             } else {
-                                throw 'únable to get the url';
+                                done('únable to get the url');
                             }
                         }, function (err) {
                             done(err);
-                            throw "Unable to save file";
+                            // throw "Unable to save file";
                         });
-                    }, function (err) {
-                        throw err
-                    });
+                    }, done);
                 }
-            }, function (err) {
-                done(err)
-            });
+            }, done);
         } else {
             $.ajax({
                 url: url,
@@ -207,10 +201,10 @@ describe("Export & Import Table", function () {
                                                         if (file.url === null)
                                                             done();
                                                         else
-                                                            throw "file delete error"
+                                                            done("file delete error");
                                                     }, function (err) {
                                                         done(err);
-                                                        throw "unable to delete file";
+                                                        // throw "unable to delete file";
                                                     });
                                                 }
                                             },
@@ -219,18 +213,15 @@ describe("Export & Import Table", function () {
                                             },
                                         });
                                     } else {
-                                        throw 'únable to get the url';
+                                        done('únable to get the url');
                                     }
                                 }, function (err) {
                                     done(err);
-                                    throw "Unable to save file";
+                                    // throw "Unable to save file";
                                 });
-                            }, function (err) {
-                                throw err
-                            });
+                            }, done);
                         }
                     } catch (e) {
-                        
                         done(e);
                     }
                 },
@@ -288,25 +279,24 @@ describe("Export & Import Table", function () {
                                         if (file.url === null)
                                             done();
                                         else
-                                            throw "file delete error"
+                                            done("file delete error")
                                     }, function (err) {
-                                        done(err);
-                                        throw "unable to delete file";
+                                        // done(err);
+                                        done("unable to delete file");
                                     });
                                 }
                             }, function (error) {
                                 done(error);
-                                throw error;
                             });
                         } else {
-                            throw 'únable to get the url';
+                            done('únable to get the url');
                         }
                     }, function (err) {
                         done(err);
-                        throw "Unable to save file";
+                        done("Unable to save file");
                     });
                 }, function (err) {
-                    throw err
+                    done(err)
                 });
             }, function (err) {
                 done(err)
@@ -353,27 +343,25 @@ describe("Export & Import Table", function () {
                                                 if (file.url === null)
                                                     done();
                                                 else
-                                                    throw "file delete error"
+                                                    done("file delete error")
                                             }, function (err) {
-                                                done(err);
-                                                throw "unable to delete file";
+                                                // done(err);
+                                                done("unable to delete file")
                                             });
                                         }
                                     }, function (error) {
                                         done(error);
-                                        throw error;
+                                        // throw error;
                                     });
                                 } else {
-                                    throw 'únable to get the url';
+                                   done('únable to get the url');
                                 }
                             }, function (err) {
                                 
                                 done(err);
-                                throw "Unable to save file";
+                            //    done("Unable to save file");
                             });
-                        }, function (err) {
-                            throw err
-                        });
+                        }, done);
                     } catch (e) {
                         
                         done(e);
