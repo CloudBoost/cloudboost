@@ -31,27 +31,13 @@ const appFilesGet = app => app.get('/getFile/:filename', (req, res) => { // for 
   });
 });
 
-const errHandler = app => app.use((err, req, res) => {
-  winston.error('FATAL : Internal Server Error');
-  winston.error({
-    error: String(err.error),
-    stack: new Error().stack,
+const notFound = app => app.use((req, res) => {
+  res.status(404).json({
+    status: 404,
+    message: 'The endpoint was not found. Please check again.',
   });
-
-  return res.status(510).send(err.error);
-
-  // if (config.env === 'development') {
-  //   res.status(500).json({
-  //     message: err.message,
-  //     error: err.stack,
-  //   });
-  // } else {
-  //   res.status(500).send({
-  //     status: '500',
-  //     message: 'Internal Server Error',
-  //   });
-  // }
 });
+
 module.exports = (app) => {
   _.reduce([
     appGet,
@@ -68,7 +54,7 @@ module.exports = (app) => {
     cloudEmailApi,
     pageApi,
     authApi,
-    errHandler,
+    notFound,
   ], (acc, fn) => {
     fn(acc);
     return acc;
@@ -76,11 +62,4 @@ module.exports = (app) => {
 
   require('./cron/expire.js');
   winston.info('+++++++++++ API Status : OK ++++++++++++++++++');
-
-  // app.use((req, res) => {
-  //   res.status(404).json({
-  //     status: 404,
-  //     message: 'The endpoint was not found. Please check again.',
-  //   });
-  // });
 };

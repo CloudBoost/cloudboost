@@ -223,7 +223,6 @@ obj.document = {
         return deferred.promise;
       }
 
-
       const collection = config.mongoClient.db(appId).collection(mongoUtil.collection.getId(appId, collectionName));
       let include = [];
       /* query for expires */
@@ -292,16 +291,14 @@ obj.document = {
       }
       // default sort added
       /*
-                without sort if limit and skip are used,
-                the records are returned out of order.
-                To solve this default sort in ascending order of 'createdAt' is added
-            */
+        without sort if limit and skip are used,
+        the records are returned out of order.
+        To solve this default sort in ascending order of 'createdAt' is added
+      */
 
       if (!sort.createdAt) sort.createdAt = 1;
 
-      if (!limit || limit === -1) {
-        limit = 20;
-      }
+      if (!limit || limit === -1) limit = 20;
 
       if (!isMasterKey) {
         // if its not master key then apply ACL.
@@ -350,7 +347,7 @@ obj.document = {
       // delete $include and $includeList recursively
       query = _sanitizeQuery(query);
 
-      let findQuery = collection.find(query, select);
+      let findQuery = collection.find(query).project(select);
 
       if (Object.keys(sort).length > 0) {
         findQuery = findQuery.sort(sort);
@@ -365,20 +362,15 @@ obj.document = {
 
       findQuery = findQuery.limit(limit);
 
-      findQuery.toArray((err, _docs) => {
-        if (err) {
-          deferred.reject(err);
-        } else if (!include || include.length === 0) {
-          docs = _deserialize(_docs);
-          deferred.resolve(_docs);
+      findQuery.toArray().then((docs) => {
+        if (!include || include.length === 0) {
+          docs = _deserialize(docs);
+          deferred.resolve(docs);
         } else {
-          obj.document._include(appId, include, _docs).then((newDocs) => {
-            deferred.resolve(newDocs);
-          }, (error) => {
-            deferred.reject(error);
-          });
+          obj.document._include(appId, include, docs)
+            .then(deferred.resolve, deferred.reject);
         }
-      });
+      }).catch(deferred.reject);
     } catch (err) {
       winston.log('error', {
         error: String(err),
@@ -567,11 +559,7 @@ obj.document = {
         keys[onKey.slice(0, indexForDot)][onKey.slice(indexForDot + 1)] = `$${onKey}`;
       } else keys[onKey] = `$${onKey}`;
 
-      if (!sort || Object.keys(sort).length === 0) {
-        sort = {
-          createdAt: 1,
-        };
-      }
+      if (!sort || Object.keys(sort).length === 0) sort = { createdAt: 1 };
 
       if (!query || Object.keys(query).length === 0) {
         query = {
@@ -611,23 +599,32 @@ obj.document = {
         });
       }
 
-      collection.aggregate(pipeline, (err, res) => {
+      collection.aggregate(pipeline, (err, cursor) => {
         if (err) {
           deferred.reject(err);
         } else {
           let docs = [];
-
-          // filter out
-          for (let i = 0; i < res.length; i++) {
-            docs.push(res[i].document);
-          }
-
-          // include.
-          obj.document._include(appId, include, docs).then((_docs) => {
-            docs = _deserialize(_docs);
-            deferred.resolve(docs);
-          }, (error) => {
-            winston.log('error', error);
+          cursor.toArray().then((res) => {
+            // filter out
+            for (let i = 0; i < res.length; i++) {
+              docs.push(res[i].document);
+            }
+            // include.
+            obj.document._include(appId, include, docs).then((docList) => {
+              docs = _deserialize(docList);
+              deferred.resolve(docs);
+            }, (error) => {
+              winston.log('error', {
+                error: String(error),
+                stack: new Error().stack,
+              });
+              deferred.reject(error);
+            });
+          }).catch((error) => {
+            winston.log('error', {
+              error: String(error),
+              stack: new Error().stack,
+            });
             deferred.reject(error);
           });
         }

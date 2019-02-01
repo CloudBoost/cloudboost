@@ -1104,49 +1104,50 @@ function _getSchema(appId, collectionName) {
 
 // this function modifies the fields ['password','datetime']  passed in the Query.
 function _modifyFieldsInQuery(appId, collectionName, query) {
-  const deferred = q.defer();
-
+  var deferred = q.defer();
   try {
-    if (collectionName === '_File') {
-      deferred.resolve(query);
-    } else {
-      _getSchema(appId, collectionName).then((columns) => {
-        const passwordColumnNames = [];
-        const dateTimeColumnNames = [];
-
-        // push in fields to be modified / i.e DateTime and Encypted fields
-        for (let i = 0; i < columns.length; i++) {
-          if (columns[i].dataType === 'EncryptedText') {
-            passwordColumnNames.push(columns[i].name);
-          }
-          if (columns[i].dataType === 'DateTime') {
-            dateTimeColumnNames.push(columns[i].name);
-          }
-        }
-
-        // resolve if there are no password fields or DateTime fields
-        if (passwordColumnNames.length === 0 && dateTimeColumnNames === 0) {
+      if (collectionName === '_File') {
           deferred.resolve(query);
-        } else {
-          appService.getApp(appId).then((application) => {
-            // or modify the query and resolve it.
-            if (passwordColumnNames.length) query = _recursiveModifyQuery(query, passwordColumnNames, 'encrypt', application.keys.encryption_key);
-            if (dateTimeColumnNames.length) query = _recursiveModifyQuery(query, dateTimeColumnNames, 'datetime', application.keys.encryption_key);
-            deferred.resolve(query);
-          }), function () {
-            deferred.reject(`Cannot find an app wiht AppID ${appId}`);
-          };
-        }
-      }, (error) => {
-        deferred.reject(error);
-      });
-    }
+      } else {
+          _getSchema(appId, collectionName).then(function(columns) {
+              var passwordColumnNames = [];
+              var dateTimeColumnNames = [];
+
+              // push in fields to be modified / i.e DateTime and Encypted fields
+              for (var i = 0; i < columns.length; i++) {
+                  if (columns[i].dataType === 'EncryptedText') {
+                      passwordColumnNames.push(columns[i].name);
+                  }
+                  if (columns[i].dataType === 'DateTime') {
+                      dateTimeColumnNames.push(columns[i].name);
+                  }
+              }
+
+              //resolve if there are no password fields or DateTime fields
+              if (passwordColumnNames.length === 0 && dateTimeColumnNames === 0) {
+                  deferred.resolve(query);
+              } else {
+                  appService.getApp(appId).then(function (application) {
+                      //or modify the query and resolve it.
+                      if (passwordColumnNames.length)
+                          query = _recursiveModifyQuery(query, passwordColumnNames, 'encrypt',application.keys.encryption_key);
+                      if (dateTimeColumnNames.length)
+                          query = _recursiveModifyQuery(query, dateTimeColumnNames, 'datetime',application.keys.encryption_key);
+                      deferred.resolve(query);
+                  }), function(){
+                      deferred.reject("Cannot find an app wiht AppID "+appId);
+                  };
+              }
+          }, function(error) {
+              deferred.reject(error);
+          });
+      }
   } catch (err) {
-    winston.log('error', {
-      error: String(err),
-      stack: new Error().stack,
-    });
-    deferred.reject(err);
+      winston.log('error', {
+          "error": String(err),
+          "stack": new Error().stack
+      });
+      deferred.reject(err);
   }
 
   return deferred.promise;
@@ -1172,34 +1173,34 @@ function _encrypt(data, encryption_key) {
 }
 
 function _recursiveModifyQuery(query, columnNames, type, encryptionKey) {
-  for (const key in query) {
-    if (key === '$or') {
-      for (let i = 0; i < query[key].length; i++) {
-        query[key][i] = _recursiveModifyQuery(query[key][i], columnNames, type, encryptionKey);
-      }
-    }
-  }
-  return _.mapObject(query, (val, key) => {
-    if (columnNames.indexOf(key) > -1) {
-      if (typeof val !== 'object') {
-        if (type === 'encrypt') {
-          return _encrypt(val, encryptionKey);
-        }
-      } else {
-        // for datetime fields convert them to a fomat which mongodb can query
-        if (type === 'datetime') {
-          try {
-            Object.keys(val).map((x) => {
-              val[x] = new Date(val[x]);
-            });
-            return val;
-          } catch (e) {
-            return val;
+  for (var key in query) {
+      if (key === '$or') {
+          for (var i = 0; i < query[key].length; i++) {
+              query[key][i] = _recursiveModifyQuery(query[key][i], columnNames, type, encryptionKey);
           }
-        }
       }
-    }
-    return val;
+  }
+  return _.mapObject(query, function(val, key) {
+      if (columnNames.indexOf(key) > -1) {
+          if (typeof val !== 'object') {
+              if (type === 'encrypt') {
+                  return _encrypt(val, encryptionKey);
+              }
+          } else {
+              // for datetime fields convert them to a fomat which mongodb can query
+              if (type === 'datetime') {
+                  try {
+                      Object.keys(val).map(function(x) {
+                          val[x] = new Date(val[x]);
+                      });
+                      return val;
+                  } catch (e) {
+                      return val;
+                  }
+              }
+          }
+      }
+      return val;
   });
 }
 
