@@ -23,20 +23,20 @@ describe("CloudQuery - Encryption", function () {
                             done();
                         }
                         else{
-                            throw "Cannot get items.";
+                            done("Cannot get items.");
                         }
                     }, error : function(query){
                         //cannot query. 
-                        throw "Cannot query over encrypted type";
+                        done("Cannot query over encrypted type");
                     }
                 })
             }
 
             else
-                throw "Cannot encrypt";
+                done("Cannot encrypt");
 
         }, function(){
-            throw "Cannot save a CloudObject";
+            done("Cannot save a CloudObject");
         });
 
     });
@@ -72,20 +72,20 @@ describe("CloudQuery - Encryption", function () {
                             done();
                         }
                         else{
-                            throw "Cannot get items.";
+                            done("Cannot get items.");
                         }
                     }, error : function(query){
                         //cannot query. 
-                        throw "Cannot query over encrypted type";
+                        done("Cannot query over encrypted type");
                     }
                 })
             }
 
             else
-                throw "Cannot encrypt";
+                done("Cannot encrypt");
 
         }, function(){
-            throw "Cannot save a CloudObject";
+            done("Cannot save a CloudObject");
         });
 
     });
@@ -105,13 +105,13 @@ describe("CloudQuery - Encryption", function () {
                     if(obj2.get('password') === obj2.get('password'))
                         done();
                 },function(){
-                    throw "Encrypted the password field again";
+                    done("Encrypted the password field again");
                 });
             }, function (err) {
-                throw "unable to find object by id";
+                done("unable to find object by id");
             });
         }, function(){
-            throw "Cannot save a CloudObject";
+            done("Cannot save a CloudObject");
         });
 
     });

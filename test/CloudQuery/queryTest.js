@@ -11,10 +11,10 @@ describe("CloudQuery", function(done) {
             if (list.get('name') === 'vipul')
                 done();
             else
-                throw "object could not saved properly";
+                done("object could not saved properly");
             }
         , function() {
-            throw "data Save error";
+            done("data Save error");
         });
 
     });
@@ -48,7 +48,7 @@ describe("CloudQuery", function(done) {
                 done("object could not saved properly");
             }
         , function() {
-            throw "data Save error";
+            done("data Save error");
         });
     });
 
@@ -94,7 +94,7 @@ describe("CloudQuery", function(done) {
                 done("object could not saved properly");
             }
         , function() {
-            throw "data Save error";
+            done("data Save error");
         });
     });
 
@@ -124,7 +124,7 @@ describe("CloudQuery", function(done) {
                 done("object could not saved properly");
             }
         , function() {
-            throw "data Save error";
+            done("data Save error");
         });
     });
 
@@ -156,7 +156,7 @@ describe("CloudQuery", function(done) {
                 done("object could not saved properly");
             }
         , function() {
-            throw "data Save error";
+            done("data Save error");
         });
     });
 
@@ -175,17 +175,17 @@ describe("CloudQuery", function(done) {
                         if (!objList[0].get('description'))
                             done();
                         else
-                            throw "Select doesn't work";
+                            done("Select doesn't work");
                 else
-                        throw "Cannot query over select ";
+                        done("Cannot query over select ");
                     }
                 ,
                 error: function(err) {
-                    throw "Error querying object.";
+                    done("Error querying object.");
                 }
             });
         }, function() {
-            throw "should save the object";
+            done("should save the object");
         });
     });
 
@@ -215,19 +215,19 @@ describe("CloudQuery", function(done) {
                             }
                         ,
                         error: function(err) {
-                            throw "Error querying object.";
+                            done("Error querying object.");
                         }
                     });
                 }, function() {
-                    throw "should save the object";
+                    done("should save the object");
                 });
 
             }, function() {
-                throw "should save the object";
+                done("should save the object");
             });
 
         }, function() {
-            throw "should save the object";
+            done("should save the object");
         });
     });
 
@@ -246,18 +246,18 @@ describe("CloudQuery", function(done) {
                         if (!objList[0].get('description'))
                             done();
                         else
-                            throw "Select doesn't work";
+                            done("Select doesn't work");
                 else
-                        throw "Cannot query over select ";
+                        done("Cannot query over select ");
                     }
                 ,
                 error: function(err) {
-                    throw "Error querying object.";
+                    done("Error querying object.");
                 }
             });
 
         }, function() {
-            throw "should save the object";
+            done("should save the object");
         });
     });
 
@@ -273,20 +273,20 @@ describe("CloudQuery", function(done) {
                 //check all the objects returned.
                 for (var i = 0; i < list.length; i++) {
                     if (list[i].get('name')) {
-                        throw "Name exists";
+                        done("Name exists");
                     }
                 }
 
                 if (list.length > 0) {
                     done();
                 } else
-                    throw "object could not queried properly";
+                    done("object could not queried properly");
                 }
             , function(err) {
                 done(err);
             });
         }, function(error) {
-            throw "object could not saved properly";
+            done("object could not saved properly");
         });
     });
 
@@ -303,19 +303,19 @@ describe("CloudQuery", function(done) {
                 //check all the objects returned.
                 for (var i = 0; i < list.length; i++) {
                     if (!list[i].get('name')) {
-                        throw "Name does not exists";
+                        done("Name does not exists");
                     }
                 }
                 if (list.length > 0)
                     done();
                 else
-                    throw "object could not queried properly";
+                    done("object could not queried properly");
                 }
             , function(err) {
                 done(err);
             });
         }, function(error) {
-            throw "object could not saved properly";
+            done("object could not saved properly");
         });
 
     });
@@ -329,7 +329,7 @@ describe("CloudQuery", function(done) {
             if (list.length > 0)
                 done();
             else
-                throw "object could not saved properly";
+                done("object could not saved properly");
             }
         , function(err) {
             done(err);
@@ -346,10 +346,10 @@ describe("CloudQuery", function(done) {
             if (list.length > 0) {
                 done();
             } else {
-                throw "unable to retrive data";
+                done("unable to retrive data");
             }
         }, function(err) {
-            throw "unable to retrieve data";
+            done("unable to retrieve data");
         });
 
     });
@@ -365,12 +365,12 @@ describe("CloudQuery", function(done) {
                 if (count === parseInt(count, 10))
                     done();
                 else
-                    throw "Count returned is not of type integer.";
+                    done("Count returned is not of type integer.");
                 }
             ,
             error: function(err) {
                 //Error in retrieving the data.
-                throw "Error getting count.";
+                done("Error getting count.");
             }
         });
 
@@ -434,7 +434,7 @@ describe("CloudQuery", function(done) {
         }, function(err) {
             CB.appKey = CB.jsKey;
             done(err);
-            throw "Unable to Create Table";
+            done("Unable to Create Table");
         });
 
     });
@@ -500,7 +500,7 @@ describe("CloudQuery", function(done) {
         }, function(err) {
             CB.appKey = CB.jsKey;
             done(err);
-            throw "Unable to Create Table";
+            done("Unable to Create Table");
         });
 
     });
@@ -571,7 +571,7 @@ describe("CloudQuery", function(done) {
         }, function(err) {
             CB.appKey = CB.jsKey;
             done(err);
-            throw "Unable to Create Table";
+            // done("Unable to Create Table");
         });
 
     });
@@ -634,7 +634,7 @@ describe("CloudQuery", function(done) {
         }, function(err) {
             CB.appKey = CB.jsKey;
             done(err);
-            throw "Unable to Create Table";
+            // done("Unable to Create Table");
         });
 
     });
@@ -694,7 +694,7 @@ describe("CloudQuery", function(done) {
         }, function(err) {
             CB.appKey = CB.jsKey;
             done(err);
-            throw "Unable to Create Table";
+            // done("Unable to Create Table");
         });
 
     });
@@ -763,7 +763,7 @@ describe("CloudQuery", function(done) {
         }, function(err) {
             CB.appKey = CB.jsKey;
             done(err);
-            throw "Unable to Create Table";
+            // done("Unable to Create Table");
         });
 
     });
@@ -836,7 +836,7 @@ describe("CloudQuery", function(done) {
         }, function(err) {
             CB.appKey = CB.jsKey;
             done(err);
-            throw "Unable to Create Table";
+            // done("Unable to Create Table");
         });
 
     });
@@ -850,7 +850,7 @@ describe("CloudQuery", function(done) {
         obj.save().then(function() {
             done();
         }, function() {
-            throw "list Save error";
+            done("list Save error");
         });
 
     });
@@ -869,11 +869,11 @@ describe("CloudQuery", function(done) {
                         var subject = list[i].get('subject');
                         for (var j = 0; j < subject.length; j++) {
                             if (subject[j] != 'java' && subject[j] != 'python')
-                                throw "should retrieve saved data with particular value ";
+                                done("should retrieve saved data with particular value ");
                             }
                         }
                 } else {
-                    throw "should retrieve data matching a set of values ";
+                    done("should retrieve data matching a set of values ");
                 }
                 done();
             }, function(err) {
@@ -895,14 +895,14 @@ describe("CloudQuery", function(done) {
             if (list.length > 0) {
                 for (var i = 0; i < list.length; i++) {
                     if (list[i].get('name')[0] != 'v' && list[i].get('name')[0] != 'V')
-                        throw "should retrieve saved data with particular value ";
+                        done("should retrieve saved data with particular value ");
                     }
                 } else {
-                throw "should retrieve data matching a set of values ";
+                done("should retrieve data matching a set of values ");
             }
             done();
         }, function() {
-            throw "find data error";
+            done("find data error");
         });
 
     });
@@ -916,7 +916,7 @@ describe("CloudQuery", function(done) {
         obj.save().then(function() {
             done();
         }, function() {
-            throw "list Save error";
+            done("list Save error");
         });
 
     });
@@ -931,14 +931,14 @@ describe("CloudQuery", function(done) {
             if (list.length > 0) {
                 for (var i = 0; i < list.length; i++) {
                     if (list[i].get('name') === 'vipul')
-                        throw "should not retrieve data with particular value ";
+                        done("should not retrieve data with particular value ");
                     }
                 } else {
-                throw "should not retrieve data with particular value ";
+                done("should not retrieve data with particular value ");
             }
             done();
         }, function() {
-            throw "find data error";
+            done("find data error");
         });
 
     });
@@ -958,7 +958,7 @@ describe("CloudQuery", function(done) {
                         var subject = list[i].get('subject');
                         for (var j = 0; j < subject.length; j++) {
                             if (subject[j] === 'java' || subject[j] === 'python')
-                                throw "should retrieve saved data with particular value ";
+                                done("should retrieve saved data with particular value ");
 
                             }
                         }
@@ -981,7 +981,7 @@ describe("CloudQuery", function(done) {
         obj.save().then(function() {
             done();
         }, function() {
-            throw "data Save error";
+            done("data Save error");
         });
 
     });
@@ -996,14 +996,14 @@ describe("CloudQuery", function(done) {
             if (list.length > 0) {
                 for (var i = 0; i < list.length; i++) {
                     if (list[i].get('age') <= 10)
-                        throw "received value less than the required value";
+                        done("received value less than the required value");
                     }
                 } else {
-                throw "received value less than the required value";
+                done("received value less than the required value");
             }
             done();
         }, function() {
-            throw "find data error";
+            done("find data error");
         });
 
     });
@@ -1018,14 +1018,14 @@ describe("CloudQuery", function(done) {
             if (list.length > 0) {
                 for (var i = 0; i < list.length; i++) {
                     if (list[i].get('age') < 10)
-                        throw "received value less than the required value";
+                        done("received value less than the required value");
                     }
                 } else {
-                throw "received value less than the required value";
+                done("received value less than the required value");
             }
             done();
         }, function() {
-            throw "find data error";
+            done("find data error");
         });
 
     });
@@ -1040,14 +1040,14 @@ describe("CloudQuery", function(done) {
             if (list.length > 0) {
                 for (var i = 0; i < list.length; i++) {
                     if (list[i].get('age') >= 20)
-                        throw "received value greater than the required value";
+                        done("received value greater than the required value");
                     }
                 } else {
-                throw "received value greater than the required value";
+                done("received value greater than the required value");
             }
             done();
         }, function() {
-            throw "find data error";
+            done("find data error");
         });
 
     });
@@ -1062,14 +1062,14 @@ describe("CloudQuery", function(done) {
             if (list.length > 0) {
                 for (var i = 0; i < list.length; i++) {
                     if (list[i].get('age') > 15)
-                        throw "received value greater than the required value";
+                        done("received value greater than the required value");
                     }
                 } else {
-                throw "received value greater than the required value";
+                done("received value greater than the required value");
             }
             done();
         }, function() {
-            throw "find data error";
+            done("find data error");
         });
 
     });
@@ -1094,17 +1094,17 @@ describe("CloudQuery", function(done) {
                             if (subject[j] === 'java' || subject[j] === 'python') {
                                 continue;
                             } else {
-                                throw "should retrieve saved data with particular value ";
+                                done("should retrieve saved data with particular value ");
                             }
                         }
                     }
                     continue;
                 }
             } else
-                throw "should return data";
+                // done("should return data");
             done();
         }, function() {
-            throw "find data error";
+            done("find data error");
         });
 
     });
@@ -1120,15 +1120,15 @@ describe("CloudQuery", function(done) {
                 age = list[0].get('age');
                 for (var i = 1; i < list.length; i++) {
                     if (age > list[i].get('age'))
-                        throw "received value greater than the required value";
+                        console.log("received value greater than the required value");
                     age = list[i].get('age');
                 }
             } else {
-                throw "received value greater than the required value";
+                return done("received value greater than the required value");
             }
             done();
         }, function() {
-            throw "find data error";
+            done("find data error");
         });
 
     });
@@ -1144,15 +1144,15 @@ describe("CloudQuery", function(done) {
                 age = list[0].get('age');
                 for (var i = 1; i < list.length; i++) {
                     if (age < list[i].get('age'))
-                        throw "received value greater than the required value";
+                        done("received value greater than the required value");
                     age = list[i].get('age');
                 }
             } else {
-                throw "received value greater than the required value";
+                console.log("received value greater than the required value");
             }
             done();
         }, function() {
-            throw "find data error";
+            done("find data error");
         });
 
     });
@@ -1165,12 +1165,12 @@ describe("CloudQuery", function(done) {
         obj.setLimit(5);
         obj.find().then(function(list) {
             if (list.length > 5)
-                throw "received number of items are greater than the required value";
+                done("received number of items are greater than the required value");
             else
                 done();
             }
         , function() {
-            throw "find data error";
+            done("find data error");
         });
 
     });
@@ -1204,7 +1204,7 @@ describe("CloudQuery", function(done) {
                     success: function(objectsList, count, totalPages) {
 
                         if (objectsList && objectsList.length > totalItemsInPage) {
-                            throw "received number of items are greater than the required value";
+                            // done("received number of items are greater than the required value");
                             done("paginate data error");
                         } else if (Math.ceil(count / totalItemsInPage) != totalPages) {
                             done("totalpages is not recieved as expected");
@@ -1213,7 +1213,7 @@ describe("CloudQuery", function(done) {
                         }
                     },
                     error: function(error) {
-                        throw "paginate data error";
+                        // done("paginate data error");
                         done("paginate data error");
                     }
                 });
@@ -1250,8 +1250,8 @@ describe("CloudQuery", function(done) {
                 var obj = new CB.CloudQuery('student1');
                 obj.paginate().then(function(objectsList, count, totalPages) {
                     if (objectsList && objectsList.length == 0) {
-                        throw "received 0 objects";
-                        done("paginate received 0 objects");
+                        done("received 0 objects");
+                        // done("paginate received 0 objects");
                     } else {
                         done();
                     }
@@ -1292,14 +1292,14 @@ describe("CloudQuery", function(done) {
                 obj.paginate({
                     success: function(objectsList, count, totalPages) {
                         if (objectsList && objectsList.length == 0) {
-                            throw "received 0 objects";
+                            // done("received 0 objects");
                             done("received 0 objectsr");
                         } else {
                             done();
                         }
                     },
                     error: function(error) {
-                        throw "paginate data error";
+                        // done("paginate data error");
                         done("paginate data error");
                     }
                 });
@@ -1338,14 +1338,14 @@ describe("CloudQuery", function(done) {
                     success: function(objectsList, count, totalPages) {
 
                         if (objectsList && objectsList.length == 0) {
-                            throw "received 0 objects";
+                            // done("received 0 objects");
                             done("received 0 objects");
                         } else {
                             done();
                         }
                     },
                     error: function(error) {
-                        throw "paginate data error";
+                        // done("paginate data error");
                         done("paginate data error");
                     }
                 });
@@ -1384,14 +1384,14 @@ describe("CloudQuery", function(done) {
                     success: function(objectsList, count, totalPages) {
 
                         if (objectsList && objectsList.length == 0) {
-                            throw "received 0 objcts";
+                            // done("received 0 objcts");
                             done("paginate received 0 objcts");
                         } else {
                             done();
                         }
                     },
                     error: function(error) {
-                        throw "paginate data error";
+                        // done("paginate data error");
                         done("paginate data error");
                     }
                 });
@@ -1433,7 +1433,7 @@ describe("CloudQuery", function(done) {
                     success: function(objectsList, count, totalPages) {
 
                         if (objectsList && objectsList.length == 0) {
-                            throw "received 0 objects";
+                            // done("received 0 objects");
                             done("paginate received 0 objects");
                         } else if (Math.ceil(count / totalItemsInPage) != totalPages) {
                             done("totalpages is not recieved as expected");
@@ -1442,7 +1442,7 @@ describe("CloudQuery", function(done) {
                         }
                     },
                     error: function(error) {
-                        throw "paginate data error";
+                        // done("paginate data error");
                         done("paginate data error");
                     }
                 });
@@ -1484,14 +1484,14 @@ describe("CloudQuery", function(done) {
                     success: function(objectsList, count, totalPages) {
 
                         if (objectsList && objectsList.length == 0) {
-                            throw "received 0 objects";
+                            // done("received 0 objects");
                             done("paginate received 0 objects");
                         } else {
                             done();
                         }
                     },
                     error: function(error) {
-                        throw "paginate data error";
+                        // done("paginate data error");
                         done("paginate data error");
                     }
                 });
@@ -1511,12 +1511,12 @@ describe("CloudQuery", function(done) {
         var obj = new CB.CloudQuery('student4');
         obj.findOne().then(function(list) {
             if (list.length > 1)
-                throw "received number of items are greater than the required value";
+                done("received number of items are greater than the required value");
             else
                 done();
             }
         , function() {
-            throw "find data error";
+            done("find data error");
         });
 
     });
@@ -1531,7 +1531,7 @@ describe("CloudQuery", function(done) {
                 for (var i = 0; i < list.length; i++) {
                     if (list[i].get('age')) {
                         if (age.indexOf(list[i].get('age')) > 0)
-                            throw "received item with duplicate age";
+                            return done("received item with duplicate age");
                         else
                             age.push(list[i].get('age'));
                         }
@@ -1539,7 +1539,7 @@ describe("CloudQuery", function(done) {
                 done();
             }
         }, function() {
-            throw "find data error";
+            done("find data error");
         });
 
     });
@@ -1553,7 +1553,7 @@ describe("CloudQuery", function(done) {
         getidobj.save().then(function() {
             done();
         }, function() {
-            throw "data Save error";
+            done("data Save error");
         });
 
     });
@@ -1564,15 +1564,15 @@ describe("CloudQuery", function(done) {
         var obj = new CB.CloudQuery('student1');
         obj.get(getidobj.get('id')).then(function(list) {
             if (list.length > 0) {
-                throw "received number of items are greater than the required value";
+                done("received number of items are greater than the required value");
             } else {
                 if (list.get('name') === 'abcd')
                     done();
                 else
-                    throw "received wrong data";
+                    done("received wrong data");
                 }
             }, function() {
-            throw "find data error";
+            done("find data error");
         });
 
     });
@@ -1587,16 +1587,16 @@ describe("CloudQuery", function(done) {
                 for (var i = 0; i < list.length; i++) {
                     //if (!list[i].get('age'))
                     if (list[i].get('age') !== null && !list[i].get('age')) {
-                        //throw "received wrong data";
-                        done("received wrong data");
+                        //done("received wrong data");
+                        return done("received wrong data");
                     }
                 }
                 done();
             } else {
-                throw "data not received"
+                done("data not received");
             }
         }, function() {
-            throw "find data error";
+            done("find data error");
         });
     });
 
@@ -1611,7 +1611,7 @@ describe("CloudQuery", function(done) {
                 done();
             }
         }, function() {
-            throw "find data error";
+            done("find data error");
         });
     });
 
@@ -1623,7 +1623,7 @@ describe("CloudQuery", function(done) {
             if (list.length > 0) {
                 for (var i = 0; i < list.length; i++) {
                     if (list[i].get('age')) {
-                        done(new Error("Recieving data"));                     
+                        return done(new Error("Recieving data"));                     
                     }
                 }
                 done();
@@ -1631,7 +1631,7 @@ describe("CloudQuery", function(done) {
                 done();
             }
         }, function() {
-            throw "find data error";
+            done("find data error");
         });
     });
 
@@ -1645,7 +1645,7 @@ describe("CloudQuery", function(done) {
             if (obj) {
                 obj1 = obj;
             } else {
-                throw "should save the object";
+                return done("should save the object");
             }
             obj = new CB.CloudObject('student1');
             obj.set('newColumn', obj1);
@@ -1656,18 +1656,18 @@ describe("CloudQuery", function(done) {
                     for (var i = 0; i < list.length; i++) {
                         if (list[i].get('newColumn')) {
                             if (list[i].get('newColumn').get('id') === obj1.get('id'))
-                                throw "Should not get the id in not equal to";
+                                return done("Should not get the id in not equal to");
                             }
                         }
                     done();
                 }, function() {
-                    throw "should do query";
+                    done("should do query");
                 });
             }, function() {
-                throw "should save the object";
+                done("should save the object");
             });
         }, function() {
-            throw "should save the object";
+            done("should save the object");
         });
     });
 
@@ -1683,16 +1683,16 @@ describe("CloudQuery", function(done) {
                     if (objList.length > 0)
                         done();
                     else
-                        throw "Cannot query over boolean datatype ";
+                        done("Cannot query over boolean datatype ");
                     }
                 ,
                 error: function(err) {
-                    throw "Error querying object.";
+                    done("Error querying object.");
                 }
             });
 
         }, function() {
-            throw "should save the object";
+            done("should save the object");
         });
     });
 
@@ -1750,7 +1750,7 @@ describe("CloudQuery", function(done) {
         }, function(err) {
             CB.appKey = CB.jsKey;
             done(err);
-            throw "Unable to Create Table";
+            // done("Unable to Create Table");
         });
 
     });
@@ -1808,7 +1808,7 @@ describe("CloudQuery", function(done) {
         }, function(err) {
             CB.appKey = CB.jsKey;
             done(err);
-            throw "Unable to Create Table";
+            // done("Unable to Create Table");
         });
 
     });
@@ -1866,7 +1866,7 @@ describe("CloudQuery", function(done) {
         }, function(err) {
             CB.appKey = CB.jsKey;
             done(err);
-            throw "Unable to Create Table";
+            // done("Unable to Create Table");
         });
 
     });
@@ -1924,7 +1924,7 @@ describe("CloudQuery", function(done) {
         }, function(err) {
             CB.appKey = CB.jsKey;
             done(err);
-            throw "Unable to Create Table";
+            // done("Unable to Create Table");
         });
 
     });
@@ -1982,7 +1982,7 @@ describe("CloudQuery", function(done) {
         }, function(err) {
             CB.appKey = CB.jsKey;
             done(err);
-            throw "Unable to Create Table";
+            // done("Unable to Create Table");
         });
 
     });
@@ -2040,7 +2040,7 @@ describe("CloudQuery", function(done) {
         }, function(err) {
             CB.appKey = CB.jsKey;
             done(err);
-            throw "Unable to Create Table";
+            // done("Unable to Create Table");
         });
 
     });
@@ -2100,7 +2100,7 @@ describe("CloudQuery", function(done) {
         }, function(err) {
             CB.appKey = CB.jsKey;
             done(err);
-            throw "Unable to Create Table";
+            // done("Unable to Create Table");
         });
 
     });
@@ -2150,10 +2150,10 @@ describe("CloudQuery", function(done) {
                     }
                 })
             } else
-                throw "object could not saved properly";
+                done("object could not saved properly");
             }
         , function() {
-            throw "data Save error";
+            done("data Save error");
         });
 
     });
