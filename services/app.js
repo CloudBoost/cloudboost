@@ -141,7 +141,6 @@ module.exports = {
   async createApp(appId) {
     const deferred = q.defer();
     try {
-      const promises = [];
       const collection = config.mongoClient.db(config.globalDb).collection('projects');
       const projects = await collection.find({
         appId,
@@ -156,12 +155,13 @@ module.exports = {
         document.keys.master = _generateKey();
         document.keys.encryption_key = await getKeyAndIV();
 
-        const project = await collection.save(document);
+        const project = await collection.insertOne(document);
         if (project) {
-          // create a mongodb app.
-          promises.push(mongoUtil.app.create(appId));
-          await q.all(promises);
+          // create a mongodb app
+          await mongoUtil.app.create(appId);
           deferred.resolve(document);
+        } else {
+          deferred.reject('');
         }
       }
     } catch (e) {
@@ -178,19 +178,12 @@ module.exports = {
 
   async deleteApp(appId, _deleteReason) {
     const deferred = q.defer();
-    const deleteReason = _deleteReason || 'userInitiatedDeleteFromDashboard';
+    const deleteReason = _deleteReason || 'userInitiatedDeleteFromDashboard'; // eslint-disable-line
 
     try {
       const collection = config.mongoClient.db(config.globalDb).collection('projects');
-      await collection.findOneAndUpdate({
+      await collection.deleteOne({
         appId,
-      }, {
-        $set: {
-          deleted: true,
-          deleteReason,
-        },
-      }, {
-        new: true,
       });
       config.redisClient.del(`${config.cacheAppPrefix}:${appId}`); // delete the app from redis.
       // delete  the app databases.

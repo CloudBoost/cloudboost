@@ -10,8 +10,8 @@ module.exports = () => {
   winston.remove(winston.transports.Console);
   winston.add(winston.transports.Console, {
     level: 'debug',
-    stderrLevels: ['error', 'debug', 'info'],
     colorize: true,
+    stderrLevels: ['error', 'debug', 'info'],
   });
 
   if (config.logglySubDomain) {
