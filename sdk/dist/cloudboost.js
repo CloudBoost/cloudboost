@@ -1086,6 +1086,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        } else {
 	            async.settlePromises(this);
 	        }
+	        this._dereferenceTrace();
 	    }
 	};
 
@@ -1180,7 +1181,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	__webpack_require__(25)(
 	    Promise, PromiseArray, tryConvertToPromise, INTERNAL, async, getDomain);
 	Promise.Promise = Promise;
-	Promise.version = "3.5.1";
+	Promise.version = "3.5.3";
 	__webpack_require__(26)(Promise, PromiseArray, apiRejection, tryConvertToPromise, INTERNAL, debug);
 	__webpack_require__(27)(Promise);
 	__webpack_require__(28)(Promise, apiRejection, tryConvertToPromise, createContext, INTERNAL, debug);
@@ -1424,8 +1425,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    /*jshint -W027,-W055,-W031*/
 	    function FakeConstructor() {}
 	    FakeConstructor.prototype = obj;
-	    var l = 8;
-	    while (l--) new FakeConstructor();
+	    var receiver = new FakeConstructor();
+	    function ic() {
+	        return typeof receiver.foo;
+	    }
+	    ic();
+	    ic();
 	    return obj;
 	    eval(obj);
 	}
@@ -1828,24 +1833,28 @@ return /******/ (function(modules) { // webpackBootstrap
 	    };
 	}
 
-	Async.prototype._drainQueue = function(queue) {
+	function _drainQueue(queue) {
 	    while (queue.length() > 0) {
-	        var fn = queue.shift();
-	        if (typeof fn !== "function") {
-	            fn._settlePromises();
-	            continue;
-	        }
+	        _drainQueueStep(queue);
+	    }
+	}
+
+	function _drainQueueStep(queue) {
+	    var fn = queue.shift();
+	    if (typeof fn !== "function") {
+	        fn._settlePromises();
+	    } else {
 	        var receiver = queue.shift();
 	        var arg = queue.shift();
 	        fn.call(receiver, arg);
 	    }
-	};
+	}
 
 	Async.prototype._drainQueues = function () {
-	    this._drainQueue(this._normalQueue);
+	    _drainQueue(this._normalQueue);
 	    this._reset();
 	    this._haveDrainedQueues = true;
-	    this._drainQueue(this._lateQueue);
+	    _drainQueue(this._lateQueue);
 	};
 
 	Async.prototype._queueTick = function () {
@@ -2773,6 +2782,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var async = Promise._async;
 	var Warning = __webpack_require__(12).Warning;
 	var util = __webpack_require__(5);
+	var es5 = __webpack_require__(6);
 	var canAttachTrace = util.canAttachTrace;
 	var unhandledRejectionHandled;
 	var possiblyUnhandledRejection;
@@ -2891,6 +2901,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (!config.longStackTraces && longStackTracesIsSupported()) {
 	        var Promise_captureStackTrace = Promise.prototype._captureStackTrace;
 	        var Promise_attachExtraTrace = Promise.prototype._attachExtraTrace;
+	        var Promise_dereferenceTrace = Promise.prototype._dereferenceTrace;
 	        config.longStackTraces = true;
 	        disableLongStackTraces = function() {
 	            if (async.haveItemsQueued() && !config.longStackTraces) {
@@ -2898,12 +2909,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	            }
 	            Promise.prototype._captureStackTrace = Promise_captureStackTrace;
 	            Promise.prototype._attachExtraTrace = Promise_attachExtraTrace;
+	            Promise.prototype._dereferenceTrace = Promise_dereferenceTrace;
 	            Context.deactivateLongStackTraces();
 	            async.enableTrampoline();
 	            config.longStackTraces = false;
 	        };
 	        Promise.prototype._captureStackTrace = longStackTracesCaptureStackTrace;
 	        Promise.prototype._attachExtraTrace = longStackTracesAttachExtraTrace;
+	        Promise.prototype._dereferenceTrace = longStackTracesDereferenceTrace;
 	        Context.activateLongStackTraces();
 	        async.disableTrampolineIfNecessary();
 	    }
@@ -2919,10 +2932,14 @@ return /******/ (function(modules) { // webpackBootstrap
 	            var event = new CustomEvent("CustomEvent");
 	            util.global.dispatchEvent(event);
 	            return function(name, event) {
-	                var domEvent = new CustomEvent(name.toLowerCase(), {
+	                var eventData = {
 	                    detail: event,
 	                    cancelable: true
-	                });
+	                };
+	                es5.defineProperty(
+	                    eventData, "promise", {value: event.promise});
+	                es5.defineProperty(eventData, "reason", {value: event.reason});
+	                var domEvent = new CustomEvent(name.toLowerCase(), eventData);
 	                return !util.global.dispatchEvent(domEvent);
 	            };
 	        } else if (typeof Event === "function") {
@@ -2933,6 +2950,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	                    cancelable: true
 	                });
 	                domEvent.detail = event;
+	                es5.defineProperty(domEvent, "promise", {value: event.promise});
+	                es5.defineProperty(domEvent, "reason", {value: event.reason});
 	                return !util.global.dispatchEvent(domEvent);
 	            };
 	        } else {
@@ -3081,6 +3100,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 	Promise.prototype._captureStackTrace = function () {};
 	Promise.prototype._attachExtraTrace = function () {};
+	Promise.prototype._dereferenceTrace = function () {};
 	Promise.prototype._clearCancellationData = function() {};
 	Promise.prototype._propagateFrom = function (parent, flags) {
 	    ;
@@ -3184,6 +3204,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	            util.notEnumerableProp(error, "__stackCleaned__", true);
 	        }
 	    }
+	}
+
+	function longStackTracesDereferenceTrace() {
+	    this._trace = undefined;
 	}
 
 	function checkForgottenReturns(returnValue, promiseCreated, name, promise,
@@ -7964,9 +7988,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * @return {boolean}
 	 */
 	function isNetworkError(error) {
-	  return !error.response && Boolean(error.code) // Prevents retrying cancelled requests
-	  && error.code !== 'ECONNABORTED' // Prevents retrying timed out requests
-	  && (0, _isRetryAllowed2.default)(error); // Prevents retrying unsafe errors
+	  return !error.response && Boolean(error.code) && // Prevents retrying cancelled requests
+	  error.code !== 'ECONNABORTED' && // Prevents retrying timed out requests
+	  (0, _isRetryAllowed2.default)(error); // Prevents retrying unsafe errors
 	}
 
 	var SAFE_HTTP_METHODS = ['get', 'head', 'options'];
@@ -8153,7 +8177,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	    var shouldRetry = retryCondition(error) && currentState.retryCount < retries;
 
 	    if (shouldRetry) {
-	      currentState.retryCount++;
+	      currentState.retryCount += 1;
 	      var delay = retryDelay(currentState.retryCount, error);
 
 	      // Axios fails merging this configuration to the default configuration because it has an issue
@@ -8165,6 +8189,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	        // Minimum 1ms timeout (passing 0 or less to XHR means no timeout)
 	        config.timeout = Math.max(config.timeout - lastRequestDuration - delay, 1);
 	      }
+
+	      config.transformRequest = [function (data) {
+	        return data;
+	      }];
 
 	      return new Promise(function (resolve) {
 	        return setTimeout(function () {
@@ -9799,7 +9827,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	/*!
 	    localForage -- Offline Storage, Improved
-	    Version 1.7.1
+	    Version 1.7.3
 	    https://localforage.github.io/localForage
 	    (c) 2013-2017 Mozilla, Apache License 2.0
 	*/
@@ -11508,7 +11536,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	function tryExecuteSql(t, dbInfo, sqlStatement, args, callback, errorCallback) {
 	    t.executeSql(sqlStatement, args, callback, function (t, error) {
 	        if (error.code === error.SYNTAX_ERR) {
-	            t.executeSql('SELECT name FROM sqlite_master ' + "WHERE type='table' AND name = ?", [name], function (t, results) {
+	            t.executeSql('SELECT name FROM sqlite_master ' + "WHERE type='table' AND name = ?", [dbInfo.storeName], function (t, results) {
 	                if (!results.rows.length) {
 	                    // if the table is missing (was deleted)
 	                    // re-create it table and retry
