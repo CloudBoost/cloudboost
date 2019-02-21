@@ -133,7 +133,7 @@ module.exports = {
     const deferred = q.defer();
 
     try {
-      const isValidUrl = util.isValidUrl(url);
+      const isValidUrl = util.isUrlValid(url);
       if (isValidUrl) {
         const collection = config.mongoClient.db(config.globalDb).collection(config.globalSettings);
         const docs = await collection.find({}).toArray();
