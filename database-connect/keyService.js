@@ -9,6 +9,7 @@ const uuid = require('node-uuid');
 
 const winston = require('winston');
 const config = require('../config/config');
+const util = require('../helpers/util');
 
 async function _saveSettings(params) {
   const deferred = q.defer();
@@ -132,21 +133,26 @@ module.exports = {
     const deferred = q.defer();
 
     try {
-      const collection = config.mongoClient.db(config.globalDb).collection(config.globalSettings);
-      const docs = await collection.find({}).toArray();
-      if (docs.length >= 1) {
-        docs[0].myURL = url;
+      const isValidUrl = util.isValidUrl(url);
+      if (isValidUrl) {
+        const collection = config.mongoClient.db(config.globalDb).collection(config.globalSettings);
+        const docs = await collection.find({}).toArray();
+        if (docs.length >= 1) {
+          docs[0].myURL = url;
 
-        collection.save(docs[0], (err) => {
-          if (err) {
-            deferred.reject('Error, cannot change the cluster URL.');
-          } else {
-            config.myURL = url;
-            deferred.resolve(url);
-          }
-        });
+          collection.save(docs[0], (err) => {
+            if (err) {
+              deferred.reject('Error, cannot change the cluster URL.');
+            } else {
+              config.myURL = url;
+              deferred.resolve(url);
+            }
+          });
+        } else {
+          deferred.reject('Global record not found. Restart the cluster.');
+        }
       } else {
-        deferred.reject('Global record not found. Restart the cluster.');
+        deferred.reject('Invalid URL provided');
       }
     } catch (e) {
       winston.log('error', {

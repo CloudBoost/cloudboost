@@ -10,7 +10,7 @@ const winston = require('winston');
 const util = require('../helpers/util.js');
 const mongoService = require('../databases/mongo');
 const customService = require('./cloudObjects');
-const keyService = require('../database-connect/keyService');
+const config = require('../config/config');
 
 module.exports = {
   /* Desc   : Save FileStream & CloudBoostFileObject
@@ -24,34 +24,29 @@ module.exports = {
     const fileObj = Object.assign({}, _fileObj);
     try {
       const promises = [];
-
-      keyService.getMyUrl().then((url) => {
-        if (!fileObj._id) {
-          fileObj._id = util.getId();
-          fileObj._version = 0;
-          fileObj.url = `${url}/file/${appId}/${fileObj._id}${fileObj.name.slice(fileObj.name.indexOf('.'), fileObj.name.length)}`;
-        } else {
-          fileObj._version += 1;
-        }
-        const collectionName = '_File';
-        try {
-          promises.push(mongoService.document.saveFileStream(appId, fileStream, fileObj._id, contentType));
-          promises.push(customService.save(appId, collectionName, fileObj, accessList, isMasterKey));
-        } catch (error) {
-          winston.error({
-            error: String(error),
-            stack: new Error().stack,
-          });
-        }
-        // promises.push(mongoService.document.saveFileStream(appId, fileStream, fileObj._id, contentType));
-        // promises.push(customService.save(appId, collectionName, fileObj, accessList, isMasterKey));
-        q.all(promises).then((array) => {
-          deferred.resolve(array[1]);
-        }, (err) => {
-          deferred.reject(err);
+      if (!fileObj._id) {
+        fileObj._id = util.getId();
+        fileObj._version = 0;
+        fileObj.url = `${config.fileUrl}/${appId}/${fileObj._id}${fileObj.name.slice(fileObj.name.indexOf('.'), fileObj.name.length)}`;
+      } else {
+        fileObj._version += 1;
+      }
+      const collectionName = '_File';
+      try {
+        promises.push(mongoService.document.saveFileStream(appId, fileStream, fileObj._id, contentType));
+        promises.push(customService.save(appId, collectionName, fileObj, accessList, isMasterKey));
+      } catch (error) {
+        winston.error({
+          error: String(error),
+          stack: new Error().stack,
         });
-      }, (error) => {
-        deferred.reject(error);
+      }
+      // promises.push(mongoService.document.saveFileStream(appId, fileStream, fileObj._id, contentType));
+      // promises.push(customService.save(appId, collectionName, fileObj, accessList, isMasterKey));
+      q.all(promises).then((array) => {
+        deferred.resolve(array[1]);
+      }, (err) => {
+        deferred.reject(err);
       });
     } catch (err) {
       winston.log('error', {

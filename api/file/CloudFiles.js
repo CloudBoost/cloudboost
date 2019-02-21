@@ -75,7 +75,7 @@ const getFileStream = (req) => {
 const deleteFile = async (req, res) => {
   const { appId } = req.params;
   const { fileObj, key: appKey, sdk = 'REST' } = req.body;
-  config.fileUrl = `${config.myURL}/file/`;
+  config.fileUrl = `${config.hostUrl}/file/`;
   try {
     const isMasterKey = await appService.isMasterKey(appId, appKey);
     await fileService.delete(appId, fileObj, customHelper.getAccessList(req), isMasterKey);
@@ -187,7 +187,7 @@ module.exports = (app) => {
         apiTracker.log(appId, 'File / Upload', req.url, sdk);
         const isMasterKey = await appService.isMasterKey(appId, appKey);
         const result = await getFileStream(req);
-        config.fileUrl = `${config.myURL}/file/`;
+        config.fileUrl = `${config.hostUrl}/file`;
         const file = await fileService.upload(
           appId, result.fileStream, result.contentType,
           result.fileObj, customHelper.getAccessList(req), isMasterKey,
