@@ -51,6 +51,8 @@ install:
       -e  DOMAIN=$DOMAIN
       -e  FROM_EMAIL=$FROM_EMAIL
       -e  FROM_NAME=$FROM_NAME
+      -e  REDIS_HOST=$REDIS_HOST
+      -e  MONGO_HOST=$MONGO_HOST
       -p 4730:4730 -it --link redis:redis --link mongo:mongo -d cloudboost/cloudboost:2.0.$TRAVIS_BUILD_NUMBER
   - sleep 5s
   - docker logs cloudboost
@@ -62,8 +64,8 @@ after_success:
   - if [ "$TRAVIS_BRANCH" == "release" ]; then
       if [ ! -d "$HOME/google-cloud-sdk/bin" ]; then
         rm -rf $HOME/google-cloud-sdk;
-        export CLOUDSDK_CORE_DISABLE_PROMPTS=1; 
-        curl https://sdk.cloud.google.com | bash; 
+        export CLOUDSDK_CORE_DISABLE_PROMPTS=1;
+        curl https://sdk.cloud.google.com | bash;
         source /home/travis/google-cloud-sdk/path.bash.inc;
       fi
 
@@ -88,8 +90,8 @@ after_success:
   - if [ "$TRAVIS_BRANCH" == "master" ]; then
       if [ ! -d "$HOME/google-cloud-sdk/bin" ]; then
         rm -rf $HOME/google-cloud-sdk;
-        export CLOUDSDK_CORE_DISABLE_PROMPTS=1; 
-        curl https://sdk.cloud.google.com | bash; 
+        export CLOUDSDK_CORE_DISABLE_PROMPTS=1;
+        curl https://sdk.cloud.google.com | bash;
         source /home/travis/google-cloud-sdk/path.bash.inc;
       fi
 
@@ -98,7 +100,7 @@ after_success:
       gcloud --quiet components update kubectl;
 
       docker push cloudboost/cloudboost:master-2.0.$TRAVIS_BUILD_NUMBER;
-      
+
       echo $GCLOUD_SERVICE_KEY_STG | base64 --decode -i > ${HOME}/gcloud-service-key.json;
       gcloud auth activate-service-account --key-file ${HOME}/gcloud-service-key.json;
 
