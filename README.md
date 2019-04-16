@@ -247,6 +247,7 @@ If you're using CloudBoost Open Source and like what we've built, help us speed 
 <a href="https://opencollective.com/cloudboost/backer/8/website" target="_blank"><img src="https://opencollective.com/cloudboost/backer/8/avatar.svg"></a>
 <a href="https://opencollective.com/cloudboost/backer/9/website" target="_blank"><img src="https://opencollective.com/cloudboost/backer/9/avatar.svg"></a>
 <a href="https://opencollective.com/cloudboost/backer/10/website" target="_blank"><img src="https://opencollective.com/cloudboost/backer/10/avatar.svg"></a>
+<a href="https://app.fossa.io/projects/git%2Bgithub.com%2FCloudBoost%2Fcloudboost?ref=badge_shield" alt="FOSSA Status"><img src="https://app.fossa.io/api/projects/git%2Bgithub.com%2FCloudBoost%2Fcloudboost.svg?type=shield"/></a>
 
 
 # LICENSE
@@ -264,3 +265,6 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+
+
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2FCloudBoost%2Fcloudboost.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2FCloudBoost%2Fcloudboost?ref=badge_large)
