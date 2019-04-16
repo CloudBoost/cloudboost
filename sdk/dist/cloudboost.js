@@ -1181,7 +1181,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	__webpack_require__(25)(
 	    Promise, PromiseArray, tryConvertToPromise, INTERNAL, async, getDomain);
 	Promise.Promise = Promise;
-	Promise.version = "3.5.3";
+	Promise.version = "3.5.4";
 	__webpack_require__(26)(Promise, PromiseArray, apiRejection, tryConvertToPromise, INTERNAL, debug);
 	__webpack_require__(27)(Promise);
 	__webpack_require__(28)(Promise, apiRejection, tryConvertToPromise, createContext, INTERNAL, debug);
@@ -1604,7 +1604,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	    domainBind: domainBind
 	};
 	ret.isRecentNode = ret.isNode && (function() {
-	    var version = process.versions.node.split(".").map(Number);
+	    var version;
+	    if (process.versions && process.versions.node) {    
+	        version = process.versions.node.split(".").map(Number);
+	    } else if (process.version) {
+	        version = process.version.split(".").map(Number);
+	    }
 	    return (version[0] === 0 && version[1] > 10) || (version[0] > 0);
 	})();
 
