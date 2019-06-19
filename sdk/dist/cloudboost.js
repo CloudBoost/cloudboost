@@ -6678,7 +6678,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	_CB2.default._getObjectByType = function (type, id, longitude, latitude, name) {
-	    // try {
 	    var obj = null;
 
 	    if (type === 'custom') {
@@ -6712,9 +6711,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 
 	    return obj;
-	    // } catch (error) {
-	    //     throw error;
-	    // }
 	};
 
 	_CB2.default._validate = function () {
