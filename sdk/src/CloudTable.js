@@ -254,12 +254,21 @@ CB.CloudTable.getAll = function(callback){
 
   var url = CB.apiUrl+'/app/'+CB.appId +"/_getAll";
   CB._request('POST',url,params,true).then(function(response){
-    response = JSON.parse(response);
-    var obj = CB.fromJSON(response);
-    if (callback) {
-        callback.success(obj);
-    } else {
-        def.resolve(obj);
+    try {
+        response = JSON.parse(response);
+        var tableDocumentArray = CB.fromJSON(response);
+        var obj = tableDocumentArray.filter(table => !!table);
+        if (callback) {
+            callback.success(obj);
+        } else {
+            def.resolve(obj);
+        }
+    } catch (err) {
+        if(callback){
+            callback.error(err);
+        }else {
+            def.reject(err);
+        }
     }
   },function(err){
       if(callback){

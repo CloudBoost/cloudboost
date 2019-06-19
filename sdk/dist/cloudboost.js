@@ -6517,65 +6517,69 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	/* PRIVATE METHODS */
 	_CB2.default.toJSON = function (thisObj) {
-
-	    if (thisObj.constructor === Array) {
-	        for (var i = 0; i < thisObj.length; i++) {
-	            thisObj[i] = _CB2.default.toJSON(thisObj[i]);
+	    try {
+	        if (thisObj.constructor === Array) {
+	            for (var i = 0; i < thisObj.length; i++) {
+	                thisObj[i] = _CB2.default.toJSON(thisObj[i]);
+	            }
+	            return thisObj;
 	        }
-	        return thisObj;
-	    }
 
-	    var id = null;
-	    var columnName = null;
-	    var tableName = null;
-	    var latitude = null;
-	    var longitude = null;
+	        var id = null;
+	        var columnName = null;
+	        var tableName = null;
+	        var latitude = null;
+	        var longitude = null;
 
-	    if (thisObj instanceof _CB2.default.CloudGeoPoint) {
-	        latitude = thisObj.document.latitude;
-	        longitude = thisObj.document.longitude;
-	    }
+	        if (thisObj instanceof _CB2.default.CloudGeoPoint) {
+	            latitude = thisObj.document.latitude;
+	            longitude = thisObj.document.longitude;
+	        }
 
-	    if (thisObj instanceof _CB2.default.CloudFile) id = thisObj.document._id;
+	        if (thisObj instanceof _CB2.default.CloudFile) id = thisObj.document._id;
 
-	    if (thisObj instanceof _CB2.default.Column) columnName = thisObj.document.name;
+	        if (thisObj instanceof _CB2.default.Column) columnName = thisObj.document.name;
 
-	    if (thisObj instanceof _CB2.default.CloudTable) tableName = thisObj.document.name;
+	        if (thisObj instanceof _CB2.default.CloudTable) tableName = thisObj.document.name;
 
-	    var obj = _CB2.default._clone(thisObj, id, longitude, latitude, tableName || columnName);
+	        var obj = _CB2.default._clone(thisObj, id, longitude, latitude, tableName || columnName);
 
-	    if (!obj instanceof _CB2.default.CloudObject || !obj instanceof _CB2.default.CloudFile || !obj instanceof _CB2.default.CloudGeoPoint || !obj instanceof _CB2.default.CloudTable || !obj instanceof _CB2.default.Column) {
-	        throw "Data passed is not an instance of CloudObject or CloudFile or CloudGeoPoint";
-	    }
+	        if (!obj instanceof _CB2.default.CloudObject || !obj instanceof _CB2.default.CloudFile || !obj instanceof _CB2.default.CloudGeoPoint || !obj instanceof _CB2.default.CloudTable || !obj instanceof _CB2.default.Column) {
+	            throw "Data passed is not an instance of CloudObject or CloudFile or CloudGeoPoint";
+	        }
 
-	    if (obj instanceof _CB2.default.Column) return obj.document;
+	        if (obj instanceof _CB2.default.Column) return obj.document;
 
-	    if (obj instanceof _CB2.default.CloudGeoPoint) return obj.document;
+	        if (obj instanceof _CB2.default.CloudGeoPoint) return obj.document;
 
-	    var doc = obj.document;
+	        var doc = obj.document;
 
-	    for (var key in doc) {
-	        if (doc[key] instanceof _CB2.default.CloudObject || doc[key] instanceof _CB2.default.CloudFile || doc[key] instanceof _CB2.default.CloudGeoPoint || doc[key] instanceof _CB2.default.Column) {
-	            //if something is a relation.
-	            doc[key] = _CB2.default.toJSON(doc[key]); //serialize this object.
-	        } else if (key === 'ACL') {
-	            //if this is an ACL, then. Convert this from CB.ACL object to JSON - to strip all the ACL Methods.
-	            var acl = doc[key].document;
-	            doc[key] = acl;
-	        } else if (doc[key] instanceof Array) {
-	            //if this is an array.
-	            //then check if this is an array of CloudObjects, if yes, then serialize every CloudObject.
-	            if (doc[key][0] && (doc[key][0] instanceof _CB2.default.CloudObject || doc[key][0] instanceof _CB2.default.CloudFile || doc[key][0] instanceof _CB2.default.CloudGeoPoint || doc[key][0] instanceof _CB2.default.Column)) {
-	                var arr = [];
-	                for (var i = 0; i < doc[key].length; i++) {
-	                    arr.push(_CB2.default.toJSON(doc[key][i]));
+	        for (var key in doc) {
+	            if (doc[key] instanceof _CB2.default.CloudObject || doc[key] instanceof _CB2.default.CloudFile || doc[key] instanceof _CB2.default.CloudGeoPoint || doc[key] instanceof _CB2.default.Column) {
+	                //if something is a relation.
+	                doc[key] = _CB2.default.toJSON(doc[key]); //serialize this object.
+	            } else if (key === 'ACL') {
+	                //if this is an ACL, then. Convert this from CB.ACL object to JSON - to strip all the ACL Methods.
+	                var acl = doc[key].document;
+	                doc[key] = acl;
+	            } else if (doc[key] instanceof Array) {
+	                //if this is an array.
+	                //then check if this is an array of CloudObjects, if yes, then serialize every CloudObject.
+	                if (doc[key][0] && (doc[key][0] instanceof _CB2.default.CloudObject || doc[key][0] instanceof _CB2.default.CloudFile || doc[key][0] instanceof _CB2.default.CloudGeoPoint || doc[key][0] instanceof _CB2.default.Column)) {
+	                    var arr = [];
+	                    for (var i = 0; i < doc[key].length; i++) {
+	                        arr.push(_CB2.default.toJSON(doc[key][i]));
+	                    }
+	                    doc[key] = arr;
 	                }
-	                doc[key] = arr;
 	            }
 	        }
-	    }
 
-	    return doc;
+	        return doc;
+	    } catch (error) {
+	        console.error(error, thisObj);
+	        return null;
+	    }
 	};
 
 	_CB2.default.fromJSON = function (data, thisObj) {
@@ -6583,93 +6587,98 @@ return /******/ (function(modules) { // webpackBootstrap
 	    //prevObj : is a copy of object before update.
 	    //this is to deserialize JSON to a document which can be shoved into CloudObject. :)
 	    //if data is a list it will return a list of Cl oudObjects.
-	    if (!data || data === "") return null;
+	    // console.trace(data);
+	    try {
+	        if (!data || data === "") return null;
+	        if (data instanceof Array) {
 
-	    if (data instanceof Array) {
+	            if (data[0] && data[0] instanceof Object) {
 
-	        if (data[0] && data[0] instanceof Object) {
+	                var arr = [];
 
-	            var arr = [];
+	                for (var i = 0; i < data.length; i++) {
+	                    obj = _CB2.default.fromJSON(data[i]);
+	                    arr.push(obj);
+	                }
 
-	            for (var i = 0; i < data.length; i++) {
-	                obj = _CB2.default.fromJSON(data[i]);
-	                arr.push(obj);
+	                return arr;
+	            } else {
+	                //this is just a normal array, not an array of CloudObjects.
+	                return data;
 	            }
+	        } else if (data instanceof Object && data._type) {
 
-	            return arr;
-	        } else {
-	            //this is just a normal array, not an array of CloudObjects.
-	            return data;
-	        }
-	    } else if (data instanceof Object && data._type) {
+	            //if this is a CloudObject.
+	            var document = {};
+	            //different types of classes.
 
-	        //if this is a CloudObject.
-	        var document = {};
-	        //different types of classes.
-
-	        for (var key in data) {
-	            if (data[key] instanceof Array) {
-	                document[key] = _CB2.default.fromJSON(data[key]);
-	            } else if (data[key] instanceof Object) {
-	                if (key === 'ACL') {
-	                    //this is an ACL.
-	                    document[key] = new _CB2.default.ACL();
-	                    document[key].document = data[key];
-	                } else if (data[key]._type) {
-	                    if (thisObj) document[key] = _CB2.default.fromJSON(data[key], thisObj.get(key));else document[key] = _CB2.default.fromJSON(data[key]);
+	            for (var key in data) {
+	                if (data[key] instanceof Array) {
+	                    document[key] = _CB2.default.fromJSON(data[key]);
+	                } else if (data[key] instanceof Object) {
+	                    if (key === 'ACL') {
+	                        //this is an ACL.
+	                        document[key] = new _CB2.default.ACL();
+	                        document[key].document = data[key];
+	                    } else if (data[key]._type) {
+	                        if (thisObj) document[key] = _CB2.default.fromJSON(data[key], thisObj.get(key));else document[key] = _CB2.default.fromJSON(data[key]);
+	                    } else {
+	                        document[key] = data[key];
+	                    }
 	                } else {
 	                    document[key] = data[key];
 	                }
+	            }
+	            var id = thisObj;
+	            if (thisObj instanceof Object) id = thisObj._id || thisObj.id;
+	            if (!thisObj || data['_id'] === id) {
+	                var id = null;
+	                var latitude = null;
+	                var longitude = null;
+	                var name = null;
+	                if (document._type === "file") id = document._id;
+	                if (document._type === "point") {
+	                    latitude = document.latitude;
+	                    longitude = document.longitude;
+	                }
+	                if (document._type === "table") {
+	                    name = document.name;
+	                }
+	                if (document._type === "column") {
+	                    name = document.name;
+	                }
+	                if (document._type === "queue") {
+	                    name = document.name;
+	                }
+	                if (document._type === "cache") {
+	                    name = document.name;
+	                }
+	                var obj = _CB2.default._getObjectByType(document._type, id, longitude, latitude, name);
+	                obj.document = document;
+
+	                thisObj = obj;
 	            } else {
-	                document[key] = data[key];
+	                thisObj.document = document;
 	            }
-	        }
-	        var id = thisObj;
-	        if (thisObj instanceof Object) id = thisObj._id || thisObj.id;
-	        if (!thisObj || data['_id'] === id) {
-	            var id = null;
-	            var latitude = null;
-	            var longitude = null;
-	            var name = null;
-	            if (document._type === "file") id = document._id;
-	            if (document._type === "point") {
-	                latitude = document.latitude;
-	                longitude = document.longitude;
-	            }
-	            if (document._type === "table") {
-	                name = document.name;
-	            }
-	            if (document._type === "column") {
-	                name = document.name;
-	            }
-	            if (document._type === "queue") {
-	                name = document.name;
-	            }
-	            if (document._type === "cache") {
-	                name = document.name;
-	            }
-	            var obj = _CB2.default._getObjectByType(document._type, id, longitude, latitude, name);
-	            obj.document = document;
 
-	            thisObj = obj;
+	            if (thisObj instanceof _CB2.default.CloudObject || thisObj instanceof _CB2.default.CloudUser || thisObj instanceof _CB2.default.CloudRole || thisObj instanceof _CB2.default.CloudFile) {
+	                //activate ACL.
+	                if (thisObj.document["ACL"]) thisObj.document["ACL"].parent = thisObj;
+	            }
+
+	            return thisObj;
 	        } else {
-	            thisObj.document = document;
+	            //if this is plain json.
+	            return data;
 	        }
-
-	        if (thisObj instanceof _CB2.default.CloudObject || thisObj instanceof _CB2.default.CloudUser || thisObj instanceof _CB2.default.CloudRole || thisObj instanceof _CB2.default.CloudFile) {
-	            //activate ACL.
-	            if (thisObj.document["ACL"]) thisObj.document["ACL"].parent = thisObj;
-	        }
-
-	        return thisObj;
-	    } else {
-	        //if this is plain json.
-	        return data;
+	    } catch (error) {
+	        console.error(error, data.name);
+	        return null;
 	    }
 	};
 
 	_CB2.default._getObjectByType = function (type, id, longitude, latitude, name) {
-
+	    // try {
 	    var obj = null;
 
 	    if (type === 'custom') {
@@ -6703,6 +6712,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	    }
 
 	    return obj;
+	    // } catch (error) {
+	    //     throw error;
+	    // }
 	};
 
 	_CB2.default._validate = function () {
@@ -6822,7 +6834,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 	_CB2.default._tableValidation = function (tableName) {
-
 	    if (!tableName) //if table name is empty
 	        throw "table name cannot be empty";
 
@@ -20519,12 +20530,23 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	    var url = _CB2.default.apiUrl + '/app/' + _CB2.default.appId + "/_getAll";
 	    _CB2.default._request('POST', url, params, true).then(function (response) {
-	        response = JSON.parse(response);
-	        var obj = _CB2.default.fromJSON(response);
-	        if (callback) {
-	            callback.success(obj);
-	        } else {
-	            def.resolve(obj);
+	        try {
+	            response = JSON.parse(response);
+	            var tableDocumentArray = _CB2.default.fromJSON(response);
+	            var obj = tableDocumentArray.filter(function (table) {
+	                return !!table;
+	            });
+	            if (callback) {
+	                callback.success(obj);
+	            } else {
+	                def.resolve(obj);
+	            }
+	        } catch (err) {
+	            if (callback) {
+	                callback.error(err);
+	            } else {
+	                def.reject(err);
+	            }
 	        }
 	    }, function (err) {
 	        if (callback) {
