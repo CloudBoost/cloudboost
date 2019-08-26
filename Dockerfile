@@ -2,7 +2,7 @@
 # CloudBoost Dockerfile
 #
 # Pull base image nodejs image.
-FROM node:8.15
+FROM node:8.15-alpine
 
 #Maintainer.
 MAINTAINER Nawaz Dhandala <nawazdhandala@outlook.com>
@@ -14,7 +14,9 @@ WORKDIR /usr/src/app
 # Install app dependencies
 COPY package.json /usr/src/app/
 
-RUN npm install
+RUN apk add --no-cache make gcc g++ python && \
+  npm install --production && \
+  apk del make gcc g++ python
 
 # Bundle app source
 COPY . /usr/src/app
