@@ -8,33 +8,33 @@
 const winston = require('winston');
 
 module.exports = () => {
-    const obj = {
-        getAllDataTypesInclId() {
-            try {
-                const types = ['Object', 'ACL', 'DateTime', 'Boolean', 'EncryptedText', 'URL', 'Email', 'Text', 'File', 'Number',
-                    'GeoPoint', 'Relation', 'List'];
-                return types;
-            } catch (err) {
-                winston.log('error', { error: String(err), stack: new Error().stack });
-                return err;
-            }
-        },
+  const obj = {
+    getAllDataTypesInclId() {
+      try {
+        const types = ['Object', 'ACL', 'DateTime', 'Boolean', 'EncryptedText', 'URL', 'Email', 'Text', 'File', 'Number',
+          'GeoPoint', 'Relation', 'List'];
+        return types;
+      } catch (err) {
+        winston.log('error', { error: String(err), stack: new Error().stack });
+        return err;
+      }
+    },
 
-        isBasicDataType(dataType) {
-            try {
-                const types = ['Object', 'ACL', 'DateTime', 'Boolean', 'EncryptedText', 'URL', 'Email', 'Text', 'File', 'Number', 'GeoPoint'];
+    isBasicDataType(dataType) {
+      try {
+        const types = ['Object', 'ACL', 'DateTime', 'Boolean', 'EncryptedText', 'URL', 'Email', 'Text', 'File', 'Number', 'GeoPoint'];
 
-                if (types.indexOf(dataType) > -1) {
-                    return true;
-                }
+        if (types.indexOf(dataType) > -1) {
+          return true;
+        }
 
-                return false;
-            } catch (err) {
-                winston.log('error', { error: String(err), stack: new Error().stack });
-                return err;
-            }
-        },
-    };
+        return false;
+      } catch (err) {
+        winston.log('error', { error: String(err), stack: new Error().stack });
+        return err;
+      }
+    },
+  };
 
-    return obj;
+  return obj;
 };

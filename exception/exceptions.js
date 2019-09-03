@@ -6,8 +6,8 @@
 */
 
 module.exports = {
-    NotExistsDatabaseError() {},
-    NotExistsCollectionError() {},
-    NotExistsDocumentError() {},
-    DuplicateDatabaseError() {},
+  NotExistsDatabaseError() {},
+  NotExistsCollectionError() {},
+  NotExistsDocumentError() {},
+  DuplicateDatabaseError() {},
 };

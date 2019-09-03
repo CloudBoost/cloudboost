@@ -7,8 +7,8 @@
 
 
 module.exports = {
-    Schema: 'Schema',
-    Role: 'Role',
-    User: 'User',
-    Device: 'Device',
+  Schema: 'Schema',
+  Role: 'Role',
+  User: 'User',
+  Device: 'Device',
 };

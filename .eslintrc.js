@@ -24,6 +24,6 @@ module.exports = {
             "error",
             "always"
         ],
-        "indent": ["error", 4]
+        "indent": ["error", 2]
     }
 };
