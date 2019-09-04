@@ -7,11 +7,11 @@
 const q = require('q');
 const winston = require('winston');
 const { Readable } = require('stream');
+const { MongoAdapter } = require('mongo-adapter');
 const customHelper = require('../../helpers/custom.js');
 
 const apiTracker = require('../../database-connect/apiTracker');
 const config = require('../../config/config');
-const mongoService = require('../../databases/mongo');
 const customService = require('../../services/cloudObjects');
 const appService = require('../../services/app');
 const fileService = require('../../services/cloudFiles');
@@ -128,7 +128,11 @@ const getFile = async (req, res) => {
         && typeof rDegs === 'undefined'
         && typeof bSigma === 'undefined') {
       // eslint-disable-next-line
-      const fileStream = mongoService.document.getFileStreamById(appId, file._id);
+      const fileStream = MongoAdapter.getFileStreamById({
+        client: config.dbc,
+        appId,
+        fileId: file._id,
+      });
 
       res.set('Content-Type', file.contentType);
       res.set('Content-Disposition', `inline; filename="${file.filename}"`);

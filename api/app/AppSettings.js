@@ -8,11 +8,11 @@ const q = require('q');
 const _ = require('underscore');
 const winston = require('winston');
 const { Readable } = require('stream');
-const util = require('../../helpers/util.js');
+const { MongoAdapter } = require('mongo-adapter');
 
+const util = require('../../helpers/util.js');
 const config = require('../../config/config');
 const apiTracker = require('../../database-connect/apiTracker');
-const mongoService = require('../../databases/mongo');
 const appService = require('../../services/app');
 const keyService = require('../../database-connect/keyService');
 
@@ -126,10 +126,7 @@ module.exports = (app) => {
         res.status(401).send({ status: 'Unauthorized' });
       }
     } catch (error) {
-      winston.error({
-        error: String(error),
-        stack: new Error().stack,
-      });
+      winston.error(error);
       res.status(500).send('Error.');
     }
   });
@@ -174,7 +171,11 @@ module.exports = (app) => {
 
           // Delete from gridFs
           if (fileName) {
-            mongoService.document.deleteFileFromGridFs(appId, fileName);
+            MongoAdapter.deleteFileFromGridFs({
+              client: config.dbc,
+              appId,
+              filename: fileName,
+            });
           }
         }
       }
@@ -183,9 +184,13 @@ module.exports = (app) => {
       if (category === 'general') {
         fileName = appId;
       }
-      const savedFile = await mongoService.document.saveFileStream(
-        appId, fileStream.fileStream, fileName, fileStream.contentType,
-      );
+      const savedFile = await MongoAdapter.saveFileStream({
+        client: config.dbc,
+        appId,
+        fileStream: fileStream.fileStream,
+        fileName,
+        contentType: fileStream.contentType,
+      });
       let fileUri = null;
       fileUri = `${myUrl}/settings/${appId}/file/${savedFile.filename}`;
       if (category === 'general') {
@@ -194,10 +199,7 @@ module.exports = (app) => {
 
       return res.status(200).send(fileUri);
     } catch (error) {
-      winston.error({
-        error: String(error),
-        stack: new Error().stack,
-      });
+      winston.error(error);
       return res.status(500).send(error);
     }
   });
@@ -216,15 +218,24 @@ module.exports = (app) => {
       if (!isMasterKey) {
         return res.status(401).send('Unauthorized');
       }
-      const file = await mongoService.document.getFile(appId, fileName.split('.')[0]);
+      const file = await MongoAdapter.getFile({
+        client: config.dbc,
+        appId,
+        filename: fileName.split('.')[0],
+      });
       // eslint-disable-next-line no-underscore-dangle
-      const fileStream = mongoService.document.getFileStreamById(appId, file._id);
+      const fileStream = MongoAdapter.getFileStreamById({
+        client: config.dbc,
+        appId,
+        fileId: file._id,
+      });
 
       res.set('Content-Type', file.contentType);
       res.set('Content-Disposition', `attachment; filename="${file.filename}"`);
 
-      fileStream.on('error', (err) => {
-        res.send(500, `Got error while processing stream ${err.message}`);
+      fileStream.on('error', (error) => {
+        winston.error(error);
+        res.send(500, `Got error while processing stream ${error.message}`);
         res.end();
       });
 
@@ -234,10 +245,7 @@ module.exports = (app) => {
 
       return fileStream.pipe(res);
     } catch (error) {
-      winston.error({
-        error: String(error),
-        stack: new Error().stack,
-      });
+      winston.error(error);
       return res.status(500).send(error);
     }
   });

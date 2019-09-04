@@ -2,7 +2,6 @@ const winston = require('winston');
 const { MongoAdapter } = require('mongo-adapter');
 const keyService = require('../database-connect/keyService');
 const serverService = require('../services/server');
-// import mongoConnect from '../database-connect/mongoConnect.js';
 const config = require('./config');
 const getMongoConnectionString = require('./mongo');
 
