@@ -11,7 +11,7 @@ var URL = "http://localhost:4730";
 	        text += possible.charAt(Math.floor(Math.random() * possible.length));
 
 	    return 'x'+text;
-	},	
+	},
 
 	makeEmail : function(){
 	    return this.makeString()+'@sample.com';
@@ -19,54 +19,54 @@ var URL = "http://localhost:4730";
 
    };
 
-   
 
-	
+
+
 
 var window = window || null;
 var request = require('request');
 var CB = require('../sdk/dist/cloudboost');
 var equal = require('deep-equal');
 describe("Cloud App", function() {
-    
+
     it("MongoDb,RedisDb & Elastic SearchDb Statuses..", function(done) {
         this.timeout(100000);
-       
-        var url = URL+'/status'; 
-        var params = {};    
+
+        var url = URL+'/status';
+        var params = {};
         params.url = URL;
 
         if(!window){
         	//Lets configure and request
 			request({
 			    url: url, //URL to hit
-			    method: 'GET'			  
+			    method: 'GET'
 			}, function(error, response, body){
 
-			    if(error || response.statusCode === 500 || response.statusCode === 400 || body === 'Error'){  
+			    if(error || response.statusCode === 500 || response.statusCode === 400 || body === 'Error'){
 		          	done("Something went wrong..");
-		        }else {  
-		        	done();	          
+		        }else {
+		        	done();
 			    }
 			});
 
         } else{
-        	$.ajax({ 
+        	$.ajax({
 			    // The URL for the request
-			    url: url,			
+			    url: url,
 			    // Whether this is a POST or GET request
-			    type: "GET",			   
+			    type: "GET",
 			    // Code to run if the request succeeds;
 			    // the response is passed to the function
 			    success: function( resp ) {
 			       done();
-			    },			 
+			    },
 			    // Code to run if the request fails; the raw request and
 			    // status codes are passed to the function
 			    error: function( xhr, status, errorThrown ) {
 			        done("Something went wrong..");
 			    },
-			 
+
 			});
         }
 
@@ -98,7 +98,7 @@ describe("Cloud App", function() {
 			});
         } else{
         	$.ajax({
- 
+
 			    // The URL for the request
 			    url: url,
 			    // The data to send (will be converted to a query string)
@@ -112,13 +112,13 @@ describe("Cloud App", function() {
 			    success: function( json ) {
 			       done();
 			    },
-			 
+
 			    // Code to run if the request fails; the raw request and
 			    // status codes are passed to the function
 			    error: function( xhr, status, errorThrown ) {
 			        done("Error thrown.");
 			    },
-			 
+
 			});
         }
 
@@ -131,7 +131,7 @@ describe("Cloud App", function() {
         var url = URL+'/app/'+appId;
         var params = {};
         params.secureKey = SECURE_KEY;
-        if(!window){        	
+        if(!window){
         	//Lets configure and request
 			request({
 			    url: url, //URL to hit
@@ -143,7 +143,7 @@ describe("Cloud App", function() {
 			}, function(error, response, json){
 			    if(error) {
 			        done(error);
-			    } 
+			    }
 				else {
 			       CB.CloudApp.init(URL, json.appId, json.keys.js);
 			       CB.masterKey = json.keys.master;
@@ -153,19 +153,19 @@ describe("Cloud App", function() {
 			});
        	} else{
 	       $.ajax({
-	 
+
 			    // The URL for the request
 			    url: url,
-			 
+
 			    // The data to send (will be converted to a query string)
 			    data: params,
-			 
+
 			    // Whether this is a POST or GET request
 			    type: "POST",
-			 
+
 			    // The type of data we expect back
 			    dataType : "json",
-			 
+
 			    // Code to run if the request succeeds;
 			    // the response is passed to the function
 			    success: function( json ) {
@@ -174,13 +174,13 @@ describe("Cloud App", function() {
 			       CB.jsKey = json.keys.js;
 			       done();
 			    },
-			 
+
 			    // Code to run if the request fails; the raw request and
 			    // status codes are passed to the function
 			    error: function( xhr, status, errorThrown ) {
 			        done("Error thrown.");
 			    },
-			 
+
 			});
 		}
 
@@ -205,6 +205,10 @@ describe("Cloud App", function() {
 			    },
 			    json: params //Set the body as a string
 			}, function(error, response, json){
+          console.log({
+            error,
+            json
+          })
 			    if(error) {
 			        done(error);
 			    } else {
@@ -213,7 +217,7 @@ describe("Cloud App", function() {
 			});
         }else{
 	       $.ajax({
-	 
+
 			    // The URL for the request
 			    url: url,
 			    // The data to send (will be converted to a query string)
@@ -224,7 +228,7 @@ describe("Cloud App", function() {
 			    dataType : "json",
 			    // Code to run if the request succeeds;
 			    // the response is passed to the function
-			    success: function( json ) {			    			    	
+			    success: function( json ) {
 			       if(json.category === "settings"){
 			       	 done();
 			       }else{
@@ -236,7 +240,7 @@ describe("Cloud App", function() {
 			    error: function( xhr, status, errorThrown ) {
 			        done("Error thrown.");
 			    },
-			 
+
 			});
 		}
 	 });
@@ -247,7 +251,7 @@ describe("Cloud App", function() {
         var url = URL+'/settings/'+CB.appId;
         var params = {};
         params.key = CB.masterKey;
-        
+
         if(!window){
         	//Lets configure and request
 			request({
@@ -266,19 +270,19 @@ describe("Cloud App", function() {
 			});
         }else{
 	       $.ajax({
-	 
+
 			    // The URL for the request
 			    url: url,
-			 
+
 			    // The data to send (will be converted to a query string)
 			    data: params,
-			 
+
 			    // Whether this is a POST or GET request
 			    type: "POST",
-			 
+
 			    // The type of data we expect back
 			    dataType : "json",
-			 
+
 			    // Code to run if the request succeeds;
 			    // the response is passed to the function
 			    success: function( json ) {
@@ -288,18 +292,18 @@ describe("Cloud App", function() {
 			       	done("Success but Id not defined.");
 			       }
 			    },
-			 
+
 			    // Code to run if the request fails; the raw request and
 			    // status codes are passed to the function
 			    error: function( xhr, status, errorThrown ) {
 			        done("Error thrown.");
 			    }
-			 
+
 			});
 		}
 	});
 
-	
+
 });
 
 describe("Should Create All Test Tables", function(done) {
@@ -1211,7 +1215,7 @@ describe("Export & Import Table", function () {
                             });
                         }
                     } catch (e) {
-                        
+
                         done(e);
                     }
                 },
@@ -1348,7 +1352,7 @@ describe("Export & Import Table", function () {
                                     throw 'únable to get the url';
                                 }
                             }, function (err) {
-                                
+
                                 done(err);
                                 throw "Unable to save file";
                             });
@@ -1356,7 +1360,7 @@ describe("Export & Import Table", function () {
                             throw err
                         });
                     } catch (e) {
-                        
+
                         done(e);
                     }
                 },
@@ -1885,7 +1889,7 @@ describe("Cloud Files", function(done) {
             });
         }
     } catch (e) {
-        
+
     }
 
     it("Should Save a file file data and name then fetch it", function(done) {
@@ -1992,7 +1996,7 @@ describe("Cloud Files", function(done) {
                 query.include('Company.File');
                 query.equalTo('id', res.get('id'));
                 query.find().then(function(res) {
-                    // 
+                    //
                     done();
                 }, function(err) {
                     done(err);
@@ -2027,7 +2031,7 @@ describe("Cloud Files", function(done) {
     //     };
 
     //     function getImage(){
-    //         
+    //
     //     }
 
     //     xhttp.send(null);
@@ -2055,7 +2059,7 @@ describe("Cloud Files", function(done) {
 
     //     };
     //       function resizeImage(){
-    //         
+    //
     //       }
     //     xhttp.send(null);
 
@@ -3334,8 +3338,8 @@ describe("Cloud Object", function() {
                             done("Cannot create table.");
                         }
                     }, error : function(query){
-                        //cannot query. 
-                        
+                        //cannot query.
+
                         done("Cannot query");
                     }
                 });
@@ -3396,7 +3400,7 @@ describe("Cloud Object", function() {
                             if(missingColumn){
                                 done("Couldn't creat column of type " + missingColumn);
                             }
-                            else {                  
+                            else {
                                 var query = new CB.CloudQuery(aNewTableName);
                                 query.equalTo(autoColumns.Text, queryText);
                                 query.equalTo(autoColumns.Email, queryEmail);
@@ -3430,7 +3434,7 @@ describe("Cloud Object", function() {
                                         }
                                     },
                                     error : function(query){
-                                        
+
                                         done("Cannot query");
                                     }
                                 });
@@ -3469,7 +3473,7 @@ describe("Cloud Object", function() {
             return null;
         }
     });
- 
+
     it("Should add a null value in a column", function(done) {
 
         this.timeout(30000);
@@ -4638,7 +4642,7 @@ describe("Bulk API",function(done){
         var obj1 = new CB.CloudObject('Student');
         obj1.set('name','ABCD');
         var arr = [obj,obj1];
-        CB.CloudObject.saveAll(arr).then(function(res){          
+        CB.CloudObject.saveAll(arr).then(function(res){
             done();
         },function(err){
             throw "Unable to Save CloudObject";
@@ -4654,8 +4658,8 @@ describe("Bulk API",function(done){
         var obj1 = new CB.CloudObject('Student');
         obj1.set('name','ABCD');
         var arr = [obj,obj1];
-        CB.CloudObject.saveAll(arr).then(function(res){           
-            CB.CloudObject.deleteAll(res).then(function(res){               
+        CB.CloudObject.saveAll(arr).then(function(res){
+            CB.CloudObject.deleteAll(res).then(function(res){
                 done();
             },function(err){
                 throw "Unable to Delete CloudObject";
@@ -4698,7 +4702,7 @@ describe("Bulk API",function(done){
             });
         }
     }catch(e){
-        
+
     }
 
     it("Should properly save a relation in Bulk API",function(done){
@@ -4746,10 +4750,10 @@ describe("Cloud Objects Files", function() {
 
             //Check Blob availability..
             var blobAvail=true;
-            try {                    
+            try {
                 new Blob(['<a id="a"><b id="b">hey!</b></a>'], {type: "text/html"});
                 blobAvail=true;
-            } catch (e) {                   
+            } catch (e) {
                 blobAvail=false;
             }
 
@@ -4774,14 +4778,14 @@ describe("Cloud Objects Files", function() {
 
                     file.save().then(function (file) {
                         if (file.url) {
-                            
+
                             //create a new object.
                             var obj = new CB.CloudObject('Sample');
                             obj.set('name', 'sample');
                             obj.set('file', file);
 
                             obj.save().then(function (newobj) {
-                                
+
                                 if (newobj.get('file') instanceof CB.CloudFile && newobj.get('file').document._id) {
                                     done();
                                 } else {
@@ -4823,16 +4827,16 @@ describe("Cloud Objects Files", function() {
 
                     file.save().then(function (file) {
                         if (file.url) {
-                           
+
                             //create a new object.
                             var obj = new CB.CloudObject('Sample');
                             obj.set('name', 'sample');
                             obj.set('file', file);
 
                             obj.save().then(function (newobj) {
-                                
+
                                 if (newobj.get('file') instanceof CB.CloudFile && newobj.get('file').document._id) {
-                                   
+
                                     newobj.set('name','sample2');
                                     newobj.save().then(function(){
                                         done();
@@ -4921,7 +4925,7 @@ describe("Cloud Objects Files", function() {
 
         }
     }catch(e){
-        
+
     }
 
 });
@@ -4968,7 +4972,7 @@ describe("ACL Tests Over Files",function(done){
         fileObj.save().then(function(res){
             res.getFileContent().then(function(res){
                 throw "Should not retrieve file";
-            },function(err){               
+            },function(err){
                 done();
             });
         },function(){
@@ -4989,7 +4993,7 @@ describe("ACL Tests Over Files",function(done){
         fileObj.save().then(function(res){
             res.delete().then(function(res){
                 throw "Should not retrieve file";
-            },function(err){               
+            },function(err){
                 done();
             });
         },function(){
@@ -5009,7 +5013,7 @@ describe("CloudObjectExpires", function () {
         obj.set('age', 10);
         obj.save().then(function(obj1) {
             done();
-        }, function (err) {           
+        }, function (err) {
             throw "Cannot save an object after expire is set";
         });
 
@@ -5042,7 +5046,7 @@ describe("CloudObjectExpires", function () {
                         else{
                             throw "Expired Object Retrieved";
                         }
-                    }                    
+                    }
                 }
                 done();
 
@@ -5051,9 +5055,9 @@ describe("CloudObjectExpires", function () {
             });
 
 
-        }, function (err) {           
+        }, function (err) {
            done("Cannot save an object after expire is set");
-        });     
+        });
 
     });
 
@@ -5063,7 +5067,7 @@ describe("CloudObjectExpires", function () {
 
         var tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 10);
-        
+
         var obj = new CB.CloudObject('student1');
         obj.set('name', 'vipul');
         obj.set('age', 10);
@@ -5081,7 +5085,7 @@ describe("CloudObjectExpires", function () {
             });
         }, function (err) {
             done(err);
-        });        
+        });
 
     });
 
@@ -6540,7 +6544,7 @@ describe("CloudObject - Encryption", function (done) {
     it("should encrypt passwords", function (done) {
 
         this.timeout(20000);
-        
+
         var obj = new CB.CloudObject('User');
         obj.set('username',util.makeEmail());
         obj.set('password','password');
@@ -6599,7 +6603,7 @@ describe("CloudExpire", function () {
                 done();
             else
                 throw "unable to save expires";
-        }, function (err) {           
+        }, function (err) {
             throw "Relation Expire error";
         });
 
@@ -6635,14 +6639,14 @@ describe("CloudExpire", function () {
 
 });
 describe("CloudQuery Include", function (done) {
-    
-   
-    
+
+
+
     it("save a relation.", function (done) {
-        
+
         this.timeout(30000);
 
-        //create an object. 
+        //create an object.
         var obj = new CB.CloudObject('Custom4');
         obj.set('newColumn1', 'Course');
         var obj1 = new CB.CloudObject('student1');
@@ -6653,7 +6657,7 @@ describe("CloudQuery Include", function (done) {
         obj.set('newColumn7', obje);
         obj.save().then(function() {
             done();
-        }, function () { 
+        }, function () {
             throw "Relation Save error";
         });
 
@@ -6721,8 +6725,8 @@ describe("CloudQuery Include", function (done) {
             }, function(error){
                     throw "Cannot find";
             });
-            
-        }, function () { 
+
+        }, function () {
             throw "Relation Save error";
         });
     });
@@ -6730,11 +6734,11 @@ describe("CloudQuery Include", function (done) {
 
     it("should not return duplicate objects in relation list after saving", function (done) {
 
-        this.timeout(30000);     
-       
+        this.timeout(30000);
+
         var obj1 = new CB.CloudObject('student1');
         obj1.set('name', 'Vipul');
-       
+
         var obj = new CB.CloudObject('Custom4');
         obj.set('newColumn7', [obj1,obj1]);
         obj.save().then(function(respObj) {
@@ -6743,38 +6747,38 @@ describe("CloudQuery Include", function (done) {
                 done("returning duplicate objects");
             }else{
                 done();
-            }            
+            }
         }, function (error) {
-            done(error);            
+            done(error);
         });
     });
 
     it("should not return duplicate objects in relation list on Querying", function (done) {
 
-        this.timeout(30000);     
-       
+        this.timeout(30000);
+
         var obj1 = new CB.CloudObject('student1');
         obj1.set('name', 'sjdgsduj');
-       
+
         var obj = new CB.CloudObject('Custom4');
         obj.set('newColumn7', [obj1,obj1]);
         obj.save().then(function(respObj) {
 
             var obj = new CB.CloudQuery('Custom4');
             obj.include('newColumn7');
-            obj.findById(respObj.get("id"),{success : function(queriedObj){ 
+            obj.findById(respObj.get("id"),{success : function(queriedObj){
 
                 if(queriedObj.get("newColumn7").length==2){
                     done("returning duplicate objects");
                 }else{
                     done();
-                } 
-            }, error : function(error){ 
-              done(error);             
+                }
+            }, error : function(error){
+              done(error);
             }});
 
-            
-        }, function (error) { 
+
+        }, function (error) {
             done(error);
         });
     });
@@ -6790,7 +6794,7 @@ describe("CloudQuery Include", function (done) {
         var obj1 = new CB.CloudObject('student1');
         obj1.set('name', 'Vipul');
         obj.set('newColumn7', obj1);
-    
+
         obj.save({
             success : function(obj){
                 var query = new CB.CloudQuery('Custom2');
@@ -6871,7 +6875,7 @@ describe("CloudQuery Include", function (done) {
                 throw "Cannot save an object";
             });
 
-            
+
     });
 
 
@@ -6902,7 +6906,7 @@ describe("CloudQuery Include", function (done) {
                 throw "Cannot save an object";
             });
 
-            
+
     });
 
     it("should include with findById",function(done){
@@ -6931,7 +6935,7 @@ describe("CloudQuery Include", function (done) {
                 });
             }, function(error){
                 throw "Cannot save an object";
-            });            
+            });
     });
 
 });
@@ -8560,7 +8564,7 @@ describe("CloudQuery", function(done) {
             if (list.length > 0) {
                 for (var i = 0; i < list.length; i++) {
                     if (list[i].get('age')) {
-                        done(new Error("Recieving data"));                     
+                        done(new Error("Recieving data"));
                     }
                 }
                 done();
@@ -9102,7 +9106,7 @@ describe("CloudQuery - Encryption", function () {
     it("should get encrypted passwords", function (done) {
 
         this.timeout(30000);
-         
+
         var username = util.makeEmail();
 
         var obj = new CB.CloudObject('User');
@@ -9112,7 +9116,7 @@ describe("CloudQuery - Encryption", function () {
 
         obj.save().then(function(obj){
             if(obj.get('password') !== 'password'){
-                //now run CloudQuery. 
+                //now run CloudQuery.
                 var query = new CB.CloudQuery('User');
                 query.equalTo('password','password');
                 query.equalTo('username',username);
@@ -9125,7 +9129,7 @@ describe("CloudQuery - Encryption", function () {
                             throw "Cannot get items.";
                         }
                     }, error : function(query){
-                        //cannot query. 
+                        //cannot query.
                         throw "Cannot query over encrypted type";
                     }
                 })
@@ -9146,7 +9150,7 @@ describe("CloudQuery - Encryption", function () {
      it("should get encrypted passwords over OR query", function (done) {
 
         this.timeout(30000);
-         
+
         var username = util.makeEmail();
 
         var obj = new CB.CloudObject('User');
@@ -9156,7 +9160,7 @@ describe("CloudQuery - Encryption", function () {
 
         obj.save().then(function(obj){
             if(obj.get('password') !== 'password'){
-                //now run CloudQuery. 
+                //now run CloudQuery.
                 var query1 = new CB.CloudQuery('User');
                 query1.equalTo('password','password');
 
@@ -9174,7 +9178,7 @@ describe("CloudQuery - Encryption", function () {
                             throw "Cannot get items.";
                         }
                     }, error : function(query){
-                        //cannot query. 
+                        //cannot query.
                         throw "Cannot query over encrypted type";
                     }
                 })
@@ -9223,7 +9227,7 @@ describe("CloudRole", function (done) {
         this.timeout(40000);
         var roleName5 = util.makeString();
         var role5 = new CB.CloudRole(roleName5);
-        role5.save().then(function(list){           
+        role5.save().then(function(list){
             if(!list)
                 throw "Should create a role";
             done();
@@ -9233,7 +9237,7 @@ describe("CloudRole", function (done) {
     });
 
     it("Should Retrieve a role", function (done) {
-		
+
         this.timeout(40000);
 
         var roleName5 = util.makeString();
@@ -9244,7 +9248,7 @@ describe("CloudRole", function (done) {
                 done();
             }
             query.equalTo('id',role5.get('id'));
-            query.find().then(function(list){                
+            query.find().then(function(list){
                 if(!list)
                     throw "Should retrieve the cloud role";
                 done();
@@ -9266,7 +9270,7 @@ describe("ACL", function () {
         this.timeout(20000);
 
         if(CB._isNode){
-            
+
             done();
             return;
         }
@@ -9295,7 +9299,7 @@ describe("ACL", function () {
                 done(error);
             });
 
-           
+
         }, function (error) {
              done(error);
         });
@@ -9306,7 +9310,7 @@ describe("ACL", function () {
         this.timeout(20000);
 
         if(CB._isNode){
-            
+
             done();
             return;
         }
@@ -9335,14 +9339,14 @@ describe("ACL", function () {
 
         this.timeout(20000);
 
-    
+
         var obj = new CB.CloudObject('student4');
         obj.ACL = new CB.ACL();
         obj.ACL.setUserWriteAccess('id',true);
         obj.save().then(function(obj) {
             var acl=obj.get('ACL');
             if(acl.document.write.allow.user.length === 1 && acl.document.write.allow.user[0] === 'id') {
-               //query this object and see if ACL persisted. 
+               //query this object and see if ACL persisted.
                var query = new CB.CloudQuery("student4");
                query.equalTo('id',obj.id);
                query.find({
@@ -9355,7 +9359,7 @@ describe("ACL", function () {
                             }else{
                                 done("Cannot persist ACL object");
                             }
-                        }   
+                        }
                         else{
                             done("Cannot get cloudobject");
                         }
@@ -9376,7 +9380,7 @@ describe("ACL", function () {
         this.timeout(20000);
 
         if(CB._isNode){
-            
+
             done();
             return;
         }
@@ -9405,7 +9409,7 @@ describe("ACL", function () {
     it("Should create new user", function (done) {
 
         if(CB._isNode){
-            
+
             done();
             return;
          }
@@ -9429,7 +9433,7 @@ describe("ACL", function () {
     it("Should set the user read access", function (done) {
 
         if(CB._isNode){
-            
+
             done();
             return;
          }
@@ -9453,7 +9457,7 @@ describe("ACL", function () {
 
     it("Should allow users of role to write", function (done) {
         if(CB._isNode){
-            
+
             done();
             return;
          }
@@ -9479,7 +9483,7 @@ describe("ACL", function () {
     it("Should allow users of role to read", function (done) {
 
         if(CB._isNode){
-            
+
             done();
             return;
         }
@@ -9514,7 +9518,7 @@ describe("Query_ACL", function () {
     it("Should create new user", function (done) {
 
         if(CB._isNode){
-            
+
             done();
             return;
          }
@@ -9537,7 +9541,7 @@ describe("Query_ACL", function () {
     it("Should set the public read access", function (done) {
 
         if(CB._isNode){
-            
+
             done();
             return;
          }
@@ -9577,7 +9581,7 @@ describe("Query_ACL", function () {
     it("Should search object with user read access", function (done) {
 
         if(CB._isNode){
-            
+
             done();
             return;
          }
@@ -9624,7 +9628,7 @@ describe("Query_ACL", function () {
         it("Should create new user", function (done) {
 
             if(CB._isNode){
-            
+
             done();
             return;
          }
@@ -9642,7 +9646,7 @@ describe("Query_ACL", function () {
                 throw "user create error";
             });
 
-        });  
+        });
 
 });
 
@@ -9761,11 +9765,11 @@ describe("MasterKey ACL", function () {
         obj.ACL = new CB.ACL();
         obj.ACL.setPublicReadAccess(false);
         obj.ACL.setPublicWriteAccess(false);
-        
+
         obj.save().then(function(obj) {
 
             if(obj.id){
-                 obj.set('age',19);        
+                 obj.set('age',19);
                  obj.save().then(function(obj) {
                     if(obj.id){
                         done();
@@ -9778,7 +9782,7 @@ describe("MasterKey ACL", function () {
             }else{
                 done("Obj did not save.");
             }
-        
+
         }, function (error) {
            done(error);
         });
@@ -9808,11 +9812,11 @@ describe("MasterKey ACL", function () {
                 })
             }, function(error){
                 done(error);
-            });           
+            });
         }, function (error) {
              done(error);
         });
-        
+
     });
 
      after(function(){
@@ -9823,7 +9827,7 @@ describe("MasterKey ACL", function () {
 
 
 describe("Cloud GeoPoint Test", function() {
-    
+
     before(function(){
         CB.appKey = CB.masterKey;
     });
@@ -9831,13 +9835,13 @@ describe("Cloud GeoPoint Test", function() {
     it('should create table with Geo point', function (done) {
         this.timeout(80000);
         var table = new CB.CloudTable('Custom5');
-        var columnGeoPoint = new CB.Column('location', 'GeoPoint', true, false);   
+        var columnGeoPoint = new CB.Column('location', 'GeoPoint', true, false);
         table.addColumn(columnGeoPoint);
         table.save().then(function(){
             return done();
         }, done);
     });
-    
+
     it("should save a latitude and longitude when passing data are number type", function(done) {
 
         this.timeout(30000);
@@ -9864,7 +9868,7 @@ describe("Cloud GeoPoint Test", function() {
         }catch(e){
             done("Canot create a geo point");
         }
-        
+
     });
 
     it("should save a latitude and longitude when passing a valid numeric data as string type", function(done) {
@@ -9908,7 +9912,7 @@ describe("Cloud GeoPoint Test", function() {
         var obj = new CB.CloudObject('Custom5');
      	var loc = new CB.CloudGeoPoint("17.19","79.3");
 		loc.latitude = 78;
-        loc.longitude = 17; 
+        loc.longitude = 17;
         obj.set("location", loc);
 		obj.save({
      		success : function(newObj){
@@ -9935,7 +9939,7 @@ describe("Cloud GeoPoint Test", function() {
             done(err);
         })
 	});
-	
+
 	it("should get list of CloudGeoPoint Object from server Polygon type geoWithin", function(done) {
      	this.timeout(40000);
         var loc1 = new CB.CloudGeoPoint(18.4,78.9);
@@ -9949,12 +9953,12 @@ describe("Cloud GeoPoint Test", function() {
             } else{
                 throw "should retrieve saved data with particular value ";
             }
-            
+
         }, function () {
             throw "find data error";
         })
 	});
-	
+
 	it("should get list of CloudGeoPoint Object from server Polygon type geoWithin + equal to + limit", function(done) {
      	this.timeout(40000);
         var loc1 = new CB.CloudGeoPoint(18.4,78.9);
@@ -9969,12 +9973,12 @@ describe("Cloud GeoPoint Test", function() {
             } else{
                 throw "should retrieve saved data with particular value ";
             }
-            
+
         }, function () {
             throw "find data error";
         })
 	});
-	
+
 	it("1. should get list of CloudGeoPoint Object from server for Circle type geoWithin", function(done) {
      	this.timeout(40000);
         var loc = new CB.CloudGeoPoint(17.3, 78.3);
@@ -9987,11 +9991,11 @@ describe("Cloud GeoPoint Test", function() {
                done("didnot retrieve the records.")
             }
         }, function (error) {
-            
+
             done(error);
         });
 	});
-	
+
 	it("1. should get list of CloudGeoPoint Object from server for Circle type geoWithin + equal to + limit", function(done) {
      	this.timeout(40000);
         var loc = new CB.CloudGeoPoint(17.3, 78.3);
@@ -10018,7 +10022,7 @@ describe("Cloud GeoPoint Test", function() {
             success : function(newObj){
                 obj = newObj;
                 obj.get('location').set('latitude',55);
-                obj.save().then(function(obj1){                  
+                obj.save().then(function(obj1){
                     done()
                 },function(){
                     throw "";
@@ -10111,7 +10115,7 @@ describe("Version Test",function(done){
         var query = new CB.CloudQuery('Sample');
         query.equalTo('id',obj.get('id'));
         query.find().then(function(list){
-            
+
             list[0].set('name','abcd');
             list[0].save().then(function(){
                 var query1 = new CB.CloudQuery('Sample');
@@ -10139,7 +10143,7 @@ describe("Version Test",function(done){
     it("Should create new user with version", function (done) {
 
         if(CB._isNode){
-            
+
             done();
             return;
          }
@@ -10198,11 +10202,11 @@ describe("Version Test",function(done){
     it("Should retrieve a saved user object",function(done){
 
         if(CB._isNode){
-            
+
             done();
             return;
          }
-         
+
         this.timeout(20000);
         var query = new CB.CloudQuery('User');
         query.get(user.get('id')).then(function (user) {
@@ -10428,7 +10432,7 @@ describe("Cloud Table", function(){
         });
 
     });
-	
+
 	it("should add a column to an existing table",function(done){
         this.timeout(90000);
         var obj = new CB.CloudTable(tableName);
@@ -10443,7 +10447,7 @@ describe("Cloud Table", function(){
         },function(){
             done("should fetch the table");
         });
-        
+
     });
 
     it("Should not be able to add empy columnn name",function(done){
@@ -10465,9 +10469,9 @@ describe("Cloud Table", function(){
         },function(){
             done("should fetch the table");
         });
-        
+
     });
-    
+
 	it("should add a column to the table after save.",function(done){
         this.timeout(80000);
 
@@ -10482,7 +10486,7 @@ describe("Cloud Table", function(){
             });
         });
     });
-    
+
     it("should get a table information",function(done){
         this.timeout(40000);
         var obj = new CB.CloudTable(tableName);
@@ -10492,7 +10496,7 @@ describe("Cloud Table", function(){
             done("should fetch the table");
         });
     });
-    
+
     it("should get all tables from an app",function(done){
         this.timeout(40000);
         CB.CloudTable.getAll().then(function(table){
@@ -10774,7 +10778,7 @@ describe("Table level ACL, for editing and getting table via clientKey", functio
         },function(err){
             done(err)
         })
-    
+
     });
 
     it("should now get the table via client key",function(done){
@@ -10790,7 +10794,7 @@ describe("Table level ACL, for editing and getting table via clientKey", functio
         },function(err){
             done(err)
         })
-    
+
     });
 
     it("should now edit the table via client key",function(done){
@@ -10812,7 +10816,7 @@ describe("Table level ACL, for editing and getting table via clientKey", functio
         },function(err){
             done(err)
         })
-    
+
     });
 
     after(function() {
@@ -10840,7 +10844,7 @@ describe("Cloud App is connected.", function() {
             done("Cloud App is not connected.");
         }
     })
-    
+
 });
 describe("App level ACL, for adding deleting tables of an app via clientKey", function(){
 
@@ -10899,7 +10903,7 @@ describe("App level ACL, for adding deleting tables of an app via clientKey", fu
 			});
         }else{
 	       $.ajax({
-	 
+
 			    // The URL for the request
 			    url: url,
 			    // The data to send (will be converted to a query string)
@@ -10910,7 +10914,7 @@ describe("App level ACL, for adding deleting tables of an app via clientKey", fu
 			    dataType : "json",
 			    // Code to run if the request succeeds;
 			    // the response is passed to the function
-			    success: function( json ) {			    			    	
+			    success: function( json ) {
 			       if(json.category === "general"){
 			       	 done();
 			       }else{
@@ -10922,11 +10926,11 @@ describe("App level ACL, for adding deleting tables of an app via clientKey", fu
 			    error: function( xhr, status, errorThrown ) {
 			        done("Error thrown.");
 			    },
-			 
+
 			});
 		}
-        
-    
+
+
     });
 
     it("should now get all the tables via client key",function(done){
@@ -10942,7 +10946,7 @@ describe("App level ACL, for adding deleting tables of an app via clientKey", fu
         },function(err){
             done(err)
         })
-    
+
     });
 
     it("should now add a table via client key",function(done){
@@ -10961,8 +10965,8 @@ describe("App level ACL, for adding deleting tables of an app via clientKey", fu
         },function(err){
             done(err)
         });
-        
-    
+
+
     });
 
     after(function() {
@@ -10978,11 +10982,11 @@ describe("Atomicity Tests",function(done){
 
         this.timeout(10000);
 
-        var url = CB.apiUrl+'/db/mongo/connect';  
+        var url = CB.apiUrl+'/db/mongo/connect';
         CB._request('POST',url).then(function() {
             done();
         },function(err){
-            done(err);            
+            done(err);
         });
     });
 
@@ -11053,7 +11057,7 @@ describe("Atomicity Tests",function(done){
                     CB._request('POST',url).then(function() {
                         var query = new CB.CloudQuery('student1');
                         query.findById(id).then(function(res) {
-                            if(res) {                               
+                            if(res) {
                                 done();
                             }else{
                                 throw "should get the record back";
@@ -11180,7 +11184,7 @@ describe("Should delete All Test Tables",function(done){
             throw "Unable to delete";
         });
 
-    }); 
+    });
 
 
     it("should delete tables",function(done){
@@ -11224,32 +11228,32 @@ describe("Delete App", function() {
         }else{
 
 	       $.ajax({
-	 
+
 			    // The URL for the request
 			    url: url,
-			 
+
 			    // The data to send (will be converted to a query string)
 			    data: params,
-			 
+
 			    // Whether this is a POST or GET request
 			    type: "PUT",
-			 
+
 			    // The type of data we expect back
 			    dataType : "json",
-			 
+
 			    // Code to run if the request succeeds;
 			    // the response is passed to the function
 			    success: function( json ) {
 			       done();
 			    },
-			 
+
 			    // Code to run if the request fails; the raw request and
 			    // status codes are passed to the function
 			    error: function( xhr, status, errorThrown ) {
 			        done("Error");
 			    },
-			 
-			   
+
+
 			});
 	   }
 
@@ -11258,7 +11262,7 @@ describe("Delete App", function() {
 });
 
 describe("Disabled Realtime Tests", function() {
-   
+
 
 
     it("should create the app and init the CloudApp.", function(done) {
@@ -11288,19 +11292,19 @@ describe("Disabled Realtime Tests", function() {
 			});
         }else{
 	       $.ajax({
-	 
+
 			    // The URL for the request
 			    url: url,
-			 
+
 			    // The data to send (will be converted to a query string)
 			    data: params,
-			 
+
 			    // Whether this is a POST or GET request
 			    type: "POST",
-			 
+
 			    // The type of data we expect back
 			    dataType : "json",
-			 
+
 			    // Code to run if the request succeeds;
 			    // the response is passed to the function
 			    success: function( json ) {
@@ -11309,13 +11313,13 @@ describe("Disabled Realtime Tests", function() {
 			       CB.jsKey = json.keys.js;
 			       done();
 			    },
-			 
+
 			    // Code to run if the request fails; the raw request and
 			    // status codes are passed to the function
 			    error: function( xhr, status, errorThrown ) {
 			        done("Error thrown.");
 			    },
-			 
+
 			});
 		}
 
@@ -11323,17 +11327,17 @@ describe("Disabled Realtime Tests", function() {
 });
 
 describe("Disabled CloudNotification", function() {
- 
+
     it("should subscribe to a channel", function(done) {
     	try{
 	      this.timeout(20000);
 	        CB.CloudNotification.on('sample',
 	      function(data){
-	      }, 
+	      },
 	      {
 	      	success : function(){
 	      		done();
-	      	}, 
+	      	},
 	      	error : function(){
 	      		throw 'Error subscribing to a CloudNotification.';
 	      	}
@@ -11353,20 +11357,20 @@ describe("Disabled CloudNotification", function() {
 	      	}else{
 	      		throw 'Error wrong data received.';
 	      	}
-	      }, 
+	      },
 	      {
 	      	success : function(){
-	      		//publish to a channel. 
+	      		//publish to a channel.
 	      		CB.CloudNotification.publish('sample', 'data',{
 					success : function(){
-						//succesfully published. //do nothing. 
+						//succesfully published. //do nothing.
 					},
 					error : function(err){
 						//error
 						throw 'Error publishing to a channel in CloudNotification.';
 					}
 					});
-	      	}, 
+	      	},
 	      	error : function(){
 	      		throw 'Error subscribing to a CloudNotification.';
 	      	}
@@ -11384,22 +11388,22 @@ describe("Disabled CloudNotification", function() {
 
 	    	this.timeout(20000);
 
-	     	CB.CloudNotification.on('sample', 
+	     	CB.CloudNotification.on('sample',
 		      function(data){
 		      	throw 'stopped listening, but still receiving data.';
-		      }, 
+		      },
 		      {
 		      	success : function(){
-		      		//stop listening to a channel. 
+		      		//stop listening to a channel.
 		      		CB.CloudNotification.off('sample', {
 						success : function(){
 							//succesfully stopped listening.
-							//now try to publish. 
+							//now try to publish.
 							CB.CloudNotification.publish('sample', 'data',{
 								success : function(){
 									//succesfully published.
 									//wait for 5 seconds.
-									setTimeout(function(){ 
+									setTimeout(function(){
 										done();
 									}, 5000);
 								},
@@ -11414,7 +11418,7 @@ describe("Disabled CloudNotification", function() {
 							throw 'error in sop listening.';
 						}
 					});
-		      	}, 
+		      	},
 		      	error : function(){
 		      		throw 'Error subscribing to a CloudNotification.';
 		      	}
@@ -11426,7 +11430,7 @@ describe("Disabled CloudNotification", function() {
 
 });
 describe("Disabled - Cloud Objects Notification", function() {
-  
+
 	  var obj = new CB.CloudObject('Student');
     var obj1 = new CB.CloudObject('student4');
 
@@ -11436,7 +11440,7 @@ describe("Disabled - Cloud Objects Notification", function() {
 
         CB.CloudObject.on('Student', 'created', function(data){
          if(data.get('name') === 'sample') {
-             
+
              CB.CloudObject.off('Student','created',{success:function(){},error:function(){}});
          }
          else
@@ -11470,7 +11474,7 @@ describe("Disabled - Cloud Objects Notification", function() {
 	      throw 'Listening to wrong event type.';
      	}catch(e){
      		done();
-     	}     
+     	}
 
     });
 
@@ -11557,7 +11561,7 @@ describe("Disabled - Cloud Objects Notification", function() {
     it("should alert when all three events are passed", function(done) {
       try{
         this.timeout(40000);
-         
+
         var cloudObject = new CB.CloudObject('Student');
         var count = 0;
         CB.CloudObject.on('Student', ['created', 'deleted', 'updated'], function(data){
@@ -11567,10 +11571,10 @@ describe("Disabled - Cloud Objects Notification", function() {
         		cloudObject.set('name', 'sample');
         		cloudObject.save({
         			success : function(newObj){
-        				cloudObject = newObj; 
+        				cloudObject = newObj;
         				cloudObject.set('name', 'sample1');
         				cloudObject.save({success : function(newObj){
-  	      				cloudObject = newObj; 
+  	      				cloudObject = newObj;
   	      				cloudObject.delete();
   	      			}
   	      			});
@@ -11659,7 +11663,7 @@ describe("Disabled Cloud Object test", function() {
             }, error : function(error){
                 done(error);
             }
-        });        
+        });
 
     });
 

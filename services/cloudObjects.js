@@ -315,7 +315,15 @@ async function _validateSchema(appId, listOfDocs, accessList, isMasterKey, encry
   const deferred = q.defer();
   try {
     const promises = [];
-    for (let i = 0; i < listOfDocs.length; i++) promises.push(_isSchemaValid(appId, listOfDocs[i]._tableName, listOfDocs[i], accessList, isMasterKey, encryption_key));
+
+    for (let i = 0; i < listOfDocs.length; i++) promises.push(_isSchemaValid(
+      appId,
+      listOfDocs[i]._tableName,
+      listOfDocs[i],
+      accessList,
+      isMasterKey,
+      encryption_key
+    ));
     const docs = await q.all(promises);
     deferred.resolve(docs);
   } catch (err) {

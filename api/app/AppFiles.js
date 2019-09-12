@@ -16,16 +16,17 @@ module.exports = (app) => {
 
     try {
       const file = await MongoAdapter.getFile({
-        client: config.dbc,
+        client: config.mongoClient,
         appId,
         fileName,
       });
+
       if (!file) {
         return res.send();
       }
       // eslint-disable-next-line no-underscore-dangle
       const fileStream = MongoAdapter.getFileStreamById({
-        client: config.dbc,
+        client: config.mongoClient,
         appId,
         fileId: file._id,
       });

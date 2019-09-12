@@ -10,13 +10,13 @@ const crypto = require('crypto');
 const uuid = require('uuid');
 const _ = require('underscore');
 const winston = require('winston');
+const { MongoAdapter } = require('./mongo-adapter');
 
 const util = require('../helpers/util.js');
 const tablesData = require('../helpers/cloudTable');
 const config = require('../config/config');
 
 const mongoUtil = require('../helpers/mongo');
-const mongoService = require('../databases/mongo');
 
 module.exports = {
   /* Desc   : Update Settings
@@ -26,35 +26,34 @@ module.exports = {
                Reject->Error on findOne() or failed to update
     */
   async updateSettings(appId, category, settings) {
-    const deferred = q.defer();
+    const doc = await MongoAdapter.findOne({
+      client: config.mongoClient,
+      appId,
+      collectionName: config.globalSettings,
+      query: {
+        category,
+      },
+      skip: 0,
+      isMasterKey: true,
+    });
 
-    try {
-      const doc = await mongoService.document.findOne(
-        appId, config.globalSettings, {
-          category,
-        },
-        null, null, 0, null, true,
-      );
-      const document = doc || {};
-      if (!doc) {
-        document._id = util.getId();
-        document.category = category;
-      }
-      document.settings = settings;
-      document._tableName = config.globalSettings;
-      const documents = await mongoService.document.save(appId, [{
-        document,
-      }]);
-      deferred.resolve(documents[0].value);
-    } catch (err) {
-      winston.log('error', {
-        error: String(err),
-        stack: new Error().stack,
-      });
-      deferred.reject(err);
+    const document = doc || {};
+
+    if (!doc) {
+      document._id = util.getId();
+      document.category = category;
     }
 
-    return deferred.promise;
+    document.settings = settings;
+    document._tableName = config.globalSettings;
+
+    const documents = await MongoAdapter.save({
+      client: config.mongoClient,
+      appId,
+      documents: [document],
+    });
+
+    return documents[0];
   },
 
   /* Desc   : get Settings
@@ -64,23 +63,17 @@ module.exports = {
                Reject->Error on find
     */
   async getAllSettings(appId) {
-    const deferred = q.defer();
+    const documents = await MongoAdapter.find({
+      client: config.mongoClient,
+      appId,
+      collectionName: config.globalSettings,
+      query: {},
+      limit: 9999,
+      skip: 0,
+      isMasterKey: true,
+    });
 
-    try {
-      // check redis cache first.
-      const documents = await mongoService.document.find(
-        appId, config.globalSettings, {}, null, null,
-        9999, 0, null, true,
-      );
-      deferred.resolve(documents);
-    } catch (err) {
-      winston.log('error', {
-        error: String(err),
-        stack: new Error().stack,
-      });
-      deferred.reject(err);
-    }
-    return deferred.promise;
+    return documents;
   },
 
   async getApp(appId) {
@@ -89,6 +82,7 @@ module.exports = {
     try {
       // check redis cache first.
       const cached = await config.redisClient.get(`${config.cacheAppPrefix}:${appId}`);
+
       if (cached) {
         const response = JSON.parse(cached);
         deferred.resolve(response);

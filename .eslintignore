@@ -4,3 +4,4 @@ sdk/
 page-templates/
 docs/
 gruntfile.js
+**/mongo-adapter/**

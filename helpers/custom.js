@@ -7,7 +7,8 @@
 
 const q = require('q');
 const winston = require('winston');
-const mongoService = require('../databases/mongo');
+const { MongoAdapter } = require('mongo-adapter');
+const config = require('../config/config');
 
 module.exports = {
 
@@ -96,75 +97,83 @@ module.exports = {
     }
   },
 
-  async verifyWriteACLAndUpdateVersion(appId, collectionName, document, accessList, isMasterKey) {
-    const deferred = q.defer();
+  async verifyWriteACLAndUpdateVersion(
+    appId,
+    collectionName,
+    document,
+    accessList,
+    isMasterKey,
+  ) {
+    const [doc] = await MongoAdapter.find({
+      client: config.mongoClient,
+      appId,
+      collectionName,
+      query: {
+        _id: document._id,
+      },
+      accessList,
+      isMasterKey,
+    });
 
-    try {
-      mongoService.document.get(appId, collectionName, document._id, accessList, isMasterKey).then((doc) => {
-        if (doc) {
-          if (document._version > 0) {
-            if (document._version >= doc._version) {
-              document._version += 1;
-            } else {
-              document._version = doc._version + 1;
-            }
-          } else {
-            document._version = doc._version + 1;
-          }
-          const acl = doc.ACL;
-          let status = false; // eslint-disable-line no-unused-vars
-
-          if (isMasterKey) {
-            status = true;
-          } else if (acl.write.allow.user.indexOf('all') > -1) {
-            status = true;
-          } else if (Object.keys(accessList).length === 0) {
-            if (acl.write.allow.user.indexOf('all') > -1) {
-              status = true;
-            } else deferred.reject(false);
-          } else if (accessList.userId && acl.write.allow.user.indexOf(accessList.userId) > -1) {
-            status = true;
-          } else if (accessList.userId && acl.write.deny.user.indexOf(accessList.userId) > -1) deferred.reject(false);
-          else {
-            for (let i = 0; i < accessList.roles.length; i++) {
-              if (acl.write.allow.role.indexOf(accessList.roles[i]) > -1) {
-                status = true;
-              }
-            }
-            deferred.reject(false);
-          }
-
-
-          const storedKeys = Object.keys(doc);
-          const documentKeys = Object.keys(document);
-          for (let i = 0; i < storedKeys.length; i++) {
-            if (documentKeys.indexOf(storedKeys[i]) === -1) {
-              document[storedKeys[i]] = doc[storedKeys[i]];
-            }
-          }
-          const obj = {};
-          obj.newDoc = document;
-          obj.oldDoc = doc;
-          deferred.resolve(obj);
+    if (doc) {
+      if (document._version > 0) {
+        if (document._version >= doc._version) {
+          document._version += 1;
         } else {
-          document._version = 0;
-          const obj = {};
-          obj.newDoc = document;
-          obj.oldDoc = null;
-          deferred.resolve(obj);
+          document._version = doc._version + 1;
         }
-      }, () => {
-        document._version = 0;
-        deferred.reject(false);
-      });
-    } catch (err) {
-      winston.log('error', {
-        error: String(err),
-        stack: new Error().stack,
-      });
-      deferred.reject(err);
-    }
-    return deferred.promise;
-  },
+      } else {
+        document._version = doc._version + 1;
+      }
+      const acl = doc.ACL;
+      let status = false; // eslint-disable-line no-unused-vars
 
+      if (isMasterKey) {
+        status = true;
+      } else if (acl.write.allow.user.indexOf('all') > -1) {
+        status = true;
+      } else if (Object.keys(accessList).length === 0) {
+        if (acl.write.allow.user.indexOf('all') > -1) {
+          status = true;
+        } else {
+          throw false;
+        }
+      } else if (
+        accessList.userId
+        && acl.write.allow.user.indexOf(accessList.userId) > -1) {
+        status = true;
+      } else if (
+        accessList.userId
+        && acl.write.deny.user.indexOf(accessList.userId) > -1) {
+        throw false;
+      } else {
+        for (let i = 0; i < accessList.roles.length; i++) {
+          if (acl.write.allow.role.indexOf(accessList.roles[i]) > -1) {
+            status = true;
+          }
+        }
+        throw false;
+      }
+
+      const storedKeys = Object.keys(doc);
+      const documentKeys = Object.keys(document);
+      for (let i = 0; i < storedKeys.length; i++) {
+        if (documentKeys.indexOf(storedKeys[i]) === -1) {
+          document[storedKeys[i]] = doc[storedKeys[i]];
+        }
+      }
+      const obj = {};
+      obj.newDoc = document;
+      obj.oldDoc = doc;
+
+      return obj;
+    }
+
+    document._version = 0;
+    const obj = {};
+    obj.newDoc = document;
+    obj.oldDoc = null;
+
+    return obj;
+  },
 };
