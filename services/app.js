@@ -15,6 +15,8 @@ const { MongoAdapter } = require('./mongo-adapter');
 const util = require('../helpers/util.js');
 const tablesData = require('../helpers/cloudTable');
 const config = require('../config/config');
+const getMongoConnectionString = require('../config/mongo');
+const { getNestedValue: gnv } = require('../helpers/util');
 
 const mongoUtil = require('../helpers/mongo');
 
@@ -133,41 +135,39 @@ module.exports = {
   },
 
   async createApp(appId) {
-    const deferred = q.defer();
-    try {
-      const collection = config.mongoClient.db(config.globalDb).collection('projects');
-      const projects = await collection.find({
-        appId,
-      }).toArray();
-      if (projects.length > 0) {
-        deferred.reject('AppID already exists');
-      } else {
-        const document = {};
-        document.appId = appId;
-        document.keys = {};
-        document.keys.js = _generateKey();
-        document.keys.master = _generateKey();
-        document.keys.encryption_key = await getKeyAndIV();
+    const collection = config.mongoClient
+      .db(config.globalDb)
+      .collection('projects');
 
-        const project = await collection.insertOne(document);
-        if (project) {
-          // create a mongodb app
-          await mongoUtil.app.create(appId);
-          deferred.resolve(document);
-        } else {
-          deferred.reject('');
-        }
+    const projects = await collection.find({
+      appId,
+    }).toArray();
+
+    if (projects.length > 0) {
+      throw new Error('AppID already exists');
+    } else {
+      const document = {};
+      document.appId = appId;
+      document.keys = {};
+      document.keys.js = _generateKey();
+      document.keys.master = _generateKey();
+      document.keys.encryption_key = await getKeyAndIV();
+
+      const project = await collection.insertOne(document);
+      if (project) {
+        // create a mongodb app
+        const mongoConfig = gnv('loadedConfig.mongo', config);
+        const connectionString = getMongoConnectionString();
+
+        const replSet = MongoAdapter._replSet(mongoConfig, connectionString);
+
+        await MongoAdapter.createDatabase({ appId, replSet });
+
+        return document;
       }
-    } catch (e) {
-      winston.log('error', {
-        error: String(e),
-        stack: new Error().stack,
-      });
 
-      deferred.reject('Cannot create an app right now.');
+      throw new Error();
     }
-
-    return deferred.promise;
   },
 
   async deleteApp(appId, _deleteReason) {
