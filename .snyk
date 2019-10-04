@@ -1,5 +1,5 @@
 # Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
-version: v1.13.1
+version: v1.13.5
 ignore: {}
 # patches apply the minimum changes required to fix a vulnerability
 patch:
@@ -71,3 +71,12 @@ patch:
         patched: '2018-12-04T03:56:58.545Z'
     - phantomjs > request > tunnel-agent:
         patched: '2018-12-04T03:56:58.545Z'
+  SNYK-JS-HTTPSPROXYAGENT-469131:
+    - snyk > proxy-agent > https-proxy-agent:
+        patched: '2019-10-04T04:41:57.756Z'
+    - snyk > proxy-agent > pac-proxy-agent > https-proxy-agent:
+        patched: '2019-10-04T04:41:57.756Z'
+    - nodemailer-mailgun-transport > mailgun-js > proxy-agent > https-proxy-agent:
+        patched: '2019-10-04T04:41:57.756Z'
+    - nodemailer-mailgun-transport > mailgun-js > proxy-agent > pac-proxy-agent > https-proxy-agent:
+        patched: '2019-10-04T04:41:57.756Z'
