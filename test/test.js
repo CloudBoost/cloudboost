@@ -11046,7 +11046,7 @@ describe("Atomicity Tests",function(done){
 
         var obj = new CB.CloudObject('student1');
         obj.set('name','abcdef');
-        obj.save().then(function(res){
+        obj.save().then(function(res) {
             var url = CB.apiUrl + '/db/mongo/Disconnect';
             CB._request('POST',url).then(function(){
                 var id = res.get('id');

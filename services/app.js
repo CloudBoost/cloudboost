@@ -10,7 +10,7 @@ const crypto = require('crypto');
 const uuid = require('uuid');
 const _ = require('underscore');
 const winston = require('winston');
-const { MongoAdapter } = require('./mongo-adapter');
+const { MongoAdapter } = require('mongo-adapter');
 
 const util = require('../helpers/util.js');
 const tablesData = require('../helpers/cloudTable');

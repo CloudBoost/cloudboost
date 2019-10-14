@@ -107,7 +107,7 @@ module.exports = {
     const [doc] = await MongoAdapter.find({
       client: config.mongoClient,
       appId,
-      collectionName,
+      tableName: collectionName,
       query: {
         _id: document._id,
       },
