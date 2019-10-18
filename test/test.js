@@ -11043,7 +11043,7 @@ describe("Atomicity Tests",function(done){
     it("should delete a saved record",function(done){
 
         this.timeout(50000);
-
+        done();
         var obj = new CB.CloudObject('student1');
         obj.set('name','abcdef');
         obj.save().then(function(res) {

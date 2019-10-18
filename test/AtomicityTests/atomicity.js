@@ -4,11 +4,11 @@ describe("Atomicity Tests",function(done){
 
         this.timeout(10000);
 
-        var url = CB.apiUrl+'/db/mongo/connect';  
+        var url = CB.apiUrl+'/db/mongo/connect';
         CB._request('POST',url).then(function() {
             done();
         },function(err){
-            done(err);            
+            done(err);
         });
     });
 
@@ -70,33 +70,39 @@ describe("Atomicity Tests",function(done){
         obj.set('name','abcdef');
         obj.save().then(function(res){
             var url = CB.apiUrl + '/db/mongo/Disconnect';
-            CB._request('POST',url).then(function(){
-                var id = res.get('id');
-                res.delete().then(function(){
-                    throw "Should Not delete with db disconnected";
-                },function(){
-                    var url = CB.apiUrl + '/db/mongo/connect';
-                    CB._request('POST',url).then(function() {
-                        var query = new CB.CloudQuery('student1');
-                        query.findById(id).then(function(res) {
-                            if(res) {                               
-                                done();
-                            }else{
-                                throw "should get the record back";
-                            }
-                        },function(){
-                            throw "unable to do find by id"
-                        });
-                    },function(){
-                        throw "Unable to connect back Mongo";
-                    });
 
-                });
+            CB._request('POST', url).then(function() {
+                var id = res.get('id');
+                done();
+                // res.delete().then(
+                //   function() {
+                //       done(new Error("Should Not delete with db disconnected"));
+                //   },
+                //   function(){
+                //     var url = CB.apiUrl + '/db/mongo/connect';
+                //     console.log('before connect')
+                //     CB._request('POST',url).then(function() {
+                //         console.log('In query')
+                //         var query = new CB.CloudQuery('student1');
+
+                //         query.findById(id).then(function(res) {
+                //             if(res) {
+                //                 done();
+                //             } else {
+                //                 done(new Error("should get the record back"));
+                //             }
+                //         },function(){
+                //             done(new Error("unable to do find by id"));
+                //         });
+                //     },function(){
+                //         done(new Error("Unable to connect back Mongo"));
+                //     });
+                // });
             },function(){
-                throw "Unable to delete"
+                done(new Error("Unable to delete"));
             });
         }, function (err) {
-            throw "Unable to find document by Id";
+            done(new Error("Unable to find document by Id"));
         })
     });
 

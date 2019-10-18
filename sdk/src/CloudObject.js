@@ -540,7 +540,7 @@ CloudObject.deleteAll = function(array, callback) {
 
 CloudObject.pin = function(cloudObjects, callback) {
 
-    
+
 
     if (!cloudObjects)
         throw "cloudObject(s) is required.";
@@ -682,7 +682,7 @@ function _groupObjects(objects) {
 }
 
 CloudObject.sync = function(callback) {
-        
+
     var def;
     if (!callback)
         def = new CB.Promise();
