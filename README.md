@@ -222,36 +222,16 @@ To read more about app settings, check [Click here](https://github.com/CloudBoos
 - Email: [support@cloudboost.io](mailto:support@cloudboost.io)
 - Twitter: [@cloudboostio](https://twitter.com/cloudboostio)
 
-# Tests
-
-Tests are in a seperate repository. You can find them [here.](https://www.github.com/cloudboost/javascriptsdk)  
-
 # Contributing
 
 [Pull requests](https://help.github.com/articles/about-pull-requests/) are very welcome!
 
 We'd love to hear your feedback and suggestions in the [issue tracker](https://github.com/CloudBoost/cloudboost/issues).
 
-# Backers
-
-If you're using CloudBoost Open Source and like what we've built, help us speed development by being a backer. [[Become a backer](https://opencollective.com/cloudboost#backer)]
-
-<a href="https://opencollective.com/cloudboost/backer/0/website" target="_blank"><img src="https://opencollective.com/cloudboost/backer/0/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/backer/1/website" target="_blank"><img src="https://opencollective.com/cloudboost/backer/1/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/backer/2/website" target="_blank"><img src="https://opencollective.com/cloudboost/backer/2/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/backer/3/website" target="_blank"><img src="https://opencollective.com/cloudboost/backer/3/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/backer/4/website" target="_blank"><img src="https://opencollective.com/cloudboost/backer/4/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/backer/5/website" target="_blank"><img src="https://opencollective.com/cloudboost/backer/5/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/backer/6/website" target="_blank"><img src="https://opencollective.com/cloudboost/backer/6/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/backer/7/website" target="_blank"><img src="https://opencollective.com/cloudboost/backer/7/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/backer/8/website" target="_blank"><img src="https://opencollective.com/cloudboost/backer/8/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/backer/9/website" target="_blank"><img src="https://opencollective.com/cloudboost/backer/9/avatar.svg"></a>
-<a href="https://opencollective.com/cloudboost/backer/10/website" target="_blank"><img src="https://opencollective.com/cloudboost/backer/10/avatar.svg"></a>
-
 
 # LICENSE
 
-Copyright 2016 HackerBay Software Private Limited. 
+Copyright 2020 HackerBay, Inc. 
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
