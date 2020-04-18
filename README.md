@@ -78,7 +78,7 @@ Make sure both Redis and MongoDB are running and then run the CloudBoost server
 
 `node server.js`
 
-Once the server is running. You'll see the ClusterKey and SecureKey on the console whcih means you've successfully started CloudBoost. If you don't see any of these keys, please raise a GitHub issue and let us know.
+Once the server is running. You'll see the ClusterKey and SecureKey on the console which means you've successfully started CloudBoost. If you don't see any of these keys, please raise a GitHub issue and let us know.
 
 
 ## Once the server is running, You can
