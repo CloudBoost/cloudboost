@@ -241,6 +241,7 @@ async function _save(appId, collectionName, document, accessList, isMasterKey, r
       const mongoDocs = newListOfDocs.map(doc => Object.assign({}, doc));
 
       promises.push(mongoService.document.save(appId, mongoDocs));
+      
       q.allSettled(promises).then((array) => {
         if (array[0].state === 'fulfilled') {
           _sendNotification(appId, array[0], reqType);
@@ -315,7 +316,15 @@ async function _validateSchema(appId, listOfDocs, accessList, isMasterKey, encry
   const deferred = q.defer();
   try {
     const promises = [];
-    for (let i = 0; i < listOfDocs.length; i++) promises.push(_isSchemaValid(appId, listOfDocs[i]._tableName, listOfDocs[i], accessList, isMasterKey, encryption_key));
+
+    for (let i = 0; i < listOfDocs.length; i++) promises.push(_isSchemaValid(
+      appId,
+      listOfDocs[i]._tableName,
+      listOfDocs[i],
+      accessList,
+      isMasterKey,
+      encryption_key
+    ));
     const docs = await q.all(promises);
     deferred.resolve(docs);
   } catch (err) {
@@ -1205,25 +1214,18 @@ function _recursiveModifyQuery(query, columnNames, type, encryptionKey) {
 }
 
 function _attachSchema(docsArray, oldDocs) {
-  try {
-    for (let i = 0; i < oldDocs.length; i++) {
-      for (let j = 0; j < docsArray.length; j++) {
-        if (oldDocs[i]._id === docsArray[j].document._id) {
-          const obj = {};
-          obj.document = oldDocs[i];
-          obj.schema = docsArray[j].schema;
-          oldDocs[i] = obj;
-        }
+  for (let i = 0; i < oldDocs.length; i++) {
+    for (let j = 0; j < docsArray.length; j++) {
+      if (oldDocs[i]._id === docsArray[j].document._id) {
+        const obj = {};
+        obj.document = oldDocs[i];
+        obj.schema = docsArray[j].schema;
+        oldDocs[i] = obj;
       }
     }
-    return oldDocs;
-  } catch (err) {
-    winston.log('error', {
-      error: String(err),
-      stack: new Error().stack,
-    });
-    return null;
   }
+
+  return oldDocs;
 }
 
 function _rollBack(appId, status, docsArray, oldDocs) {

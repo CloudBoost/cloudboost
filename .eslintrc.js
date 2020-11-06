@@ -16,10 +16,14 @@ module.exports = {
         "no-throw-literal": "off",
         "no-plusplus": "off",
         "no-useless-escape": "off",
-        "max-len": ["error", { "code": 140, "ignoreRegExpLiterals": true }],
+        "max-len": [
+          "error",
+          { "code": 300, "ignoreRegExpLiterals": true }
+        ],
         "semi": [
             "error",
             "always"
-        ]
+        ],
+        "indent": ["error", 2]
     }
 };

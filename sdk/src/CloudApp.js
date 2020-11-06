@@ -1,15 +1,15 @@
 
-import localforage from 'localforage'
-import CB from './CB'
+import localforage from 'localforage';
+import CB from './CB';
 /*
  CloudApp
  */
 class CloudApp {
     constructor() {
         this._isConnected = false;
-
     }
-    init(serverUrl, applicationId, applicationKey, opts) { //static function for initialisation of the app
+
+    init(serverUrl, applicationId, applicationKey, opts) { // static function for initialisation of the app
         if (!applicationKey) {
             applicationKey = applicationId;
             applicationId = serverUrl;
@@ -17,7 +17,7 @@ class CloudApp {
             CB.apiUrl = stripTrailingSlash(serverUrl);
         }
 
-        if (typeof applicationKey === "object") {
+        if (typeof applicationKey === 'object') {
             opts = applicationKey;
             applicationKey = applicationId;
             applicationId = serverUrl;
@@ -29,36 +29,36 @@ class CloudApp {
         if (opts && opts.disableRealtime === true) {
             CB._isRealtimeDisabled = true;
         } else {
-            var socketRelativeUrl = getUrlFromUri(CB.apiUrl)
-            var urlWithoutNamespace = getUrlWithoutNsc(CB.apiUrl, socketRelativeUrl)
+            let socketRelativeUrl = getUrlFromUri(CB.apiUrl);
+            let urlWithoutNamespace = getUrlWithoutNsc(CB.apiUrl, socketRelativeUrl);
             if (CB._isNode) {
                 CB.io = require('IO');
-                CB.Socket = CB.io(urlWithoutNamespace,{
+                CB.Socket = CB.io(urlWithoutNamespace, {
                     jsonp: false,
                     transports: ['websocket'],
-                    path: socketRelativeUrl + '/socket.io'
+                    path: `${socketRelativeUrl  }/socket.io`,
                 });
             } else {
-                CB.io = require('./CloudSocketClientLib.js')
+                CB.io = require('./CloudSocketClientLib.js');
                 CB.Socket = CB.io(urlWithoutNamespace, {
-                    path: socketRelativeUrl + '/socket.io'
+                    path: `${socketRelativeUrl  }/socket.io`,
                 });
             }
         }
         CB.CloudApp._isConnected = true;
         _confirmConnection();
         if (!CB._isRealtimeDisabled) {
-            this.onConnect(function () {
+            this.onConnect(() => {
                 CB.CloudApp._isConnected = true;
                 CB.CloudObject.sync();
             });
-            this.onDisconnect(function () {
+            this.onDisconnect(() => {
                 CB.CloudApp._isConnected = false;
             });
         }
     }
 
-    onConnect(functionToFire) { //static function for initialisation of the app
+    onConnect(functionToFire) { // static function for initialisation of the app
         CB._validate();
         if (!CB.Socket) {
             throw "Socket couldn't be found. Init app first.";
@@ -66,17 +66,16 @@ class CloudApp {
         CB.Socket.on('connect', functionToFire);
     }
 
-    onDisconnect(functionToFire) { //static function for initialisation of the app
+    onDisconnect(functionToFire) { // static function for initialisation of the app
         CB._validate();
 
         if (!CB.Socket) {
             throw "Socket couldn't be found. Init app first.";
         }
         CB.Socket.on('disconnect', functionToFire);
-
     }
 
-    connect() { //static function for initialisation of the app
+    connect() { // static function for initialisation of the app
         CB._validate();
 
         if (!CB.Socket) {
@@ -87,7 +86,7 @@ class CloudApp {
         this._isConnected = true;
     }
 
-    disconnect() { //static function for initialisation of the app
+    disconnect() { // static function for initialisation of the app
         CB._validate();
 
         if (!CB.Socket) {
@@ -101,16 +100,16 @@ class CloudApp {
 
 
 Object.defineProperty(CloudApp.prototype, 'isConnected', {
-    get: function () {
+    get () {
         return this._isConnected;
-    }
+    },
 });
 
 function _confirmConnection(callback) {
-    var URL = CB.apiUrl + '/status';
-    CB._request('GET', URL).then(function (res) {
+    let URL = `${CB.apiUrl  }/status`;
+    CB._request('GET', URL).then((res) => {
         CB.CloudApp._isConnected = true;
-    }, function (err) {
+    }, (err) => {
         CB.CloudApp._isConnected = false;
     });
 }
@@ -125,29 +124,29 @@ function stripTrailingSlash(url) {
 }
 
 function getUrlFromUri(url) {
-    var socketRelativeUrl = url;
+    let socketRelativeUrl = url;
     socketRelativeUrl = socketRelativeUrl.replace('://', '');
     socketRelativeUrl = socketRelativeUrl.split('/');
     // remove null value
-    socketRelativeUrl = socketRelativeUrl.filter(function (x) {
+    socketRelativeUrl = socketRelativeUrl.filter((x) => {
         return x
     });
     if (socketRelativeUrl.length > 1) {
         socketRelativeUrl.splice(0, 1, '');
         url = socketRelativeUrl.join('/');
     } else {
-        url = "";
+        url = '';
     }
     return url;
 }
 
 function getUrlWithoutNsc(uri, url) {
-    if (url == "") {
-        return uri
+    if (url == '') {
+        return uri;
     }
-    return uri.replace(url, '')
+    return uri.replace(url, '');
 }
 
-CB.CloudApp = new CloudApp()
+CB.CloudApp = new CloudApp();
 
-export default CloudApp
+export default CloudApp;

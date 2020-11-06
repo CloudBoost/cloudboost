@@ -22,28 +22,28 @@ function notifyOnSlack(integrationSettings, document, appName) {
   let text; let title; let color; let
     channel;
   switch (event_type) {
-    case 'Login':
-      if (integrationSettings.Login && integrationSettings.Login.notify === true) {
-        title = 'Login';
-        text = `A user just logged in to ${appName} application`;
-        color = '#36a64f';
-        channel = integrationSettings.Login.channel_name;
-      }
-      break;
-    case 'Signup':
-      if (integrationSettings.Signup && integrationSettings.Signup.notify === true) {
-        title = 'Sign Up';
-        text = `A new user just signed up for your ${appName} application`;
-        color = '#5CACEE';
-        channel = integrationSettings.Signup.channel_name;
-      }
-      break;
-    default:
-      if (integrationSettings[event_type] && integrationSettings[event_type].notify === true) {
-        title = event_type;
-        color = '#9932CC';
-        channel = integrationSettings[event_type].channel_name;
-      }
+  case 'Login':
+    if (integrationSettings.Login && integrationSettings.Login.notify === true) {
+      title = 'Login';
+      text = `A user just logged in to ${appName} application`;
+      color = '#36a64f';
+      channel = integrationSettings.Login.channel_name;
+    }
+    break;
+  case 'Signup':
+    if (integrationSettings.Signup && integrationSettings.Signup.notify === true) {
+      title = 'Sign Up';
+      text = `A new user just signed up for your ${appName} application`;
+      color = '#5CACEE';
+      channel = integrationSettings.Signup.channel_name;
+    }
+    break;
+  default:
+    if (integrationSettings[event_type] && integrationSettings[event_type].notify === true) {
+      title = event_type;
+      color = '#9932CC';
+      channel = integrationSettings[event_type].channel_name;
+    }
   }
   if (title) {
     slack.api('chat.postMessage', {
@@ -122,18 +122,18 @@ const integrationService = {
       if (integrationSettings) {
         for (let i = 0; i < integration_api.length; i++) {
           switch (integration_api[i]) {
-            case 'slack':
-              if (collection_name === '_Event' && integrationSettings.slack.enabled) {
-                notifyOnSlack(integrationSettings.slack, document, appName);
-              }
-              break;
-            case 'zapier':
-              if (integrationSettings.zapier.enabled) {
-                notifyOnZapier(integrationSettings.zapier, document, collection_name, table_event, appName);
-              }
-              break;
-            default:
-              break;
+          case 'slack':
+            if (collection_name === '_Event' && integrationSettings.slack.enabled) {
+              notifyOnSlack(integrationSettings.slack, document, appName);
+            }
+            break;
+          case 'zapier':
+            if (integrationSettings.zapier.enabled) {
+              notifyOnZapier(integrationSettings.zapier, document, collection_name, table_event, appName);
+            }
+            break;
+          default:
+            break;
           }
         }
       }

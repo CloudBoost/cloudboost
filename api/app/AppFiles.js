@@ -5,7 +5,8 @@
 */
 
 const winston = require('winston');
-const mongoService = require('../../databases/mongo');
+const { MongoAdapter } = require('mongo-adapter');
+const config = require('../../config/config');
 
 module.exports = (app) => {
   // get file from gridfs
@@ -14,18 +15,29 @@ module.exports = (app) => {
     const fileName = appId;
 
     try {
-      const file = await mongoService.document.getFile(appId, fileName);
+      const file = await MongoAdapter.getFile({
+        client: config.mongoClient,
+        appId,
+        fileName,
+      });
+
       if (!file) {
         return res.send();
       }
       // eslint-disable-next-line no-underscore-dangle
-      const fileStream = mongoService.document.getFileStreamById(appId, file._id);
+      const fileStream = MongoAdapter.getFileStreamById({
+        client: config.mongoClient,
+        appId,
+        fileId: file._id,
+      });
+
       res.set('Content-Type', file.contentType);
       res.setHeader('Cache-Control', 'public, max-age=86400');
       res.set('Content-Disposition', `attachment: filename="${file.filename}`);
 
-      fileStream.on('error', (err) => {
-        res.send(500, `Got error while processing stream ${err.message}`);
+      fileStream.on('error', (error) => {
+        winston.error(error);
+        res.send(500, `Got error while processing stream ${error.message}`);
         res.end();
       });
 
@@ -35,10 +47,7 @@ module.exports = (app) => {
 
       return fileStream.pipe(res);
     } catch (error) {
-      winston.error({
-        error: String(error),
-        stack: new Error().stack,
-      });
+      winston.error(error);
       return res.status(500).send(error);
     }
   });

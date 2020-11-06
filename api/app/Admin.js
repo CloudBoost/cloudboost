@@ -18,10 +18,7 @@ module.exports = (app) => {
         const response = await appService.changeAppClientKey(appId, value);
         return res.status(200).json(response);
       } catch (error) {
-        winston.error({
-          error: String(error),
-          stack: new Error().stack,
-        });
+        winston.error(error);
         return res.status(500).send('Error');
       }
     } else {
@@ -39,10 +36,7 @@ module.exports = (app) => {
         const responseJson = await appService.changeAppMasterKey(appId, value);
         return res.status(200).json(responseJson);
       } catch (error) {
-        winston.error({
-          error: String(error),
-          stack: new Error().stack,
-        });
+        winston.error(error);
         return res.status(500).send('Error');
       }
     } else {
@@ -67,10 +61,7 @@ module.exports = (app) => {
           user: userData,
         });
       } catch (error) {
-        winston.error({
-          error: String(error),
-          stack: new Error().stack,
-        });
+        winston.error(error);
         return res.status(500).send('Error');
       }
     } else {

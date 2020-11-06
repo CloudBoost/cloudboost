@@ -31,6 +31,7 @@ const getTable = async (req, res) => {
         status: 'Unauthorized',
       });
     } catch (error) {
+      winston.error(error);
       return res.status(500).send({
         status: 'Server Error',
         message: error,
@@ -47,10 +48,7 @@ const getTable = async (req, res) => {
         status: 'Unauthorized',
       });
     } catch (error) {
-      winston.error({
-        error: String(error),
-        stack: new Error().stack,
-      });
+      winston.error(error);
       return res.status(500).send('Error');
     }
   }
@@ -71,6 +69,7 @@ const deleteApp = async (req, res) => { // delete the app and all of its data.
         deletedApp,
       });
     } catch (error) {
+      winston.error(error);
       return res.status(500).send({
         status: 'Error',
         error,
@@ -99,7 +98,8 @@ const deleteTable = async (req, res) => { // delete the app and all of its data.
     return res.status(401).send({
       status: 'Unauthorized',
     });
-  } catch (e) {
+  } catch (error) {
+    winston.error(error);
     return res.status(500).send('Cannot delete table.');
   }
 };
@@ -129,6 +129,7 @@ module.exports = (app) => {
       }
       return res.status(401).send('Invalid access keys provided');
     } catch (error) {
+      winston.error(error);
       return res.status(401).send('Invalid keys');
     }
   });
@@ -147,10 +148,7 @@ module.exports = (app) => {
       }
       return res.status(401).send('Unauthorized');
     } catch (error) {
-      winston.error({
-        error: String(error),
-        stack: new Error().stack,
-      });
+      winston.error(error);
       return res.status(500).json({
         error,
       });
@@ -205,6 +203,7 @@ module.exports = (app) => {
         status: 'Unauthorized',
       });
     } catch (error) {
+      winston.error(error);
       return res.status(500).send(error);
     }
   });
@@ -232,10 +231,7 @@ module.exports = (app) => {
         });
       }
     } catch (error) {
-      winston.error({
-        error: String(error),
-        stack: new Error().stack,
-      });
+      winston.error(error);
       res.status(500).send('Error');
     }
   });
@@ -267,10 +263,7 @@ module.exports = (app) => {
         status: 'Unauthorized',
       });
     } catch (error) {
-      winston.error({
-        error: String(error),
-        stack: new Error().stack,
-      });
+      winston.error(error);
       return res.status(500).send('Cannot retrieve security keys.');
     }
   });
@@ -302,10 +295,7 @@ module.exports = (app) => {
       }
       return res.status(200).send(data);
     } catch (error) {
-      winston.error({
-        error: String(error),
-        stack: new Error().stack,
-      });
+      winston.error(error);
       return res.status(500).send('Cannot retrieve security keys.');
     }
   });
@@ -342,10 +332,7 @@ module.exports = (app) => {
       const result = await otherService.importTable(req, isMasterKey);
       return res.status(200).json(result);
     } catch (error) {
-      winston.error({
-        error: String(error),
-        stack: new Error().stack,
-      });
+      winston.error(error);
       return res.status(500).send(error);
     }
   });

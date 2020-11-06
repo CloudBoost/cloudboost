@@ -1,17 +1,15 @@
 /*
-#     CloudBoost - Core Engine that powers Bakend as a Service
-#     (c) 2014 HackerBay, Inc.
+#     CloudBoost - Core Engine that powers Backend as a Service
+#     (c) 2019 HackerBay, Inc.
 #     CloudBoost may be freely distributed under the Apache 2 License
 */
-
-const q = require('q');
 const winston = require('winston');
 const { Readable } = require('stream');
+const { MongoAdapter } = require('mongo-adapter');
 const customHelper = require('../../helpers/custom.js');
 
 const apiTracker = require('../../database-connect/apiTracker');
 const config = require('../../config/config');
-const mongoService = require('../../databases/mongo');
 const customService = require('../../services/cloudObjects');
 const appService = require('../../services/app');
 const fileService = require('../../services/cloudFiles');
@@ -23,9 +21,7 @@ const fileService = require('../../services/cloudFiles');
            Resolve->JSON{filestream,contentType,cloudBoostFileObj}
            Reject->
 */
-const getFileStream = (req) => {
-  const deferred = q.defer();
-
+const getFileStream = async (req) => {
   const resObj = {
     fileStream: null,
     fileObj: null,
@@ -44,8 +40,10 @@ const getFileStream = (req) => {
     resObj.contentType = req.body.fileObj.contentType;
     resObj.fileObj = req.body.fileObj;
 
-    deferred.resolve(resObj);
-  } else if (req.files.file) {
+    return resObj;
+  }
+
+  if (req.files.file) {
     readableStream.push(req.files.file.data);
     readableStream.push(null);
 
@@ -56,30 +54,32 @@ const getFileStream = (req) => {
       resObj.fileObj = JSON.parse(req.body.fileObj);
     }
 
-    deferred.resolve(resObj);
-  } else {
-    readableStream.push(req.files.fileToUpload.data);
-    readableStream.push(null);
-
-    // Setting response
-    resObj.fileStream = readableStream;
-    resObj.contentType = req.files.fileToUpload.mimetype;
-    resObj.fileObj = JSON.parse(req.body.fileObj);
-
-    deferred.resolve(resObj);
+    return resObj;
   }
 
-  return deferred.promise;
+  readableStream.push(req.files.fileToUpload.data);
+  readableStream.push(null);
+
+  // Setting response
+  resObj.fileStream = readableStream;
+  resObj.contentType = req.files.fileToUpload.mimetype;
+  resObj.fileObj = JSON.parse(req.body.fileObj);
+
+  return resObj;
 };
 
 const deleteFile = async (req, res) => {
   const { appId } = req.params;
   const { fileObj, key: appKey, sdk = 'REST' } = req.body;
+
   config.fileUrl = `${config.hostUrl}/file/`;
+
   try {
     const isMasterKey = await appService.isMasterKey(appId, appKey);
     await fileService.delete(appId, fileObj, customHelper.getAccessList(req), isMasterKey);
+
     apiTracker.log(appId, 'File / Delete', req.url, sdk);
+
     res.status(200).send(null);
   } catch (error) {
     winston.error({
@@ -112,11 +112,13 @@ const getFile = async (req, res) => {
   if (!fileId) {
     return res.status(400).send('File ID is Required');
   }
+
   try {
     const isMasterKey = await appService.isMasterKey(appId, appKey);
     const file = await fileService.getFile(
       appId, fileId, customHelper.getAccessList(req), isMasterKey,
     );
+
     apiTracker.log(appId, 'File / Get', req.url, sdk);
     if (typeof resizeWidth === 'undefined'
         && typeof resizeHeight === 'undefined'
@@ -128,7 +130,11 @@ const getFile = async (req, res) => {
         && typeof rDegs === 'undefined'
         && typeof bSigma === 'undefined') {
       // eslint-disable-next-line
-      const fileStream = mongoService.document.getFileStreamById(appId, file._id);
+      const fileStream = MongoAdapter.getFileStreamById({
+        client: config.mongoClient,
+        appId,
+        fileId: file._id,
+      });
 
       res.set('Content-Type', file.contentType);
       res.set('Content-Disposition', `inline; filename="${file.filename}"`);
@@ -145,15 +151,29 @@ const getFile = async (req, res) => {
       return fileStream.pipe(res);
     }
     const processedFile = await fileService.processImage(
-      appId, file, resizeWidth, resizeHeight, cropX, cropY,
-      cropW, cropH, quality, opacity, scale, containWidth, containHeight, rDegs, bSigma,
+      appId,
+      file,
+      resizeWidth,
+      resizeHeight,
+      cropX,
+      cropY,
+      cropW,
+      cropH,
+      quality,
+      opacity,
+      scale,
+      containWidth,
+      containHeight,
+      rDegs,
+      bSigma,
     );
     return res.status(200).send(processedFile);
   } catch (error) {
     winston.error({
       error: String(error),
-      stack: new Error().stack,
+      stack: error.stack,
     });
+
     return res.status(500).send(error);
   }
 };
@@ -173,12 +193,19 @@ module.exports = (app) => {
       apiTracker.log(appId, 'File / Save', req.url, sdk);
       try {
         const isMasterKey = await appService.isMasterKey(appId, appKey);
-        const result = await customService.save(appId, '_File', document, customHelper.getAccessList(req), isMasterKey);
+        const result = await customService.save(
+          appId,
+          '_File',
+          document,
+          customHelper.getAccessList(req),
+          isMasterKey,
+        );
+
         res.status(200).send(result);
       } catch (error) {
         winston.error({
           error: String(error),
-          stack: new Error().stack,
+          stack: error.stack,
         });
         res.status(400).send(error);
       }
@@ -196,7 +223,7 @@ module.exports = (app) => {
       } catch (error) {
         winston.error({
           error: String(error),
-          stack: new Error().stack,
+          stack: error.stack,
         });
         res.status(500).send(error);
       }

@@ -68,7 +68,7 @@ module.exports = {
         if (doc.secureKey && doc.clusterKey && doc.myURL) {
           deferred.resolve(doc);
         } else {
-        // Update the found configuration.
+          // Update the found configuration.
           await _saveSettings({ collection, doc });
           const newDoc = await this.getSettingsVariables(dbc);
           deferred.resolve(newDoc);
