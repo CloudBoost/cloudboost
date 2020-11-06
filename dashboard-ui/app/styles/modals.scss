@@ -1,0 +1,936 @@
+.exit-app-modal-icon-style {
+  border-radius: 50%;
+  background: #f15558;
+  font-size: 25px;
+  width: 45px;
+  padding: 7px;
+  content: url("/dashboard/public/assets/images/exit-app.png");
+}
+
+.delete-modal-icon-style {
+  border-radius: 50%;
+  background: #f15558;
+  font-size: 25px;
+  width: 45px;
+  padding: 7px;
+  content: url("/dashboard/public/assets/images/trash.png");
+}
+
+.modal-lg {
+  min-width: 850px !important;
+}
+
+%modal-common {
+  .modal-header {
+    padding-top: 10px;
+    background-color: #fff;
+    color: #fff;
+    height: 64px;
+    border: none;
+    border-bottom: 1px solid #e5e5e5;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+
+    .modal-title {
+      font-weight: normal;
+      font-size: 20px;
+      //float: left;
+    }
+  }
+
+  .modal-footer {
+    background-color: #FBFBFB;
+    border-top: 1px solid #d6d6d6;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+  }
+
+  .modal-body button.close,
+  .modal-footer button.close,
+  .modal-header button.close {
+    font-size: 40px;
+    font-weight: 200;
+    color: white;
+    border: none;
+    border-top: 1px solid #d6d6d6;
+  }
+
+  .modal-body {
+    background-color: white;
+
+    .tab-content {
+      background: #f6f7f8;
+      border-bottom-left-radius: 4px;
+      border-bottom-right-radius: 4px;
+    }
+  }
+
+  .roleselectdevdisabled {
+    height: 27px !important;
+    padding: 0 12px !important;
+    background-color: #e5e5e5 !important;
+    cursor: no-drop;
+  }
+
+  body .modal-backdrop {
+    background-color: #0f1e37;
+  }
+
+  body .modal-backdrop.in {
+    background-color: #0f1e37;
+    opacity: 0.5;
+  }
+
+  .btn {
+    font-size: 14px !important;
+    padding: 6px 24px !important;
+    letter-spacing: 0.02em !important;
+  }
+}
+
+//TODO: add classes to JSX so that this css can pe put into modal hierarchy
+.modal-icon {
+  float: right;
+  border-radius: 50%;
+  font-size: 25px;
+  width: 45px;
+}
+
+.delete-modal-header-style {
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+  font-family: "Signika";
+  color: #585858;
+  padding-top: 10px;
+  height: 64px;
+}
+
+.key-modal-icon-style {
+  margin-top: 0;
+  background: #2c5f9a;
+  padding: 7px;
+  content: url("/dashboard/public/assets/images/key-icon.png");
+}
+
+.modal-title-inner-text {
+  font-size: 14px;
+  font-weight: 400;
+  color: #777e8a;
+  font-family: Signika;
+}
+
+.delete-modal-body {
+  text-align: center;
+  padding: 0;
+  font-family: "Signika";
+  color: #585858;
+  font-size: large;
+}
+
+.jsonmodal {
+  height: 120px !important;
+  border: 1px solid #cec9c9;
+  resize: none;
+  border-radius: 4px;
+}
+
+.filtericonmodalaud {
+  visibility: visible;
+  position: absolute !important;
+  top: 0;
+  right: 0;
+}
+
+.loadermodal {
+  visibility: visible;
+  position: fixed !important;
+  margin-left: 25%;
+  margin-top: 18%;
+}
+
+.modal-header-style {
+  color: white;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+  font-family: "Signika";
+}
+
+.modal-title-style {
+  vertical-align: middle;
+  font-size: 20px;
+  color: #585858;
+}
+
+/*TODO: this icon style is applied for icons used from https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css
+which is same as old dashboard(NOT copied by Jignesh), same icons are not available in font awesome but are in material design,
+please replace it with material design icons as ideally we aren't supposed to call ionic site URL
+*/
+.modal-icon-style {
+  border-radius: 50%;
+  background: #2c5f9a;
+  font-size: 25px;
+  width: 45px;
+  height: 45px;
+  padding: 10px;
+}
+
+.modal-dialog {
+  margin-top: 12%;
+  font-family: "Signika";
+}
+
+.modal-reduce-margin-top {
+  margin-top: 5%;
+}
+
+.custom-modal {
+  .modal-body {
+    padding: 10px 40px 40px;
+  }
+  @extend %modal-common;
+}
+
+.select-audience-modal {
+  .modal-body {
+    padding: 0;
+
+    .audcontdivs {
+      width: 100%;
+      background-color: white;
+      height: 100px;
+      box-sizing: border-box;
+    }
+
+    .secondcontentdivselaud {
+      position: relative;
+      background-color: white;
+      width: 70%;
+      height: 100px;
+      float: left;
+      padding: 15px;
+    }
+
+    .os-div {
+      border-top: 1px solid #d6d6d6;
+    }
+
+    .inptchannelbtn {
+      height: 30px !important;
+      width: 48% !important;
+      border: 1px solid #e2e0e0;
+      border-radius: 4px !important;
+      float: left;
+      margin-left: 1%;
+      background-color: rgb(235, 236, 237);
+    }
+
+    .inptchannel {
+      height: 30px !important;
+      width: 50% !important;
+      border: 1px solid #e2e0e0;
+      border-radius: 4px !important;
+      float: left;
+      margin-left: 2px;
+    }
+
+    .oschip {
+      visibility: visible;
+      float: left;
+      margin-left: 6px !important;
+      margin-top: 3px !important;
+      height: 30px;
+
+      span {
+        padding-left: 15px;
+        padding-right: 15px;
+      }
+    }
+
+    .oschipdiv {
+      width: 80%;
+    }
+  }
+}
+
+//start: for select audience modal
+.osPop {
+  width: 177px;
+  background-color: white;
+  overflow-y: hidden;
+  overflow-x: hidden;
+}
+
+.filterrowplane {
+  float: left;
+  width: 100%;
+  padding-top: 6px;
+}
+
+.tailnamefilter {
+  float: left;
+  width: 175px;
+  height: 24px;
+  background-color: #fff;
+  padding: 2px 20px 0;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #f3f5f8;
+  }
+}
+
+//stop : for select audience modal
+
+.developers-modal {
+  @extend %modal-common;
+
+  .modal-title {
+    float: none !important;
+  }
+
+  .modal-body {
+    padding: 0;
+    border-bottom-right-radius: 4px;
+    border-bottom-left-radius: 4px;
+
+    .tab-content {
+      padding: 15px;
+      font-size: 14px;
+      color: #585858;
+
+      .btn {
+        margin-top: 5px;
+        float: right;
+      }
+
+      .table {
+        margin-bottom: 0;
+        th {
+          border-bottom: 1px;
+        }
+      }
+
+      button[disabled] {
+        height: 37px;
+        padding: 0 !important;
+        width: 100px;
+      }
+
+      .input-group {
+        margin: 10px 0 3px;
+
+        input[disabled] {
+          color: grey;
+          background-color: #fefefe;
+          height: 34px;
+        }
+
+        input {
+          height: 40px;
+        }
+
+        .input-group-addon {
+          color: rgb(158, 158, 158);
+        }
+
+        .input-group-addon:hover {
+          cursor: pointer;
+        }
+      }
+
+      td {
+        align: center;
+      }
+    }
+  }
+}
+
+.payment-modal {
+  @extend %modal-common;
+
+  .modal-content {
+    width: 90%;
+    border-radius: 4px;
+    margin: 5%;
+
+    .form-control,
+    input,
+    select {
+      display: block;
+      width: 100%;
+      height: 48px;
+      padding: 6px 12px;
+      font-size: 14px;
+      line-height: 1.42857;
+      color: #555555;
+      background-color: #fff;
+      background-image: none;
+      border-radius: 4px;
+    }
+
+    input:focus,
+    select:focus {
+      box-shadow: none;
+    }
+
+    .modal-body {
+      padding: 0;
+      border-radius: 4px;
+
+      .payment {
+        display: flex;
+        min-height: 355px;
+        position: relative;
+        border-radius: 4px;
+
+        .cards {
+          flex: 3;
+          background-color: #f6f7f8;
+          position: relative;
+          border-bottom-left-radius: 4px;
+          border-top-left-radius: 4px;
+
+          .cardimage {
+            height: 50px;
+            width: 50px;
+            flex: 1;
+          }
+
+          .cardDiv {
+            height: 166px !important;
+            overflow-y: auto;
+            margin: auto;
+            padding-top: 13px;
+          }
+
+          .cardnotfound {
+            font-size: 80px;
+            margin-top: -10px;
+            color: #a0a0a0;
+          }
+
+          .addacardmessage {
+            color: #a0a0a0;
+            margin-top: 12px;
+          }
+        }
+
+        .plans {
+          flex: 2;
+
+          .planname {
+            width: 100%;
+            height: 89px;
+            background-color: white;
+            padding: 17px 25px;
+            cursor: pointer;
+            margin-top: 15px;
+            color: #71767C;
+
+            .type {
+              font-size: 19px;
+              display: block;
+            }
+
+            .value {
+              font-size: 14px;
+            }
+
+            .arrow {
+              float: right;
+              color: #71767C;
+              font-size: 29px;
+              margin-top: -26px;
+              margin-right: 15px;
+            }
+          }
+
+          .divlabel {
+            clear: both;
+            padding: 5px;
+            height: 30px;
+            width: 100%;
+            background-color: #f8f9fb;
+            padding-left: 11px;
+            font-size: 14px;
+            color: #9AA7BA;
+            font-weight: bold;
+          }
+
+          .divdetail {
+            width: 100%;
+            clear: both;
+
+            .type {
+              visibility: visible;
+              width: 50%;
+              float: left;
+              padding-left: 20px;
+              color: #626c7b;
+              font-size: 12px;
+              padding-top: 5px;
+              padding-bottom: 5px;
+            }
+
+            .value {
+              width: 50%;
+              float: left;
+              padding-left: 20px;
+              color: #4d4d4d;
+              font-size: 13px;
+              font-weight: 500;
+              padding-top: 4px;
+
+              .dots {
+                position: absolute;
+                font-size: 10px;
+                margin-top: -10px;
+              }
+
+            }
+            .disabled {
+              color: #c4c4c4 !important;
+            }
+          }
+
+        }
+
+        input.field.cardnumber {
+          background-position: right !important;
+          background-repeat: no-repeat !important;
+          background-size: contain !important;
+          background-origin: content-box !important;
+        }
+
+        //TODO: not sure if the class is needed, remove it if not being used
+        .cardadded {
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+          background-color: white;
+          width: 90%;
+          margin-left: 5%;
+          display: flex;
+          margin-bottom: 5px;
+          cursor: pointer;
+          border-radius: 5px;
+
+          .cardimage {
+            flex: 1;
+            padding: 5px;
+            width: 50px;
+            height:50px;
+            max-height: 50px;
+            max-width: 50px;
+          }
+
+          .cardnumber {
+            flex: 3;
+            padding: 13px;
+          }
+
+          .cardname {
+            flex: 3;
+            padding: 13px;
+          }
+
+          .cardcvv {
+            flex: 1;
+            margin-right: 3px;
+            height: 40px;
+            margin-top: 5px;
+            border: 1px solid #c1c1c1;
+          }
+
+          .cardcvv:focus {
+            outline: none;
+          }
+        }
+
+        .buttons {
+          position: absolute;
+          bottom: 0;
+          width: 100%;
+          padding: 21px 0;
+
+          .purchase {
+            height: 41px;
+            width: 48%;
+            border-radius: 2px;
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+            border: none;
+            margin-left: 7%;
+          }
+
+          .downgrade {
+            height: 41px;
+            width: 48%;
+            border-radius: 2px;
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+            border: none;
+            margin-left: 7%;
+          }
+
+          .beacon {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background-color: #3968AD;
+            height: 0.9em;
+            width: 0.9em;
+            border-radius: 50%;
+            -webkit-transform: translateX(-50%) translateY(-50%);
+          }
+          .beacon:before {
+            position: absolute;
+            content: "";
+            height: 0.9em;
+            width: 0.9em;
+            left: 0;
+            top: 0;
+            background-color: transparent;
+            border-radius: 50%;
+            box-shadow: 0px 0px 2px 2px #7596C6;
+            -webkit-animation: active 2s infinite linear;
+            animation: active 2s infinite linear;
+          }
+
+          @-webkit-keyframes active {
+            0% {
+              -webkit-transform: scale(.1);
+              opacity: 1;
+            }
+            70% {
+              -webkit-transform: scale(2.5);
+              opacity: 0;
+            }
+            100% {
+              opacity: 0;
+            }
+          }
+
+          @keyframes active {
+            0% {
+              transform: scale(.1);
+              opacity: 1;
+            }
+            70% {
+              transform: scale(2.5);
+              opacity: 0;
+            }
+            100% {
+              opacity: 0;
+            }
+          }
+
+          .oschip {
+            visibility: visible;
+            float: left;
+            margin-left: 6px !important;
+            margin-top: 3px !important;
+            height: 30px;
+          }
+
+          .addcard {
+            height: 41px;
+            width: 27%;
+            border-radius: 2px;
+            background-color: #a0a0a0;
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+            border: none;
+            margin-left: 40px;
+          }
+        }
+
+        .heading {
+          width: 100%;
+          padding: 10px 10px 10px 0;
+          margin-left: 7%;
+          text-align: left;
+
+          .main {
+            color: #71767C;
+            font-size: 20px;
+            display: block;
+
+            .card-icon {
+              font-size: 35px;
+              float: right;
+              margin-right: 8%;
+              margin-top: -3px;
+            }
+          }
+
+          .sub {
+            font-size: 12px;
+            color: #555;
+          }
+        }
+
+        .fields {
+          width: 85%;
+          display: flex;
+          background-color: white;
+          margin-left: 7%;
+          margin-bottom: 21px;
+
+          .field {
+            flex: 5;
+            border: 1px solid #f6f7f8;
+            padding: 5px;
+          }
+
+          .labels {
+            flex: 1;
+            padding-top: 14px;
+            text-align: center;
+            color: #adadad;
+          }
+        }
+
+        .fieldssmall {
+          width: 39% !important;
+          display: flex;
+          background-color: white;
+          margin-left: 7%;
+          float: left;
+          margin-bottom: 21px;
+
+          .field {
+            flex: 5;
+            border: none;
+            padding: 5px;
+          }
+
+          .labels {
+            flex: 8;
+            padding-top: 14px;
+            text-align: center;
+            color: #adadad;
+          }
+        }
+
+        .field:focus {
+          border: 1px solid #4A8BFA;
+          box-shadow: 0 1px 5px rgba(0, 0, 0, 0.08);
+        }
+
+        .selectedcard {
+          border: 1px solid #bbbbbb;
+          background-color: #f8f8f8;
+          transform: scale(1.01, 1.05);
+        }
+
+        .billing {
+          padding-top: 15px;
+          height: 357px;
+
+          .fields {
+            .labels {
+              flex: 2;
+            }
+          }
+
+          .fieldssmall {
+            .labels {
+              flex: 3;
+            }
+          }
+
+          .country {
+            .labels {
+              flex: 5;
+            }
+          }
+        }
+
+      }
+    }
+  }
+}
+
+.plandetailsdropdown {
+
+  &::before {
+    position: absolute;
+    top: -7px;
+    right: 5px;
+    display: inline-block;
+    border-right: 6px solid transparent;
+    border-bottom: 7px solid #ccc;
+    border-left: 6px solid transparent;
+    border-bottom-color: rgba(0, 0, 0, 0.2);
+    content: '';
+  }
+
+  &::after {
+    position: absolute;
+    top: -6px;
+    right: 5px;
+    display: inline-block;
+    border-right: 6px solid transparent;
+    border-bottom: 6px solid #ffffff;
+    border-left: 6px solid transparent;
+    content: '';
+  }
+
+  .plannamepop {
+    width: 200px;
+    height: 48px;
+    background-color: #fff;
+    padding: 2px 20px 0px 20px;
+    cursor: pointer;
+    margin-bottom: 10px;
+
+    .type {
+      font-size: 16px;
+      display: block;
+    }
+
+    .value {
+      font-size: 12px;
+    }
+
+    .arrow {
+      float: right;
+      color: #71767C;
+      font-size: 35px;
+      margin-top: -26px;
+      margin-right: 15px;
+    }
+  }
+
+  .planDisabled{
+    text-decoration: line-through;
+  }
+
+  .plannamepop:hover {
+    background-color: #f3f5f8;
+  }
+}
+
+.modal-content {
+  border: none;
+}
+
+.small-height-modal {
+  .modal-body {
+    padding: 5px 15px;
+  }
+  .modal-footer {
+    padding: 0 15px 15px 15px;
+    border-top: none;
+  }
+}
+
+#createApp {
+  width: 60%;
+  text-align: center;
+  padding: 15px 0;
+  border: none;
+  display: block;
+  font-family: "Signika";
+  margin: auto;
+  font-size: 18px;
+}
+
+#createApp:focus {
+  outline: none;
+  border: none;
+}
+
+/* do not group these rules */
+#createApp::-webkit-input-placeholder {
+  color: #CCC;
+}
+
+#createApp:-moz-placeholder {
+  /* FF 4-18 */
+  color: #CCC;
+}
+
+#createApp::-moz-placeholder {
+  /* FF 19+ */
+  color: #CCC;
+}
+
+#createApp:-ms-input-placeholder {
+  /* IE 10+ */
+  color: #CCC;
+}
+
+.aclrow {
+  width: 100%;
+  float: left;
+  height: 45px;
+  border-bottom: 1px solid #CCC;
+  padding: 10px;
+  background-color: #F9F9F9;
+}
+
+.logoaclrow {
+  margin-top: 3px;
+  float: left;
+}
+
+.textaclrow {
+  float: left;
+  margin-left: 10px;
+}
+
+.aclrowcheckbox {
+  float: right;
+  width: 40px !important;
+}
+
+.readwitetext {
+  float: right;
+  margin-left: 0;
+  margin-right:10px;
+}
+
+.cancelaclrow {
+  float: right;
+  font-size: 20px !important;
+  margin-top: 1px;
+  margin-left: 9%;
+  cursor: pointer;
+  margin-right: 7px;
+}
+
+.selectautoacl {
+  /* text-align: center; */
+  float: left;
+  /* margin-left: 64%; */
+  width: 150% !important;
+}
+
+.aclrowpublic {
+  width: 100%;
+  float: left;
+  height: 45px;
+  font-size: 14px;
+
+  input[type='checkbox'] {
+    height:14px;
+    display: inline-block;
+  }
+}
+
+.addMessageModal{
+
+  .control-label{
+    font-size: 14px;
+    color: #585858;
+  }
+}
+
+.select-plan-header {
+    background: #eee;
+    border-radius: 2px;
+    padding: 15px;
+}

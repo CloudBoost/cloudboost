@@ -1,0 +1,247 @@
+/*method{
+  font-family: "Times New Roman", Times, serif;
+}*/
+.hidden {
+    visibility: hidden;
+}
+
+a:active, a:focus {
+    text-decoration: none;
+    color: #6a9ff8;
+}
+
+a, a:hover {
+    color: #adb5c2;
+    text-decoration: none;
+}
+
+.drawer {
+    right: 0;
+    position: absolute;
+    overflow: hidden;
+    width: 40% !important;
+    z-index: 13000;
+}
+
+.drawerSelector {
+    overflow-y: auto;
+}
+
+.drawerSelector > div:first-child {
+    margin-bottom: 60px !important;
+    overflow-x: hidden !important;
+}
+
+.morebtn {
+    margin-left: -15px !important;
+    color: #1283da;
+    font-weight: bold;
+    cursor: pointer;
+    float: left;
+}
+
+.buttn {
+    margin-top: -35px !important;
+}
+
+.butn {
+    margin-top: 10px;
+}
+
+p {
+    font-size: 14px;
+    letter-spacing: 0;
+    margin: 0 0 16px;
+}
+
+.method-list h6, .method-list p {
+    font-weight: 400;
+    line-height: 24px;
+    font-family: Roboto, Helvetica, Arial, sans-serif;
+    margin: 24px 0px 16px !important;
+}
+
+.method-list h6 {
+    font-size: 16px;
+    letter-spacing: .04em;
+}
+
+.method-description div.method-list dl:after {
+    clear: both;
+    content: "";
+    display: block;
+    font-size: 0;
+    height: 0;
+    visibility: hidden;
+}
+
+.method-description div.method-list dl dt {
+    float: left;
+    font-weight: bold;
+    margin-right: -165px;
+    padding-top: 16px;
+    position: relative;
+    text-align: right;
+    word-break: hyphenate;
+    word-wrap: break-word;
+    width: 165px;
+    z-index: 50;
+}
+
+.method-description div.method-list dl dt span {
+    font-weight: bold !important;
+}
+
+.method-description div.method-list dl dt:after {
+    content: ":";
+}
+
+.method-description div.method-list dl dd {
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    float: left;
+    font-weight: bold;
+    padding: 16px 0 0 175px;
+    position: relative;
+    width: 100%;
+    z-index: 25;
+}
+
+.method-description div.method-list dl dd:before {
+    clear: both;
+    content: "";
+    display: block;
+    font-size: 0;
+    height: 0;
+    visibility: hidden;
+}
+
+.method-description div.method-list dl dd.expandable:after {
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    -ms-border-radius: 4px;
+    -o-border-radius: 4px;
+    border-radius: 4px;
+    background: #e9edf2;
+    content: "expandable";
+    display: inline-block;
+    font-size: 11px;
+    line-height: 1.4em;
+    margin-left: 4px;
+    padding: 0 5px;
+}
+
+.method-description div.method-list dl dd p, .method-description div.method-list dl dd span, .method-description div.method-list dl dd em {
+    font-weight: normal;
+    padding: 0;
+}
+
+.method-description div.method-list dl dd span:not(.lang) {
+    display: block;
+    padding-top: 2px;
+}
+
+.method-description div.method-list dl dd em {
+    font-style: italic;
+}
+
+.method-description div.method-list dl dd .method-list {
+    border-bottom: 0;
+    margin-bottom: 0;
+    font-size: 12px;
+    padding: 10px 0 0;
+}
+
+.method-description div.method-list dl dd .method-list dl {
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    -ms-border-radius: 4px;
+    -o-border-radius: 4px;
+    border-radius: 4px;
+    border: 1px solid #eee;
+    margin-left: -175px;
+    padding: 2px 15px 12px;
+    position: relative;
+}
+
+.method-description div.method-list dl dd .method-list dl:before {
+    display: block;
+    height: 0;
+    width: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-bottom: 5px solid #eee;
+    content: "";
+    left: 175px;
+    margin-left: -5px;
+    position: absolute;
+    top: -6px;
+}
+
+.method-description div.method-list dl dd .method-list dl .show-parameters {
+    color: #444;
+    display: none;
+    font-size: 12px;
+    font-weight: bold;
+    padding-left: 175px;
+}
+
+.method-description div.method-list dl dd .method-list dl:hover .show-parameters {
+    color: #111;
+    text-decoration: underline;
+}
+
+.method-description div.method-list dl dd .method-list dl dt {
+    margin-right: -133px;
+    width: 133px;
+}
+
+.method-description div.method-list.event-types dl dd {
+    padding-left: 240px;
+}
+
+pre .code-yellow {
+    color: #d8ce72 !important;
+    font-family: Monaco, Consolas, "Lucida Console", monospace;
+}
+
+pre .code-blue {
+    color: #236B8E !important;
+    font-family: Monaco, Consolas, "Lucida Console", monospace;
+}
+
+pre .code-red {
+    color: #f92672 !important;
+    font-family: Monaco, Consolas, "Lucida Console", monospace;
+}
+
+.method-example pre {
+    border: 0px !important;
+    background-color: #272727 !important;
+    color: #a5b7d0 !important;
+    font-size: 13px !important;
+    overflow: hidden !important;
+    padding: 9.5px !important;
+    margin-bottom: 10px !important;
+}
+
+.method-description p:first-child {
+    font-size: 17px;
+    margin-top: 37px !important;
+}
+
+.flag {
+    cursor: pointer;
+    color: #f1f1f1;
+    padding: 10px;
+}
+
+.method-description > p {
+    font-size: 17px;
+}
+
+.method-example {
+    background-color: #272727 !important;
+}
+

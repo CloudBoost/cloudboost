@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Resource xmlns="http://schemas.microsoft.com/windowsazure">
+    <CloudServiceSettings>  
+            <GeoRegion><%=response.provider.geoRegion%></GeoRegion>
+    </CloudServiceSettings> 
+    <Tags><%=response.provider.tags%></Tags>
+    <Name><%=response.provider.resource_name%></Name>
+    <OperationStatus>
+        <Result>Failed</Result>
+        <Error>
+            <HttpCode>403</HttpCode>
+            <Message>User is unauthorized to create this resource</Message>
+        </Error>
+    </OperationStatus>    
+    <Plan><%=response.planId%></Plan>
+    <State>Stopped</State>    
+</Resource>
+

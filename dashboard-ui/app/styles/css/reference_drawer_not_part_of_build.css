@@ -1,0 +1,827 @@
+/* This file is kept as is from the original drawer.css file for reference,
+drawer.css has been heavily trimmed to leave only easily identifiable classes that are used in JSX (identified in a hurry)
+ to keep build size small*/
+
+
+/*method{
+  font-family: "Times New Roman", Times, serif;
+}*/
+.hidden{
+    visibility: hidden;
+}
+.closedrawer{
+    position: absolute;
+    font-size: 50px;
+    cursor: pointer;
+    color: #272727;
+    right: 32%;
+    top: 50%;
+    z-index: 10000000;
+    opacity: 0.6;
+}
+.closedrawer:hover{
+    opacity: 1.0
+}
+a:active, a:focus{
+    text-decoration: none;
+    color: #6a9ff8;
+}
+a, a:hover{
+    color: #adb5c2;
+    text-decoration: none;
+}
+.drawer{
+    background-color: #e8e800 !important;
+    overflow: hidden;
+    width: 40% !important;
+}
+.drawerhome{
+    position: absolute;
+    font-size: 28px;
+    left: 10px;
+    top: 7px;
+    color: #1076c5;
+    cursor: pointer;
+}
+.drwaerheading{
+    font-size: 30px;
+    float: left;
+    text-align: center;
+    padding-top: 50px;
+    padding-left: 70px;
+    font-weight: bold;
+    color: #6b6b6b;
+}
+.headingdrwaer{
+    float: left;
+    width: 100%;
+}
+.drawercontent{
+    margin-top: -10px !important;
+    float: left;
+    width: 100%;
+}
+.drawerSelector{
+    margin-top: 5px !important;
+    overflow: auto;
+}
+.drawerbtn{
+    float: left;
+    width: 94%;
+    padding: 20px;
+    background-color: #fbfbfb;
+    border-radius: 3px 3px 0 0;
+    cursor: pointer;
+    margin-bottom: 10px !important;
+    margin-top: 50px !important;
+    box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.2);
+    margin-left: 3% !important;
+    margin-top: 25px !important;
+}
+.drawerbtn:hover{
+    transform: scale(0.99)
+}
+.headingdrawer > h4{
+    font-size: 25px;
+    margin-top: 6px;
+}
+
+.contentdrawer {
+    color: #5a5a5a;
+    font-family: "Times New Roman", Times, serif;
+    font-size: 16.5px;
+}
+
+.learnmorebtn{
+    padding: 4px;
+    background-color: #f9f9f9;
+    border-radius: 10px;
+    box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+    float: right;
+    position: absolute;
+    right: 6px;;
+    top: 3px;
+}
+.learnmorebtn:hover{
+    transform: scale(0.97)
+}
+.learnmoredrawerbulb{
+    color: #e8e800;
+    font-size: 20px;
+    margin-top: 1px !important;
+    float: right;
+    margin-left: 8px !important;
+}
+.learnmoredrawer{
+    font-size: 14px;
+    margin-left: 5px !important;
+    float: right;
+}
+.morebtn{
+    margin-left: -15px !important;
+    color: #1283da;
+    font-weight: bold;
+    cursor: pointer;
+    float: left;
+}
+
+.buttn{
+    margin-top: -35px !important;
+}
+
+.butn{
+    margin-top: 10px;
+}
+
+
+.method:nth-child(3) .method-section .method-description:before,.method:nth-child(3) .method-section .method-example:before,.method:nth-child(3) .method-section .method-example:after {
+    display: none;
+}
+
+.method:last-child .method-section .method-example {
+    padding-bottom: 45px;
+}
+
+.method-section {
+    clear: left;
+    font-size: 13px;
+    position: relative;
+    margin-top: -30px !important;
+    margin-bottom: 25px !important;
+}
+
+.method-section:after {
+    clear: both;
+    content: "";
+    display: block;
+    font-size: 0;
+    height: 0;
+    visibility: hidden;
+}
+
+@media all and (min-width:1700px) {
+    .method-section {
+        margin-left: 0px !important;
+    }
+}
+
+.method-section:nth-child(2) .method-description:before,.method-section:nth-child(2) .method-description:after,.method-section:nth-child(2) .method-example:before,.method-section:nth-child(2) .method-example:after {
+    display: block;
+}
+
+.method-section h1,.method-section h2,.method-section h3,.method-section h4,.method-section h5,.method-section h6 {
+    font-family: "Times New Roman", Times, serif;
+    /*font-family: "proxima-nova","Helvetica Neue",Helvetica,Arial,sans-serif;*/
+    color: #111;
+    display: block;
+    font-size: 22px;
+    font-weight: bold;
+    line-height: 1.5em;
+}
+
+.method-section h2 {
+    font-size: 20px;
+}
+
+.method-section h3 {
+    font-size: 18px;
+}
+
+.method-section h4 {
+    font-size: 16px;
+}
+
+.method-section h5 {
+    font-size: 14px;
+}
+
+.method-section h6 {
+    font-size: 14px;
+}
+
+.method-section p {
+    color: #444;
+    font-size: 13px;
+    line-height: 1.9em;
+    padding: 0px !important;
+    /*margin: 0px !important;*/
+}
+
+
+.method-section .method-description {
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    color: #444;
+    float: left;
+    padding: 0 30px;
+    position: relative;
+    width: 100%;
+    z-index: 15;
+}
+
+/*.method-section .method-description:before {
+  background-color: #e4e8eb;
+  content: "";
+  display: none;
+  height: 1px;
+  left: 0;
+  position: absolute;
+  right: 1px;
+  top: -45px;
+}*/
+
+@media all and (min-width:1700px) {
+    .method-section .method-description {
+        width: 100% !important;
+    }
+}
+
+.method-section .method-description code,.method-section .method-description tt {
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    -ms-border-radius: 4px;
+    -o-border-radius: 4px;
+    border-radius: 4px;
+    background: #e9edf2;
+    display: inline;
+    font-size: 90%;
+    padding: 0 3px;
+}
+p {
+    font-size: 14px;
+    letter-spacing: 0;
+    margin: 0 0 16px;
+}
+.method-list h6, .method-list p {
+    font-weight: 400;
+    line-height: 24px;
+    font-family: Roboto, Helvetica, Arial, sans-serif;
+    margin: 24px 0px 16px !important;
+}
+.method-list h6 {
+    font-size: 16px;
+    letter-spacing: .04em;
+}
+.method-section .method-description div.method-list {
+    /*border-bottom: 1px solid #eee;*/
+    padding: 15px 0 15px;
+}
+
+.method-section .method-description div.method-list h6 {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 8px;
+}
+
+.method-description div.method-list dl:after {
+    clear: both;
+    content: "";
+    display: block;
+    font-size: 0;
+    height: 0;
+    visibility: hidden;
+}
+
+.method-description div.method-list dl dt {
+    float: left;
+    font-weight: bold;
+    margin-right: -165px;
+    padding-top: 16px;
+    position: relative;
+    text-align: right;
+    word-break: hyphenate;
+    word-wrap: break-word;
+    width: 165px;
+    z-index: 50;
+}
+
+.method-description div.method-list dl dt span {
+    font-weight: bold !important;
+}
+
+.method-description div.method-list dl dt:after {
+    content: ":";
+}
+
+.method-description div.method-list dl dd {
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    float: left;
+    font-weight: bold;
+    padding: 16px 0 0 175px;
+    position: relative;
+    width: 100%;
+    z-index: 25;
+}
+
+.method-description div.method-list dl dd:before {
+    clear: both;
+    content: "";
+    display: block;
+    font-size: 0;
+    height: 0;
+    visibility: hidden;
+}
+
+.method-description div.method-list dl dd.expandable:after {
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    -ms-border-radius: 4px;
+    -o-border-radius: 4px;
+    border-radius: 4px;
+    background: #e9edf2;
+    content: "expandable";
+    display: inline-block;
+    font-size: 11px;
+    line-height: 1.4em;
+    margin-left: 4px;
+    padding: 0 5px;
+}
+
+.method-description div.method-list dl dd p, .method-description div.method-list dl dd span, .method-description div.method-list dl dd em {
+    font-weight: normal;
+    padding: 0;
+}
+
+.method-description div.method-list dl dd span:not(.lang) {
+    display: block;
+    padding-top: 2px;
+}
+
+.method-description div.method-list dl dd em {
+    font-style: italic;
+}
+
+.method-description div.method-list dl dd .method-list {
+    border-bottom: 0;
+    margin-bottom: 0;
+    font-size: 12px;
+    padding: 10px 0 0;
+}
+
+.method-description div.method-list dl dd .method-list dl {
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+    -ms-border-radius: 4px;
+    -o-border-radius: 4px;
+    border-radius: 4px;
+    border: 1px solid #eee;
+    margin-left: -175px;
+    padding: 2px 15px 12px;
+    position: relative;
+}
+
+.method-description div.method-list dl dd .method-list dl:before {
+    display: block;
+    height: 0;
+    width: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-bottom: 5px solid #eee;
+    content: "";
+    left: 175px;
+    margin-left: -5px;
+    position: absolute;
+    top: -6px;
+}
+
+.method-description div.method-list dl dd .method-list dl .show-parameters {
+    color: #444;
+    display: none;
+    font-size: 12px;
+    font-weight: bold;
+    padding-left: 175px;
+}
+
+.method-description div.method-list dl dd .method-list dl:hover .show-parameters {
+    color: #111;
+    text-decoration: underline;
+}
+
+.method-description div.method-list dl dd .method-list dl dt {
+    margin-right: -133px;
+    width: 133px;
+}
+
+.method-section .method-description div.method-list dl dd .method-list dl dd {
+    padding-left: 143px;
+}
+
+.method-section .method-description div.method-list dl dd .method-list dl .method-list dl {
+    margin-left: -143px;
+}
+
+.method-section .method-description div.method-list dl dd .method-list dl .method-list dl:before {
+    left: 143px;
+}
+
+.method-section .method-description div.method-list dl dd .method-list.collapsed {
+    cursor: pointer;
+}
+
+.method-section .method-description div.method-list dl dd .method-list.collapsed dl {
+    padding: 6px 0;
+}
+
+.method-section .method-description div.method-list dl dd .method-list.collapsed dl .show-parameters {
+    display: block;
+}
+
+.method-section .method-description div.method-list dl dd .method-list.collapsed dl dt,.method-section .method-description div.method-list dl dd .method-list.collapsed dl dd {
+    display: none;
+}
+
+.method-section .method-description div.method-list.event-types dl dt {
+    margin-right: -230px;
+    width: 230px;
+}
+
+.method-description div.method-list.event-types dl dd {
+    padding-left: 240px;
+}
+
+.method-section .method-description div.method-list.failure-codes dl dt {
+    margin-right: -230px;
+    width: 230px;
+}
+
+.method-section .method-description div.method-list.failure-codes dl dd {
+    padding-left: 240px;
+}
+
+.method-section .method-description div.method-list.list-empty dl dt {
+    font-style: italic;
+    margin-right: 0;
+    text-align: center;
+    width: 100%;
+}
+
+.method-section .method-description div.method-list.list-empty dl dt:after {
+    display: none;
+}
+
+.method-section .method-example {
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    padding: 38px 15px 0;
+    position: relative;
+    text-shadow: 0 1px 0 rgba(0,0,0,0.7);
+    width: 100% !important;
+    float: left;
+    padding-top: 0px !important;
+}
+
+.method-section .method-example:before,.method-section .method-example:after {
+    background: -webkit-linear-gradient(left,#0f131a,rgba(15,19,26,0));
+    background: -moz-linear-gradient(left,#0f131a,rgba(15,19,26,0));
+    background: -o-linear-gradient(left,#0f131a,rgba(15,19,26,0));
+    background: linear-gradient(right,#0f131a,rgba(15,19,26,0));
+    content: "";
+    display: none;
+    height: 1px;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: -45px;
+}
+
+.method-section .method-example:after {
+    background: -webkit-linear-gradient(left,#45494c,rgba(69,73,76,0));
+    background: -moz-linear-gradient(left,#45494c,rgba(69,73,76,0));
+    background: -o-linear-gradient(left,#45494c,rgba(69,73,76,0));
+    background: linear-gradient(right,#45494c,rgba(69,73,76,0));
+    top: -44px;
+}
+
+@media all and (min-width:1700px) {
+    .method-section .method-example {
+        margin-left: 0px !important;
+        width: auto;
+    }
+}
+
+.method-section .method-example .hide {
+    display: none;
+}
+
+.method-section .method-example .part+.part {
+    padding-top: 45px;
+}
+
+.method-section .method-example h1,.method-section .method-example h2,.method-section .method-example h3,.method-section .method-example h4,.method-section .method-example h5,.method-section .method-example h6 {
+    color: white;
+    padding-top: 38px;
+}
+
+.method-section .method-example h1 code,.method-section .method-example h2 code,.method-section .method-example h3 code,.method-section .method-example h4 code,.method-section .method-example h5 code,.method-section .method-example h6 code {
+    display: inline-block;
+}
+
+.method-section .method-example h1:first-child,.method-section .method-example h2:first-child,.method-section .method-example h3:first-child,.method-section .method-example h4:first-child,.method-section .method-example h5:first-child,.method-section .method-example h6:first-child {
+    padding-top: 0;
+}
+
+.method-section .method-example h6 {
+    padding-top: 26px;
+}
+
+.method-section .method-example a {
+    color: #80b2ff;
+}
+
+.method-section .method-example a:hover {
+    color: #ccd8e8;
+}
+
+.method-section .method-example div.switcher {
+    text-align: center;
+    position: relative;
+    height: 22px;
+    margin: -1px 0 20px;
+}
+
+.method-section .method-example div.switcher a {
+    position: relative;
+    z-index: 3;
+    display: inline-block;
+    font-size: 13px;
+    color: #7e858d;
+    border-radius: 11px;
+    height: 22px;
+    line-height: 22px;
+    box-sizing: border-box;
+    padding: 0 10px;
+    transition: all 300ms ease;
+    background: rgba(151,166,174,0);
+}
+
+.method-section .method-example div.switcher a:hover {
+    text-decoration: none;
+    color: #dae4f2;
+    background: rgba(151,166,174,0.07);
+}
+
+.method-section .method-example div.switcher a.selected {
+    color: #dae4f2;
+    pointer-events: none;
+    background: rgba(151,166,174,0.14);
+}
+
+.method-section .method-example div.switcher:after {
+    content: '';
+    display: block;
+    position: absolute;
+    height: 1px;
+    top: 50%;
+    left: 0;
+    right: 0;
+    background: rgba(255,255,255,0.04);
+    z-index: 1;
+}
+
+.method-section .method-example div.switcher:before {
+    content: '';
+    display: block;
+    position: absolute;
+    width: 176px;
+    left: 0;
+    right: 0;
+    margin: auto;
+    top: 0;
+    bottom: 0;
+    background: #292e33;
+    z-index: 2;
+}
+
+pre .code-yellow{
+    color: #d8ce72 !important;
+    font-family: Monaco,Consolas,"Lucida Console",monospace;
+}
+
+pre .code-blue{
+    color: #236B8E !important;
+    font-family: Monaco,Consolas,"Lucida Console",monospace;
+}
+
+pre .code-red{
+    color: #f92672 !important;
+    font-family: Monaco,Consolas,"Lucida Console",monospace;
+}
+
+.method-section .method-example code {
+    color: #dae4f2;
+    display: block;
+    font-family: Monaco,Consolas,"Lucida Console",monospace;
+    font-size: 12px;
+    line-height: 1.7em;
+    white-space: pre;
+    white-space: -o-pre-wrap;
+    white-space: -moz-pre-wrap;
+    white-space: pre-wrap;
+    word-break: break-word;
+    background-color: #272727 !important;
+    padding: 18px !important;
+}
+
+.method-example pre{
+    border: 0px !important;
+    background-color: #272727 !important;
+    color: #a5b7d0 !important;
+    font-size: 13px !important;
+    overflow: hidden !important;
+    padding: 9.5px !important;
+    margin-bottom: 10px !important;
+}
+
+.method-section .method-example code strong {
+    font-weight: bold;
+}
+
+.method-section .method-example code .no,.method-section .method-example code .line-numbers {
+    display: none;
+}
+
+.method-section .method-example code:before {
+    content: "";
+    color: #acb9bf;
+    display: block;
+    padding-bottom: 4px;
+}
+
+.method-section .method-example code.method-error:before {
+    content: "EXAMPLE ERROR";
+}
+
+.method-section .method-example code.method-declaration:before {
+    content: "DEFINITION";
+}
+
+.method-section .method-example code.method-response:before {
+    content: "EXAMPLE RESPONSE";
+}
+
+.method-section .method-example code.method-object:before {
+    content: "EXAMPLE OBJECT";
+}
+
+.method-section .method-example code.expected-result:before {
+    content: "RESULT";
+}
+
+.method-section .method-example code+code {
+    margin-top: 26px;
+}
+
+.method-section .method-example code .prompt:after {
+    color: #ccd8e8;
+}
+
+.method-section .method-example p {
+    color: #dae4f2;
+    font-style: italic;
+    max-width: 700px;
+}
+
+.method-section .method-example span.highlight_js .constant,.method-section .method-example span.highlight_js .title,.method-section .method-example span.highlight_js .keyword {
+    color: #f92672;
+}
+
+.method-section .method-example span.highlight_js .symbol,.method-section .method-example span.highlight_js .literal {
+    color: #f92672;
+}
+
+.method-section .method-example span.highlight_js .string,.method-section .method-example span.highlight_js .attribute,.method-section .method-example span.highlight_js.xml .value {
+    color: #e5da78;
+}
+
+.method-section .method-example span.highlight_js .comment {
+    color: #adbfd9;
+}
+
+.method-section .method-example span.highlight_js.xml .attribute {
+    color: #f92672;
+}
+
+.method-section .method-example ul {
+    padding: 4px 0;
+}
+
+.method-section .method-example ul li {
+    color: #dae4f2;
+    font-family: Monaco,Consolas,"Lucida Console",monospace;
+    font-size: 12px;
+    padding: 4px 0;
+}
+
+.method-section .method-example .table {
+    padding-top: 32px;
+}
+
+.method-section .method-example .table h6 {
+    padding-bottom: 4px;
+}
+
+.method-section .method-example .table table {
+    color: #dae4f2;
+    font-size: 12px;
+}
+
+.method-section .method-example .table table td {
+    font-family: Monaco,Consolas,"Lucida Console",monospace;
+    font-size: 12px;
+    line-height: 1.5em;
+    padding: 4px 0;
+    vertical-align: top;
+}
+
+.method-section .method-example .table table td:last-child {
+    padding-left: 16px;
+}
+
+.method-section .method-example .table table thead td {
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.method-section .method-example .method-name {
+    font-family: Monaco,Consolas,"Lucida Console",monospace;
+    font-weight: bold;
+}
+
+.method-section .method-example .notification-request:before {
+    content: "EXAMPLE NOTIFICATION";
+    color: #9b9bb9;
+    display: block;
+}
+
+.method-section .method-example .notification-event:before {
+    content: "EVENT";
+    color: #9b9bb9;
+    display: block;
+}
+
+a#dispute_evidence_object+.method-section .method-description div.method-list dl dt {
+    width: 215px;
+    margin-right: -215px;
+}
+
+a#dispute_evidence_object+.method-section .method-description div.method-list dl dd {
+    padding-left: 225px;
+}
+
+.method-description p:first-child {
+    font-size : 17px;
+    margin-top: 37px !important;
+}
+
+.documentHeading{
+    font-size: 30px;
+    float: left;
+    text-align: center;
+    padding-top: 50px;
+    padding-left: 126px;
+    font-weight: bold;
+    color: #6b6b6b;
+}
+
+.flag img{
+    cursor: pointer;
+}
+
+.method-description > p{
+    font-size: 17px;
+}
+
+@media (max-width: 1200px) {
+    .drawer{
+        right: 0px !important;
+    }
+    .drwaerheading{
+        font-size: 20px;
+        float: left;
+        text-align: center;
+        padding-top: 50px;
+        padding-left: 70px;
+        font-weight: bold;
+        color: #6b6b6b;
+    }
+    .documentHeading{
+        font-size: 20px;
+        float: left;
+        text-align: center;
+        padding-top: 50px;
+        padding-left: 110px;
+        font-weight: bold;
+        color: #6b6b6b;
+    }
+    .method-description p {
+        font-size : 14px;
+    }
+}
+.method-example{
+    background-color: #272727 !important;
+}

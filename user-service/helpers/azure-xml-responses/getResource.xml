@@ -1,0 +1,10 @@
+<Resource xmlns="http://schemas.microsoft.com/windowsazure">
+    <Tags><%=resource.provider.tags%></Tags>
+    <Name><%=resource.name%></Name>
+    <OperationStatus>
+        <Result>Succeeded</Result>
+    </OperationStatus>
+    <Plan><%=resource.planId%></Plan>
+    <State>Started</State>    
+    <Type><%=resource.provider.resource_type%></Type>   
+</Resource>

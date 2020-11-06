@@ -1,0 +1,62 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>CloudBoost User Service Test</title>
+  <link rel="stylesheet" media="all" href="https://cdn.rawgit.com/mochajs/mocha/2.2.5/mocha.css">
+  <script src="https://cdn.rawgit.com/jquery/jquery/2.1.4/dist/jquery.min.js"></script>
+  <script src="https://cdn.rawgit.com/mochajs/mocha/2.2.5/mocha.js"></script>
+  <script src="https://cdn.rawgit.com/chaijs/chai/ef2bf66d/chai.js"></script>
+  <script src="https://cdn.rawgit.com/chaijs/chai-http/1ea9265b/dist/chai-http.min.js"></script>
+  <!-- Utils -->
+  <script src="util/util.js"></script>
+  <script src="config.js"></script>
+
+  <script type="text/javascript">
+    mocha.setup('bdd');
+    chai.use(chaiHttp);
+    var expect = chai.expect;
+    var request = chai.request(URL);
+  </script>
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/es6-shim/0.22.1/es6-shim.min.js"></script>
+  
+
+  <!-- Tests -->
+  <script src="auth.test.js"></script>
+  <script src="analyticsNotifications.test.js"></script>
+  <script src="azure.test.js"></script>
+  <script src="beacon.test.js"></script>
+  <script src="cbPartner.test.js"></script>
+  <script src="cbServer.test.js"></script>
+  <script src="dbAccess.test.js"></script>
+  <script src="file.test.js"></script>
+  <script src="heroku.test.js"></script>
+  <script src="notification.test.js"></script>
+  <script src="paymentProcess.test.js"></script>
+  <script src="project.test.js"></script>
+  <script src="subscriber.test.js"></script>
+  <script src="tutorial.test.js"></script>
+  <script src="userAnalytics.test.js"></script>
+</head>
+
+<body>
+  <div id="mocha"><p><a href="">CloudBoost User Service Test</a></p></div>
+  <div id="messages"></div>
+  <div id="fixtures"></div>
+
+  <script>
+    window.onerror = function() {
+       alert("Error caught");
+    };
+    mocha.setup({
+      ignoreLeaks: true
+    });
+    if (window.mochaPhantomJS) {
+      mochaPhantomJS.run();
+    }
+    else {
+      mocha.run();
+    }
+  </script>
+</body>
+
+</html>

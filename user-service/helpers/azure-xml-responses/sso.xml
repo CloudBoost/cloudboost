@@ -1,0 +1,5 @@
+<SsoToken xmlns="http://schemas.microsoft.com/windowsazure">
+	<Url>/page/<%=resources.appId%>/<%=token%>/authentication</Url>
+   	<resourceId><%=resources.appId%></resourceId>
+    <Token><%=token%></Token>
+</SsoToken>

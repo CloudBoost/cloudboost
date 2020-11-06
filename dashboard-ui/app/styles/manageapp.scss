@@ -1,0 +1,1392 @@
+
+.settingsCurrent{
+  margin-top:5%;
+}
+
+.push-campaign {
+  font-family: "Avenir Next", "Helvetica Neue", Helvetica, sans-serif;
+  position: relative;
+  padding-top: 60px;
+  height: auto;
+  min-width: 768px;
+  line-height: 1.42857;
+  color: #333;
+  background-color: #fff;
+  font-weight: normal;
+  font-size: 14px;
+  overflow-y: hidden;
+  .settingsNavbar{
+      position: absolute;
+      display: inline-block;
+      float: left;
+      width: 182px;
+      margin-top:3%;
+      ul {
+        position: relative;
+        z-index: 1;
+        padding: 33px 0px;
+
+        li {
+          list-style-type: none;
+          color: rgb(162, 171, 186);
+          cursor: pointer;
+          padding: 6px 6px 6px 0px;
+        }
+
+        li.active {
+          color: rgb(79, 142, 247);
+          border-right: 1px solid rgb(79, 142, 247);
+        }
+      }
+  }
+  .menu-panel {
+    position: relative;
+    height: 100%;
+    padding: 0px;
+    background-color: #ffffff;
+    .menu-wrapper {
+      height: 100%;
+      .divider {
+        position: absolute;
+        margin-left:181px;
+        top: 0px;
+        margin-top:5%;
+        bottom: 0px;
+        height: 100%;
+        width: 1px;
+        background-color: rgb(237, 237, 237);
+      }
+    }
+    .panel-menu {
+      width: 100%;
+      padding-top:1.5%;
+      border:1px solid rgb(237, 237, 237);
+      border-radius:2px;
+      ul {
+        position: relative;
+        padding-bottom:2%;
+        list-style-type: none;
+        margin: 0;
+
+        li {
+          list-style-type: none;
+          float: left;
+          margin-left:20%;
+          color: rgb(162, 171, 186);
+          cursor: pointer;
+          font-size: 110%;
+          font-weight:bold;
+        }
+        li.active {
+          color: rgb(79, 142, 247);
+          padding-bottom:1%;
+          border-bottom: 2px solid rgb(79, 142, 247);
+        }
+      }
+
+      ul, ol {
+        margin-top: 0px;
+        margin-bottom: 10px;
+      }
+    }
+
+    .panel-content{
+      padding: 0 100px;
+    }
+
+    .table-list-container{
+        max-width: none !important;
+        padding: 50px 0 0 0 !important;
+      }
+
+    .panel-body {
+      min-height: 500px;
+      max-width: 1000px;
+      display: block;
+      padding: 41px 0 150px 235px;
+
+      h2.head {
+        padding-top: 0;
+        margin-top: 0;
+        margin-bottom: 35px;
+        font-size: 20px;
+        color: #1b2331;
+        letter-spacing: -0.5px;
+        font-family: inherit;
+        font-weight: 500;
+        line-height: 1.1;
+      }
+
+      .small-form-row {
+        min-height: 80px;
+        margin-bottom: 20px;
+
+        .control-label {
+          position: absolute;
+          width: 210px;
+
+          label {
+            font-weight: 500;
+            font-size: 15px;
+          }
+
+          .label-desc {
+            font-size: 12px;
+            color: #9ca4b2;
+          }
+        }
+
+        .control {
+          margin-left: 255px;
+        }
+      }
+
+      p.help-text {
+        margin-bottom: 40px;
+        color: #777e8a;
+        font-size: 14px;
+      }
+
+      .help-text {
+        color: #9FABC1;
+      }
+
+      p {
+        margin: 0 0 10px;
+      }
+
+      //start : This CSS was before sidebar and navigation was changed, but since there was difficulty in mixing old and new layout
+      //I setup completely new layout but old and new CSS were mixing up, still couldn't remove old CSS completely as that was
+      //being used in certain pages under manageapps, as such the old CSS is pasted here and needs cleanup, cleanup by searching
+      //if the particular class in CSS is still used in codebase, if not then remove it
+
+      
+      .tables {
+
+        .tables-head {
+          height: 70px;
+
+          p {
+            float: left;
+            font-size: 1.9em;
+            font-weight: 100;
+          }
+
+          .search {
+            margin-top: 70px;
+            width: 33%;
+            max-width: 400px;
+            align-self:center;
+            margin-left:73.5%;
+            border:1px solid rgb(237, 237, 237);
+
+            .input-group-addon {
+              height: 34px;
+              padding: 3px 6px;
+            }
+          }
+
+          .btn {
+            margin-left: 0px;
+            float: right;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+            padding: 12px 18px;
+            font-weight: 600;
+            color: #FFF;
+            background-color: #4dd87b;
+          }
+
+        }
+
+        .tables-container {
+          width:100% !important;
+
+          .table-box{
+            max-width:200px;
+            margin: 20px;
+          }
+
+          .table {
+            border-radius: 4px;
+            position: relative;
+            height: 90px;
+            width: 300px;
+            background-color: #4F8EF7;
+            text-align: center;
+            box-sizing: border-box;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            transition: box-shadow 140ms linear;
+
+            p {
+              margin-top: -10px;
+              font-size: 1.2em;
+              color: #8b919a;
+            }
+
+            .overlay {
+              position: absolute;
+              bottom: 0;
+              left: 100%;
+              right: 0;
+              background-color: #000000;
+              opacity: 0.5;
+              overflow: hidden;
+              width: 0;
+              height: 100%;
+              transition: 0.2s ease;
+            }
+            @include clearfix;
+          }
+
+          .table:hover {
+            cursor: pointer; // -webkit-box-shadow: 0 15px 20px rgba(0, 0, 0, 0.2);
+            // -webkit-transform: translate(0, -4px);
+          }
+
+          .table:hover .overlay {
+            width: 25%;
+            left: 75%;
+          }
+        }
+      }
+
+      .cache {
+        font-family: 'Open Sans', sans-serif;
+        color: #555;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #fff;
+
+        .cache-head {
+          height: 70px;
+
+          p {
+            float: left;
+            font-size: 1.9em;
+            font-weight: 100;
+          }
+
+          .search {
+            width: 100%;
+            float: left;
+            .input-group-addon {
+              height: 34px;
+              padding: 3px 6px;
+            }
+          }
+
+          .btn {
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+            padding: 7px 18px;
+            font-weight: 600;
+            color: #FFF;
+            background-color: #4dd87b;
+          }
+        }
+
+        .full-width {
+          width: 100%;
+        }
+
+        .container-cache {
+          margin-top: 5%;
+        }
+
+        .flex-general-row-wrapper {
+          /* Flex row rules */
+          display: flex;
+          display: -webkit-flex;
+          display: -moz-flex;
+          flex-flow: row wrap;
+          -moz-flex-flow: row wrap;
+          -webkit-flex-flow: row wrap;
+          justify-content: flex-start;
+          -moz-justify-content: flex-start;
+          -webkit-justify-content: flex-start;
+          align-items: flex-start;
+          -moz-align-items: flex-start;
+          -webkit-align-items: flex-start;
+        }
+
+        .flex-general-column-wrapper {
+          /* Flex column rules */
+          display: flex;
+          display: -webkit-flex;
+          display: -moz-flex;
+          flex-flow: column wrap;
+          -moz-flex-flow: column wrap;
+          -webkit-flex-flow: column wrap;
+          justify-content: flex-start;
+          -moz-justify-content: flex-start;
+          -webkit-justify-content: flex-start;
+          align-items: flex-start;
+          -moz-align-items: flex-start;
+          -webkit-align-items: flex-start;
+        }
+
+        .flex-general-row-wrapper-center {
+          /* Flex row rules */
+          display: flex;
+          display: -webkit-flex;
+          display: -moz-flex;
+          flex-flow: row wrap;
+          -moz-flex-flow: row wrap;
+          -webkit-flex-flow: row wrap;
+          justify-content: center;
+          -moz-justify-content: center;
+          -webkit-justify-content: center;
+          align-items: center;
+          -moz-align-items: center;
+          -webkit-align-items: center;
+        }
+
+        .flex-general-column-wrapper-center {
+          /* Flex row rules */
+          display: flex;
+          display: -webkit-flex;
+          display: -moz-flex;
+          flex-flow: column wrap;
+          -moz-flex-flow: column wrap;
+          -webkit-flex-flow: column wrap;
+          justify-content: center;
+          -moz-justify-content: center;
+          -webkit-justify-content: center;
+          align-items: center;
+          -moz-align-items: center;
+          -webkit-align-items: center;
+        }
+
+        .flex-equal-ratio-items {
+          flex: 1;
+          -moz-flex: 1;
+          -webkit-flex: 1;
+        }
+
+        .solo-vertical-center {
+          /* Flex row rules */
+          display: flex;
+          display: -webkit-flex;
+          display: -moz-flex;
+          flex-flow: row wrap;
+          -moz-flex-flow: row wrap;
+          -webkit-flex-flow: row wrap;
+          justify-content: flex-start;
+          -moz-justify-content: flex-start;
+          -webkit-justify-content: flex-start;
+          align-items: center;
+          -moz-align-items: center;
+          -webkit-align-items: center;
+        }
+
+        .solo-horizontal-center {
+          /* Flex row rules */
+          display: flex;
+          display: -webkit-flex;
+          display: -moz-flex;
+          flex-flow: row wrap;
+          -moz-flex-flow: row wrap;
+          -webkit-flex-flow: row wrap;
+          justify-content: center;
+          -moz-justify-content: center;
+          -webkit-justify-content: center;
+          align-items: flex-start;
+          -moz-align-items: flex-start;
+          -webkit-align-items: flex-start;
+        }
+
+        .cf:after,
+        .cf:before {
+          content: "";
+          display: table;
+        }
+
+        .cf:after {
+          clear: both;
+        }
+
+        .cf {
+          zoom: 1;
+        }
+
+        .cacheleft {
+        }
+
+        .cacheright {
+        }
+
+        .cacheDiv {
+          border-radius: 4px;
+          height: 50px;
+          width: 100%;
+          background-color: #ffffff;
+          text-align: center;
+          box-sizing: border-box;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+          margin-top: 1px;
+        }
+
+        .cacheDiv:hover {
+          background-color: whitesmoke;
+          cursor: pointer;
+        }
+
+        .cacheDivSelected {
+          border-radius: 4px;
+          height: 50px;
+          width: 100%;
+          text-align: center;
+          box-sizing: border-box;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+          margin-bottom: 3px;
+          margin-top: 3px;
+          background-color: whitesmoke;
+          -ms-transform: scale(1.02, 1.0);
+          /* IE 9 */
+          -webkit-transform: scale(1.02, 1.0);
+          /* Safari */
+          transform: scale(1.02, 1.0);
+        }
+
+        .cacheicondiv {
+          height: 40px;
+          width: 40px;
+          float: left;
+          background-color: #159CEE;
+          border-radius: 25px;
+          margin-top: 4px;
+          margin-left: 8px;
+        }
+
+        .cacheI {
+          color: white;
+          font-size: 20px;
+          margin-top: 10px;
+          text-align: center;
+        }
+
+        .cachecontent {
+          float: left;
+          width: 50%;
+          height: 100%;
+        }
+
+        .cacheNamediv {
+          float: left;
+          width: 100%;
+          height: 70%;
+          padding: 7px;
+        }
+
+        .cachename {
+          float: left;
+          font-size: 19px;
+          margin-top: -6px;
+          margin-left: 4px;
+          color: #616060;
+        }
+
+        .cacheProps {
+          float: left;
+          width: 100%;
+          height: 30%;
+        }
+
+        .cachesizeitems {
+          float: left;
+          font-size: 11px;
+          margin-left: 11px;
+          margin-top: -4px;
+          color: #929090;
+        }
+
+        .cacheitemssizecontent {
+          color: #545353;
+          margin-left: 4px;
+        }
+
+        .cachebuttonsdiv {
+          float: right;
+          margin-right: 10px;
+
+          .icon {
+            font-size: 22px;
+          }
+        }
+
+        .buttoncachedelete {
+          min-width: 20% !important;
+          margin-top: 14px;
+          // width: 30% !important;
+        }
+
+        .buttoncachedelete:hover {
+          color: red !important;
+        }
+
+        .buttoncacheminus {
+          min-width: 20% !important;
+          margin-top: 7px;
+          // width: 30% !important;
+        }
+
+        .buttoncacheminus:hover {
+          color: red;
+        }
+
+        .cacheaddfieldsdiv {
+          width: 100%;
+          float: left;
+          margin-bottom: 5px;
+
+          .tableHeader {
+            cursor: default;
+            font-size: 13px !important;
+            font-weight: 500 !important;
+          }
+
+          .deleteicon {
+            font-size: 20px !important;
+          }
+
+          .addicon {
+            cursor: pointer;
+            border-radius: 50%;
+            font-size: 29px;
+            color: #4dd87b;
+            margin-left: 25px;
+          }
+        }
+
+        .cacheinputs {
+          float: left;
+        }
+
+        .addtocachebtn {
+          float: left;
+        }
+
+        .buttoncacheelemdelete {
+          width: 30px !important;
+          min-width: 30px !important;
+          margin-top: -1px !important;
+          margin-left: 30px !important;
+        }
+      }
+
+      .queue {
+        .addicon {
+          margin-left: 0 !important;
+        }
+
+        .addmessgaebuttontop {
+          text-align: center;
+        }
+
+        .cachebuttonsdiv {
+          .buttonqueueacl {
+            min-width: 20% !important;
+          }
+
+          .buttonqueueacl:hover {
+            color: #549afc;
+          }
+        }
+
+        .queue-head {
+          height: 70px;
+
+          p {
+            float: left;
+            font-size: 1.9em;
+            font-weight: 100;
+          }
+
+          .search {
+            width: 100%;
+            float: left;
+
+            .input-group-addon {
+              height: 34px;
+              padding: 3px 6px;
+            }
+          }
+
+          .btn {
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+            padding: 7px 18px;
+            font-weight: 600;
+            color: #FFF;
+            background-color: #4dd87b;
+          }
+        }
+
+        .queueitemsdiv {
+          border-radius: 4px;
+          min-height: 70px;
+          width: 100%;
+          background-color: #ffffff;
+          text-align: center;
+          box-sizing: border-box;
+          margin-top: 1px;
+          max-height: 150px;
+          margin-bottom: 2px;
+          position: relative;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .messagequeuemessage {
+          margin-right: 45px;
+          text-align: left;
+          padding: 5px 5px 5px 11px;
+          font-size: 15px;
+          color: #737171;
+          overflow-y: auto;
+          word-wrap: break-word;
+          height: 73px;
+        }
+
+        .messagemessage {
+          visibility: visible;
+        }
+
+        .messagequeueicons {
+          visibility: visible;
+          position: absolute;
+          right: 6px;
+          top: 6px;
+        }
+
+        .messagequeueprops {
+          position: absolute;
+          bottom: 0;
+        }
+
+        .messagequediv {
+          visibility: visible;
+          height: 100px;
+        }
+
+        .buttonquemessage {
+          visibility: visible;
+          font-size: 20px;
+          height: 35px;
+          margin-left: 7px;
+        }
+      }
+
+      .campaign {
+        .emailcampbtn {
+          visibility: visible;
+        }
+
+        .push-box {
+          width: 100%;
+          margin-top: 15px;
+          background-color: #ffffff;
+          box-sizing: border-box;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .emailinputcampaign {
+          border: none;
+          outline: none;
+        }
+
+        .emailtextareacampaign {
+          border: none;
+          outline: none;
+          padding: 5px !important;
+        }
+
+        .audiencecontainerpush {
+          min-height: 100px;
+          background-color: white;
+          width: 100%;
+          margin-top: 15px;
+          box-sizing: border-box;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+          position: relative;
+
+          .topdiv {
+            visibility: visible;
+            height: 50px;
+            padding-left: 10px;
+            padding-top: 10px;
+            display: flex;
+          }
+
+          .bottomdiv {
+            visibility: visible;
+            height: 50px;
+            padding-left: 10px;
+            padding-top: 10px;
+            display: flex;
+          }
+
+          .leftspanaud {
+            color: rgb(53, 52, 70);
+            font-size: 16px;
+            font-weight: 700;
+            flex: 1;
+            padding-left: 10px;
+          }
+
+          .rightspanaud {
+            flex: 4;
+          }
+
+          .icon {
+            margin-right: 7px;
+          }
+
+          .channelslist {
+            margin-right: 5px;
+            font-size: 15px;
+            background-color: #f3f2f2;
+            padding: 5px;
+          }
+
+          .audsize {
+            position: absolute;
+            right: 20px;
+            bottom: 10px;
+            font-size: 15px;
+            font-weight: 600;
+          }
+        }
+
+        .filteraud {
+          position: absolute;
+          right: 5px;
+          top: 5px;
+        }
+      }
+
+      //remove this class
+      .settings {
+        background-color: #fff;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+
+        .leftnav {
+          flex: 1;
+          padding: 40px;
+        }
+
+        .content {
+          flex: 3;
+          padding: 40px;
+          margin-top: -20px;
+        }
+
+        //remove this class
+        .contentsubdiv {
+          margin: 18px auto auto;
+        }
+
+        .smallp {
+          color: rgb(179, 179, 183);
+          font-size: 13px;
+          font-weight: 600;
+          display: block;
+        }
+
+        .togglegeneral {
+          width: 200px;
+        }
+
+        .addfile {
+          font-size: 17px;
+          color: #9E9E9E;
+          cursor: pointer;
+        }
+
+        .sidenavselected {
+          background-color: #efefef !important;
+          /* color: #443939; */
+          box-shadow: rgba(0, 0, 0, 0.2) 0 1px 3px;
+          transform: scale(1.05, 1.05);
+        }
+
+        .buttondeleteicon {
+          min-width: 5% !important;
+          width: 7% !important;
+          color: red !important;
+        }
+
+        .signupemailace {
+          width: 90% !important;
+          height: 300px !important;
+          margin-left: 5%;
+        }
+
+        .signupemailacepreview {
+          width: 90% !important;
+          height: 300px !important;
+          margin-left: 5%;
+        }
+
+        .htmlprev {
+          visibility: visible;
+          margin-top: 5px;
+          margin-bottom: 5px;
+          margin-right: 5px;
+          font-size: 15px;
+          padding: 5px;
+          border-radius: 2px;
+          border: 1px solid #d2d2d2;
+          background-color: #eff1f5;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+
+        .socialimages {
+          height: 38px;
+        }
+
+        .attrtoggles {
+          margin-top: 3px;
+          padding: 3px;
+        }
+
+        .default-inputfield {
+          border: none;
+        }
+
+        .default-inputfield:focus {
+          outline: none;
+        }
+
+        .login-btn {
+          border-top-left-radius: 3px;
+          border-bottom-left-radius: 3px;
+          width: 100px;
+          height: 30px;
+          color: white;
+          background-color: #5c666f;
+          border: 1px solid #5c666f;
+          font-size: 12px;
+        }
+
+        .sinup-btn {
+          border-top-right-radius: 3px;
+          border-bottom-right-radius: 3px;
+          width: 100px;
+          height: 30px;
+          color: #5c666f;
+          background-color: white;
+          border: 1px solid #5c666f;
+          font-size: 12px;
+        }
+
+        .input-field {
+          width: 100%;
+          border: 1px solid #f1f1f1;
+          margin-top: 10px;
+        }
+
+        .input-field:first-child {
+          margin-top: 0;
+        }
+
+        .final-btn {
+          background-color: blue;
+          padding: 15px;
+          cursor: pointer;
+        }
+
+        .social-btns {
+          width: 40px;
+          height: 40px;
+          margin-left: 10px;
+          margin-top: 15px;
+          border-radius: 3px;
+          cursor: pointer;
+        }
+
+        .facebook {
+          background-color: #4863ae;
+          color: white;
+          font-size: 18px;
+        }
+
+        .twitter {
+          background-color: #46c0fb;
+          color: white;
+          font-size: 18px;
+        }
+
+        .github {
+          background-color: #eeeeee;
+          color: black;
+          font-size: 18px;
+        }
+
+        .google {
+          background-color: #4285f4;
+          color: white;
+          font-size: 18px;
+        }
+
+        .linkedin {
+          background-color: #0177B5;
+          color: white;
+          font-size: 18px;
+        }
+      }
+
+      //stop : This CSS was before sidebar and navigation was changed, but since there was difficulty in mixing old and new layout
+      //I setup completely new layout but old and new CSS were mixing up, still couldn't remove old CSS completely as that was
+      //being used in certain pages under manageapps, as such the old CSS is pasted here and needs cleanup, cleanup by searching
+      //if the particular class in CSS is still used in codebase, if not then remove it
+    }
+  }
+
+  .panel {
+    margin-bottom: 20px;
+    background-color: rgb(255, 255, 255);
+    border-image: initial;
+    border-radius: 2px;
+    border-width: 0;
+    border-style: initial;
+    border-color: initial;
+    -webkit-box-shadow: 0 1px 0 rgba(0, 0, 0, .05);
+    box-shadow: 0 1px 0 rgba(0, 0, 0, .05);
+  }
+}
+
+//TODO: following CSS is pciked from ionic creator css file as is, and is not shortened yet.
+// Please do so as and when time permits
+//Other CSS for previous JSX has not been removed yet
+//start : push campaign page
+
+table {
+  &.table-ionic {
+    background-color: #fff;
+    > {
+      thead > tr > th {
+        background-color: #fff;
+        text-transform: uppercase;
+        font-weight: 700;
+        font-size: 11px;
+        padding: 14px 15px;
+        color: #000;
+        letter-spacing: 2px;
+        border-bottom: 1px solid #d2d9e3;
+        &:empty {
+          padding: 0 !important;
+        }
+      }
+      tbody > tr > td {
+        vertical-align: middle;
+        padding: 14px 15px;
+        border-top: 1px solid #e8ebf1;
+        &:empty {
+          padding: 0;
+        }
+      }
+    }
+    tbody + tbody {
+      border-top: 0;
+    }
+    td {
+      border-bottom: 1px solid #e8ebf1;
+      background-color: #fff;
+      color: #6d727b;
+      vertical-align: middle;
+      transition: 0.2s background;
+      &.inactive {
+        color: #d5ddea;
+      }
+      &.user {
+        font-size: 14px;
+        color: #272a2f;
+        .gravatar {
+          float: left;
+          margin-top: 2px;
+        }
+        .sub-title {
+          color: #a8b0be;
+          font-size: 12px;
+        }
+      }
+      &.row-actions {
+        text-align: right;
+        padding-right: 6px;
+        ul {
+          padding: 0;
+          margin: 0;
+        }
+        a, li {
+          cursor: pointer;
+          display: inline-block;
+          padding: 5px 16px;
+          text-transform: uppercase;
+          letter-spacing: 2px;
+          font-weight: 500;
+          color: #d5ddea;
+          font-size: 11px;
+          transition: 0.2s color;
+        }
+        a:hover, li:hover {
+          color: #4f8ef7;
+        }
+        a.danger:hover, li.danger:hover {
+          color: #e4818a;
+        }
+      }
+    }
+    tfoot td:last-of-type {
+      border-bottom: 0;
+    }
+    table {
+      width: 100%;
+      background-color: white;
+    }
+    &.table-action > tbody > tr.informational {
+      cursor: default;
+      &:hover td {
+        background-color: #fff;
+      }
+    }
+    &.table-breakdown {
+      border-radius: 5px;
+      tr, thead > tr > th, tbody > tr > td {
+        border-radius: 5px;
+      }
+    }
+    &.table-app-billing {
+      border-radius: 5px;
+      margin: 0;
+      padding: 0;
+      tr {
+        border-radius: 5px;
+      }
+      thead > tr > th {
+        border-radius: 5px;
+        border-right: 1px solid #ced6e1;
+        width: 100px;
+      }
+      tbody > tr > td {
+        border-right: 1px solid #ced6e1;
+        border-radius: 5px;
+        width: 100px;
+      }
+    }
+    &.table-breakdown {
+      thead > tr > th {
+        background-color: #fafbfc;
+        &.last {
+          border-right: none;
+        }
+      }
+      tbody > tr > td {
+        border-top: none;
+        border-bottom: none;
+        vertical-align: top;
+        &.last {
+          border-right: none;
+        }
+        ul {
+          list-style: none;
+          margin: 0;
+          padding: 0;
+          li {
+            padding-bottom: 8px;
+          }
+          strong {
+            font-weight: bold;
+          }
+        }
+      }
+    }
+    .table-date {
+      .date {
+        display: inline-block;
+        white-space: nowrap;
+      }
+      .time {
+        display: inline-block;
+        white-space: nowrap;
+        color: #C6CDD8;
+        font-size: 0.85em;
+      }
+    }
+    tfoot tr:hover td {
+      background-color: #fff;
+      cursor: default;
+    }
+    tr.single-row td {
+      vertical-align: middle;
+    }
+  }
+  &.table-chart > {
+    thead > tr > th {
+      color: #696d74;
+      background-color: #fafbfc;
+    }
+    tbody > tr:hover > td {
+      background-color: #fafbfc;
+    }
+  }
+}
+
+.table-ionic-informational {
+  border: 1px solid #e8ebf1;
+  td {
+    border-top: 1px solid #e8ebf1;
+    border-bottom: 1px solid #e8ebf1;
+    padding: 10px 15px;
+  }
+  th {
+    border-top: 1px solid #e8ebf1;
+    border-bottom: 1px solid #e8ebf1;
+    padding: 10px 15px;
+    background-color: #f3f5f8;
+    padding-top: 7px;
+    padding-bottom: 7px;
+  }
+}
+
+h3 + table.table-ionic {
+  margin-top: 60px;
+}
+
+.push-campaign {
+  .payment-info-warning {
+    background-color: #fbfbd9;
+    border-radius: 3px;
+    border: 1px solid #eaeaad;
+    padding: 8px;
+  }
+  .plan-selected {
+    color: #4cd769;
+    font-size: 11px;
+  }
+  .plan-interval {
+    margin-bottom: 16px;
+    float: right;
+    font-weight: 800;
+    color: #9FABC1;
+    padding-bottom: 8px;
+    a {
+      letter-spacing: 1px;
+      border-bottom: 2px solid #4F8EF7;
+      text-decoration: none;
+      padding-bottom: 5px;
+      margin-right: 10px;
+      margin-left: 10px;
+      &.inactive {
+        color: #9FABC1;
+        border-bottom: 3px solid #fff;
+      }
+    }
+  }
+  .gravatar {
+    margin-right: 15px;
+  }
+  .config-content {
+    padding: 32px;
+    background-color: white;
+    border-radius: 4px;
+    border: 1px solid #d2d9e3;
+    .info-keys code {
+      display: inline-block;
+      width: 100%;
+      word-wrap: break-word;
+      overflow: auto;
+    }
+  }
+  image-preview {
+    display: inline-block;
+    background-color: white;
+    width: 64px;
+    height: 64px;
+    background-size: 100% 100%;
+    margin-bottom: 8px;
+    &.empty {
+      border: 2px dashed silver;
+    }
+  }
+  .icon-preview {
+    float: left;
+  }
+  .icon-actions {
+    display: inline-block;
+    position: relative;
+    top: 15px;
+    left: 15px;
+    i {
+      display: inline-block;
+      margin-right: 20px;
+      color: #bebebe;
+      cursor: pointer;
+      font-size: 16px;
+      &:hover {
+        color: #e4818a;
+        span {
+          color: #e4818a;
+        }
+      }
+      span {
+        position: relative;
+        top: -2px;
+        color: #bebebe;
+        font-size: 13px;
+        font-style: normal;
+      }
+    }
+    .file-control {
+      display: inline-block;
+    }
+  }
+  form {
+    input, button {
+      margin-top: 12px;
+    }
+  }
+  .keys-table tbody > tr > td, .tokens-table tbody > tr > td {
+    cursor: auto;
+    vertical-align: top;
+  }
+  .keys-table td, .tokens-table td {
+    padding-bottom: 4px;
+  }
+  .keys-table td dd, .tokens-table td dd {
+    margin-bottom: 10px;
+  }
+  .keys-table th.key-action, .tokens-table th.key-action {
+    width: 100px;
+  }
+  .keys-table {
+    td.key-desc, th.key-desc {
+      width: 150px;
+    }
+  }
+  .tokens-table {
+    td.key-desc, th.key-desc {
+      width: 150px;
+    }
+  }
+  .keys-table {
+    td.key-created, th.key-created {
+      width: 150px;
+    }
+  }
+  .tokens-table {
+    td.key-created, th.key-created {
+      width: 150px;
+    }
+  }
+  .delete-row, .transfer-row {
+    margin-top: 50px;
+  }
+  .security-profile-tag {
+    color: #bfbfbf;
+    font-size: 12px;
+  }
+  .facebook {
+    color: #3b5998;
+  }
+  .twitter {
+    color: #00aced;
+  }
+  .google {
+    color: #dd4b39;
+  }
+  .instagram {
+    color: #517fa4;
+  }
+  .linkedin {
+    color: #007bb6;
+  }
+  .ionic, .custom-auth {
+    color: #4f8ef7;
+  }
+  .github {
+    color: #000;
+  }
+  table.table-ionic.table-social > tbody > tr {
+    &.help:hover td, &.configure > td {
+      background-color: #fff;
+    }
+  }
+  .table-social {
+    .setup {
+      color: #4f8ef7;
+      &:hover {
+        color: #80adf9;
+      }
+    }
+    .icon-align {
+      width: 30px;
+      display: inline-block;
+    }
+    .inactive {
+      .custom-auth, .facebook, .github, .google, .instagram, .ionic, .linkedin, .twitter {
+        color: #d5ddea;
+      }
+    }
+    .active-label {
+      position: relative;
+      left: 16px;
+      margin-top: -7px;
+      font-size: 8px;
+      background-color: #2cc44c;
+      border: 0;
+      display: inline-block;
+      color: #fff;
+      padding: 1px 5px;
+      border-radius: 2px;
+      margin-bottom: 0;
+      font-weight: normal;
+      text-align: center;
+      vertical-align: middle;
+      line-height: 1.5;
+      background-image: none;
+    }
+    .icon-social {
+      display: inline-block;
+      text-align: center;
+      width: 25px;
+      font-size: 18px;
+    }
+    .config-container {
+      margin-top: 0;
+      padding: 40px;
+      background-color: #f6f7f9;
+      .buttons {
+        padding: 20px 0 0;
+      }
+    }
+  }
+}
+
+//stop : push campaign page
+
+//custom CSS on top of copy pasted CSS, find why there is any alignment issue,
+// despite being copy pasted css from app.ionic and fix it accordingly instead of overwriting css attribute
+.push-campaign .table-social .config-container {
+  .control-label {
+    position: relative;
+  }
+  .buttons {
+    position: relative;
+  }
+}
+
+.setup-disabled {
+  color: #d5ddea !important;
+  cursor: default !important;
+  &:hover {
+    color: #d5ddea !important;
+  }
+}
+
+.h-padding-15 {
+  padding: 0 15px;
+}

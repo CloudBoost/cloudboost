@@ -1,0 +1,112 @@
+.feedback-textarea {
+    padding: 10px;
+    overflow: hidden;
+    display: block;
+    margin-top: 2px;
+    border: 0px;
+    resize: none;
+    height: 85px;
+    font-size:13px;
+}
+
+.feedback-textarea:focus {
+    outline: none !important;
+}
+
+.feedback-textarea::-webkit-input-placeholder {
+    font-size: 13px
+}
+
+.feedback-sendbtn, .feedback-sendbtn:focus, .feedback-sendbtn:active, .feedback-sendbtn:hover {
+    margin-bottom: 10px;
+    float: right;
+    margin-right: 10px;
+    background-color: #2196f3;
+    border: 0px;
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.2);
+    padding: 5px;
+    border-radius: 6px;
+    outline: none !important;
+    color: white;
+    font-size: 14px;
+    margin-top: -12px;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.hide {
+    display: none;
+}
+
+.feedbackSent {
+    width: 256px;
+}
+
+.feedbackpopover {
+    border-radius: 7px !important;
+}
+
+.feedbackpopover, .popovernotifications, .profilepop {
+    overflow-y: visible !important;
+}
+
+.feedbackpopover::before, .popovernotifications::before, .profilepop::before {
+    position: absolute;
+    top: -7px;
+    right: 15px;
+    display: inline-block;
+    border-right: 6px solid transparent;
+    border-bottom: 7px solid #ccc;
+    border-left: 6px solid transparent;
+    border-bottom-color: rgba(0, 0, 0, 0.2);
+    content: '';
+}
+
+.feedbackpopover::after, .popovernotifications::after, .profilepop::after {
+    position: absolute;
+    top: -6px;
+    right: 15px;
+    display: inline-block;
+    border-right: 6px solid transparent;
+    border-bottom: 6px solid #ffffff;
+    border-left: 6px solid transparent;
+    content: '';
+}
+
+.thanks-text {
+    color: #549afc;
+    display: block;
+    text-align: center;
+    font-weight: 500;
+}
+
+.note-text {
+    font-size: 14px;
+    text-align: center;
+    display: block;
+    margin-bottom: 19px;
+    color: grey;
+}
+
+.optionBtn {
+    width: 100%;
+    border: 0px solid #EEE;
+    height: 35px;
+    background-color: #FFFFFF;
+    color: #5e5e5e;
+    margin-top: 0px;
+    text-align: left;
+    padding-left: 12px;
+    font-size: 14px;
+}
+
+.optionBtn:hover {
+    background-color: #eff1f5;
+    color: black;
+}
+
+.sendBtnDisabled {
+    float: right;
+    margin-right: 10px;
+    overflow: hidden;
+}

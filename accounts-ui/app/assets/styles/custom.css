@@ -1,0 +1,444 @@
+@import url('https://fonts.googleapis.com/css?family=Roboto:100,300,500');
+body,html {
+     height: 100%;
+     font-family: 'Roboto', 'Helvetica Neue', Helvetica, Arial, "Lucida Grande", sans-serif !important;
+}
+#main {
+     height: 100%;
+}
+.loader {
+     position: absolute;
+     top: 50%;
+     left: 50%;
+     margin-left: -14px;
+    /* margin is -0.5 * dimension */
+     margin-top: -14px;
+}
+#login {
+     width: 600px;
+     padding: 10px;
+     border-radius: 3px;
+    /*border: 1px solid black;
+    */
+     position: absolute;
+     top: 50%;
+     left: 50%;
+     margin-left: -300px;
+    /* margin is -0.5 * dimension */
+     margin-top: -200px;
+}
+#links {
+    width:265px;
+    margin:0 auto;
+}
+#signup {
+     width: 600px;
+     padding: 10px;
+     border-radius: 3px;
+    /*border: 1px solid black;
+    */
+     position: absolute;
+     top: 50%;
+     left: 50%;
+     margin-left: -300px;
+    /* margin is -0.5 * dimension */
+     margin-top: -250px;
+}
+.blackColor {
+     color: black !important;
+     text-decoration: none;
+}
+#image {
+     margin: auto;
+     width: 17%;
+}
+.logo {
+     height: 30%;
+     width: 100%;
+}
+#headLine {
+     margin-top: 5%
+}
+h3,h5,.tacenter {
+     text-align: center;
+}
+h3,.hfont {
+     font-family: "Roboto";
+     color: black;
+     font-size: 24px;
+     font-weight: 400;
+}
+h5,.bfont {
+     color: #989DAB;
+     font-weight: 400;
+     text-decoration: none;
+}
+#box {
+}
+#box .selectedPlan {
+     font-weight: bold;
+     font-size: 14px;
+     color: #000;
+     display: block;
+}
+.loginInput {
+     border: 1px solid #D1D5DE;
+     border-radius: 2px;
+     box-shadow: none;
+     padding: 4px 10px;
+     height: 37px;
+     font-weight: 400;
+     font-size: 13px;
+     width: 100%;
+     margin-top: 3%;
+}
+#loginbox,.loginbox {
+     width: 70%;
+     margin: auto;
+     margin-top: 5%;
+}
+.loginbtn {
+     margin-top: 5%;
+     background-color: #4e8ef7;
+     color: #fff;
+     display: block;
+     font-weight: 400;
+     font-size: 18px;
+     padding: 12px;
+     width: 100%;
+     border: 2px solid #5087e2;
+     overflow: hidden;
+     height: 50px;
+}
+.forgotpw {
+     margin-top: 2%;
+     color: #4e8ff7;
+}
+.fl {
+     float: left;
+}
+.fr {
+     float: right;
+}
+.twotop {
+     margin-top: 2%
+}
+.fs43 {
+     font-family: "Comic Sans MS", cursive, sans-serif;
+     color: #555;
+     font-size: 38px;
+}
+.resetp {
+     width: 84%;
+     margin: auto;
+}
+.mt15 {
+     margin-top: 15%
+}
+.red {
+     color: #a94442;
+}
+.green {
+     color: green
+}
+.hide {
+     display: none;
+}
+.resendbtn {
+     padding: 0;
+     width: 50%;
+     font-size: 15px;
+     margin: auto;
+     height: 30px;
+}
+.fs13 {
+     font-size: 13px !important;
+}
+.greydonthaveaccnt {
+     color: #989DAB !important;
+}
+.pagetransition-enter {
+     opacity: 0;
+     transition: opacity .3s ease-in-out;
+}
+.pagetransition-enter.pagetransition-enter-active {
+     opacity: 1;
+}
+.pagetransition-leave {
+     opacity: 1;
+     transition: opacity 0s ease-in-out;
+}
+.pagetransition-leave.pagetransition-leave-active {
+     opacity: 0;
+}
+.companysize {
+     border: 2px solid #D1D5DE;
+     border-radius: 3px;
+     box-shadow: none;
+     padding: 4px 10px;
+     height: 40px;
+     font-weight: 400;
+     font-size: 13px;
+     width: 100%;
+     margin-top: 3%;
+     background-color: white;
+}
+form .devider {
+     margin-top: 10px;
+     margin-bottom: 0px;
+}
+/* Payment form */
+.two-columns .left,.two-columns .right,.three-columns .left,.three-columns .right {
+     display: inline-block;
+     margin-right: 5px;
+     margin-left: 5px;
+}
+.three-columns .center {
+     margin-left: 14px;
+}
+.two-columns .left,.two-columns .right {
+     width: 48%
+}
+.three-columns .left,.three-columns .center,.three-columns .right {
+     max-width: 128px;
+     display: inline-block;
+}
+.two-columns .left,.three-columns .left {
+     margin-left: 0px;
+}
+.two-columns .right,.three-columns .right {
+     margin-right: 0px;
+     float: right;
+}
+.has-error {
+    /* outline: none;
+     */
+    /* border: 2px solid rgba(231, 12, 12, 0.918);
+     */
+     outline: none;
+     border-color: #ff0000;
+     box-shadow: 0 0 10px #ff0000;
+}
+.paymentBoxContainer {
+     width: 100%;
+     left: 0px;
+    /* background: grey;
+     */
+     height: 430px;
+}
+.paymentBoxContainer .columnLeft,.paymentBoxContainer .columnRight {
+     position: absolute;
+     display: inline-block;
+     min-height: 199px;
+}
+.paymentBoxContainer .columnLeft {
+     width: 42%;
+     left: -60px;
+}
+.paymentBoxContainer .columnRight {
+     width: 70%;
+     right: -60px;
+     margin-top: -10px;
+}
+.paymentBoxContainer .columnRight .twotop {
+     margin-top: 21%;
+     width: 100%;
+}
+
+.paymentBox .greyText {
+     color: #aea0a0;
+}
+.paymentBox .floatingBtn {
+     position: absolute;
+}
+.planBoxCap {
+    /* background: #43576F;
+     */
+    /* text-align: center;
+     */
+     padding: 10px;
+    /* color: white;
+     */
+}
+h4.planBoxTitle {
+     font-weight: 300;
+     font-size: 24px;
+    /* margin: 18px 0px;
+     */
+}
+.planBoxDetails {
+     padding: 10px;
+     color: black;
+}
+.plabBoxDesc {
+     margin-bottom: 16px;
+}
+.planBoxCap .planBoxStarting {
+     color: #bbb;
+    /* font-weight: bold;
+     */
+     margin-bottom: -4px;
+     margin-top: 23px;
+}
+.planBoxCap .planPrice {
+     font-size: 3.5em;
+     color: black;
+}
+.planBoxCap .planPrice .superscript {
+     font-size: 21px;
+     padding-right: 6px;
+     display: inline-block;
+     vertical-align: super;
+}
+.planBoxCap .planPrice .subscript {
+     font-size: 20px;
+     padding-left: 5px;
+     display: inline-block;
+    /* margin-left: 6px;
+     */
+}
+.planBoxCap .planPrice .subscript .billingStatus {
+     display: block;
+     color: grey;
+     font-size: 12px;
+}
+.planBoxCap .planMonths {
+     margin-top: 4px;
+     color: white;
+     font-size: 12px;
+}
+.planBox td.desc-left {
+     color: #9AA7BA;
+     font-weight: 500;
+     font-size: 15px;
+     padding-left: 17px;
+}
+input.cardInput {
+     padding-left: 44px;
+}
+span.cvvEyeBtn {
+     position: absolute;
+     margin-top: 23px;
+     right: 71%;
+     display: block;
+     cursor: pointer;
+     color: #777;
+     font-size: 1.1em;
+}
+span.inputCreditCardImg {
+     position: absolute;
+     display: block;
+     left: 8px;
+     margin-top: 10px;
+     font-size: 1.2em;
+     color: #777;
+}
+/* NEW STYLES FOR NEW SUBSCRIPTION BOXES*/
+.paymentBox .planBox {
+     border: 2px solid;
+     border-radius: 5px;
+     padding: 23px 15px;
+     font-size: 15px;
+     font-family: 'Roboto', sans-serif;
+     font-weight: 300;
+}
+
+.proBoxBtn {
+     background-color: #62a2c5;
+     font-weight: 400;
+     font-size: 100%;
+     color: #fff;
+     transition: opacity .3s cubic-bezier(.68,-.55,.27,1.55);
+     border: 2px solid #62a2c5;
+}
+
+.proPlusBoxBtn {
+     background-color: #2588bf;
+     font-weight: 400;
+     font-size: 100%;
+     color: #fff;
+     transition: opacity .3s cubic-bezier(.68,-.55,.27,1.55);
+     border: 2px solid #2588bf;
+}
+
+.basicBoxBtn {
+     background-color: #62a2c5;
+     font-weight: 400;
+     font-size: 100%;
+     color: #fff;
+     transition: opacity .3s cubic-bezier(.68,-.55,.27,1.55);
+     border: 2px solid #62a2c5;
+}
+.proBoxBtn:hover {
+     opacity: .8;
+}
+/* Changing shadow for input as well*/
+/* END OF PROBOX */
+/* BEGINING OF PROPLUS */
+.proPlusBox{
+     color: #2588bf;
+     margin: 0 1.5em 0;
+     background: #f9fcfc;
+     border: 2px solid;
+     border-radius: 5px;
+     min-height: 0;
+     
+}
+.proBox{
+     color:#62a2c5;
+     margin: 0 1.5em 0;
+     background: #f9fcfc;
+     border: 2px solid;
+     border-radius: 5px;
+     min-height: 0;
+     
+}
+.basicBox{
+     color:#83bcda;
+     margin: 0 1.5em 0;
+     background: #f9fcfc;
+     border: 2px solid;
+     border-radius: 5px;
+     min-height: 0;
+     
+}
+
+.proPlusBoxBtn:hover {
+     opacity: .8;
+}
+
+.plan__title {
+    display:block;
+    font-family:Roboto, arial, sans-serif;
+    font-size:15px;
+    font-weight:500;
+    letter-spacing:2px;
+    line-height:16.5px;
+
+}
+.plan__summary {
+     font-size: 13px;
+     font-weight: 300;
+     font-family: 'Roboto', arial, sans-serif;
+}
+
+.plan__overview {
+    color: #37404a;
+    font-size: .9em;
+    font-weight: 600;
+    line-height: 1.8;
+    margin: 0 0 1.5em;
+    padding: 10px;
+    margin-top: -10px;
+    font-family: Roboto, arial, sans-serif;
+}
+
+.plan__description {
+    color: #37404a;
+    font-size: .875em;
+    line-height: 1.5;
+    margin-bottom: 2.5em;
+    padding: 10px;
+    font-family: Roboto, arial, sans-serif;
+}
+/* END OF PROBOX */

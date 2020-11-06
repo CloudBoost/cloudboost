@@ -1,0 +1,44 @@
+# CloudBoost 
+
+[![Build Status](https://travis-ci.org/CloudBoost/user-service.svg?branch=master)](https://travis-ci.org/CloudBoost/user-service)
+
+CloudBoost is the Complete NoSQL Database Service for your app. **Think of CloudBoost as Parse + Firebase + Algolia + Iron.io all combined into one** :
+ - Data-Storage / JSON Storage / BLOB Storage
+ - 100% data ownership
+ - Realtime 
+ - Search
+ - Cache
+ - Queues
+ - More - ACL's, User Authentication, Server-less apps and more. 
+
+
+# CloudBoost User Service
+
+This is a CloudBoost User Microservice that powers [CloudBoost Dashboard](https://www.github.com/CloudBoost/dashboard) and [CloudBoost Engine](https://www.github.com/CloudBoost/cloudboost).
+
+# Running CloudBoost
+
+You can run CloudBoost with Docker (recommended). Check out the docker project [here](https://github.com/cloudboost/docker)
+
+# Contributing
+
+Pull requests are very welcome! Your pull request will be deployed immediately after its been accepted. 
+
+We'd love to hear your feedback and suggestions in the issue tracker.
+
+
+# LICENSE 
+
+Copyright 2017, HackerBay Software Private Limited.
+ 
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.

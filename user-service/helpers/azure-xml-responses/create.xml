@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Resource xmlns="http://schemas.microsoft.com/windowsazure">
+    <CloudServiceSettings>  
+            <GeoRegion><%=response.provider.geoRegion%></GeoRegion>
+    </CloudServiceSettings> 
+    <Tags><%=response.provider.tags%></Tags>
+    <Name><%=response.name%></Name>
+    <OperationStatus>
+        <Result>Succeeded</Result>
+    </OperationStatus>
+    <OutputItems>
+        <OutputItem>
+            <Key>AppId</Key>
+            <Value><%=response.appId%></Value>
+        </OutputItem>
+        <OutputItem>
+            <Key>Masterkey</Key>
+            <Value><%=response.keys.master%></Value>
+        </OutputItem>
+        <OutputItem>
+            <Key>ClientKey</Key>
+            <Value><%=response.keys.js%></Value>
+        </OutputItem>       
+    </OutputItems>
+    <Plan><%=response.planId%></Plan>
+    <State>Started</State>    
+</Resource>
+

@@ -1,0 +1,130 @@
+.AddCardForm {
+    font-family: Signika;
+    background-color: #f6f7f8;
+    padding: 20px;
+}
+
+.AddCardForm__container {
+    position: relative;
+}
+
+/* ******** FORM - CREDIT CARD DETAILS ******** */
+
+.AddCardForm__header {
+    color: #71767c;
+    font-size: 20px;
+}
+
+.AddCardForm__container {
+    padding: 10px;
+}
+
+.AddCardForm__container__loadingIndicator {
+    width: 100%;
+    background-color: rgba(255, 255, 255, 0.6);
+    height: 100%;
+    position: absolute;
+    z-index: 1;
+}
+
+.AddCardForm__header__title {
+    display: flex;
+    align-items: center;
+}
+
+.AddCardForm__header__title i {
+    font-size: 35px;
+    margin-left: auto;
+}
+
+.AddCardForm__header__subtitle {
+    font-size: 12px;
+}
+
+.AddCardForm__form {
+    margin-top: 25px;
+}
+
+/* FORM --> INDIVIDUAL FORM ELEMENTS */
+
+.AddCardForm__form .form-group {
+    display: flex;
+    align-items: center;
+    font-size: 15px;
+}
+
+.AddCardForm__form label {
+    flex: 1;
+    flex-basis: 100px;
+    white-space: nowrap;
+    padding: 10px;
+    background: white;
+    color: #adadad;
+    border-right: 1px solid #adadad36;
+}
+
+.AddCardForm__form label i {
+    font-size: 20px;
+}
+
+.AddCardForm__form input {
+    border: none;
+    border-radius: 0px;
+    box-shadow: none;
+    color: black;
+    padding: 22px 10px;
+    background: white;
+}
+
+.AddCardForm__form input:focus {
+    outline: 1px solid #4A8BFA;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.08);
+}
+
+.AddCardForm__form__cardTypeFeedback {
+    top: 5px !important;
+    right: 5px;
+}
+
+.AddCardForm__form__row {
+    display: flex;
+}
+
+.AddCardForm__form__row div {
+    margin-right: 10px;
+}
+
+.AddCardForm__form__row div:last-child {
+    margin-right: 0px;
+}
+
+/* FORM - BUTTONS */
+
+.AddCardForm__form .btn-toolbar {
+    display: flex;
+    justify-content: center;
+    margin-top: 15px;
+}
+
+.AddCardForm__form .btn-toolbar button {
+    color: white;
+    border: none;
+    padding: 10px;
+    flex: 1;
+}
+
+.AddCardForm__form__addCardBtn {
+    background-color: #5cb85c;
+}
+
+.AddCardForm__form__addCardBtn:hover {
+    background-color: #4cae4c;
+}
+
+.AddCardForm__form__cancelBtn {
+    background-color: #a0a0a0;
+}
+
+.AddCardForm__form__cancelBtn:hover {
+    background-color: #6d6c6c;
+}

@@ -1,0 +1,152 @@
+.aclrow {
+    width: 100%;
+    float: left;
+    height: 45px;
+    border-bottom: 1px solid #CCC;
+    padding: 10px;
+    background-color: #F9F9F9;
+}
+
+.textaclrow {
+    float: left;
+    font-size: 15px;
+    margin-left: 20px;
+}
+
+.readwitetext {
+    float: right;
+    margin-left: 0px;
+    margin-right: 10px;
+}
+
+.cancelaclrow {
+    float: right;
+    font-size: 20px !important;
+    margin-top: 1px;
+    margin-left: 9%;
+    cursor: pointer;
+    margin-right: 7px;
+}
+
+.selectautoacl {
+    float: left;
+    width: 150%!important;
+}
+
+.selectautoacl>label {
+    top: 20px !important;
+}
+
+.btn-primary, .btn-primary:active, .btn-primary::selection, .btn-primary:hover, .btn-primary:focus {
+    box-sizing: border-box;
+    background-color: #549afc !important;
+    color: white;
+    font-weight: bold;
+    font-size: 14px !important;
+    border-radius: 4px !important;
+    padding: 6px 30px !important;
+    letter-spacing: 0.02em !important;
+    border: none;
+    outline: none !important;
+    background-image: none;
+}
+
+.aclrowpublic {
+    width: 100%;
+    float: left;
+    height: 45px;
+    font-size: 14px;
+}
+
+.textinputaddmessage {
+    margin-top: -15px;
+}
+
+.bodyClassNameACL {
+    padding: 0px !important;
+}
+
+.acloverlay {
+    max-width: 725px !important;
+}
+
+.modaltitle {
+    background-color: #549afc;
+    color: white !important;
+    position: relative;
+    padding-top: 11px !important;
+    padding-bottom: 36px !important;
+}
+
+.diadlogTitleText {
+    font-weight: bold;
+    margin-top: -4px !important;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+}
+
+.logoaclrow {
+    margin-top: 3px;
+    float: left;
+}
+
+.textaclrow {
+    float: left;
+    margin-left: 10px;
+}
+
+.readwitetext {
+    float: right;
+    margin-left: 0;
+    margin-right: 10px;
+}
+
+.acloverlay {
+    max-width: 725px !important;
+}
+
+.tdgrey {
+    background-color: #F3F3F3 !important;
+}
+
+.cancelaclrow {
+    font-size: 20px !important;
+    float: left;
+    margin-left: 40%;
+    cursor: pointer;
+    margin-top: -35%;
+    color: rgba(255, 0, 0, 0.81);
+}
+
+.diadlogTitleTextSub {
+    position: absolute;
+    bottom: 11px;
+    font-size: 13px;
+    left: 24px;
+}
+
+.iconmodal {
+    border-radius: 50%;
+    background: #2c5f9a;
+    font-size: 25px;
+    width: 45px;
+    height: 45px;
+    padding: 10px;
+    color:white;
+}
+
+.cancelselctrela {
+    float: right;
+    width: 100%;
+    margin-top: 8px;
+    padding: 15px;
+    border-top: 2px solid #e8e8e8;
+}
+
+.fr {
+    float: right;
+}
+
+thead>tr {
+    background-color: rgb(245, 245, 245) !important;
+    border: 2px solid #d6d6d6;
+}

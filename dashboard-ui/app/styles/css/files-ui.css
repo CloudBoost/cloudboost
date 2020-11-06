@@ -1,0 +1,883 @@
+/* This css file copied from "file-ui" repostory when it was seperate server. So this CSS file may contain duplicate and overriding
+    css rules that don't need for "files-ui" component at all.
+
+    TODO : Cleanup unrelated css rules.
+*/
+
+.sub-container{
+    font-family: Avenir Next,Helvetica Neue,Helvetica,sans-serif;
+    position: relative;
+    height: auto;
+    min-width: 768px;
+    line-height: 1.42857;
+    color: #333;
+    background-color: #fff;
+    font-weight: 400;
+    font-size: 14px;
+    overflow-y: hidden;
+    margin-top: 30px;
+}
+
+.sub-container > div{
+    display:flex;
+}
+
+.sub-container__mainBody{
+    width:100%;
+}
+
+ul {
+    list-style-type: none;
+}
+
+table {
+    width: 100%;
+}
+
+th {
+    font-weight: 400;
+}
+
+body {
+    font-family: "Roboto";
+}
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dotted black;
+}
+
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 120px;
+    background-color: black;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+    position: absolute;
+    z-index: 1;
+    top: 150%;
+    left: 50%;
+    margin-left: -60px;
+}
+
+.tooltip .tooltiptext::after {
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent black transparent;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+}
+
+.listStyle {
+    border-bottom: 1px solid #d2cdcd;
+}
+
+.listStyle:hover {
+    background: whitesmoke;
+}
+
+.uploadingStatusRow {
+    padding: 5px;
+    text-align: center;
+    background: #a9d4a9;
+}
+
+.upload-complete-icon {
+    padding: 5px;
+    font-size: 20px
+}
+
+.uploadingStatusRow .listStyle:hover {
+    background-color: rgba(79, 156, 245, 0.16);
+    border-bottom: 1px solid #d2cdcd;
+}
+
+.dataStyle {
+    border: none;
+    padding: 10px;
+    cursor: default;
+}
+
+.nameDataField {
+    padding-right: 5px;
+    cursor: pointer;
+}
+
+.name-field {
+    cursor: text;
+    padding-left: 4px;
+}
+
+.modifiedDataItem {
+    color: grey;
+}
+
+.boldHeading {
+    font-weight: bold;
+}
+
+.nameHeading {
+    cursor: pointer;
+}
+
+.modifiedHeading {
+    cursor: pointer;
+}
+
+.idDataItem {
+    padding-right: 5px;
+    color: #cfcfcf;
+}
+
+.ProgressBar {
+    height: 10px;
+}
+
+.progress-bar {
+    background: #4f9cf5;
+}
+
+.header {
+    padding: 20px
+}
+
+/* .navBarComponent {
+    padding: 20px;
+    position: fixed;
+    z-index: 100;
+    width: 100%;
+    border: 2px solid black;
+} */
+
+span.inlineRight div.dropBody {
+    display: inline-block;
+    margin-top:14px
+}
+
+.inline-dropBody {
+    display: inline-block;
+}
+
+.activeDropBody {
+    background-color: #cdebff;
+}
+
+.inlineRight {
+    display: flex;
+    flex:2;
+    padding-top: 5px;
+    max-width: 350px;
+}
+
+.inlineLeft {
+    flex:3;
+    padding-top: 5px;
+}
+
+.inline {
+    display: inline-block;
+    padding: 5px
+}
+
+.fetching-loader {
+    margin-left: 40%;
+    width: 35px;
+}
+
+.sideBarComponent {
+    position: fixed;
+    margin-top: 15%;
+    height: 71%;
+    border: 2px solid red;
+}
+
+.mainBodyComponent {
+    margin-left: 15%;
+    margin-top: 25%;
+    border: 2px solid yellow;
+}
+
+.tableHeading {
+    display: inline-block;
+    padding: 15px
+}
+
+#logo {
+    margin-left: 50px;
+    border-radius: 10%
+}
+
+.logo {
+    padding: 5px;
+    padding-top: 8px;
+}
+
+.breadcrumb-row {
+    margin-bottom: 20px
+}
+
+.header-elements {
+    padding-left: 5px;
+    padding-right: 5px;
+    font-weight: 400;
+    font-family: "Roboto";
+    cursor: pointer;
+    color: #B6BDC5
+}
+
+.upgrade-style {
+    color: #3dcc6c;
+}
+
+.header-elements:hover {
+    background-color: white;
+    color: #549afc;
+}
+
+#remove-hover-bg:hover {
+    background-color: white;
+}
+
+.header-row {
+    margin-left: 60%;
+    padding: 5px
+}
+
+.search-bar-container{
+    width: 100%;
+    margin-left: 10px;
+}
+
+.search-bar {
+    position: relative;
+    right: 0;
+    float:right;
+    width: 100%;
+    margin-top: 10px;
+    padding-left: 10px;
+    border-width: 0.5px;
+    border-radius: 20px;
+    background: #fcfcfd;
+    background-image: url('/public/assets/images/files-ui/search_icon.png');
+    background-position: right;
+    background-repeat: no-repeat;
+    background-size: contain;
+    border: 1px solid #d0d4d9;
+}
+
+.search-bar:focus {
+    width: 100%;
+    -webkit-transition: width 0.5s ease-out 0s;
+    outline: none;
+}
+
+.document-list {
+    /*margin-top: 17%;*/
+}
+
+.more-menuitem {
+    min-height: 35px!important;
+    line-height: inherit!important;
+    font-size: 14px!important;
+    text-align: center;
+}
+
+.more-menuitem:hover {
+    background: #f0f0f0!important;
+}
+
+.fixed-table-heading {
+    clear: left
+}
+
+.heading-style {
+    cursor: pointer;
+    text-align: left;
+    font-size: 12px;
+    color: #737373;
+    font-weight: 600;
+}
+
+#nav-dash {
+  z-index: 1001;
+  position: fixed;
+  top: 0;
+  left:0;
+  width: 100%;
+  height: 60px;
+  border-color: #DADDE2;
+  border-width: 0 0 1px 0;
+  border-style: solid;
+}
+#nav-dash .container {
+  width: 100% !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+#nav-dash .container .toolbar {
+  background-color: #FFF;
+  font-size: 14px;
+  height: 100%;
+}
+#nav-dash .container .toolbar .icon {
+  height: 40px;
+  width: 40px;
+  position: relative;
+  border-radius: 10%;
+  cursor: pointer;
+}
+#nav-dash .container .toolbar .userhead {
+  height: 30px;
+  width: 30px;
+  border-radius: 50%;
+  margin-top: -4px;
+}
+#nav-dash .container .toolbar span:hover {
+  cursor: pointer;
+  color: #666;
+}
+.headingpop {
+
+  height: 40px;
+  padding: 10px;
+  border-bottom: 1px solid #e0e0e0;
+  font-weight: 500;
+  margin-bottom: 0;
+  padding-left: 12px;
+  font-size: 11pt;
+  font-weight: 400;
+  color: #333;
+  text-transform: capitalize;
+
+}
+
+  .profilepop {
+  min-width: 220px !important;
+  min-height: 100px !important;
+  border-radius: 5px !important;
+  overflow: visible !important;
+  font-family: Roboto !important;
+}
+
+.coloptbtn {
+  width: 100%;
+  border: 0 solid #EEE;
+  height: 35px;
+  background-color: #FFFFFF;
+  color: #5e5e5e;
+  margin-top: 0;
+  text-align: left;
+  padding-left: 12px;
+  font-size: 14px;
+}
+
+.coloptbtn:hover {
+  background-color: #EEE;
+  color: black;
+}
+#side-menu{
+    height: 100%;
+        padding-top: 33px;
+    border-right: 1px solid whitesmoke;
+}
+.sidebar-icon{
+    font-size: 17px;
+}
+.side-menu-items {
+    text-align: justify;
+    cursor: pointer;
+    color: #a2abba;
+    padding: 6px 6px 6px 0;
+    font-size: 14px;
+}
+.side-menu-container{
+    min-width: 182px;
+    height: 100%;
+}
+
+.side-menu-items:active {
+    cursor: pointer;
+    color: #a2abba;
+    padding: 5px;
+    font-size: 13px;
+}
+
+.below-navbar{
+    display: flex;
+}
+
+.navbar-style {
+    background: white;
+}
+
+.navbar-border {
+    border-bottom: 1px solid rgba(84, 154, 252, 0.23);
+}
+
+.app-items:hover {
+    background: white
+}
+
+.breadcrumb-color {
+    color: #adb5c2;
+    font-size: 11px;
+    vertical-align: middle;
+}
+
+.action-icons {
+    font-size: 24px;
+    padding-right: 5px;
+    cursor: pointer;
+    color: black;
+}
+
+.center-aligned {
+    display: block;
+    text-align: center;
+    color: grey;
+    margin: auto;
+}
+
+.modal-dialog {
+    margin-top: 12%;
+    font-family: Signika;
+}
+
+.modal-header-style {
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    font-family: Signika;
+    color: #585858;
+    padding-top: 10px;
+    height: 64px;
+}
+
+.small-height-modal .modal-footer {
+    padding: 0 15px 15px;
+    border-top: none;
+}
+
+.delete-modal-header-style {
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    font-family: Signika;
+    color: #585858;
+    padding-top: 10px;
+    height: 64px;
+}
+
+.acl-modal .modal-content .modal-header {
+    color: white;
+    background: #4f9cf5;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    font-family: "Signika";
+}
+
+.acl-modal .modal-content .modal-footer .btn-primary {
+    background: #4f9cf5;
+}
+
+.acl-modal .modal-content .modal-body {
+    font-family: "Signika";
+}
+
+.selectautoacl {
+    font-family: "Signika"!important;
+}
+
+.create-btn {
+    background: #4f9cf5;
+    border-color: #549afc;
+}
+
+.delete-btn {
+    min-width: 100px;
+    background-color: #d9534f;
+    border-color: #d43f3a;
+}
+
+.delete-btn:hover {
+    color: #fff;
+    background-color: #c9302c;
+    border-color: #ac2925;
+}
+
+.create-btn:hover {
+    background: #4f9cf5;
+    border-color: #549afc;
+}
+
+.profile-icon {
+    font-size: 25px;
+}
+
+.create-folder-modal-icon-style {
+    border-radius: 50%;
+    background: #2c5f9a;
+    content: url("/public/assets/images/files-ui/add-folder-icon.png");
+    font-size: 25px;
+    width: 45px;
+    height: 45px;
+    padding: 10px;
+}
+
+.delete-modal-icon-style {
+    border-radius: 50%;
+    background: #f15558;
+    font-size: 25px;
+    width: 45px;
+    padding: 7px;
+    content: url("/public/assets/images/files-ui/trash.png");
+}
+
+.acl-modal-icon-style {
+    border-radius: 50%;
+    background: #2c5f9a;
+    font-size: 30px;
+    width: 60px;
+    padding: 15px;
+    content: url("/public/assets/images/files-ui/acl.png");
+}
+
+#folderName {
+    width: 60%;
+    text-align: center;
+    padding: 15px 0;
+    border: none;
+    display: block;
+    font-family: "Signika";
+    margin: auto;
+    font-size: 18px;
+}
+
+#folderName:focus {
+    outline: none;
+    border: none;
+}
+
+.footer-item {
+    font-size: 12px;
+}
+
+
+.listHeading {
+    padding: 10px;
+    border-bottom: 1px solid #549afc;
+    color: grey;
+}
+
+.modal-title-style {
+    font-size: 22px;
+    font-weight: normal;
+    font-family: "Signika";
+}
+
+.modal-title-inner-text {
+    font-size: 14px;
+    font-weight: 400;
+    color: #777e8a;
+    font-family: Signika;
+}
+
+.side-item-selected {
+    color: #549afc;
+    border-right: 1px solid #549afc;
+}
+
+.row-selected {
+    background: rgba(79, 156, 245, 0.16);
+}
+
+.modal-content {
+    border-radius: 5px;
+}
+
+.sortIcon {
+    padding-left: 5px;
+    font-size: 14px;
+}
+
+.trash-icon:hover {
+    color: red;
+}
+
+.download-icon:hover {
+    color: #285c98;
+}
+
+.edit-icon {
+    font-size: 20px!important;
+}
+
+.edit-icon:hover {
+    color: #0b368a
+}
+
+.__react_component_tooltip.type-dark {
+    background: #4e4e4e!important;
+    color: white!important;
+    opacity: 1 !important;
+}
+
+.__react_component_tooltip.type-dark.place-bottom:after {
+    border-bottom-color: #4e4e4e!important;
+    border-bottom-style: solid;
+    border-bottom-width: 6px;
+    opacity: 1 !important;
+}
+
+.uploadingList {
+    background: rgba(212, 209, 209, 0.39);
+    color: #afabab;
+    border-bottom: 1px solid #d2cdcd;
+}
+
+.more-menu {
+    display: none
+}
+
+.popover-content {
+    padding: 0px
+}
+
+.download-gif {
+    vertical-align: baseline!important;
+}
+
+.popover-list {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0);
+    cursor: default;
+    text-align: center;
+}
+
+.input-no-border {
+    border: none;
+}
+
+.input-no-border:focus {
+    font-size: 14px;
+    background: #e3effd;
+    border-bottom: 2px solid #abcdef;
+    border-bottom-left-radius: 4px;
+    outline-style: initial;
+    border-bottom-right-radius: 4px;
+}
+
+.nameInput {
+    display: none;
+}
+
+.display-none {
+    display: none;
+}
+
+.close-icon {
+    font-size: 25px;
+    padding-right: 5px;
+}
+
+.dashboard-menuitem {
+    padding-top: 3px;
+}
+
+.appid-menuitem {
+    padding-top: 3px;
+}
+
+.side-bar-icon {
+    font-size: 24px;
+    color: #2e619c;
+}
+
+.error-text {
+    color: #ceb531;
+    text-align: center;
+    display: block;
+}
+
+.dashboard-icon {
+    font-size: medium
+}
+
+.upload-icon {
+    cursor: pointer;
+}
+
+.create-folder-icon {
+    margin-top: 13px;
+    cursor: pointer;
+}
+
+.delete-modal-body {
+    text-align: center;
+    padding: 20px 15px;
+    font-size: 14px;
+    font-family: Avenir Next,Helvetica Neue,Helvetica,sans-serif;
+    color: #6d727b;
+}
+
+.modal-title {
+    font-weight: 400;
+    font-size: 20px;
+}
+
+.popover-list-item {
+    border: none;
+}
+
+.list-group-item:last-child {
+    padding-top: 0px;
+    padding-bottom: 0px;
+}
+
+.profilePic {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+}
+
+.app-list-item.selected-app {
+    background: #fafafa!important;
+    color: black!important
+}
+
+.app-list-item {
+    border-bottom: 1px solid #f3f7fd!important;
+    border-top: 1px solid #f3f7fd!important;
+    color: #858585!important;
+}
+
+.new-folder-modal-title {
+    vertical-align: middle;
+}
+
+.myApps-heading {
+    padding: 5px;
+    background: #e8e8e8;
+    text-align: center;
+    margin-top: -5px;
+    cursor: default;
+}
+
+.empty-file-image {
+    cursor: pointer;
+}
+
+.empty-file-text {
+    cursor: default;
+}
+
+.app-selector-img {
+    margin-right: 10px;
+    border-radius: 5px;
+}
+
+.down-arrow {
+    color: black;
+}
+
+/**
+Profile Modal
+*/
+
+
+.profilepop {
+    min-width: 220px !important;
+    min-height: 100px !important;
+    border-radius: 5px !important;
+    overflow: visible !important;
+    font-family: Roboto !important;
+}
+
+.profile-body {
+    user-select: none;
+}
+
+.profile-body .input-field {
+    width: 100%;
+    color: #222;
+    padding: 10px;
+    line-height: normal;
+    margin: 0;
+    font-size: 16px;
+    outline: none;
+}
+
+.profile-body .inputedit {
+    border: 0;
+}
+
+.profile-body .inputeditenable {
+    box-shadow: inset 0 0 0 2px #43BDFF;
+    outline: 0;
+    border-color: transparent !important;
+    border-radius: 5px;
+}
+
+.edit-profile-photo {
+    cursor: pointer;
+    width: auto;
+    -ms-flex-positive: 1;
+    flex-grow: 1;
+    display: -ms-flexbox;
+    display: flex;
+    padding: 0 0 10px 10px;
+    align-items: center;
+    -ms-flex-align: center;
+}
+
+.edit-profile-photo .user-icon {
+    margin-right: 10px;
+}
+
+.edit-profile-photo .user-icon.medium {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+}
+
+.edit-profile-photo .user-icon {
+    position: relative;
+    border-radius: 5px;
+    background-size: cover;
+    background-color: #43BDFF;
+    background-repeat: no-repeat;
+    background-position: center center;
+}
+
+.edit-profile-photo .user-icon .profileimageloader {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.75);
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-align: center;
+    align-items: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+}
+
+.edit-profile-photo span {
+    font-weight: 400;
+    font-size: 16px;
+    color: rgba(0, 0, 0, 0.5);
+    line-height: 24px;
+    text-align: left;
+    letter-spacing: 0.03;
+    padding-right: 0;
+    padding-left: 0;
+}

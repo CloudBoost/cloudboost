@@ -1,0 +1,8 @@
+<Resource xmlns="http://schemas.microsoft.com/windowsazure">
+    <Id>/subscriptions/<%=resource.provider.subscription_id%>/resourceGroups/<%=resource.provider.resourceGroupName%>/providers/<%=resource.provider.resourceProviderNamespace%>/<%=resource.provider.resource_type%>/<%=resource.provider.resource_name%></Id>
+    <Name><%=resource.name%></Name>
+    <Type><%=resource.provider.resourceProviderNamespace%>/<%=resource.provider.resource_type%></Type>
+    <location><%=resource.provider.geoRegion%></location>
+    <Tags><%=resource.provider.tags%></Tags>
+    <Plan><%=resource.planId%></Plan>
+</Resource>

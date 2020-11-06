@@ -1,0 +1,189 @@
+.paymentPage * {
+    box-sizing: border-box;
+}
+
+.paymentPage {
+    min-height: calc(100vh);
+    padding-top: 120px;
+    padding-bottom: 80px;
+    background: #f5f6f9;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+/* ******** CARD SECTION ******** */
+.paymentPage__cardsSection {
+    width: 100%;
+    padding: 0 100px;
+}
+
+/* ******** CARD SECTION ---> HEADER ******** */
+.paymentPage__cardsSection__header {
+    display: flex;
+}
+
+.cardsSection__header__top {
+    display: flex;
+    align-items: center;
+}
+
+.cardsSection__header__top__title {
+    font-size: 30px;
+    color: rgb(139, 145, 154);
+    font-weight: 300;
+    margin-right: 15px;
+}
+
+.cardsSection__header__addBtn {
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    padding: 12px 18px;
+    color: #FFF;
+    background-color: #4dd87b;
+    font-size: 14px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    margin-left: auto;
+}
+
+.cardsSection__header__addBtn:hover {
+    background: #5e5eb7d6;
+}
+
+.paymentPage__cardsSection__cardListContainer {
+    margin-top: 30px;
+}
+
+.paymentPage__cardsSection__cardListContainer .cardList {
+    display: flex;
+    flex-wrap: wrap;
+
+    /* To hide indivial credit card items left margin that shows in entire list. So card list start far left. */
+    margin-left: -15px;
+}
+
+/* ******** CARD SECTION --> INDIVIDUAL CREDIT CARD ******** */
+.paymentPage__cardsSection__cardListContainer .cardItem {
+    margin: 10px;
+}
+
+.cardItem__creditCard {
+    position: relative;
+    background-image: url("/public/assets/images/card-backgroundBubble.svg"), linear-gradient(360deg, #6078ea 0%,#17ead9 100%);
+    background-position: -20% 10%, right;
+    background-repeat: no-repeat;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+    width: 350px;
+    height: 200px;
+    border-radius: 10px;
+    margin: 5px;
+    padding: 30px;
+    color: white;
+    letter-spacing: .5px;
+    transition : all 0.3s;
+    /*Base fontSize for CreditCard - For Later em's*/
+    font-size: 14px;
+}
+
+.cardItem__creditCard:hover {
+    box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+}
+
+/* ******** CARD SECTION --> INDIVIDUAL CREDIT CARD --> CARD DETAILS ******** */
+.creditCard__brandLogo {
+    width: 75px;
+    height: 75px;
+    background-size: 100%;
+    background-repeat: no-repeat;
+    margin-bottom: 30px;
+    filter: brightness(0%) invert(100%);
+}
+
+.creditCard__number {
+    font-family: monospace;
+    font-size: 1.10em;
+    font-weight: 550;
+    color: whitesmoke;
+    text-shadow: 1px 1px 2px #737373;
+    letter-spacing: 1.2px;
+}
+
+.creditCard__name {
+    text-transform: uppercase;
+    font-size: 1em;
+}
+
+.creditCard__exp {
+    position: absolute;
+    bottom: 11%;
+    right: 7%
+}
+
+/* ******** CARD SECTION --> INDIVIDUAL CREDIT CARD --> OPTIONS PANEL ******** */
+.cardItem__creditCard_options {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: #2b3644bd;
+    border-radius: 10px 10px 0 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    transition: all 2s;
+}
+
+.cardItem__creditCard_options button {
+    background : none;
+    border: none;
+    padding: 10px;
+    flex: 1;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.creditCard_option__deleteBtn {
+    color: #bd5e5e
+}
+
+.creditCard_option__deleteBtn--disabled {
+    display: none;
+}
+
+.creditCard_option__editBtn {
+    color: #e0eae6;
+}
+
+/* ********** MEDIA QUARIES ******** */
+/* Compacting CreditCard box in small resolutions */
+@media all and (max-width: 450px) {
+    .paymentPage__cardsSection__cardListContainer .cardItem {
+        display:flex;
+        flex-basis: 500px;
+        flex: 1
+    }
+
+    .cardItem__creditCard {
+        width: 100%;
+        height: 100%;
+        font-size: 10px;
+        min-width: 200px;
+        background-position: 10% 10%, right;
+    }
+
+    .creditCard__number {
+        font-size: 1em;
+    }
+
+    .creditCard__brandLogo {
+        width: 45px;
+        height: 45px;
+    }
+
+    .creditCard__exp {
+        bottom: 21%;
+        right: 7%
+    }
+}

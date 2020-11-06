@@ -1,0 +1,5 @@
+<updateCommunicationPreference xmlns="http://schemas.microsoft.com/windowsazure">
+    <Name><%=doc.name%></Name>
+    <Email><%=doc.email%></Email>
+    <OptInForCommunication><%=doc.azure.OptInForCommunication%></OptInForCommunication>    
+</updateCommunicationPreference>

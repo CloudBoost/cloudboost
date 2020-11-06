@@ -1,0 +1,142 @@
+chai = require('chai');
+stripeServer = 'https://api.stripe.com';
+
+describe.only('Payment Process', function() {
+	var test_user = {
+		email: util.makeEmail(),
+		password: util.makeString(),
+		name: util.makeString()
+	};
+
+	var test_card = {
+          card:{
+            name: test_user.name,
+            number: '4242 4242 4242 4242',
+            cvc: 555,
+            exp_month: 08,
+            exp_year: 2018
+          },
+          key: process.env['STRIPE_PUBLISH_KEY']
+        };
+
+	var app_name = util.makeString();
+	var Cookie, id, appId, cardId, customer, token, source;
+
+	before(function (done) {
+		this.timeout(0);
+		var emailVerificationCode;
+		request
+			.post('/user/signup')
+			.send(test_user)
+			.end(function(err, res) {
+				emailVerificationCode = res.body.emailVerificationCode;
+				request
+					.post('/user/activate')
+					.send({code: emailVerificationCode})
+					.end(function(err, res1) {
+						request
+							.post('/user/signin')
+							.send({email: test_user.email, password: test_user.password})
+							.end(function(err, res2) {
+								Cookie = res2.headers['set-cookie'].pop().split(';')[0];
+								id = res2.body._id;
+								request
+									.post('/app/create')
+									.set('Cookie', Cookie)
+									.send({name: app_name})
+									.end(function(err, res) {
+										appId = res.body.appId;
+										done();
+									});
+							});
+					});
+			});
+	});
+
+	after(function(done) {
+		request
+			.post('/user/logout')
+			.end(function(err, res){
+				done();
+			});
+	});
+
+	it('should retrieve stripe token', function(done) {
+		this.timeout(10000);
+		chai.request(stripeServer)
+	        .post('/v1/tokens')
+	        .set('content-type', 'application/x-www-form-urlencoded')
+	        .send(test_card)
+	        .end(function(err, res) {
+				token = res.body.id;
+				cardId = res.body.card.id;
+				done();
+        });
+	});
+
+	it('should make a sale with proper token', function(done) {
+		this.timeout(30000);
+		request.post('/' + appId + '/sale')
+			.send({
+				userId: id,
+				token: token,
+				planId: 4,
+				email: test_user.email
+			})
+			.end(function(err, res) {
+				expect(res).to.have.status(200);
+				expect(res.body).to.be.an('object');
+				expect(res.body.appId).to.equal(appId);
+				expect(res.body.planId).to.equal(4);
+				done();
+		});
+	});
+
+	it('should retreive customer', function(done) {
+		this.timeout(8000);
+
+		request.get('/' + appId + '/customer')
+		.send({ userId: id })
+		.end(function(err, res) {
+			customer = res.body;
+			source = res.body.sources.data[0];
+			expect(res.body.default_source).to.equal(cardId);
+			expect(res.body.sources.data).to.be.an('array');
+			expect(res.body.sources.data[0].id).to.equal(cardId);
+			done();
+		});
+	});
+
+	// For bad data
+	it('should fail when wrong appId being provided', function(done) {
+		this.timeout(8000);
+
+		request
+			.post('/wrongappid/sale')
+			.send({
+				userId: id,
+				source,
+				customer,
+				planId: 2,
+				email: test_user.email
+			})
+			.end(function(err, res){
+				expect(res).to.have.status(400);
+				done();
+			});
+	});
+
+	it('should remove the card for the app', function(done) {
+    this.timeout(10000);
+
+		request
+			.delete('/'+ appId +'/removecard')
+			.set('Cookie', Cookie)
+			.end(function(err, res) {
+				expect(res).to.have.status(200);
+				expect(res.body.message).to.equal('Success');
+				done();
+			});
+	});
+
+});
