@@ -1,0 +1,33 @@
+{
+  "name": "cloudboost-smoke",
+  "version": "1.0.0",
+  "description": "Smoke tests for Cloudboost",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest index.test.js",
+    "lint": "eslint . --ext .js"
+  },
+  "license": "MIT",
+  "private": true,
+  "dependencies": {},
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-jest": "^23.4.0",
+    "babel-preset-env": "^1.7.0",
+    "eslint": "^4.19.1",
+    "eslint-config-airbnb-base": "^13.0.0",
+    "eslint-config-standard": "^11.0.0",
+    "eslint-plugin-import": "^2.13.0",
+    "eslint-plugin-jest": "^21.18.0",
+    "eslint-plugin-node": "^7.0.1",
+    "eslint-plugin-promise": "^3.8.0",
+    "eslint-plugin-standard": "^3.1.0",
+    "faker": "^4.1.0",
+    "jest": "^23.4.1",
+    "puppeteer": "^1.6.0",
+    "jest-environment-node": "~23.4.0",
+    "chalk": "^2.3.0",
+    "prettier": "^1.9.2",
+    "rimraf": "^2.6.2"
+  }
+}

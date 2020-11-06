@@ -1,0 +1,26 @@
+{
+  "name": "storage-analytics-service",
+  "version": "1.0.21",
+  "main": "server.js",
+  "engines": {
+    "node": ">=5.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://@bitbucket.org/cloudboost/storage-analytics-service.git"
+  },
+  "dependencies": {
+    "body-parser": "^1.12.0",
+    "cors": "^2.7.1",
+    "cron": "^1.1.0",
+    "express": "^4.13.4",
+    "mongodb": "^2.0.20",
+    "node-uuid": "*",
+    "pjson": "^1.0.7",
+    "q": "^2.0.3",
+    "request": "^2.55.0",
+    "underscore": "^1.8.3",
+    "winston": "^2.3.1",
+    "winston-bishop-slack": "^0.2.1"
+  }
+}

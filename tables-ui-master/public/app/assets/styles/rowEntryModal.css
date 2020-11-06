@@ -1,0 +1,80 @@
+.entry-input {
+  width: 100%;
+}
+
+.row-modal {
+  max-width: 500px;
+}
+
+.row-modal-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.row-modal-entry {
+  margin-bottom: 32px;
+  width: 100%;
+  outline: none;
+}
+
+.row-modal-entry > label {
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  font-size: 11px;
+  font-weight: normal;
+}
+
+.row-modal-entry > label > i {
+  margin-right: 4px;
+}
+.row-modal-entry > td {
+  max-width: 100% !important;
+  width: 100% !important;
+  height: 35px;
+  border-width: 2px;
+  border-style: solid;
+  border-color: rgba(0,0,0,0.1);
+  border-radius: 3px;
+  padding: 3px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: white;
+}
+
+.row-modal-entry > td:hover {
+  border-color: rgba(0,0,0,0.25);
+}
+
+.row-modal-entry > td > .texttypetdinput {
+  height: 35px !important;
+  border-radius: 5px !important;
+}
+
+.row-modal-entry:focus label {
+  color: #5baeec;
+}
+
+.row-modal-name {
+  margin-top: 11px;
+  font-size: 1.4rem;
+}
+
+.row-modal-switcher-btn {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  padding-left: 0;
+  outline: none;
+}
+
+.row-modal-switcher-btn:disabled > img {
+  opacity: 0.4;
+}
+
+.row-modal-switcher {
+  align-self: start;
+}
+

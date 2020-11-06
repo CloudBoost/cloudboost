@@ -1,0 +1,61 @@
+ul {
+    list-style-type: none;
+}
+
+table {
+    //border:1px solid black;
+    width: 100%;
+}
+
+th {
+    padding: 5px;
+}
+
+.listStyle {
+    border-top: 1px solid grey;
+    border-bottom: 1px solid #d2cdcd;
+}
+
+.listStyle:hover {
+    border-top: 1px solid grey;
+    background-color: #dbf1f1;
+    border-bottom: 1px solid #d2cdcd;
+}
+
+.dataStyle {
+    padding: 10px;
+}
+
+.header {
+    padding: 20px;
+}
+
+.bodyStyle {
+    height: 100%;
+}
+
+.fixed {
+    position: fixed;
+}
+
+.dropBody {
+    border: 2px solid #59cbff;
+    border-radius: 10px;
+    margin: 10px;
+}
+
+.dropBody2 {
+    background-color: #cdebff;
+    border-radius: 50px;
+    margin: 10px;
+}
+
+.inlineRight {
+    display: inline-block;
+    margin-left: 30%;
+}
+
+.inline {
+    display: inline-block;
+    padding: 5px;
+}

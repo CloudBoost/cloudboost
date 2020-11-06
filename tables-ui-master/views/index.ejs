@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel='shortcut icon' type='image/x-icon' href='public/favicon.png' />
+    <title>Cloudboost Tables</title>
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.blue-deep_purple.min.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" type="text/css" href="public/app/assets/styles/drawer.css">
+    <link rel="stylesheet" href="public/app/assets/fonts/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="https://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/messenger/1.5.0/css/messenger.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/messenger/1.5.0/css/messenger-theme-flat.min.css">
+    <link rel="stylesheet" type="text/css" href="public/app/assets/styles/perfect-scrollbar.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.5.2/animate.min.css">
+    <link rel="stylesheet" type="text/css" href="public/app/assets/styles/custom.css">
+    <link rel="stylesheet" type="text/css" href="public/app/assets/styles/rowEntryModal.css" >
+<!-- Style For the initial loader -->
+    <style>
+        @keyframes lds-rolling {
+            0% {
+                -webkit-transform: translate(-50%, -50%) rotate(0deg);
+                transform: translate(-50%, -50%) rotate(0deg);
+              }
+            100% {
+                -webkit-transform: translate(-50%, -50%) rotate(360deg);
+                transform: translate(-50%, -50%) rotate(360deg);
+              }
+            }
+            @-webkit-keyframes lds-rolling {
+              0% {
+                -webkit-transform: translate(-50%, -50%) rotate(0deg);
+                transform: translate(-50%, -50%) rotate(0deg);
+              }
+              100% {
+                -webkit-transform: translate(-50%, -50%) rotate(360deg);
+                transform: translate(-50%, -50%) rotate(360deg);
+              }
+            }
+            .lds-rolling {
+              position: relative;
+            }
+            .lds-rolling div,
+            .lds-rolling div:after {
+              width: 25%;
+              height: 25%;
+              border: 5px solid #2196f3;
+              border-top-color: transparent;
+              border-radius: 50%;
+            }
+            .lds-rolling div {
+              -webkit-animation: lds-rolling 1s linear infinite;
+              animation: lds-rolling 1s linear infinite;
+              top: 100px;
+              left: 100px;
+            }
+            .lds-rolling div:after {
+              -webkit-transform: rotate(90deg);
+              transform: rotate(90deg);
+            }
+            .lds-rolling {
+              width: 200px !important;
+              height: 200px !important;
+              -webkit-transform: translate(-100px, -100px) scale(1) translate(100px, 100px);
+              transform: translate(-100px, -100px) scale(1) translate(100px, 100px);
+            }
+            .loader{
+              position: absolute;
+              width:25%;
+              height:25%;
+              top:47%;
+              left:50%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="initialLoader" class="loader">
+        <div class="lds-css ng-scope"><div style="width:100%;height:100%" class="lds-rolling"><div></div></div>
+        </div>
+    </div>
+    <div id="main">
+    </div>
+	<script >
+		var CONFIG = <%- config %>;
+		for (const key in CONFIG) {
+			if (CONFIG.hasOwnProperty(key)) {
+				window[key] = CONFIG[key];
+			}
+		}
+	</script>
+    <!-- start Mixpanel -->
+    <script type="text/javascript">
+        (function (f, b) {
+            if (!b.__SV) {
+                var a, e, i, g; window.mixpanel = b; b._i = []; b.init = function (a, e, d) {
+                    function f(b, h) { var a = h.split("."); 2 == a.length && (b = b[a[0]], h = a[1]); b[h] = function () { b.push([h].concat(Array.prototype.slice.call(arguments, 0))) } } var c = b; "undefined" !== typeof d ? c = b[d] = [] : d = "mixpanel"; c.people = c.people || []; c.toString = function (b) { var a = "mixpanel"; "mixpanel" !== d && (a += "." + d); b || (a += " (stub)"); return a }; c.people.toString = function () { return c.toString(1) + ".people (stub)" }; i = "disable track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config people.set people.set_once people.increment people.append people.union people.track_charge people.clear_charges people.delete_user".split(" ");
+                    for (g = 0; g < i.length; g++)f(c, i[g]); b._i.push([a, e, d])
+                }; b.__SV = 1.2; a = f.createElement("script"); a.type = "text/javascript"; a.async = !0; a.src = "undefined" !== typeof MIXPANEL_CUSTOM_LIB_URL ? MIXPANEL_CUSTOM_LIB_URL : "//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js"; e = f.getElementsByTagName("script")[0]; e.parentNode.insertBefore(a, e)
+            }
+        })(document, window.mixpanel || []);
+        mixpanel.init("be05a4d590e8bc9d5f2cd6b3b3ffb78b");
+    </script>
+    <!-- end Mixpanel -->
+    <script src="https://code.getmdl.io/1.2.1/material.min.js"></script>
+    <script src="https://code.jquery.com/jquery-2.2.0.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/CloudBoost/cloudboost@2.0.962/sdk/dist/cloudboost.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/messenger/1.5.0/js/messenger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/messenger/1.5.0/js/messenger-theme-flat.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2014-11-29/FileSaver.min.js"></script>
+    <script>
+        Messenger.options = {
+            extraClasses: 'messenger-fixed messenger-on-bottom messenger-on-right',
+            theme: 'flat'
+        }
+    </script>
+    <link rel="stylesheet" href="https://codemirror.net/lib/codemirror.css">
+    <script src="https://codemirror.net/lib/codemirror.js"></script>
+    <script src="https://codemirror.net/addon/edit/matchbrackets.js"></script>
+    <script src="https://codemirror.net/addon/edit/closebrackets.js"></script>
+    <script src="https://codemirror.net/addon/hint/javascript-hint.js"></script>
+    <script src="https://codemirror.net/mode/javascript/javascript.js"></script>
+    <script src="public/app/assets/perfect-scrollbar.min.js"></script>
+    <!-- Begin Inspectlet Embed Code -->
+    <script type="text/javascript" id="inspectletjs" async>
+        window.__insp = window.__insp || [];
+        __insp.push(['wid', 1970165555]);
+        (function () {
+            function ldinsp() { if (typeof window.__inspld != "undefined") return; window.__inspld = 1; var insp = document.createElement('script'); insp.type = 'text/javascript'; insp.async = true; insp.id = "inspsync"; insp.src = ('https:' == document.location.protocol ? 'https' : 'http') + '://cdn.inspectlet.com/inspectlet.js'; var x = document.getElementsByTagName('script')[0]; x.parentNode.insertBefore(insp, x); };
+            setTimeout(ldinsp, 500); document.readyState != "complete" ? (window.attachEvent ? window.attachEvent('onload', ldinsp) : window.addEventListener('load', ldinsp, false)) : ldinsp();
+        })();
+
+    </script>
+    <!-- End Inspectlet Embed Code -->
+<script type="text/javascript" src="public/index.min.js"></script></body>
+
+</html>

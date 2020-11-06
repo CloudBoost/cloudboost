@@ -1,0 +1,46 @@
+machine:
+  node:
+    version: 7.4.0
+  services:
+    - docker
+  environment:
+    CLOUDSDK_CORE_DISABLE_PROMPTS: 1
+dependencies:
+  override:
+    - sudo apt-get update
+    - sudo apt-get install curl libc6 libcurl3 zlib1g
+    - npm install
+  post:
+    - curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+    - chmod +x ./kubectl
+    - sudo mv ./kubectl /usr/local/bin/kubectl
+test:
+  pre:
+    - docker build -t cloudboost/storage-analytics-service:3.0.$CIRCLE_BUILD_NUM .
+  override:
+    - echo "NO TESTS REQUIRED FOR storage-analytics-service"
+deployment:
+  staging:
+    branch: staging
+    commands:
+      - docker build -t cloudboost/storage-analytics-service:staging .
+      - docker login --username $DOCKERUSERNAME --password $DOCKERPASSWORD --email $DOCKEREMAIL
+      - docker push cloudboost/storage-analytics-service:3.0.$CIRCLE_BUILD_NUM
+      - docker push cloudboost/storage-analytics-service:staging
+      - git clone https://github.com/CloudBoost/kube-cred.git
+      - cd kube-cred && openssl enc -in config.enc -out config -d -aes256 -k $KUBE_ENC
+      - mkdir ~/.kube
+      - cd kube-cred && mv config ~/.kube/
+      - kubectl rolling-update cloudboost-sas-staging --image=cloudboost/storage-analytics-service:staging --image-pull-policy=Always
+  production:
+    branch: master
+    commands:
+      - docker build -t cloudboost/storage-analytics-service:latest .
+      - docker login --username $DOCKERUSERNAME --password $DOCKERPASSWORD --email $DOCKEREMAIL
+      - docker push cloudboost/storage-analytics-service:3.0.$CIRCLE_BUILD_NUM
+      - docker push cloudboost/storage-analytics-service:latest
+      - git clone https://github.com/CloudBoost/kube-cred.git
+      - cd kube-cred && openssl enc -in config.enc -out config -d -aes256 -k $KUBE_ENC
+      - mkdir ~/.kube
+      - cd kube-cred && mv config ~/.kube/
+      - kubectl rolling-update cloudboost-sas --image=cloudboost/storage-analytics-service:latest --image-pull-policy=Always

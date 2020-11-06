@@ -1,0 +1,253 @@
+# This configuration was automatically generated from a CircleCI 1.0 config.
+# It should include any build commands you had along with commands that CircleCI
+# inferred from your project structure. We strongly recommend you read all the
+# comments in this file to understand the structure of CircleCI 2.0, as the idiom
+# for configuration has changed substantially in 2.0 to allow arbitrary jobs rather
+# than the prescribed lifecycle of 1.0. In general, we recommend using this generated
+# configuration as a reference rather than using it in production, though in most
+# cases it should duplicate the execution of your original 1.0 config.
+version: 2
+jobs:
+  deploy_master:
+    working_directory: ~/cloudboost/data-browser
+    shell: /bin/bash --login
+    machine: true
+    steps:
+      - checkout
+      - run: sudo apt-get update
+      - run: sudo apt-get install curl libc6 libcurl3 zlib1g
+      - run: npm install
+      - run: npm install -g webpack@2.7
+      - run: webpack --progress
+      - run: curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+      - run: chmod +x ./kubectl
+      - run: sudo mv ./kubectl /usr/local/bin/kubectl
+      - run: docker build -t cloudboost/data-browser:master-3.0.$CIRCLE_BUILD_NUM .
+      - run: docker login --username $DOCKERUSERNAME --password $DOCKERPASSWORD
+      - run: docker push cloudboost/data-browser:master-3.0.$CIRCLE_BUILD_NUM
+      - run: git clone https://github.com/CloudBoost/kube-cred.git
+      - run: cd kube-cred && openssl enc -in config.enc -out config -d -aes256 -k $KUBE_ENC
+      - run: mkdir ~/.kube
+      - run: cd kube-cred && mv config ~/.kube/
+      - run: kubectl config use-context cloudboost-staging
+      - run: kubectl set image deployment cloudboost-data-browser cloudboost-data-browser=cloudboost/data-browser:master-3.0.$CIRCLE_BUILD_NUM
+      - run: kubectl rollout status deployment cloudboost-data-browser
+      - run:
+          name: Clear DNS cache
+          command: |
+            if [ "$CIRCLE_NODE_INDEX" == 0 ]; then
+                curl -X POST "https://api.cloudflare.com/client/v4/zones/${CF_ZONE}/purge_cache" \
+                  -H "X-Auth-Email: ${CF_EMAIL}" \
+                  -H "X-Auth-Key: ${CF_KEY}" \
+                  -H "Content-Type: application/json" \
+                  --data '{"purge_everything":true}'
+            fi
+
+
+  smoke_test_staging:
+    working_directory: ~/cloudboost/data-browser
+    shell: /bin/bash --login
+    machine: true
+    steps:
+      - checkout
+      - run: sudo apt-get update
+      - run: sudo apt-get install curl libc6 libcurl3 zlib1g
+      # These are essential for Puppeteer to run in Docker Based CI Services(CircleCI 2.x)
+      - run: sudo apt-get install -yq gconf-service libasound2 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 ca-certificates fonts-liberation libappindicator1 libnss3 lsb-release xdg-utils wget
+      - run: curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+      - run: chmod +x ./kubectl
+      - run: sudo mv ./kubectl /usr/local/bin/kubectl
+      - run: git clone https://github.com/CloudBoost/kube-cred.git
+      - run: cd kube-cred && openssl enc -in config.enc -out config -d -aes256 -k $KUBE_ENC
+      - run: mkdir ~/.kube
+      - run: cd kube-cred && mv config ~/.kube/
+      # Smoke Tests
+      - add_ssh_keys:
+          fingerprints:
+            - "be:88:93:b5:89:7c:9f:5d:38:ab:9c:2a:e9:60:df:1b"
+      - run: git clone git@bitbucket.org:cloudboost/smoketest.git
+      - run: cd smoketest && npm install
+      - run: cd smoketest && npm test staging
+      - run:
+          name: On Tests passing
+          command: echo SUCESSS
+          when: on_success
+      - run:
+          name: On Tests failing
+          command: |
+            kubectl config use-context cloudboost-staging
+            kubectl rollout status undo deployment cloudboost-data-browser
+          when: on_fail
+
+  smoke_test_release:
+    working_directory: ~/cloudboost/data-browser
+    shell: /bin/bash --login
+    machine: true
+    steps:
+      - checkout
+      - run: sudo apt-get update
+      - run: sudo apt-get install curl libc6 libcurl3 zlib1g
+      # These are essential for Puppeteer to run in Docker Based CI Services(CircleCI 2.x)
+      - run: sudo apt-get install -yq gconf-service libasound2 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 ca-certificates fonts-liberation libappindicator1 libnss3 lsb-release xdg-utils wget
+      - run: curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+      - run: chmod +x ./kubectl
+      - run: sudo mv ./kubectl /usr/local/bin/kubectl
+      - run: git clone https://github.com/CloudBoost/kube-cred.git
+      - run: cd kube-cred && openssl enc -in config.enc -out config -d -aes256 -k $KUBE_ENC
+      - run: mkdir ~/.kube
+      - run: cd kube-cred && mv config ~/.kube/
+      # Smoke Tests
+      - add_ssh_keys:
+          fingerprints:
+            - "be:88:93:b5:89:7c:9f:5d:38:ab:9c:2a:e9:60:df:1b"
+      - run: git clone git@bitbucket.org:cloudboost/smoketest.git
+      - run: cd smoketest && npm install
+      - run: cd smoketest && npm test production
+      - run:
+          name: On Tests passing
+          command: echo SUCESSS
+          when: on_success
+      - run:
+          name: On Tests failing
+          command: |
+            kubectl config use-context cb-productionmgmt
+            kubectl rollout status undo deployment cloudboost-data-browser
+          when: on_fail
+
+
+  deploy_release:
+    working_directory: ~/cloudboost/data-browser
+    shell: /bin/bash --login
+    machine: true
+    steps:
+      - checkout
+      - run: sudo apt-get update
+      - run: sudo apt-get install curl libc6 libcurl3 zlib1g
+      - run: npm install
+      # This is based on your 1.0 configuration file or project settings
+      - run: npm install -g webpack@2.7
+      - run: webpack --progress
+      - run: curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+      - run: chmod +x ./kubectl
+      - run: sudo mv ./kubectl /usr/local/bin/kubectl
+      - run: docker build -t cloudboost/data-browser:latest .
+      - run: docker login --username $DOCKERUSERNAME --password $DOCKERPASSWORD
+      - run: docker push cloudboost/data-browser:latest
+      - run: docker tag cloudboost/data-browser:latest cloudboost/data-browser:3.0.$CIRCLE_BUILD_NUM
+      - run: docker push cloudboost/data-browser:3.0.$CIRCLE_BUILD_NUM
+      - run: git clone https://github.com/CloudBoost/kube-cred.git
+      - run: cd kube-cred && openssl enc -in config.enc -out config -d -aes256 -k $KUBE_ENC
+      - run: mkdir ~/.kube
+      - run: cd kube-cred && mv config ~/.kube/
+      - run: kubectl config use-context cb-productionmgmt
+      - run: kubectl rolling-update cloudboost-data-browser --image=cloudboost/data-browser:3.0.$CIRCLE_BUILD_NUM --image-pull-policy=Always
+      - run:
+          name: Clear DNS cache
+          command: |
+            if [ "$CIRCLE_NODE_INDEX" == 0 ]; then
+                curl -X POST "https://api.cloudflare.com/client/v4/zones/${CF_ZONE}/purge_cache" \
+                  -H "X-Auth-Email: ${CF_EMAIL}" \
+                  -H "X-Auth-Key: ${CF_KEY}" \
+                  -H "Content-Type: application/json" \
+                  --data '{"purge_everything":true}'
+            fi
+
+  build:
+    working_directory: ~/cloudboost/data-browser
+    parallelism: 1
+    shell: /bin/bash --login
+    # CircleCI 2.0 does not support environment variables that refer to each other the same way as 1.0 did.
+    # If any of these refer to each other, rewrite them so that they don't or see https://circleci.com/docs/2.0/env-vars/#interpolating-environment-variables-to-set-other-environment-variables .
+    environment:
+      CIRCLE_ARTIFACTS: /tmp/circleci-artifacts
+      CIRCLE_TEST_REPORTS: /tmp/circleci-test-results
+      CLOUDSDK_CORE_DISABLE_PROMPTS: 1
+    # In CircleCI 1.0 we used a pre-configured image with a large number of languages and other packages.
+    # In CircleCI 2.0 you can now specify your own image, or use one of our pre-configured images.
+    # The following configuration line tells CircleCI to use the specified docker image as the runtime environment for you job.
+    # We have selected a pre-built image that mirrors the build environment we use on
+    # the 1.0 platform, but we recommend you choose an image more tailored to the needs
+    # of each job. For more information on choosing an image (or alternatively using a
+    # VM instead of a container) see https://circleci.com/docs/2.0/executor-types/
+    # To see the list of pre-built images that CircleCI provides for most common languages see
+    # https://circleci.com/docs/2.0/circleci-images/
+    machine: true
+    steps:
+    # Machine Setup
+    #   If you break your build into multiple jobs with workflows, you will probably want to do the parts of this that are relevant in each
+    # The following `checkout` command checks out your code to your working directory. In 1.0 we did this implicitly. In 2.0 you can choose where in the course of a job your code should be checked out.
+    - checkout
+    # Prepare for artifact and test results  collection equivalent to how it was done on 1.0.
+    # In many cases you can simplify this from what is generated here.
+    # 'See docs on artifact collection here https://circleci.com/docs/2.0/artifacts/'
+    - run: mkdir -p $CIRCLE_ARTIFACTS $CIRCLE_TEST_REPORTS
+    # This is based on your 1.0 configuration file or project settings
+    # Dependencies
+    #   This would typically go in either a build or a build-and-test job when using workflows
+    # Restore the dependency cache
+    - run: chmod -R 777 ~/cloudboost/data-browser
+    - restore_cache:
+        keys:
+        # This branch if available
+        - v1-dep-{{ .Branch }}-
+        # Default branch if not
+        - v1-dep-master-
+        # Any branch if there are none on the default branch - this should be unnecessary if you have your default branch configured correctly
+        - v1-dep-
+    # This is based on your 1.0 configuration file or project settings
+    - run: sudo apt-get update
+    - run: sudo apt-get install curl libc6 libcurl3 zlib1g
+    - run: npm install
+    # This is based on your 1.0 configuration file or project settings
+    - run: npm install -g webpack@2.7
+    - run: webpack --progress
+    - run: docker build -t cloudboost/data-browser:3.0.$CIRCLE_BUILD_NUM .
+    - run: echo "NO TESTS REQUIRED FOR data-browser"
+    # Save dependency cache
+    - save_cache:
+        key: v1-dep-{{ .Branch }}-{{ epoch }}
+        paths:
+        # This is a broad list of cache paths to include many possible development environments
+        # You can probably delete some of these entries
+        - ./node_modules
+    - store_test_results:
+        path: /tmp/circleci-test-results
+    # Save artifacts
+    - store_artifacts:
+        path: /tmp/circleci-artifacts
+    - store_artifacts:
+        path: /tmp/circleci-test-results
+
+workflows:
+    version: 2
+    build_deploy:
+      jobs:
+        - build
+        - deploy_master:
+            requires:
+              - build
+            filters:
+              branches:
+                only:
+                  - master
+        - smoke_test_staging:
+            requires:
+              - deploy_master
+            filters:
+              branches:
+                only:
+                  - master
+        - deploy_release:
+            requires:
+              - build
+            filters:
+              branches:
+                only:
+                  - release
+        - smoke_test_release:
+            requires:
+              - deploy_release
+            filters:
+              branches:
+                only:
+                  - release

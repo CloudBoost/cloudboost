@@ -1,0 +1,7 @@
+node_modules
+public/index.html
+public/index.min.js
+.vscode
+.directory
+**.min.js
+**.min.js.map

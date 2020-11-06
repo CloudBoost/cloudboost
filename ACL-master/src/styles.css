@@ -1,0 +1,53 @@
+.aclrow{
+    width: 100%;
+    float: left;
+    height: 45px;
+    border-bottom: 1px solid #CCC;
+    padding: 10px;
+    background-color: #F9F9F9;
+}
+.logoaclrow{
+    font-size: 20px !important;
+    margin-top: 2px;
+    float: left;
+}
+.textaclrow{
+    float: left;
+    font-size: 15px;
+    margin-left: 20px;
+}
+.aclrowcheckbox{
+    float: right;
+    width: 40px !important;
+}
+.readwitetext{
+    float: right;
+    margin-left: 0px;
+    margin-right: 10px;
+}
+.cancelaclrow{
+    float: right;
+    font-size: 20px !important;
+    margin-top: 1px;
+    margin-left: 9%;
+    cursor: pointer;
+    margin-right: 7px;
+}
+.selectautoacl{
+        /* text-align: center; */
+    float: left;
+    /* margin-left: 64%; */
+    width: 150% !important;
+}
+.aclrowpublic{
+       width: 100%;
+    float: left;
+    height: 45px;
+    border-bottom: 3px solid #CCC;
+    padding: 10px;
+    background-color: #F9F9F9;
+    font-weight: bold;
+}
+.textinputaddmessage{
+  margin-top: -15px;
+}

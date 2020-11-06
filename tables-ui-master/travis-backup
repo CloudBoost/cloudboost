@@ -1,0 +1,41 @@
+sudo: required
+services:
+- docker
+env:
+  global:
+    # Ensure the downloaded SDK is first on the PATH
+    - PATH=${HOME}/google-cloud-sdk/bin:$PATH
+    # Ensure the install happens without prompts
+    - CLOUDSDK_CORE_DISABLE_PROMPTS=1
+language: node_js
+node_js:
+- '6'
+before_install:
+- npm install
+install:
+- docker build -t cloudboost/data-browser:2.0.$TRAVIS_BUILD_NUMBER .
+- docker build -t cloudboost/data-browser:latest .
+after_success:
+#Deploy. 
+#Docker Login
+- openssl aes-256-cbc -K $encrypted_3645f6c1a435_key -iv $encrypted_3645f6c1a435_iv -in credentials.tar.enc -out credentials.tar -d
+- tar -xvf credentials.tar
+- docker login --username $DOCKERUSERNAME --password $DOCKERPASSWORD --email $DOCKEREMAIL
+# Make sure SDK is downloaded - cache once it's working
+- curl https://sdk.cloud.google.com | bash;
+# List the SDK contents to ensure it's downloaded
+- ls -l ${HOME}/google-cloud-sdk/bin
+# Ensure the correct gcloud is being used
+- which gcloud
+# Print the gcloud version and make sure it's something
+- gcloud --version
+- ls
+#Activate Google Cloud SDK with your project
+- gcloud auth activate-service-account --key-file gc_cred.json
+#Install Kubectl
+- gcloud components install kubectl
+- gcloud container clusters get-credentials $GOOGLECLUSTERNAME --zone $GOOGLEZONE --project $GOOGLEPROJECT
+#Push docker images.
+- docker push cloudboost/data-browser:latest
+- kubectl rolling-update cloudboost-data-browser --image=cloudboost/data-browser:latest --image-pull-policy=Always
+

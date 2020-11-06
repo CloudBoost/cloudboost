@@ -1,0 +1,133 @@
+# This file is a template, and might need editing before it works on your project.
+# Official docker image.
+image: docker:latest
+stages:
+  - build
+  - deploy
+  - test_deploy
+  - undo_deploy
+
+services:
+  - docker:dind
+
+before_script:
+  - echo "$DOCKERPASSWORD" | docker login registry.gitlab.com -u "$DOCKERUSERNAME" --password-stdin
+
+build:
+  stage: build
+  script:
+    - docker build -t registry.gitlab.com/cloudboost/tables-ui:3.1.$CI_PIPELINE_IID .
+    - echo "NO TESTS REQUIRED FOR data-browser"
+    - if [ "$CI_COMMIT_REF_NAME" == "master" ]; then
+    -   docker tag registry.gitlab.com/cloudboost/tables-ui:3.1.$CI_PIPELINE_IID registry.gitlab.com/cloudboost/tables-ui:master
+    -   docker push registry.gitlab.com/cloudboost/tables-ui:master
+    -   docker tag registry.gitlab.com/cloudboost/tables-ui:3.1.$CI_PIPELINE_IID registry.gitlab.com/cloudboost/tables-ui:master-3.1.$CI_PIPELINE_IID
+    -   docker push registry.gitlab.com/cloudboost/tables-ui:master-3.1.$CI_PIPELINE_IID
+    - fi
+    - if [ "$CI_COMMIT_REF_NAME" == "release" ]; then
+    -   docker tag registry.gitlab.com/cloudboost/tables-ui:3.1.$CI_PIPELINE_IID registry.gitlab.com/cloudboost/tables-ui:latest
+    -   docker push registry.gitlab.com/cloudboost/tables-ui:latest
+    -   docker push registry.gitlab.com/cloudboost/tables-ui:3.1.$CI_PIPELINE_IID
+    - fi
+
+  only:
+    - master
+    - release
+    
+deploy_staging:
+  stage: deploy
+  image: registry.gitlab.com/cloudboost/kube-cred
+  script:
+    - gcloud --quiet version
+    - gcloud --quiet components update
+    - gcloud --quiet components update kubectl
+    - echo $GCLOUD_SERVICE_KEY_STG | base64 --decode -i > ./gcloud-service-key.json;
+    - gcloud auth activate-service-account --key-file ./gcloud-service-key.json;
+    - gcloud --quiet config set project cloudboost-staging;
+    - gcloud --quiet config set container/cluster cloudboost-staging;
+    - gcloud --quiet config set compute/zone us-central1-a;
+    - gcloud --quiet container clusters get-credentials cloudboost-staging;
+    - kubectl config current-context;
+    - kubectl set image deployment cloudboost-data-browser cloudboost-data-browser=registry.gitlab.com/cloudboost/tables-ui:master-3.1.$CI_PIPELINE_IID
+    - kubectl rollout status deployment cloudboost-data-browser
+  only:
+    - master
+
+deploy_production:
+  stage: deploy
+  image: registry.gitlab.com/cloudboost/kube-cred
+  script:
+    - gcloud --quiet version
+    - gcloud --quiet components update
+    - gcloud --quiet components update kubectl
+    - echo $GCLOUD_SERVICE_KEY_PRD | base64 --decode -i > ./gcloud-service-key.json;
+    - gcloud auth activate-service-account --key-file ./gcloud-service-key.json;
+    - gcloud --quiet config set project cloudboost-production;
+    - gcloud --quiet config set container/cluster cloudboost-production;
+    - gcloud --quiet config set compute/zone us-central1-a;
+    - gcloud --quiet container clusters get-credentials cloudboost-production;
+    - kubectl config current-context;
+    - kubectl set image deployment cloudboost-data-browser cloudboost-data-browser=registry.gitlab.com/cloudboost/tables-ui:3.1.$CI_PIPELINE_IID
+    - kubectl rollout status deployment cloudboost-data-browser
+  only:
+    - release
+
+smoke_test_staging:
+  stage: test_deploy
+  script:
+    - apk update && apk add curl curl-dev bash git
+    - git clone https://$SMOKE_USERNAME:$SMOKE_PWD@gitlab.com/cloudboost/smoketest.git
+    - cd smoketest && docker build -t cloudboost/smoketest:latest .
+    - docker run -e "PREBOOT_CHROME=true" -e "CONNECTION_TIMEOUT=150000" -p 3000:3000 --restart always -d --name browserless browserless/chrome
+    - docker run --name smoketest --link browserless:chromeless --entrypoint '/bin/sh' cloudboost/smoketest -c 'npm test staging'
+  only:
+    - master
+
+smoke_test_production:
+  stage: test_deploy
+  script:
+    - apk update && apk add curl curl-dev bash git
+    - git clone https://$SMOKE_USERNAME:$SMOKE_PWD@gitlab.com/cloudboost/smoketest.git
+    - cd smoketest && docker build -t cloudboost/smoketest:latest .
+    - docker run -e "PREBOOT_CHROME=true" -e "CONNECTION_TIMEOUT=150000" -p 3000:3000 --restart always -d --name browserless browserless/chrome
+    - docker run --name smoketest --link browserless:chromeless --entrypoint '/bin/sh' cloudboost/smoketest -c 'npm test production'
+  only:
+    - release
+
+revert_deploy_staging:
+  stage: undo_deploy
+  image: registry.gitlab.com/cloudboost/kube-cred
+  script:
+    - gcloud --quiet version;
+    - gcloud --quiet components update;
+    - gcloud --quiet components update kubectl;
+    - echo $GCLOUD_SERVICE_KEY_STG | base64 --decode -i > ./gcloud-service-key.json;
+    - gcloud auth activate-service-account --key-file ./gcloud-service-key.json;
+    - gcloud --quiet config set project cloudboost-staging;
+    - gcloud --quiet config set container/cluster cloudboost-staging;
+    - gcloud --quiet config set compute/zone us-central1-a;
+    - gcloud --quiet container clusters get-credentials cloudboost-staging;
+    - kubectl config current-context;
+    - kubectl rollout undo deployment cloudboost-data-browser
+  when: on_failure
+  only:
+    - master
+
+revert_deploy_production:
+  stage: undo_deploy
+  image: registry.gitlab.com/cloudboost/kube-cred
+  script:
+    - gcloud --quiet version;
+    - gcloud --quiet components update;
+    - gcloud --quiet components update kubectl;
+    - echo $GCLOUD_SERVICE_KEY_PRD | base64 --decode -i > ./gcloud-service-key.json;
+    - gcloud auth activate-service-account --key-file ./gcloud-service-key.json;
+    - gcloud --quiet config set project cloudboost-production;
+    - gcloud --quiet config set container/cluster cloudboost-production;
+    - gcloud --quiet config set compute/zone us-central1-a;
+    - gcloud --quiet container clusters get-credentials cloudboost-production;
+    - kubectl config current-context;
+    - kubectl rollout undo deployment cloudboost-data-browser
+  when: on_failure
+  only:
+   - release
