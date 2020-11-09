@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+      xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+            http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+
+<url>
+  <loc>https://www.cloudboost.io/</loc>
+</url>
+<url>
+  <loc>https://www.cloudboost.io/pricing</loc>
+</url>
+</url>
+<url>
+  <loc>https://www.cloudboost.io/products</loc>
+</url>
+<url>
+  <loc>https://www.cloudboost.io/contact</loc>
+</url>
+<url>
+  <loc>https://www.cloudboost.io/quickstart</loc>
+</url>
+<url>
+  <loc>https://www.cloudboost.io/about</loc>
+</url>
+<url>
+  <loc>https://www.cloudboost.io/joinus</loc>
+</url>
+<url>
+  <loc>https://docs.cloudboost.io</loc>
+</url>
+<url>
+  <loc>https://www.cloudboost.io/partners</loc>
+</url>
+
+<url>
+  <loc>https://cloudboost.io/consulting</loc>
+</url>
+      
+<url>
+  <loc>https://www.cloudboost.io/service-level-agreement</loc>
+</url>
+
+<url>
+  <loc>https://www.cloudboost.io/experts</loc>
+</url>
+      
+<url>
+  <loc>https://accounts.cloudboost.io</loc>
+</url>
+
+<url>
+  <loc>https://dashboard.cloudboost.io</loc>
+</url>
+
+<url>
+  <loc>http://status.cloudboost.io</loc>
+</url>
+
+<url>
+  <loc>https://slack.cloudboost.io/</loc>
+</url>
+
+<url>
+  <loc>https://docs.cloudboost.io/</loc>
+</url>
+
+<url>
+  <loc>http://blog.cloudboost.io</loc>
+</url>
+
+<url>
+  <loc>https://tutorials.cloudboost.io</loc>
+</url>
+
+<url>
+  <loc>https://tutorials.cloudboost.io/en/gettingstarted/yourfirstapp</loc>
+</url>
+
+<url>
+  <loc>https://tutorials.cloudboost.io/en/datastorage/objects</loc>
+</url>
+
+<url>
+  <loc>https://tutorials.cloudboost.io/en/datastorage/relations</loc>
+</url>
+
+<url>
+  <loc>https://tutorials.cloudboost.io/en/datastorage/geopoint</loc>
+</url>
+
+<url>
+  <loc>https://tutorials.cloudboost.io/en/datastorage/files</loc>
+</url>
+
+<url>
+  <loc>https://tutorials.cloudboost.io/en/datastorage/bulkapi</loc>
+</url>
+
+<url>
+  <loc>https://tutorials.cloudboost.io/en/query/basicqueries</loc>
+</url>
+
+<url>
+  <loc>https://tutorials.cloudboost.io/en/realtime/customnotifications</loc>
+</url>
+
+<url>
+  <loc>https://tutorials.cloudboost.io/en/realtime/cloudobjectnotifications</loc>
+</url>
+
+<url>
+  <loc>https://tutorials.cloudboost.io/en/search/basicsearch</loc>
+</url>
+
+<url>
+  <loc>https://tutorials.cloudboost.io/en/security/acl</loc>
+</url>
+<url>
+  <loc>https://tutorials.cloudboost.io/en/security/roles</loc>
+</url>
+<url>
+  <loc>https://tutorials.cloudboost.io/en/security/users</loc>
+</url>
+
+<url>
+  <loc>https://tutorials.cloudboost.io/en/security/users</loc>
+</url>
+
+<url>
+  <loc>https://tutorials.cloudboost.io/en/schema/cloudtables</loc>
+</url>
+
+<url>
+  <loc>https://tutorials.cloudboost.io/en/queues/basicqueues</loc>
+</url>
+
+<url>
+  <loc>https://tutorials.cloudboost.io/en/cache/basiccache</loc>
+</url>
+</urlset>

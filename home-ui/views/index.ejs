@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>CloudBoost | The realtime JavaScript backend.</title>
+    <!-- Registers ServiceWorker -->
+    <script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+            navigator.serviceWorker.register('/service-worker.js').then(function (registration) {
+                // Registration was successful
+            }, function (err) {
+                // registration failed
+            });
+        });
+    }
+    </script>
+    <base href="/">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#3394c9" />
+    <meta name="title" content="CloudBoost | The realtime JavaScript backend." />
+    <meta name="description" content="CloudBoost let's you build mobile and web applications that scale.">
+    <meta name="keywords" content="instant apps, build apps, apps, serverless, server optional, server less, cloud platform, realtime, backend as a service, websockets,  database service,database as a service, hybrid database, cloudboost, search, realtime, storage, app storage, nosql, instant API,Automatic Scaling, real time sync, realtime sync, hosted, full-text, facet,geolocation, search, rest, api, nosql database">
+    <meta name="fragment" content="!" />
+    <meta name="google-site-verification" content="i16US7kLJ5wagf1TtPr4w5eyNJQl2rjpQCbEjJaM4_Q" />
+    <!--common head links-->
+    <% include ./partials/commonHead %>
+        <link rel="manifest" href="/manifest.json">
+        <!-- Global CSS -->
+        <link rel="stylesheet" href="dist/css/applib.min.css" />
+        <link rel="stylesheet" type="text/css" href="/css/trendingBox.css" />
+        <link rel="stylesheet" href="/css/codemirror.css" />
+    <!--other sections-->
+    <link rel="stylesheet" href="/css/sdlc.css">
+</head>
+
+<body>
+
+    <!--header-->
+    <header id="header" class="header">
+        <% include ./partials/header %>
+    </header>
+
+    <!--Content-->
+    <!--********************************************************************************************-->
+    <div class="big-container">
+
+        <div class="index-bg">
+        </div>
+
+        <section class="promo section trendingbox-section">
+            <div class="trendingbox-section-wrap">
+                <% include ./partials/trendingBox %>
+            </div>
+        </section>
+
+        <div class="sections-wrapper">
+
+            <!-- ******Why Section****** -->
+            <section id="comps-logo-section">
+
+                <div class="flex-general-column-wrapper-center comps-usingus-div comps-div">
+                    <span class="comps-desc">More than
+                        <b>5000 Enterprises and Startups</b> use CloudBoost to build better software faster.</span>
+                    <div class="flex-general-row-wrapper comps-usingus-wrapper">
+                        <div class="comps-usingus-bx logo-height" style="margin-top: -4px;">
+                            <img class="full-height" src="/images/sony.jpg" alt="Customers : Sony">
+                        </div>
+
+                        <div class="comps-usingus-bx" style="height: 22px;">
+                            <img class="full-height" src="/images/bank-of-america.png" alt="Customers : Bank of America">
+                        </div>
+
+                        <div class="comps-usingus-bx logo-height">
+                            <img class="full-height" src="/images/adobe.png" alt="Customers : Adobe">
+                        </div>
+
+                        <div class="comps-usingus-bx logo-height" style="height: 80px;
+    margin-top: -25px;">
+                            <img class="full-height" src="/images/hershey-logo.png" alt="Customers : Hershey">
+                        </div>
+
+                        <div class="comps-usingus-bx logo-height">
+                            <img class="full-height" src="/images/cocacola.png" alt="Customers : CocaCola">
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- ******Why Section****** -->
+            <section id="why" class="section why">
+                <div class="container">
+                    <h5 class="text-center" style="color:#898989">LET US TAKE CARE OF YOUR INFRASTRUCTURE</h5>
+                    <h2 class="title text-center" style="font-size:50px">Focus on your app</h2>
+                    <p class="intro text-center"> CloudBoost can power your app's backend, including data storage, user authentication, real-time notifications,
+                        search and more. Focus on creating extraordinary user experiences for your users. We'll take care
+                        of the rest. </p>
+                    <div class="flex-general-column-wrapper-center full-width">
+                        <div style="width:50%" class="flex-general-row-wrapper quickstart-compare-div">
+                            <p class="intro text-center" style="margin-bottom: 30px;">
+                                <a id="home-body-signup-btn" class="text-center btn btn-cta signup" href="https://accounts.cloudboost.io/signup">
+                                    <i class="fa fa-rocket"></i>&nbsp;SIGN UP FOR FREE</a>
+                            </p>
+                            <p class="intro text-center" style="margin-bottom: 30px;">
+                                <a id="request-demo-btn" class="text-center btn btn-cta" href="/enterprise/demo">
+                                    <i class="fa fa-cubes"></i>&nbsp;REQUEST A DEMO</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <!--End-->
+            </section>
+
+            <section id="why" class="section why" style="margin-top:-100px">
+                <div class="widget-feature-ribbon hidden-sm hidden-xs ">
+                    <div class="container full-height">
+                        <div class="row full-height">
+                            <div class="content neo-features-wrap solo-horizontal-center">
+
+                                <div class="neo-features-contain flex-general-row-wrapper ">
+                                    <div class="each-feature-wrap storagefeat" data-featname="storage">
+                                        <div class="each-feature">
+                                            <div class="featureicon flex-general-column-wrapper-center">
+                                                <i class="fa fa-database"></i>
+                                            </div>
+                                            <div class="featurelabel flex-general-column-wrapper-center">
+                                                <span>STORAGE</span>
+                                            </div>
+                                        </div>
+                                        <div class="active-featuretail-wrap solo-horizontal-center">
+                                            <div class="active-featuretail"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="each-feature-wrap searchfeat" data-featname="search">
+                                        <div class="each-feature">
+                                            <div class="featureicon flex-general-column-wrapper-center">
+                                                <i class="fa fa-search"></i>
+                                            </div>
+                                            <div class="featurelabel flex-general-column-wrapper-center">
+                                                <span>SEARCH</span>
+                                            </div>
+                                        </div>
+                                        <div class="active-featuretail-wrap solo-horizontal-center">
+                                            <div class="active-featuretail"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="each-feature-wrap realtimefeat" data-featname="realtime">
+                                        <div class="each-feature">
+                                            <div class="featureicon flex-general-column-wrapper-center">
+                                                <i class="fa fa-comment"></i>
+                                            </div>
+                                            <div class="featurelabel flex-general-column-wrapper-center">
+                                                <span>REALTIME</span>
+                                            </div>
+                                        </div>
+                                        <div class="active-featuretail-wrap solo-horizontal-center">
+                                            <div class="active-featuretail"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="each-feature-wrap queuesfeat" data-featname="queues">
+                                        <div class="each-feature">
+                                            <div class="featureicon flex-general-column-wrapper-center">
+                                                <i class="fa fa-user"></i>
+                                            </div>
+                                            <div class="featurelabel flex-general-column-wrapper-center">
+                                                <span>AUTH</span>
+                                            </div>
+                                        </div>
+                                        <div class="active-featuretail-wrap solo-horizontal-center">
+                                            <div class="active-featuretail"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="each-feature-wrap cachefeat" data-featname="cache">
+                                        <div class="each-feature">
+                                            <div class="featureicon flex-general-column-wrapper-center">
+                                                <i class="fa fa-file"></i>
+                                            </div>
+                                            <div class="featurelabel flex-general-column-wrapper-center">
+                                                <span>FILES</span>
+                                            </div>
+                                        </div>
+                                        <div class="active-featuretail-wrap solo-horizontal-center">
+                                            <div class="active-featuretail"></div>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- feature-feat for small devices -->
+
+                <div id="myCarousel" class="carousel slide visible-sm visible-xs" data-ride="carousel" data-interval="50000">
+                    <!-- Wrapper for slides -->
+                    <div class="carousel-inner" role="listbox" style="padding-left:0;">
+                        <div class="item active">
+                            <div class="each-feature-wrap storagefeat" data-featname="storage">
+                                <div class="each-feature">
+                                    <div class="featureicon flex-general-column-wrapper-center">
+                                        <i class="fa fa-database"></i>
+                                    </div>
+                                    <div class="featurelabel flex-general-column-wrapper-center">
+                                        <span>STORAGE</span>
+                                    </div>
+                                </div>
+                                <div class="active-featuretail-wrap solo-horizontal-center">
+                                    <div class="active-featuretail" style="background-color:#3691C1 !important;color:white;font-size:20px;color:white;font-size:20px;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="item">
+                            <div class="each-feature-wrap searchfeat" data-featname="search">
+                                <div class="each-feature">
+                                    <div class="featureicon flex-general-column-wrapper-center">
+                                        <i class="fa fa-search"></i>
+                                    </div>
+                                    <div class="featurelabel flex-general-column-wrapper-center">
+                                        <span>SEARCH</span>
+                                    </div>
+                                </div>
+                                <div class="active-featuretail-wrap solo-horizontal-center">
+                                    <div class="active-featuretail"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="item">
+                            <div class="each-feature-wrap realtimefeat" data-featname="realtime">
+                                <div class="each-feature">
+                                    <div class="featureicon flex-general-column-wrapper-center">
+                                        <i class="fa fa-comment"></i>
+                                    </div>
+                                    <div class="featurelabel flex-general-column-wrapper-center">
+                                        <span>REALTIME</span>
+                                    </div>
+                                </div>
+                                <div class="active-featuretail-wrap solo-horizontal-center">
+                                    <div class="active-featuretail"></div>
+                                </div>
+                            </div>
+
+
+                        </div>
+
+                        <div class="item">
+                            <div class="each-feature-wrap queuesfeat" data-featname="queues">
+                                <div class="each-feature">
+                                    <div class="featureicon flex-general-column-wrapper-center">
+                                        <i class="fa fa-user"></i>
+                                    </div>
+                                    <div class="featurelabel flex-general-column-wrapper-center">
+                                        <span>AUTH</span>
+                                    </div>
+                                </div>
+                                <div class="active-featuretail-wrap solo-horizontal-center">
+                                    <div class="active-featuretail"></div>
+                                </div>
+                            </div>
+
+
+                        </div>
+                        <div class="item">
+
+                            <div class="each-feature-wrap cachefeat" data-featname="cache">
+                                <div class="each-feature">
+                                    <div class="featureicon flex-general-column-wrapper-center">
+                                        <i class="fa fa-file"></i>
+                                    </div>
+                                    <div class="featurelabel flex-general-column-wrapper-center">
+                                        <span>FILES</span>
+                                    </div>
+                                </div>
+                                <div class="active-featuretail-wrap solo-horizontal-center">
+                                    <div class="active-featuretail"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Left and right controls -->
+                    <a class="left carousel-control carousel-nav" href="#myCarousel" role="button" data-slide="prev">
+                        <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+                        <span class="sr-only">Previous</span>
+                    </a>
+                    <a class="right carousel-control carousel-nav" href="#myCarousel" role="button" data-slide="next">
+                        <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+                        <span class="sr-only">Next</span>
+                    </a>
+                </div>
+
+
+                <!-- feature-feat for small devices ends-->
+
+
+
+                <div class="container" style="margin-top:2%;">
+                    <div class="row neo-showcasecode">
+
+                        <div class="content col-md-offset-1 col-md-5 col-sm-12 col-xs-12  neo-codedemon-wrap">
+                            <div class="explaincode">
+                                <div class="todos-explain">
+                                    <div class="introrap">
+                                        <div class="intro1">
+                                            <span class="intro1-span">Rock solid performance and scale. Store data. Any data.</span>
+                                        </div>
+
+                                        <div class="intro2" style="margin-top:12px;">
+                                            <span style="color:#383838;font-size:16px;">Our API ensures compatibility with a variety of development tools, platforms
+                                                and app infrastructures. Eliminate the risk and cost involved with scale
+                                                thanks to CloudBoost's horizontal scaling architecture. Our Enhanced features
+                                                ensure data is always available and durable throughout any situation.</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="content col-md-6 col-sm-6 col-xs-12 hidden-sm hidden-xs neo-widget-wrap">
+                            <div class="neo-widget-contain card-1">
+
+                                <div class="lang-flipper-wrap flex-general-row-wrapper">
+                                    <div class="lang-fliprlabel solo-vertical-center jstab" data-langname="js">
+                                        <span>Javascript / NodeJS</span>
+                                    </div>
+
+                                </div>
+
+                                <!--Storage-->
+                                <div id="div-storage-js">
+                                    <textarea class="appcode-widget" id="storage-js">var obj = new CB.CloudObject('TableName');
+obj.set('ColumnName', "AnyData");
+obj.save({
+    success : function(obj){
+        console.log(obj.id);
+    },error : function(error){
+        console.log(error);
+    }
+});
+                                </textarea>
+                                </div>
+
+
+
+                                <!--Search-->
+                                <div id="div-search-js">
+                                    <textarea class="appcode-widget" id="search-js">
+var query = new CB.CloudQuery('Table'); 
+query.search("dog");
+query.find({
+    success : function(list){
+        // returns two CloudObjects of fields having string 'dog' 
+    }, error : function(error){
+        //Error 
+    }
+});
+                                            
+                                </textarea>
+
+                                </div>
+
+
+
+                                <!--Realtime-->
+                                <div id="div-realtime-js">
+                                    <textarea class="appcode-widget" id="realtime-js">
+//Start Listening
+CB.CloudNotification.on('ChannelName',function(data){
+        //data can be anything you publish to a channel. Can be a string, number, object etc.
+}});
+
+//Publish
+CB.CloudNotification.publish('ChannelName','data');
+                                </textarea>
+                                </div>
+
+
+
+
+                                <!--Queues-->
+                                <div id="div-queues-js">
+                                    <textarea class="appcode-widget" id="queues-js">
+var user = new CB.CloudUser();
+user.set('username','my_username');
+user.set('password', 'my_solid_password');
+user.set('email', 'email@sample.com');
+user.signUp({
+    success: function(user) {
+    //Registration successfull
+    },
+    error: function(error) {
+    //Error in user registration.
+    }
+});
+                                            
+                                </textarea>
+                                </div>
+
+
+
+                                <!--Cache-->
+                                <div id="div-cache-js">
+                                    <textarea class="appcode-widget" id="cache-js">
+var fileUploadControl = $("#profilePhotoFileUpload")[0];
+if (fileUploadControl.files.length > 0) {
+    var file = fileUploadControl.files[0];
+    var name = "photo.jpg";
+    var cloudFile = new CB.CloudFile(file);
+    cloudFile.set('name',name);
+    cloudFile.save({
+    success : function(cloudFile){
+        console.log(cloudFile.URL);
+    }, error: function(error){
+        //error
+    }, uploadProgress : function(percentComplete){
+        //upload progress.
+    }
+    })
+}
+                                </textarea>
+
+
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="container">
+                            <div class="row">
+                                <div class="text-center" style="margin-top:420px;">
+                                    <h2 class="title text-center title-style">Want to quickly get up and running?</h2>
+                                    <br/>
+                                    <div class="flex-general-column-wrapper-center full-width">
+                                        <div style="width:50%" class="flex-general-row-wrapper quickstart-compare-div">
+                                            <p class="intro text-center">
+                                                <a id="home-body-quickstart-btn" class="text-center btn btn-cta quickstart-btn" href="/quickstart">
+                                                    <i class="fa fa-bolt"></i>&nbsp;See our Quickstart
+                                                </a>
+                                            </p>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+            </section>
+
+
+            <section id="why" class="section sampleapps-section" style="padding-top:20px;padding-bottom:50px;">
+                <div class="container">
+                    <div class="row">
+                        <div class="content col-md-12 col-sm-12 col-xs-12">
+                            <div class="sampleapps-intro1 solo-horizontal-center" style="text-align: center;">
+                                <span class="title" style="font-size:35px;font-weight:100;">What can you build with CloudBoost?</span>
+                                <span class="title" style="font-size:35px;font-weight:400;">&nbsp;Everything.</span>
+                            </div>
+                            <div class="sampleapps-intro2 solo-horizontal-center" style="text-align: center;">
+                                <span class="title" style="font-size:25px;font-weight:100;">Checkout the world's most popular apps rebuilt on CloudBoost.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row" style="margin-top:30px;">
+                        <a href="https://github.com/CloudBoost/whatsapp" target="_blank" class="clonelinks whatsappclone content col-md-offset-1 col-md-2 col-sm-offset-1 col-sm-2 col-xs-12">
+                            <div class="sampleapp-bx">
+                                <div class="icon flex-general-column-wrapper-center">
+                                    <img class="lazy" data-src="/images/whatsapp.png" alt="WhatsApp">
+                                </div>
+
+                                <div class="name flex-general-column-wrapper-center">
+                                    <span>Whatsapp</span>
+                                </div>
+                            </div>
+                        </a>
+
+                        <a href="https://github.com/CloudBoost/tinderclone" target="_blank" class="clonelinks tinderclone content col-md-2 col-sm-2 col-xs-12">
+                            <div class="sampleapp-bx">
+                                <div class="icon flex-general-column-wrapper-center">
+                                    <img class="lazy" data-src="/images/tinder.png" alt="Tinder">
+                                </div>
+
+                                <div class="name flex-general-column-wrapper-center">
+                                    <span>Tinder</span>
+                                </div>
+
+                            </div>
+                        </a>
+
+                        <a href="https://github.com/CloudBoost/slack" target="_blank" class="clonelinks slackclone content col-md-2 col-sm-2 col-xs-12">
+                            <div class="sampleapp-bx">
+                                <div class="icon flex-general-column-wrapper-center">
+                                    <img class="lazy" data-src="/images/slack.png" alt="Slack">
+                                </div>
+
+                                <div class="name flex-general-column-wrapper-center">
+                                    <span>Slack</span>
+                                </div>
+                            </div>
+                        </a>
+
+                        <a href="https://github.com/CloudBoost/sample-hackernews" target="_blank" class="clonelinks hnewsclone content col-md-2 col-sm-2 col-xs-12">
+                            <div class="sampleapp-bx">
+                                <div class="icon flex-general-column-wrapper-center">
+                                    <img class="lazy" data-src="/images/hackernews.png" alt="HackerNews">
+                                </div>
+
+                                <div class="name flex-general-column-wrapper-center">
+                                    <span>Hacker News</span>
+                                </div>
+                            </div>
+                        </a>
+
+                        <a href="https://github.com/CloudBoost/instagram" target="_blank" class="clonelinks instagramclone content col-md-2 col-sm-2 col-xs-12">
+                            <div class="sampleapp-bx">
+                                <div class="icon flex-general-column-wrapper-center">
+                                    <img class="lazy" data-src="/images/instagram.png" alt="Instagram">
+                                </div>
+
+                                <div class="name flex-general-column-wrapper-center">
+                                    <span>Instagram</span>
+                                </div>
+                            </div>
+                        </a>
+
+                    </div>
+
+                </div>
+            </section>
+
+
+            <section class="twittr-feed">
+                <!--head-->
+                <div class="flex-general-column-wrapper-center full-width" style="padding:2px;">
+                    <div style="font-size:30px;font-family: 'Signika'">
+                        <i class="fa fa-twitter" style="color:#5EA9DD;font-size:30px;"></i>&nbsp;From Wall of Love
+                    </div>
+                </div>
+                <!--content-->
+                <div id="tweetwrapper cf" style="padding-top:12px;">
+
+                    <div class="tweetparent cf">
+                    </div>
+
+                </div>
+                <!--footer-->
+                <div class="flex-general-column-wrapper-center full-width" style="padding-top:2px;padding-bottom:16px;margin-top:20px;">
+                    <div class="flex-general-column-wrapper-center full-width" style="position:relative !important;">
+                        <div class="flex-general-column-wrapper-center full-width" style="cursor:pointer !important;z-index:99999;width:160px;bottom:-20px;">
+                            More at our
+                            <a href="https://twitter.com/cloudboostlove" target="_blank" style="font-size:16px !important;cursor:pointer !important;">Wall of Love
+                                <i class="fa fa-arrow-right"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+           
+
+
+            <section id="why" class="section">
+                <div class="container">
+                    <div class="row last-item">
+
+                        <center>
+                            <h2 class="title sdk-banner">Our JavaScript SDK works with every platform. </h2>
+                        </center>
+
+                        <div>
+                            <figure class="figure col-md-8  col-md-offset-2">
+                                <a href="https://docs.cloudboost.io/">
+                                    <img class="img-responsive lazy" data-src="/images/frameworks-1.png" alt="AngularJS, NodeJS, ReactJS, EmberJS, Java, JavaScript SDK's"
+                                    />
+                                </a>
+                            </figure>
+                        </div>
+
+                    </div>
+                    <!--//item-->
+
+
+
+                </div>
+                <!--//container-->
+            </section>
+            <!--//why-->
+
+            <section id="why" class="section why platforms-section" style="padding-bottom:0px;">
+                    <div class="sampleapps-intro1 solo-horizontal-center" style="text-align: center;">
+                            <span class="title" style="font-size:35px;font-weight:100;">Integrate with over</span>
+                            <span class="title" style="font-size:35px;font-weight:400;">&nbsp;1000+ apps and services.</span>
+                        </div>
+                        <div class="sampleapps-intro1 solo-horizontal-center" style="text-align: center;">
+                            <span class="title" style="font-size:24px;font-weight:100;max-width: 650px;margin-top: 20px;">CloudBoost works with the tools you already use. Connect to hundreds of your favorite apps and services, or access your content programmatically with our robust API.</span>
+                        </div>
+                    <div style="display:flex; justify-content:space-between; margin-top:-220px">
+                        <img class="lazy" data-src="images/hero-icons-left.svg" alt=""/>
+                        <img class="lazy" data-src="images/hero-icons-right.svg" alt=""/>
+                    </div>
+            </section>
+
+            <section id="cta" class="section cta-section text-center home-cta-section">
+                <% include ./partials/bottom_banner %>
+            </section>
+
+            </div>
+            <!--//section-wrapper-->
+
+            <!--footer-->
+            <footer class="footer">
+                <% include ./partials/footer %>
+            </footer>
+            <!--scripts-->
+            <% include ./partials/commonScripts %>
+
+                <!--********************************************************************************************-->
+
+                <script async type="text/javascript" src="/controllers/indexController.js"></script>
+                <script async type="text/javascript" src="/js/typed.js"></script>
+                <script type="text/javascript" src="/vendors/slick-carousel/slick/slick.min.js"></script>
+                <script type="text/javascript" src="/controllers/trendingBoxController.js"></script>
+
+                <script>
+                    window.twttr = (function (d, s, id) {
+                        var js, fjs = d.getElementsByTagName(s)[0],
+                            t = window.twttr || {};
+                        if (d.getElementById(id)) return t;
+                        js = d.createElement(s);
+                        js.id = id;
+                        js.src = "https://platform.twitter.com/widgets.js";
+                        fjs.parentNode.insertBefore(js, fjs);
+
+                        t._e = [];
+                        t.ready = function (f) {
+                            t._e.push(f);
+                        };
+
+                        return t;
+                    }(document, "script", "twitter-wjs"));
+                </script>
+                <script type="text/javascript" src="https://platform.twitter.com/widgets.js"></script>
+                <script type="text/javascript">
+                    var twitterDList;
+                    var tweertIds = [];
+                    var windowScrolledTo;
+                    var twitterCardsAdded = false;
+                    $(document).ready(function () {
+                        $('.tweetparent').slick({
+                            slidesToScroll: 1,
+                            autoplay: true,
+                            autoplaySpeed: 2000,
+                            infinite: true,
+                            centerMode: true,
+                            slidesToShow: 3,
+                            slidesPerRow: 1,
+                            accessibility: false,
+                            arrows: false,
+                            initialSlide: 0,
+                            respondTo: 'slider'
+                        });
+
+                        twttr.widgets.load();
+
+                    });
+
+                    $.get(window.location.origin + '/twitter/search', function (list, status) {
+                        if (status == "success") {
+
+                            var promises = [];
+                            for (var i = 0; i < list.twitterFeed.length; ++i) {
+
+                                var tweetId = list.twitterFeed[i].id_str;
+
+                                tweertIds.push(tweetId);
+                                var tweetBxHtml = '<div class="tweetbody" tweetid="' + tweetId + '"></div>';
+
+                                //$(".tweetparent").append(tweetBxHtml);
+                                $(".tweetparent").slick('slickAdd', tweetBxHtml);
+
+                            }
+
+                            for (var i = 0; i < list.twitterFeed.length; ++i) {
+
+                                var tweetId = list.twitterFeed[i].id_str;
+
+                                tweertIds.push(tweetId);
+                                var tweetBxHtml = '<div class="tweetbody" tweetid="' + tweetId + '"></div>';
+
+                                //$(".tweetparent").append(tweetBxHtml);
+                                $(".tweetparent").slick('slickAdd', tweetBxHtml);
+
+                            }
+
+                            var t = document.querySelectorAll(".tweetbody");
+                            for (n = 0; n < t.length; n++) {
+                                var attr = t[n];
+                                var twittrId = attr.getAttribute("tweetid");
+
+                                twttr.widgets.createTweet(
+                                    twittrId,
+                                    attr, {
+                                        align: 'left'
+                                    })
+                            }
+
+                            $(".tweetparent").slick('slickGoTo', true);
+
+
+                        } else {
+                            console.log(status);
+                        }
+                    });
+                </script>
+                <script src="/js/codemirror.js"></script>
+                <script src="/js/codemirror-javascript.js"></script>
+
+</body>
+
+</html>

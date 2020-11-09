@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>CloudBoost | Contact us</title>
+    <base href="/">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="title" content="CloudBoost | Contact us"/>
+    <meta name="description" content="Contact us. We're listening.">
+    <meta name="keywords" content="cloudboost help, cloudboost support, baas, backend as a service, database as a service, hybrid database, cloudboost, search, realtime, storage, app storage, signup, cloudboost">
+    <meta name="fragment" content="!"/>
+    <!--common head links-->
+    <% include ./partials/commonHead %>
+</head>
+
+<body>
+
+<!--header-->
+<header id="header" class="header">
+  <% include ./partials/header %>
+</header>
+
+<!--Content-->
+<!--********************************************************************************************-->
+   <div class="headline-bg contact-headline-bg" style="height:400px">
+        </div><!--//headline-bg-->
+
+
+        <section class="pricing section section-on-bg newpricingbg">
+            <div class="container">
+                <center>
+                    <h1 style="color:white; font-size:44px;">
+                        <span style="font-family: 'Signika', sans-serif; font-weight:700;font-size:50px">Need help? We're all ears.</span>
+                    </h1>
+
+                    <div>
+                        <h3 style="color:white; font-size:30px; -family: 'Signika', sans-serif; font-weight: 300; ">
+                            <span style="color:#b1d8ec; font-family: 'Signika', sans-serif; font-weight: 300;">At CloudBoost, every team member is here to help you. <br/> Have questions? Feel free to drop us a line.</span>
+                        </h3>
+                    </div>
+
+                </center>
+            </div>
+        </section>
+
+        <!-- ******Other Contact Section****** -->
+        <section class="contact-other-section section">
+            <div class="container text-center">
+            <br/><br/><br/><br/><br/>
+                <div class="row" style="margin-bottom:30px">
+                    <ul class="other-info list-unstyled col-md-6 col-sm-10 col-xs-12 col-md-offset-3 col-sm-offset-1 xs-offset-0" >
+                        
+
+                        <li>
+                          <i class="fa fa-slack"></i>
+                          <b><span style="font-family: 'Signika', sans-serif;
+  font-weight: 600;
+  font-size: 20px;"> Slack </span> <br/></b>
+                            <a style="cursor:pointer" href="https://slack.cloudboost.io/" target="_blank">Talk to us on Slack</a>
+                        </li>
+                        <li>
+
+                            <i class="fa fa-envelope-o"></i>
+                            <b><span style="font-family: 'Signika', sans-serif;
+    font-weight: 600;
+    font-size: 20px;"> Email </span> <br/></b>
+    <a style="cursor:pointer" href="mailto:hello@cloudboost.io">support@cloudboost.io</a>
+                        </li>
+                        <li>
+                            <i class="fa fa-twitter"></i>
+                            <b><span style="font-family: 'Signika', sans-serif;
+    font-weight: 600;
+    font-size: 20px;"> Twitter </span> <br/></b>
+                            <a style="cursor:pointer" href="https://twitter.com/cloudboostio" target="_blank">Share your feedback at @cloudboostio</a>
+                        </li>
+                        <li>
+                            <i class="fa fa-building"></i>
+                            <b><span style="font-family: 'Signika', sans-serif;
+    font-weight: 600;
+    font-size: 20px;"> Office </span> <br/></b>
+                            21 Drydock Ave, STE 610E, <br/>Boston, MA. 02210. <br/>United States.
+                        </li>
+                    </ul>
+                </div><!--//row-->
+            </div><!--//container-->
+        </section><!--//contact-other-section-->
+
+    <section id="cta" class="section cta-section text-center home-cta-section">
+        <% include ./partials/bottom_banner %>
+    </section>
+
+    <!--footer-->
+    <footer class="footer">
+        <% include ./partials/footer %>
+    </footer>
+
+    <!--scripts-->
+    <% include ./partials/commonScripts %>
+    <script type="text/javascript">
+        //Initialization
+        $(document).ready(function(){
+
+               mixpanel.track('Visted Contact Page', {"visited":"visited Contact Page"});
+               amplitude.getInstance().logEvent('Visted Contact Page', {"visited":"visited Contact Page"});
+
+        });
+        //Initialization
+    </script>
+
+
+</body>
+</html>

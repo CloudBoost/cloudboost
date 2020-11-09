@@ -1,0 +1,54 @@
+{
+  "name": "lightslider",
+  "version": "1.1.5",
+  "homepage": "https://github.com/sachinchoolur/lightslider",
+  "authors": [
+    "Sachin N <sachi77n@gmail.com>"
+  ],
+  "description": "jQuery lightSlider is a lightweight responsive content slider - carousel with animated thumbnails navigation",
+  "main": [
+    "dist/js/lightslider.min.js",
+    "dist/css/lightslider.min.css",
+    "dist/img/controls.png"
+  ],
+  "keywords": [
+    "slider",
+    "contentslider",
+    "textslider",
+    "slideshow",
+    "gallery",
+    "responsive",
+    "carousel",
+    "animation",
+    "jQuery",
+    "video",
+    "image",
+    "CSS3",
+    "touch",
+    "swipe",
+    "thumbnail"
+  ],
+  "license": "MLT",
+  "ignore": [
+    "demo",
+    "test",
+    "**/.*",
+    "contributing.md",
+    "Gruntfile.js",
+    "README.md"
+  ],
+  "devDependencies": {
+    "qunit": "~1.12.0",
+    "jquery": "~1.7.0"
+  },
+  "_release": "1.1.5",
+  "_resolution": {
+    "type": "version",
+    "tag": "1.1.5",
+    "commit": "30e5025e07d7d77c22a4dbb4e95afcb4fd31e076"
+  },
+  "_source": "git://github.com/sachinchoolur/lightslider.git",
+  "_target": "~1.1.5",
+  "_originalSource": "lightslider",
+  "_direct": true
+}

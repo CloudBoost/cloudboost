@@ -1,0 +1,22 @@
+{
+  "name": "CbLanding",
+  "version": "0.0.0",
+  "authors": [
+    "RTBathula <battu.network@gmail.com>"
+  ],
+  "moduleType": [
+    "globals"
+  ],
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "angular-fontawesome": "~0.3.0",
+    "angular-seo": "*",
+    "angular-ui-router": "~0.2.13",
+    "jquery": "~2.1.3",
+    "underscore": "~1.8.3",
+    "stackbox": "~0.3.4",
+    "slick-carousel": "~1.5.8",
+    "lightslider": "~1.1.5"
+  }
+}

@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="en" if="twitter-wjs">
+
+<head>
+    <title>CloudBoost | Pricing and Plans</title>
+    <base href="/">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="title" content="CloudBoost | Products" />
+    <meta name="description" content="CloudBoost Products. ">
+    <meta name="keywords" content="pricing, baas, backend as a service, database as a service, hybrid database, cloudboost, search, realtime, storage, app storage, signup, cloudboost">
+    <meta name="fragment" content="!" />
+    <!--common head links-->
+    <% include ./partials/commonHead %>
+        <!--<link rel="stylesheet" href="/js/owlcarousel/assets/owl.carousel.css"> -->
+        <link rel="stylesheet" href="/vendors/slick-carousel/slick/slick.css">
+        <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/jquery.slick/1.5.8/slick-theme.css" />
+        <link rel="stylesheet" type="text/css" href="vendors/lightslider/dist/css/lightslider.min.css" />
+        <link rel="stylesheet" type="text/css" href="/css/pricing.css" />
+</head>
+
+<body>
+
+    <style>
+        .billing-toggle {
+            display: flex;
+            justify-content: center;
+            top: 1.25em;
+            right: 0;
+            margin-bottom: 2.25em;
+        }
+
+        .billing-toggle__switch-button.is-toggled {
+            transform: translateX(1.15em);
+        }
+
+        .billing-toggle__switch-button {
+            display: inline-block;
+            width: 1em;
+            height: 1em;
+            margin: .125em;
+            background: #fff;
+            border-radius: 20px;
+            transition: transform .4s cubic-bezier(.68, -.55, .27, 1.55);
+        }
+
+        .billing-toggle__label {
+            font-size: .85em;
+            font-weight: 500;
+            color: #37404a;
+            cursor: pointer;
+            opacity: .5;
+            user-select: none;
+            transition: opacity .3s ease;
+        }
+
+        .billing-toggle__switch {
+            width: 2.4em;
+            height: 1.25em;
+            margin: 0 .5em;
+            background: #38404a;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+
+        .is-annually .billing-toggle__label--annually,
+        .is-monthly .billing-toggle__label--monthly {
+            opacity: 1;
+        }
+
+        .billing-toggle__label {
+            font-size: .85em;
+            font-weight: 500;
+            color: #37404a;
+            cursor: pointer;
+            opacity: .5;
+            user-select: none;
+            transition: opacity .3s ease;
+        }
+        .headline-pricing-bg {
+            position: absolute;
+            width: 100%;
+            top: 0;
+            left: 0;
+            background: #253340 url('../images/background/bg-header-2.webp') no-repeat 50% top;
+            -webkit-background-size: cover;
+            -moz-background-size: cover;
+            -o-background-size: cover;
+            background-size: cover;
+        }
+
+        @media (min-width: 768px) {
+            .pricing .container {
+                padding-top: 50px !important;
+            }
+        }
+
+        @media (width: 768px) {
+            .pricing .container {
+                padding-top: 75px !important;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .pricing .container {
+                padding-top: 0px !important;
+            }
+        }
+
+        @media (max-width:501px) {
+            .pricing-bucket.solo-horizontal-center {
+                display: none !important;
+            }
+        }
+
+        .newpricingbg {
+            padding-top: 40px !important;
+            padding-bottom: 90px;
+            margin-top: 6px;
+            margin-bottom: 3%;
+        }
+
+        .pricing-bucket-wrap {
+            width: 100%;
+        }
+
+        .pricing-bucket {
+            margin-top: 3.7%;
+            margin-bottom: 2.5%;
+        }
+
+        .pricingbxz-exp {
+            width: 200px;
+            height: 410px;
+        }
+
+        .pricingbxz {
+            width: 149px;
+            height: 410px;
+        }
+
+        .pricingcap {
+            height: 140px;
+            width: 100%;
+            background-color: #43576F;
+            border-right: 1px solid #2A4563;
+        }
+
+        .pricingcap .name {
+            width: 100%;
+            padding-top: 6px;
+            color: white;
+        }
+
+        .pricingcap .circlewrap {
+            width: 100%;
+        }
+
+        .pricingbxz-exp .description {
+            height: 32px;
+            width: 100%;
+            padding-left: 52px;
+            color: #9AA7BA;
+        }
+
+        .pricingbxz .description {
+            height: 32px;
+            width: 100%;
+            padding-left: 27px;
+            color: #9AA7BA;
+        }
+
+        .pricingbxz .content-color {
+            color: #5E6D77;
+            position: relative;
+            font-size: 16px;
+        }
+
+        .pricingbxz .description .content-color .dots {
+            position: absolute;
+            top: 10px;
+            left: 1px;
+            font-size: 10px;
+        }
+
+        #pricingchart-signup-btn {
+            font-size: 16px !important;
+            /*margin-left: 17%;*/
+            margin: 10px 0;
+        }
+
+        .plans-container {
+            max-width: 940px;
+            margin: 0 auto;
+            padding: 0 20px;
+            color: #555;
+        }
+
+        .plans {
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+            position: relative;
+            margin: .5em 0 2em;
+            min-height: 370px;
+            transition: all .5s ease;
+        }
+
+        .plan {
+            display: flex;
+            min-width: 270px;
+            flex-direction: column;
+            flex: 1 0;
+            padding: 1.5rem 1.875rem 3rem;
+            background: rgba(0, 0, 0, .05);
+            border: 2px solid;
+            border-radius: 5px;
+            min-height: 0
+        }
+
+        .plan--core {
+            color: #83bcda;
+            background: rgba(136, 197, 199, .05);
+        }
+
+        .plan--pro {
+            margin: 0 1.5em 0;
+            color: #62a2c5;
+            background: #f9fcfc;
+
+        }
+
+        .plan--proplus {
+            margin: 0 1.5em 0;
+            color: #2588bf;
+            background: #f9fcfc;
+            box-shadow: 0 0 16px 0 rgb(2, 150, 230);
+        }
+
+        .plan--enterprise {
+            color: #e4b83a;
+            background: rgba(228, 184, 58, .05)
+        }
+
+        .plan__title {
+            font-size: 1.5rem;
+            font-weight: 500
+        }
+
+        .plan__title--core {
+            margin: 4rem 0 .5rem
+        }
+
+        .plan__title--pro {
+            letter-spacing: .2rem;
+            margin: .1rem 0 .5rem
+        }
+
+        .plan__title--proplus {
+            letter-spacing: .2rem;
+            margin: 1.3rem 0 .5rem
+        }
+
+        .plan__summary {
+            font-size: 1.2rem;
+            font-weight: 500
+        }
+
+        .plan__starting-from {
+            height: 0;
+            font-size: 1.2rem;
+            margin: .7rem 0 -.7rem;
+            color: #949494;
+        }
+
+        .plan__bonus-wrap {
+            font-size: 1rem;
+            margin: .6rem 0 1.4rem;
+            transition: opacity .1s ease;
+            color: #bbb
+        }
+
+        .plan-button--core {
+            -webkit-appearance: none;
+            width: 100%;
+            border: none;
+            border-radius: 3px;
+            color: #fff;
+            font-weight: 500;
+            font-size: 1em;
+            padding: .75em .65em;
+            line-height: 1;
+            background-color: #83bcda;
+            display: block;
+            text-align: center;
+            transition: opacity .3s cubic-bezier(.68, -.55, .27, 1.55)
+        }
+
+        .plan-button--core:hover {
+            opacity: .8;
+            color: white;
+            text-decoration: unset;
+        }
+
+        .plan-button--pro {
+            -webkit-appearance: none;
+            width: 100%;
+            border: none;
+            border-radius: 3px;
+            color: #fff;
+            font-weight: 500;
+            font-size: 1em;
+            padding: .75em .65em;
+            line-height: 1;
+            background-color: #62a2c5;
+            display: block;
+            text-align: center;
+            transition: opacity .3s cubic-bezier(.68, -.55, .27, 1.55)
+        }
+
+        .plan-button--pro:hover {
+            opacity: .8;
+            color: white;
+            text-decoration: unset;
+        }
+
+        .plan-button--proplus {
+            -webkit-appearance: none;
+            width: 100%;
+            border: none;
+            border-radius: 3px;
+            color: #fff;
+            font-weight: 500;
+            font-size: 1em;
+            padding: .75em .65em;
+            line-height: 1;
+            background-color: #2588bf;
+            display: block;
+            text-align: center;
+            transition: opacity .3s cubic-bezier(.68, -.55, .27, 1.55)
+        }
+
+        .plan-button--proplus:hover {
+            opacity: .8;
+            color: white;
+            text-decoration: unset;
+        }
+
+        .plan-button--enterprise {
+            -webkit-appearance: none;
+            width: 100%;
+            border: none;
+            border-radius: 3px;
+            color: #fff;
+            font-weight: 500;
+            font-size: 1em;
+            padding: .75em .65em;
+            line-height: 1;
+            background-color: #e4b83a;
+            display: block;
+            text-align: center;
+            transition: opacity .3s cubic-bezier(.68, -.55, .27, 1.55)
+        }
+
+        .plan-button--enterprise:hover {
+            opacity: .8;
+            color: white;
+            text-decoration: unset;
+        }
+
+        @media screen and (max-width:768px) {
+            .plan__bonus-wrap {
+                margin: 1rem 0 0
+            }
+        }
+
+        .plan__yearly-bonus--pro {
+            color: #7bbc90
+        }
+
+        .plan__yearly-bonus--proplus {
+            color: #e4b83a
+        }
+
+        .plan__overview {
+            color: #37404a;
+            font-size: .9em;
+            font-weight: 600;
+            line-height: 1.8;
+            margin: 0 0 1.5em
+        }
+
+        .plan__overview--core {
+            margin-top: 2.7rem
+        }
+
+        @media (max-width:767px) {
+            .plan__overview {
+                margin: 1.5em 0 1em
+            }
+        }
+
+        .plan__description {
+            color: #37404a;
+            font-size: .875em;
+            line-height: 1.5;
+            margin-bottom: 2.5em
+        }
+
+        .plan__link {
+            font-weight: 700
+        }
+
+        .plan__link--core {
+            color: #88c5c7
+        }
+
+        .plan__link--pro {
+            color: #7bbc90
+        }
+
+        .plan__link--proplus {
+            color: #e4b83a
+        }
+
+        .plan__cta {
+            margin-top: auto;
+            z-index: 2
+        }
+
+        @media (max-width:1120px) {
+            .plans {
+                display: block
+            }
+            .plans:after {
+                display: none
+            }
+            .plan {
+                margin: 40px 0;
+                padding-bottom: 1.5em
+            }
+            .plan--core,
+            .plan__title {
+                margin-top: 0
+            }
+        }
+
+        .plan-price {
+            display: flex;
+            align-items: flex-start;
+            color: #37404a;
+            padding: 2em 0 0;
+            transition: opacity .15s ease
+        }
+
+        .plan-price__currency {
+            font-size: 1.4em;
+            font-weight: 300
+        }
+
+        .plan-price__amount {
+            font-size: 3.2em;
+            line-height: .9;
+            margin: 0 .1em 0 .05em
+        }
+
+        .plan-price__period {
+            display: flex;
+            flex-direction: column;
+            align-self: flex-end;
+            margin-top: -.3em
+        }
+
+        .plan-price__is-annual {
+            font-size: .75em;
+            margin-bottom: .45em;
+            opacity: .75
+        }
+
+        .plan-price__time {
+            font-size: 1.4em
+        }
+
+        .plan-price.is-monthly .plan-price__is-annual {
+            display: none
+        }
+    </style>
+
+    <!--header-->
+    <header id="header" class="header">
+        <% include ./partials/header %>
+    </header>
+
+    <!--Content-->
+    <!--********************************************************************************************-->
+
+
+    <div class="headline-pricing-bg" style="height:400px;"></div>
+    <!--//headline-bg-->
+
+    <!-- ******Pricing Section****** -->
+    <section class="pricing section section-on-bg newpricingbg">
+        <div class="container" style="padding-top: 75px;">
+            <center>
+                <h1 style="color:white; font-size:44px;">
+                    <span style="font-family: 'Signika', sans-serif; font-weight:700;font-size:50px">Try CloudBoost free for 14 days.</span>
+                </h1>
+
+                <div>
+                    <h3 style="color:white; font-size:30px; -family: 'Signika', sans-serif; font-weight: 300; ">
+                        <span style="color:#b1d8ec; font-family: 'Signika', sans-serif; font-weight: 300;">CloudBoost saves you months of time and development costs.</span>
+                    </h3>
+                </div>
+
+            </center>
+        </div>
+    </section>
+
+    <section class="plans-container">
+
+        <div class="pricing-header__billing-cycle billing-toggle is-annually">
+            <div class="billing-toggle__label billing-toggle__label--monthly">
+                Monthly 
+            </div>
+            <div class="billing-toggle__switch" onclick="toggleClicked()">
+                <div class="billing-toggle__switch-button is-toggled"></div>
+            </div>
+            <div class="billing-toggle__label billing-toggle__label--annually">
+                Yearly (2 months for free) 
+            </div>
+        </div>
+
+        <div class="plans">
+            <!-- FREE -->
+            <div class="plan plan--core">
+                <h4 class="plan__title plan__title--proplus">BASIC</h4>
+                <div class="plan__summary">Ideal for startups</div>
+                <div class="plan__starting-from"></div>
+                <div class="plan-price plan__plan-price" style="margin-top: 0.9em;">
+                    <div class="plan-price__currency">$</div>
+                    <div id="basic-amount" class="plan-price__amount">
+                        79 </div>
+                    <div class="plan-price__period">
+                        <div class="plan-price__time">/mo</div>
+                        <div class="plan-price__is-annual annual">* Billed annually</div>
+                    </div>
+                </div>
+
+                
+
+                <div class="plan__overview plan__overview--pro">
+                    <br> 50,000 Records
+                    <br> 1 GB Storage
+                    <br> 100,000 API Requests</div>
+                <div class="plan__description"> Limited Support, 99.90% SLA.  
+                   
+                </div>
+
+                <div class="plan__cta">
+                    <a id="basicPlanButton" href="" class="plan-button plan-button--pro">Try Free</a>
+                </div>
+            </div>
+
+            <!-- PRO -->
+            <div class="plan plan--pro">
+                    <h4 class="plan__title plan__title--proplus">PRO</h4>
+                <div class="plan__summary">More power for growing business</div>
+
+                <div class="plan__starting-from"></div>
+                <div class="plan-price plan__plan-price" style="margin-top: 0.9em;">
+                    <div class="plan-price__currency">$</div>
+                    <div id="pro-amount" class="plan-price__amount">
+                        249 </div>
+                    <div class="plan-price__period">
+                        <div class="plan-price__time">/mo</div>
+                        <div class="plan-price__is-annual annual">* Billed annually</div>
+                    </div>
+                </div>
+
+               
+
+                <div class="plan__overview plan__overview--pro">
+                        <br> 250,000 Records
+                        <br> 10 GB Storage
+                        <br> 1 Million API Requests</div>
+                <div class="plan__description">Priorty Support, 1000+ Integrations, 99.95% SLA.
+                    
+                </div>
+
+                <div class="plan__cta">
+                    <a id="proPlanButton" href="" class="plan-button plan-button--pro">Try free</a>
+                </div>
+            </div>
+
+            <!-- PRO  Plus-->
+            <div class="plan plan--proplus" style="margin-left:0px;">
+                <h4 class="plan__title plan__title--proplus">PRO+ (Most Popular)</h4>
+                <div class="plan__summary">Our most popular &amp; reliable plan for corporates.</div>
+
+                <div class="plan__starting-from"></div>
+                <div class="plan-price plan__plan-price">
+                    <div class="plan-price__currency">$</div>
+                    <div id="proplus-amount" class="plan-price__amount">
+                        599 </div>
+                    <div class="plan-price__period">
+                        <div class="plan-price__time">/mo</div>
+                        <div class="plan-price__is-annual annual">* Billed annually</div>
+                    </div>
+                </div>
+
+                <div class="plan__overview plan__overview--proplus">
+                        <br> Unlimited Records
+                        <br> 100 GB Storage
+                        <br> 10 Million API Requests</div>
+                <div class="plan__description"> 24/7 Support, Dedicated Clusters, 99.99% SLA.
+                    
+                </div>
+
+                <div class="plan__cta">
+                    <a id="proPlusPlanButton" href="" class="plan-button plan-button--proplus">Try Free</a>
+                </div>
+            </div>
+
+            <!-- ENTERPRISE -->
+            <div class="plan plan--enterprise">
+                <h4 class="plan__title plan__title--enterprise">ENTERPRISE</h4>
+                <div class="plan__summary">Advanced features for large Enterprises.</div>
+
+                <div class="plan__starting-from">Starting at</div>
+                <div class="plan-price plan__plan-price">
+                    <div class="plan-price__currency">
+                        $ </div>
+                    <div class="plan-price__amount " data-monthly="70" data-annually="59">
+                        2500 </div>
+                    <div class="plan-price__period">
+                        <div class="plan-price__time">/mo</div>
+                        <div class="plan-price__is-annual">* Billed annually</div>
+                    </div>
+                </div>
+
+                <div class="plan__overview plan__overview--enterprise">
+                    <br> Unlimited Records
+                    <br> Unlimited Storage
+                    <br> Unlimited API Requests
+                </div>
+                <div class="plan__description">On-Premise Hosting, Dedicated clusters, Dedicated Account Executive, Company wide admin panel. 
+                    <a href="/enterprise/overview" class="plan__link plan__link--proplus js-scroll-to-features">and more...</a>
+                </div>
+                <div class="plan__cta">
+                    <a id="enterprisePlanButton" href="/enterprise/demo" class="plan-button plan-button--enterprise">Request Demo</a>
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+    <section class="twittr-feed" style="margin-top:5%; padding-bottom:50px;">
+        <!--head-->
+        <div class="flex-general-column-wrapper-center" style="width:100%;padding:2px;">
+            <div style="font-size:30px;font-family: 'Signika'">
+                <i class="fa fa-twitter" style="color:#5EA9DD;font-size:30px; font-weight:400"></i>&nbsp;Tiny love letters from our customers
+            </div>
+        </div>
+        <!--content-->
+        <div id="tweetwrapper cf" style="padding-top:12px;">
+
+            <div class="tweetparent cf">
+            </div>
+
+        </div>
+        <!--footer-->
+        <div class="flex-general-column-wrapper-center" style="width:100%;padding-top:2px;padding-bottom:16px;margin-top:20px;">
+            <div class="flex-general-column-wrapper-center" style="position:relative !important;width:100%;">
+                <div class="flex-general-column-wrapper-center" style="cursor:pointer !important;z-index:99999;width:160px;width:100%;bottom:-20px;">
+                    More at our
+                    <a href="https://twitter.com/cloudboostlove" target="_blank" style="font-size:16px !important;cursor:pointer !important;">Wall of Love
+                        <i class="fa fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <section class="trusted-by section why">
+        <div class="container">
+            <div class="row text-center">
+                <h2 class="title text-center" style="font-size:30px">
+                    Trusted by forward-thinking companies of all shapes and sizes.
+                </h2>
+
+
+                <div class="flex-general-column-wrapper-center comps-usingus-div" style="margin-top:60px;">
+                    <div class="flex-general-row-wrapper comps-usingus-wrapper">
+                        <div class="comps-usingus-bx" style="height: 31px;margin-top: -4px;">
+                            <img src="/images/sony.jpg" style="height: 100%;" alt="Customers : Sony">
+                        </div>
+                        <div class="comps-usingus-bx" style="height: 22px;">
+                            <img src="/images/bank-of-america.png" style="height: 100%;" alt="Customers : Bank of America">
+                        </div>
+                        <div class="comps-usingus-bx" style="height: 30px;">
+                            <img src="/images/adobe.png" style="height: 100%;" alt="Customers : Adobe">
+                        </div>
+                        <div class="comps-usingus-bx" style="height: 30px;">
+                            <img src="/images/fedex.png" style="height: 100%;" alt="Customers : FedEx">
+                        </div>
+                        <div class="comps-usingus-bx" style="height: 30px;">
+                            <img src="/images/cocacola.png" style="height: 100%;" alt="Customers : CocaCola">
+                        </div>
+                    </div>
+                </div>
+                <div class="flex-general-column-wrapper-center comps-usingus-div" style="margin-top:40px;">
+                    <div class="flex-general-row-wrapper comps-usingus-wrapper">
+                        <div class="comps-usingus-bx" style="height: 50px;margin-top: -4px;">
+                            <img src="/images/rr.png" style="height: 100%;" alt="Customers : RedRobins">
+                        </div>
+                        <div class="comps-usingus-bx" style="height: 50px;">
+                            <img src="/images/us.png" style="height: 100%;" alt="Customers : UbiSoft">
+                        </div>
+                        <div class="comps-usingus-bx" style="height: 45px;">
+                            <img src="/images/nyt.png" style="height: 100%;" alt="Customers : New York Times">
+                        </div>
+                        <div class="comps-usingus-bx" style="height: 45px;">
+                            <img src="/images/hershey-logo.png" style="height: 80px;
+            margin-top: -25px;" alt="Customers : Hersheys">
+                        </div>
+                        <div class="comps-usingus-bx" style="height: 45px;">
+                            <img src="/images/hbo.jpg" style="height: 100%;" alt="Customers : HBO">
+                        </div>
+                    </div>
+                </div>
+                <div class="flex-general-column-wrapper-center comps-usingus-div" style="margin-top:40px;">
+                    <div class="flex-general-row-wrapper comps-usingus-wrapper">
+                        <div class="comps-usingus-bx" style="height: 50px;margin-top: -4px;">
+                            <img src="/images/sk.png" style="height: 100%;" alt="Customers : Sk Telecom">
+                        </div>
+                        <div class="comps-usingus-bx" style="height: 50px;">
+                            <img src="/images/kk.png" style="height: 100%;" alt="Customers : Kakao Bank">
+                        </div>
+                        <div class="comps-usingus-bx" style="height: 50px;">
+                            <img src="/images/ms.png" style="height: 100%;" alt="Customers : Movistar">
+                        </div>
+                        <div class="comps-usingus-bx" style="height: 45px;">
+                            <img src="/images/tf.png" style="height: 100%;" alt="Customers : Telefonica">
+                        </div>
+                        <div class="comps-usingus-bx" style="height: 45px;">
+                            <img src="/images/ss.png" style="height: 100%;" alt="Customers : Shake Shack">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="flex-general-column-wrapper-center" style="width:100%;padding-top:2px;padding-bottom:16px;margin-top:20px;margin-bottom:20px">
+            <div class="flex-general-column-wrapper-center" style="position:relative !important;width:100%">
+                <div class="flex-general-column-wrapper-center" style="cursor:pointer !important;z-index:99999;width:160px;width:100%;bottom:-20px">
+                    <a href="/partners" target="_blank" style="font-size:16px !important;cursor:pointer !important">We also partner with agencies
+                        <i class="fa fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- ******FAQ Section****** -->
+    <section class="faq section has-bg-color">
+        <div class="container">
+            <h2 class="title text-center">Frequently Asked Questions</h2>
+            <div class="row">
+                <div class="col-md-8 col-sm-10 col-xs-12 col-md-offset-2 col-sm-offset-1 col-xs-offset-0">
+                    <div class="panel">
+                        <div class="panel-heading" id="dfaq1" style="cursor:pointer">
+                            <h4 class="panel-title">
+                                <a data-parent="#accordion" data-toggle="collapse" class="panel-toggle">
+                                    <i class="fa fa-plus-square"></i>
+                                    Is my data safe?</a>
+                            </h4>
+                        </div>
+
+                        <div class="panel-collapse collapse" id="faq1">
+                            <div class="panel-body">
+                                <p>
+                                        We run CloudBoost on Microsoft Azure and our servers are located in Califonia. The Azure cloud infrastructure has been architected to be one of the most secure cloud computing environments available on the planet. 
+                                        
+                                        <br/><br/>As well as the security features built into the Azure service, we employ: 
+                                        <br/>
+                                        <br/>- 128-bit SSL encryption for all data transfer on the platform. 
+                                        <br/>- Your data in encrypted on the disk. 
+                                        <br/>- Daily backups of all your data, in case anything goes wrong. 
+                                        <br/>- Security protocols in all our work premises. 
+                                        <br/>- (Enterprise Customers) Your data is on-premise and encrypted. </p>
+                            </div>
+                        </div>
+                    </div>
+                    <!--//panel-->
+
+                    <div class="panel">
+                        <div class="panel-heading" id="dfaq2" style="cursor:pointer">
+                            <h4 class="panel-title">
+                                <a data-parent="#accordion" data-toggle="collapse" class="panel-toggle">
+                                    <i class="fa fa-plus-square"></i>Can I see my detailed metrics? </a>
+                            </h4>
+                        </div>
+
+                        <div class="panel-collapse collapse" id="faq2">
+                            <div class="panel-body">
+
+                                Yes. Log in to your dashboard and you can.
+                            </div>
+                        </div>
+                    </div>
+                    <!--//panel-->
+
+                    <div class="panel">
+                        <div class="panel-heading" id="dfaq3" style="cursor:pointer">
+                            <h4 class="panel-title">
+                                <a data-parent="#accordion" data-toggle="collapse" class="panel-toggle">
+                                    <i class="fa fa-plus-square"></i>Do you provide a backup of my data? </a>
+                            </h4>
+                        </div>
+
+                        <div class="panel-collapse collapse" id="faq3">
+                            <div class="panel-body">
+
+                                We automatically backup your data twice a day and replicate your data every single time you save to three availability zones
+                                in 3 different data-centers across US, Europe and Asia. Pro, Pro Plus and Enterprise customers can export your data anytime you like.
+                            </div>
+                        </div>
+                    </div>
+                    <!--//panel-->
+
+                    <div class="panel">
+                        <div class="panel-heading" id="dfaq4" style="cursor:pointer">
+                            <h4 class="panel-title">
+                                <a data-parent="#accordion" data-toggle="collapse" class="panel-toggle">
+                                    <i class="fa fa-plus-square"></i>Where can I get CloudBoost Developers? </a>
+                            </h4>
+                        </div>
+
+                        <div class="panel-collapse collapse" id="faq4">
+                            <div class="panel-body">
+
+                                Any developer can build apps on CloudBoost. Our JavaScript SDK works on all the platforms. You can check them out
+                                <a href="https://tutorials.cloudboost.io/">here.</a> We also have a consulting team who consults and builds your project for you. Feel
+                                free to talk to us if you want to choose that route.
+                            </div>
+                        </div>
+                    </div>
+                    <!--//panel-->
+
+
+                    <div class="panel">
+                        <div class="panel-heading" id="dfaq5" style="cursor:pointer">
+                            <h4 class="panel-title">
+                                <a data-parent="#accordion" data-toggle="collapse" class="panel-toggle">
+                                    <i class="fa fa-plus-square"></i>Do you have an SLA? </a>
+                            </h4>
+                        </div>
+
+                        <div class="panel-collapse collapse" id="faq5">
+                            <div class="panel-body">
+
+                                Yes. We do. You can check it out
+                                <a href="/service-level-agreement">here.</a>
+                            </div>
+                        </div>
+                    </div>
+                    <!--//panel-->
+
+                    <div class="panel">
+                        <div class="panel-heading" id="dfaq6" style="cursor:pointer">
+                            <h4 class="panel-title">
+                                <a data-parent="#accordion" data-toggle="collapse" class="panel-toggle">
+                                    <i class="fa fa-plus-square"></i>What if I exceed my paid plan limits?</a>
+                            </h4>
+                        </div>
+
+                        <div class="panel-collapse collapse" id="faq6">
+                            <div class="panel-body">
+                                We will email you when you're near your plan limits. If you're looking for an enterprise offering.
+                                <a href="https://cloudboostio.typeform.com/to/Y4JOQD">
+                                    Let us know. </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <div class="panel-heading" id="dfaq7" style="cursor:pointer">
+                            <h4 class="panel-title">
+                                <a data-parent="#accordion" data-toggle="collapse" class="panel-toggle">
+                                    <i class="fa fa-plus-square"></i> What kind of support will I receive?</a>
+                            </h4>
+                        </div>
+
+                        <div class="panel-collapse collapse" id="faq7">
+                            <div class="panel-body">
+                                Basic: 2 Business Day email support. <br/>
+                                Pro: 1 Business Day email support. <br/>
+                                Pro Plus: 1 Business Day Email and Phone Priority support. <br/>
+                                Enterprise: 24/7 Dedicated Support. <br/>
+                            </div>
+                        </div>
+                    </div>
+                    <!--//panel-->
+
+                    <div class="panel">
+                        <div class="panel-heading" id="dfaq8" style="cursor:pointer">
+                            <h4 class="panel-title">
+                                <a data-parent="#accordion" data-toggle="collapse" class="panel-toggle">
+                                    <i class="fa fa-plus-square"></i>Do you integrate with my existing systems?</a>
+                            </h4>
+                        </div>
+
+                        <div class="panel-collapse collapse" id="faq8">
+                            <div class="panel-body">
+                                Yes, we integrate with over 1000+ apps and services. Check out our <a href="https://zapier.com/apps/cloudboost/integrations">Zapier plug in here. </a>
+                            </div>
+                        </div>
+                    </div>
+                    <!--//panel-->
+                    
+
+                    <div class="panel">
+                        <div class="panel-heading" id="dfaq8" style="cursor:pointer">
+                            <h4 class="panel-title">
+                                <a data-parent="#accordion" data-toggle="collapse" class="panel-toggle">
+                                    <i class="fa fa-plus-square"></i>Is the pricing tier per app?</a>
+                            </h4>
+                        </div>
+
+                        <div class="panel-collapse collapse" id="faq8">
+                            <div class="panel-body">
+                                Yes, A new subscription is created with every app you create. </a>
+                            </div>
+                        </div>
+                    </div>
+                    <!--//panel-->
+
+                </div>
+            </div>
+            <!--//row-->
+            <div class="contact-lead text-center">
+                <h4 class="title">Have more questions?</h4>
+                <a id="pricing-bottom-getintouch-btn" class="btn btn-cta btn-cta-primary" href="/contact">Get in touch</a>
+            </div>
+        </div>
+        <!--//container-->
+    </section>
+    <!--//faq-->
+
+
+
+    <section id="cta" class="section cta-section text-center home-cta-section">
+        <% include ./partials/bottom_banner %>
+    </section>
+
+    <!--footer-->
+    <footer class="footer">
+        <% include ./partials/footer %>
+    </footer>
+
+    <!--scripts-->
+    <% include ./partials/commonScripts %>
+        <script type="text/javascript" src="/vendors/slick-carousel/slick/slick.js"></script>
+        <script type="text/javascript" src="/controllers/pricingController.js"></script>
+        <script>
+            window.twttr = (function (d, s, id) {
+                var js, fjs = d.getElementsByTagName(s)[0],
+                    t = window.twttr || {};
+                if (d.getElementById(id)) return t;
+                js = d.createElement(s);
+                js.id = id;
+                js.src = "https://platform.twitter.com/widgets.js";
+                fjs.parentNode.insertBefore(js, fjs);
+
+                t._e = [];
+                t.ready = function (f) {
+                    t._e.push(f);
+                };
+
+                return t;
+            }(document, "script", "twitter-wjs"));
+        </script>
+        <script type="text/javascript" src="https://platform.twitter.com/widgets.js"></script>
+        <script type="text/javascript">
+            $(document).ready(function () {
+                
+
+                $('.tweetparent').slick({
+                    slidesToScroll: 1,
+                    autoplay: true,
+                    autoplaySpeed: 2000,
+                    infinite: true,
+                    centerMode: true,
+                    slidesToShow: 3,
+                    slidesPerRow: 1,
+                    accessibility: false,
+                    arrows: false,
+                    initialSlide: 0,
+                    respondTo: 'slider',
+                    swipe: true,
+                    swipeToSlide: true,
+                    touchMove: true
+                });
+            });
+
+            var tweertIds = [];
+            $.get(window.location.origin + '/twitter/search', function (list, status) {
+                if (status == "success") {
+
+                    var promises = [];
+                    for (var i = 0; i < list.twitterFeed.length; ++i) {
+
+                        var tweetId = list.twitterFeed[i].id_str;
+
+                        tweertIds.push(tweetId);
+                        var tweetBxHtml = '<div class="tweetbody" tweetid="' + tweetId + '"></div>';
+
+                        //$(".tweetparent").append(tweetBxHtml);
+                        $(".tweetparent").slick('slickAdd', tweetBxHtml);
+
+                    }
+
+                    for (var i = 0; i < list.twitterFeed.length; ++i) {
+
+                        var tweetId = list.twitterFeed[i].id_str;
+
+                        tweertIds.push(tweetId);
+                        var tweetBxHtml = '<div class="tweetbody" tweetid="' + tweetId + '"></div>';
+
+                        //$(".tweetparent").append(tweetBxHtml);
+                        $(".tweetparent").slick('slickAdd', tweetBxHtml);
+
+                    }
+
+                    var t = document.querySelectorAll(".tweetbody");
+                    for (n = 0; n < t.length; n++) {
+                        var attr = t[n];
+                        var twittrId = attr.getAttribute("tweetid");
+
+                        twttr.widgets.createTweet(
+                            twittrId,
+                            attr, {
+                                align: 'left'
+                            })
+                    }
+
+                    $(".tweetparent").slick('slickGoTo', true);
+
+
+                } else {
+                    console.log(status);
+                }
+            });
+        </script>
+
+        <script>
+            //Pricing script. 
+            var type="year";
+            $("#basic-amount").text("79");
+            $("#pro-amount").text("249");
+            $("#proplus-amount").text("599");
+
+            $("#basicPlanButton").prop("href", signUpURL + "?plan=9&type=year");
+            $("#proPlanButton").prop("href", signUpURL + "?plan=7&type=year");
+            $("#proPlusPlanButton").prop("href", signUpURL + "?plan=5&type=year");
+
+            $(".annual").show();
+            $(".billing-toggle__switch-button").addClass("is-toggled");
+
+            function toggleClicked(){
+                if(type === "month"){
+                    type = "year";
+                    
+                    $("#basic-amount").text("79");
+                    $("#pro-amount").text("249");
+                    $("#proplus-amount").text("599");
+
+                    $("#basicPlanButton").prop("href", signUpURL + "?plan=9&type=year");
+                    $("#proPlanButton").prop("href", signUpURL + "?plan=7&type=year");
+                    $("#proPlusPlanButton").prop("href", signUpURL + "?plan=5&type=year");
+
+                    $(".annual").show();
+                    $(".billing-toggle__switch-button").addClass("is-toggled");
+
+                }else{
+                    type = "month";
+                    
+                    $("#basic-amount").text("93");
+                    $("#pro-amount").text("292");
+                    $("#proplus-amount").text("700");
+
+                    $("#basicPlanButton").prop("href", signUpURL + "?plan=8");
+                    $("#proPlanButton").prop("href", signUpURL + "?plan=6");
+                    $("#proPlusPlanButton").prop("href", signUpURL + "?plan=4");
+                    
+                    $(".annual").hide();
+
+                    $(".billing-toggle__switch-button").removeClass("is-toggled");
+
+                    
+                }
+            }
+
+        </script>
+</body>
+
+</html>

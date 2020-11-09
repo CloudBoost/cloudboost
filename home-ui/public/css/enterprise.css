@@ -1,0 +1,131 @@
+.no-margin {
+  margin: 0 !important;
+}
+
+.circle-wrapper.individual-products {
+  height: 100px;
+  width: 100px;
+  border-radius: 50%;
+  margin-bottom: 15px;
+  display: -webkit-flex;
+  display: -moz-flex;
+  flex-flow: column wrap;
+  -moz-flex-flow: column wrap;
+  -webkit-flex-flow: column wrap;
+  justify-content: center;
+  -moz-justify-content: center;
+  -webkit-justify-content: center;
+  align-items: center;
+  -moz-align-items: center;
+  -webkit-align-items: center;
+}
+
+.products-body.why {
+  padding-bottom: 0;
+}
+
+.sign-up-btn-demo {
+  color: white;
+  padding: 5px 20px;
+  border-radius: 20px;
+  height: 35px;
+  margin-top: 18px;
+  border: none;
+  background-color: #005e87;
+  font-size: 18px;
+}
+
+.sign-up-btn-demo:focus {
+  outline: none;
+}
+
+.sign-up-btn-demo:hover, .sign-up-btn-demo:focus {
+  color: white;
+}
+
+.schedule-demo-link {
+  padding: 8px 0 0;
+  color: rgb(40, 133, 177);
+  border-bottom: 1px dashed rgb(38, 131, 175);
+}
+
+.schedule-demo-link:hover {
+  text-decoration: none;
+  color: rgb(40, 133, 177);
+}
+
+.trial-link-message h2, .our-team h1, .premium-options h1, .trusted-by h1, .premium-summary h2 {
+  font-weight: 300;
+}
+
+.trial-link-message p, .our-team p, .premium-options p {
+  color: #999999;
+  margin-bottom: 30px;
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+.our-team {
+  background-color: #050f2c;
+  color: #fff;
+}
+
+.support-team {
+  margin-bottom: 20px;
+}
+
+.support-team img {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  margin: 8px;
+  vertical-align: middle;
+  border: 0;
+}
+
+.premium-options .card {
+  padding: 16px;
+  box-shadow: 0 10px 40px 0 rgba(62, 57, 107, 0.07), 0 2px 9px 0 rgba(62, 57, 107, 0.06);
+  border-radius: 3px;
+  min-height: 160px;
+  margin-bottom: 32px;
+}
+
+.media:first-child {
+  margin-top: 0;
+}
+
+.media-middle {
+  vertical-align: middle;
+}
+
+.media-left, .media-body {
+  display: table-cell;
+  padding-right: 10px;
+}
+
+.trusted-by .container {
+  margin-bottom: 80px;
+}
+
+.premium-summary {
+  color: #fff;
+  padding: 30px;
+}
+
+.premium-summary h2 {
+  margin-bottom: 20px;
+}
+
+.p-xlarge {
+  padding: 30px;
+}
+
+@media screen and (max-width: 991px) {
+  .trial-link-boxes {
+    text-align: center;
+  }
+  .sign-up-btn-demo {
+    margin-top: 0;
+  }
+}

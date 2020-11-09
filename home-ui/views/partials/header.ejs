@@ -1,0 +1,618 @@
+<style>
+    .productItems a,
+    .moreDropdown a {
+        padding: 0 !important;
+        border: none !important;
+    }
+
+    .products dropdown-menu {
+        position: relative;
+        left: 130px;
+    }
+
+    .productItems a:hover,
+    .moreDropdown a:hover {
+        background: none !important;
+    }
+
+    .products dropdown-menu:after {
+
+        left: 335px;
+    }
+
+    .products .dropdown-menu:before {
+
+        left: 335px;
+        border-bottom-color: #FFF !important;
+    }
+
+    .more dropdown-menu:after {
+
+        left: 140px;
+    }
+
+    .more .dropdown-menu:before {
+
+        left: 140px;
+        border-bottom-color: #FFF !important;
+    }
+
+    .developers dropdown-menu:after {
+
+        left: 140px;
+    }
+
+    .developers .dropdown-menu:before {
+
+        left: 140px;
+        border-bottom-color: #FFF !important;
+    }
+
+    .blue {
+        background-color: #6772e5;
+    }
+
+    .lightBlue {
+        background-color: #5399fc;
+    }
+
+
+    .lightBlueText {
+        color: #5399fc;
+    }
+
+    #blue {
+        color: #2962FF;
+    }
+
+    #lightBlue {
+        color: #5399fc;
+    }
+
+   
+    .products h4 {
+        color: #6b7c93;
+        font-size: 15px;
+        font-weight: 500;
+        margin-top: 5px;
+    }
+
+    .products h1 {
+        font-family: 'Signika', sans-serif;
+        font-weight: 600;
+        font-size: 18px;
+        margin: 0;
+    }
+
+    .circle-wrapper i {
+        color: white;
+    }
+
+    .circle-wrapper {
+        height: 50px;
+        width: 50px;
+        border-radius: 50%;
+
+        display: -webkit-flex;
+        display: -moz-flex;
+        flex-flow: column wrap;
+        -moz-flex-flow: column wrap;
+        -webkit-flex-flow: column wrap;
+        justify-content: center;
+        -moz-justify-content: center;
+        -webkit-justify-content: center;
+        align-items: center;
+        -moz-align-items: center;
+        -webkit-align-items: center;
+    }
+
+    #circle-wrapper-big {
+        height: 90px;
+        width: 90px;
+    }
+
+    .small {
+        height: 30px;
+        width: 30px;
+    }
+
+    .caret {
+        color: white;
+    }
+
+    .productIconHolder {
+        padding-top: 5.2px;
+    }
+
+    .productDetails {
+        padding-left: 50px;
+    }
+
+    .moreDropdown {
+
+        color: #6772e5;
+    }
+
+    .moreDropdown h3 {
+        font-size: 17px;
+        margin: 0;
+        padding-top: 5px;
+        font-family: 'Signika', sans-serif;
+        font-weight: 500;
+    }
+
+    .moreDropDownItem {
+        margin-bottom: 15px;
+    }
+
+    .moreDropDownItem:hover {
+        color: #0D47A1 !important;
+    }
+
+    .productLink:hover .circle-wrapper,
+    .moreDropDownItem:hover .circle-wrapper {
+        background: #0D47A1 !important;
+    }
+
+    .productLink:hover .productDetails>h1,
+    .moreDropDownItem:hover .moreDropdown h3 {
+        color: #0D47A1 !important;
+    }
+
+    .productLink:hover .productDetails>h4 {
+        color: #000;
+    }
+
+    #blue:hover {
+        color: #0D47A1 !important;
+    }
+
+    .fa-chevron-right {
+        margin-left: 4px;
+    }
+
+    #blogLink {
+        color: #2962FF !important;
+        font-weight: 300;
+        font-size: 15px;
+    }
+
+    #blogLink:hover {
+        color: #0D47A1 !important;
+        text-decoration: none;
+    }
+
+    .blogFeed li {
+        margin-bottom: 5px;
+    }
+
+    .noPadding {
+        padding: 0 !important;
+    }
+
+    .noPadding a {
+        color: #2196F3 !important;
+    }
+
+    .dropdownSubHeading {
+        margin-bottom: 5px !important;
+        color: #2196F3 !important;
+    }
+
+    .moreDropdownPadding {
+        padding-left: 30px !important;
+    }
+
+    @media only screen and (max-width: 1200px) {
+        .productItems {
+            left: -90px !important;
+        }
+        .products dropdown-menu:after {
+
+            left: 130px;
+        }
+        .products .dropdown-menu:before {
+
+            left: 130px;
+            border-bottom-color: #FFF !important;
+        }
+
+        .productItems .col-sm-12:nth-child(1) {
+            margin-bottom: 20px;
+        }
+    }
+</style>
+<div class="container">
+    <h1 class="logo" id="logoContainer" style="margin-top:10px;">
+        <a href="/">
+            <span class="text">
+                <img id="logoImg" src='/images/CLoudBoostLogo-White-250.png' alt="CloudBoost" />
+
+            </span>
+        </a>
+    </h1>
+    <!--//logo-->
+    <nav class="main-nav navbar-right" role="navigation">
+        <div class="navbar-header">
+            <button class="navbar-toggle" type="button" data-toggle="collapse" data-target="#navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <!--//nav-toggle-->
+        </div>
+        <!--//navbar-header-->
+        <div id="navbar-collapse" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+                <li style="cursor:pointer; color:white" class="products nav-item linkHover-nrml cb-main-linkz dropdown dropdown-toggle" data-hover="dropdown"
+                    data-delay="0" data-close-others="false">
+
+                    <a>Products</a>
+
+                    <div class="dropdown-menu text-center productItems" style="width:48vw;left:-300px;padding:50px 30px 50px 30px;background:#FFF;">
+                        <div class="story-container-inner">
+                            <div class="about">
+                                <div class="row">
+
+                                    <div class="col-md-6 col-lg-6 col-xs-12 col-sm-12">
+                                        <a href="https://tutorials.cloudboost.io/en/datastorage/objects" class="productLink">
+                                            <div class="col-md-3 col-lg-3 col-xs-3 col-sm-3 productIconHolder">
+                                                <div class="circle-wrapper lightBlue">
+                                                    <i class="fa fa-database" style="font-size:20px;"></i>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-9 col-lg-9 col-xs-9 col-sm-9 productDetails">
+                                                <h1 class="lightBlueText">Data Storage</h1>
+                                                <h4>Store any data on an infinite scale.</h4>
+                                            </div>
+                                        </a>
+                                    </div>
+                                    <div class="col-md-6 col-lg-6 col-xs-12 col-sm-12">
+                                        <a href="https://tutorials.cloudboost.io/en/datastorage/files" class="productLink">
+                                            <div class="col-md-3 col-lg-3 col-xs-3 col-sm-3 productIconHolder">
+                                                <div class="circle-wrapper lightBlue">
+                                                    <i class="fa fa-file" style="font-size:20px;"></i>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-9 col-lg-9 col-xs-9 col-sm-9 productDetails">
+                                                <h1 class="lightBlueText">Files</h1>
+                                                <h4>Store and stream files of any size.</h4>
+                                            </div>
+                                        </a>
+                                    </div>
+
+                                </div>
+                                <div class="row">&nbsp;</div>
+                                <div class="row">
+
+                                    <div class="col-md-6 col-lg-6 col-xs-12 col-sm-12">
+                                        <a href="https://tutorials.cloudboost.io/en/realtime/customnotifications" class="productLink">
+                                            <div class="col-md-3 col-lg-3 col-xs-3 col-sm-3 productIconHolder">
+                                                <div class="circle-wrapper lightBlue">
+                                                    <i class="fa fa-clock-o" style="font-size:20px;"></i>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-9 col-lg-9 col-xs-9 col-sm-9 productDetails">
+                                                <h1 class="lightBlueText">Real Time</h1>
+                                                <h4>Build realtime apps, effortlessly.</h4>
+                                            </div>
+                                        </a>
+                                    </div>
+
+                                    <div class="col-md-6 col-lg-6 col-xs-12 col-sm-12">
+                                        <a href="https://tutorials.cloudboost.io/en/search/basicsearch" class="productLink">
+                                            <div class="col-md-3 col-lg-3 col-xs-3 col-sm-3 productIconHolder">
+                                                <div class="circle-wrapper lightBlue">
+                                                    <i class="fa fa-search" style="font-size:20px;"></i>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-9 col-lg-9 col-xs-9 col-sm-9 productDetails">
+                                                <h1 class="lightBlueText">Search</h1>
+                                                <h4>Search made powerful, fast and frictionless.</h4>
+                                            </div>
+                                        </a>
+                                    </div>
+
+                                </div>
+                                <div class="row">&nbsp;</div>
+
+                                <div class="row">
+
+                                    <div class="col-md-6 col-lg-6 col-xs-12 col-sm-12">
+                                        <a href="https://tutorials.cloudboost.io/en/security/users" class="productLink">
+                                            <div class="col-md-3 col-lg-3 col-xs-3 col-sm-3 productIconHolder">
+                                                <div class="circle-wrapper lightBlue">
+                                                    <i class="fa fa-lock" style="font-size:20px;"></i>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-9 col-lg-9 col-xs-9 col-sm-9 productDetails">
+                                                <h1 class="lightBlueText">Auth</h1>
+                                                <h4>Add authentication to your apps in minutes.</h4>
+                                            </div>
+                                        </a>
+                                    </div>
+
+                                </div>
+                                <div class="row">&nbsp;</div>
+                                <div class="row">
+
+
+                                </div>
+                              
+                            </div>
+
+                </li>
+
+
+                <li style="cursor:pointer; color:white" class="nav-item dropdown linkHover-nrml cb-main-linkz developers">
+                    <a class="dropdown-toggle moreItems" data-toggle="dropdown" data-hover="dropdown" data-delay="{'hide':'800','show':'800'}"
+                        data-close-others="false">Developers</a>
+                    <div class="dropdown-menu moreDropdown" style="width:26vw;left:-100px;padding:20px 20px 10px 20px;background:#FFF;">
+
+                        <div class="row moreDropDownItem">
+                            <div class="col-md-2 col-lg-2 col-xs-3 col-sm-3">
+                                <div class="circle-wrapper small lightBlue">
+                                    <i class="fa fa-rocket fa-x"></i>
+                                </div>
+                            </div>
+                            <div class="col-md-9 col-lg-9 col-xs-9 col-sm-9">
+                                <a href="/quickstart">
+                                    <h3 id="blue">Quickstart</h3>
+                                </a>
+
+                            </div>
+                        </div>
+                        <div class="row moreDropDownItem">
+                            <div class="col-md-2 col-lg-2 col-xs-3 col-sm-3">
+                                <div class="circle-wrapper small lightBlue">
+                                    <i class="fa fa-book fa-x"></i>
+                                </div>
+                            </div>
+                            <div class="col-md-9 col-lg-9 col-xs-9 col-sm-9">
+                                <a href="https://tutorials.cloudboost.io/">
+                                    <h3 id="blue">Documentation</h3>
+                                </a>
+                                <p id="blogLink">Integrate CloudBoost's products and tools.</p>
+                                <div class="row">
+                                    <div class="col-md-6 col-lg-6 col-sm-6">
+                                        <h3 class="dropdownSubHeading">Get Started</h3>
+
+
+
+                                        <div class="noPadding col-md-12 col-lg-12 col-sm-12">
+                                            <a id="blogLink" href="https://tutorials.cloudboost.io/en/datastorage/objects">Objects</a>
+                                        </div>
+                                        <div class="noPadding col-md-12 col-lg-12 col-sm-12">
+                                            <a id="blogLink" href="https://tutorials.cloudboost.io/en/query/basicqueries">Basic Queries</a>
+                                        </div>
+                                        <div class="noPadding col-md-12 col-lg-12 col-sm-12">
+                                            <a id="blogLink" href="https://tutorials.cloudboost.io/datastorage/files">Files</a>
+                                        </div>
+                                        <div class="noPadding col-md-12 col-lg-12 col-sm-12">
+                                            <a id="blogLink" href="https://tutorials.cloudboost.io/en/security/users">Users</a>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6 col-lg-6 col-sm-6">
+                                        <h3 class="dropdownSubHeading">Popular</h3>
+                                        <div class="noPadding col-md-12 col-lg-12 col-sm-12">
+                                            <a id="blogLink" href="https://tutorials.cloudboost.io/en/realtime/customnotifications">Real Time</a>
+                                        </div>
+                                        <div class="noPadding col-md-12 col-lg-12 col-sm-12">
+                                            <a id="blogLink" href="https://tutorials.cloudboost.io/en/search/basicsearch">Search</a>
+                                        </div>
+                                        <div class="noPadding col-md-12 col-lg-12 col-sm-12">
+                                            <a id="blogLink" href="https://tutorials.cloudboost.io/en/offlinesync/localstore">Offline Sync</a>
+                                        </div>
+                                        <div class="noPadding col-md-12 col-lg-12 col-sm-12">
+                                            <a id="blogLink" href="https://tutorials.cloudboost.io/en/datastorage/relations">Relations</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row moreDropDownItem">
+                            <div class="col-md-2 col-lg-2 col-xs-3 col-sm-3">
+                                <div class="circle-wrapper small lightBlue">
+                                    <i class="fa fa-code fa-x"></i>
+                                </div>
+                            </div>
+                            <div class="col-md-9 col-lg-9 col-xs-9 col-sm-9">
+                                <a href="https://docs.cloudboost.io/">
+                                    <h3 id="blue">Full API Reference</h3>
+                                </a>
+
+                            </div>
+                        </div>
+                        <div class="row moreDropDownItem">
+                            <div class="col-md-2 col-lg-2 col-xs-3 col-sm-3">
+                                <div class="circle-wrapper small lightBlue">
+                                    <i class="fa fa-line-chart fa-x"></i>
+                                </div>
+                            </div>
+                            <div class="col-md-9 col-lg-9 col-xs-9 col-sm-9">
+                                <a href="https://status.cloudboost.io">
+                                    <h3 id="blue">API Status</h3>
+                                </a>
+
+                            </div>
+                        </div>
+                        <div class="row moreDropDownItem">
+                            <div class="col-md-2 col-lg-2 col-xs-3 col-sm-3">
+                                <div class="circle-wrapper small lightBlue">
+                                    <i class="fa fa-github fa-x"></i>
+                                </div>
+                            </div>
+                            <div class="col-md-9 col-lg-9 col-xs-9 col-sm-9">
+                                <a target="_blank" href="https://github.com/cloudboost/cloudboost">
+                                    <h3 id="blue">Open Source</h3>
+                                </a>
+
+                            </div>
+                        </div>
+
+
+
+                    </div>
+                </li>
+
+
+                <li style="cursor:pointer; color:white" class="nav-item linkHover-nrml cb-main-linkz">
+                    <a href="/pricing">Pricing</a>
+                </li>
+
+                <li style="cursor:pointer; color:white" class="nav-item dropdown linkHover-nrml cb-main-linkz developers">
+                    <a class="dropdown-toggle moreItems" data-toggle="dropdown" data-hover="dropdown" data-delay="{'hide':'800','show':'800'}"
+                        data-close-others="false">Enterprise</a>
+                    <div class="dropdown-menu moreDropdown" style="width:18vw;left:-100px;padding:20px 20px 20px 20px;background:#FFF;">
+                        <div class="row moreDropDownItem">
+                            <div class="col-md-2 col-lg-2 col-xs-3 col-sm-3">
+                                <div class="circle-wrapper small lightBlue">
+                                    <i class="fa fa-star fa-x"></i>
+                                </div>
+                            </div>
+                            <div class="col-md-9 col-lg-9 col-xs-9 col-sm-9">
+                                <a href="/enterprise">
+                                    <h3 id="blue">Overview</h3>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="row moreDropDownItem">
+                            <div class="col-md-2 col-lg-2 col-xs-3 col-sm-3">
+                                <div class="circle-wrapper small lightBlue">
+                                    <i class="fa fa-bookmark fa-x"></i>
+                                </div>
+                            </div>
+                            <div class="col-md-9 col-lg-9 col-xs-9 col-sm-9">
+                                <a href="/enterprise/resources">
+                                    <h3 id="blue">Resources</h3>
+                                </a>
+
+                            </div>
+                        </div>
+                        <div class="row moreDropDownItem">
+                            <div class="col-md-2 col-lg-2 col-xs-3 col-sm-3">
+                                <div class="circle-wrapper small lightBlue">
+                                    <i class="fa fa-users fa-x"></i>
+                                </div>
+                            </div>
+                            <div class="col-md-9 col-lg-9 col-xs-9 col-sm-9">
+                                <a href="/consulting">
+                                    <h3 id="blue">Consulting</h3>
+                                </a>
+
+                            </div>
+                        </div>
+                        <div class="row moreDropDownItem">
+                            <div class="col-md-2 col-lg-2 col-xs-3 col-sm-3">
+                                <div class="circle-wrapper small lightBlue">
+                                    <i class="fa fa-cubes fa-x"></i>
+                                </div>
+                            </div>
+                            <div class="col-md-9 col-lg-9 col-xs-9 col-sm-9">
+                                <a href="/enterprise/demo">
+                                    <h3 id="blue">Request a Demo</h3>
+                                </a>
+
+                            </div>
+                        </div>
+
+
+
+                    </div>
+                </li>
+
+
+                <li style="cursor:pointer; color:white" class="nav-item dropdown linkHover-nrml cb-main-linkz more">
+                    <a class="dropdown-toggle moreItems" data-toggle="dropdown" data-hover="dropdown" data-delay="{'hide':'800','show':'800'}"
+                        data-close-others="false">Company</a>
+                    <div class="dropdown-menu moreDropdown" style="width:25vw;left:-100px;padding:20px 20px 10px 20px;background:#FFF;">
+
+                        <div class="row moreDropDownItem">
+                            <div class="col-md-1 col-lg-1 col-xs-1 col-sm-1 ">
+                                <div class="circle-wrapper small lightBlue">
+                                    <i class="fa fa-slack fa-x"></i>
+                                </div>
+                            </div>
+                            <div class="col-md-9 col-lg-9 col-xs-10 col-sm-10 moreDropdownPadding">
+                                <a target="_blank" href="https://cloudboost.slack.com">
+                                    <h3 id="blue">Slack</h3>
+                                </a>
+
+                            </div>
+                        </div>
+                        <div class="row moreDropDownItem">
+                            <div class="col-md-1 col-lg-1 col-xs-1 col-sm-1">
+                                <div class="circle-wrapper small lightBlue">
+                                    <i class="fa fa-info-circle fa-x"></i>
+                                </div>
+                            </div>
+                            <div class="col-md-9 col-lg-9 col-xs-10 col-sm-10 moreDropdownPadding">
+                                <a href="/about">
+                                    <h3 id="blue">About us</h3>
+                                </a>
+
+                            </div>
+                        </div>
+                        <div class="row moreDropDownItem">
+                            <div class="col-md-1 col-lg-1 col-xs-1 col-sm-1">
+                                <div class="circle-wrapper small lightBlue">
+                                    <i class="fa fa-users fa-x"></i>
+                                </div>
+                            </div>
+                            <div class="col-md-9 col-lg-9 col-xs-10 col-sm-10 moreDropdownPadding">
+                                <a href="/joinus">
+                                    <h3 id="blue">Careers</h3>
+                                </a>
+
+                            </div>
+                        </div>
+                        <div class="row moreDropDownItem">
+                            <div class="col-md-1 col-lg-1 col-xs-1 col-sm-1">
+                                <div class="circle-wrapper small lightBlue">
+                                    <i class="fa fa-question fa-x"></i>
+                                </div>
+                            </div>
+                            <div class="col-md-9 col-lg-9 col-xs-10 col-sm-10 moreDropdownPadding">
+                                <a href="/contact">
+                                    <h3 id="blue">Help and Support</h3>
+                                </a>
+
+                            </div>
+                        </div>
+                        <div style="padding:15px 0 15px;height:parent;" class="row moreDropDownItem">
+                            <div class="col-md-1 col-lg-1 col-xs-1 col-sm-1">
+                                <div class="circle-wrapper small lightBlue">
+                                    <i class="fa fa-pencil fa-x"></i>
+                                </div>
+                            </div>
+                            <div class="col-md-9 col-lg-9 col-xs-10 col-sm-10 moreDropdownPadding">
+                                <a href="https://blog.cloudboost.io">
+                                    <h3 id="blue">Blog</h3>
+                                </a>
+                                <ul style="padding:0;padding-top:10px;list-style-type:none;color:#6772e5;" class="blogFeed">
+
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+
+                <li style="cursor:pointer; color:white" class="nav-item linkHover-nrml cb-main-linkz">
+                    <a class="" href="https://accounts.cloudboost.io/">Login</a>
+                </li>
+
+
+                <li style="cursor:pointer; margin-top:16px;" class="nav-item  linkHover header-sign-up">
+                    <a style="color: #BFE6FC;padding-top: 5px;padding-right: 8px;padding-left: 8px;padding-bottom: 5px;border-radius: 6px;" class="buttonBorder"
+                        href="https://accounts.cloudboost.io/signup" id="header-signupbtn">Sign up</a>
+                </li>
+            </ul>
+            <!--//nav-->
+            </div>
+            <!--//navabr-collapse-->
+    </nav>
+    <!--//main-nav-->
+    </div>
+    <!--//container-->

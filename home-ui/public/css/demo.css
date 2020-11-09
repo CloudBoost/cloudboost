@@ -1,0 +1,104 @@
+.demo-header {
+  position: absolute;
+}
+
+main {
+  left: 0;
+  right: 0;
+  padding-top: 72px;
+  padding-bottom: 72px;
+  background: #1f71a1 url('../images/background/bg-header-2.webp') no-repeat 50% top;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+}
+
+main .container {
+  position: relative;
+  margin-top: 20px;
+  color: #fff;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  main .container {
+    margin-top: 150px;
+  }
+}
+
+@media (min-width: 992px) and (max-width: 1200px) {
+  main .container {
+    margin-top: 100px;
+  }
+}
+
+.contact-form-description {
+  line-height: 1.625em;
+  font-size: 1em;
+}
+
+.contact-form-description a {
+  color: #fff;
+  cursor: pointer;
+  border-bottom-style: dotted;
+}
+
+.contact-form-description a:hover,
+.contact-form-description a:focus {
+  text-decoration: none;
+}
+
+.contact-form-description h1 {
+  font-size: 2.5em;
+  font-family: 'Signika';
+  font-weight: 600;
+}
+
+.contact-form-description ul {
+  padding-left: 18px;
+}
+
+.contact-form-container {
+  color: #737f8b;
+  background-color: #f8f9f9;
+  border-radius: .1875em;
+  margin-top: 26.8px;
+  padding: 36px;
+  min-height: 500px;
+}
+
+.contact-form-container .form-group {
+  margin-bottom: 0;
+}
+
+.contact-form-container .form-group .help-block,
+.demo-message.help-block,
+.whitepaper-message.help-block {
+  margin-bottom: 0;
+  font-size: .8em;
+  color: #8a6d3b;
+}
+
+.contact-form-container .form-control:focus {
+  border-color: #22a7f0;
+  outline: none;
+}
+
+.contact-form-container .form-control,
+select:not(.language-dropdown) {
+  color: #999999;
+}
+
+.checkbox{
+  font-size: .9em;
+  margin-top: 20px;
+}
+
+.form-disclaimer {
+  margin-top: 20px;
+  font-size: .7em;
+}
+
+textarea.form-control {
+  resize: vertical;
+}

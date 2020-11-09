@@ -1,0 +1,50 @@
+.sectionButton
+{
+    height: 40px;
+    width: 170px;
+    margin-top: 20px;
+    margin-right: 5px;
+    padding-top: 8px !important;
+}
+.white
+{
+    background: #FFF !important;
+    color:#000 !important;
+}
+.productHolder
+{
+	padding: 70px !important;
+
+}
+.productHolder i
+{
+    color: #5399fc;
+}
+.productHolder p
+{
+	text-align: justify; 
+}
+
+.tutorialLink
+{
+	font-family: 'Roboto',sans-serif;
+	text-transform: uppercase;
+	font-size: 20px;
+	color: #5399fc;
+
+
+}
+
+.tutorialLink i
+{
+	margin-left: 7px;
+	color: #000;
+	color: #5399fc;
+
+}
+
+.tutorialLink:hover
+{
+	text-decoration: none !important;
+	cursor: pointer;
+}

@@ -1,0 +1,112 @@
+.headline-pricing-bg {
+	position: absolute;
+	width: 100%;
+	top: 0;
+	left: 0;
+	/*height: 360px !important;*/
+	background: #253340 url('../images/background/bg-header-2.webp') no-repeat 50% top;
+	-webkit-background-size: cover;
+	-moz-background-size: cover;
+	-o-background-size: cover;
+	background-size: cover;
+}
+
+@media (min-width: 768px) {
+	.pricing .container {
+		padding-top: 50px !important;
+	}
+}
+
+@media (width: 768px) {
+	.pricing .container {
+		padding-top: 75px !important;
+	}
+}
+
+@media (max-width: 767px) {
+	.pricing .container {
+		padding-top: 0px !important;
+	}
+}
+
+@media (max-width:501px) {
+    .pricing-bucket.solo-horizontal-center {
+        display: none !important;
+    }
+}
+
+.newpricingbg {
+	padding-top: 40px !important;
+	padding-bottom: 90px;
+	margin-top: 6px;
+	margin-bottom: 3%;
+}
+
+.pricing-bucket-wrap {
+	width: 100%;
+}
+
+.pricing-bucket {
+	margin-top: 3.7%;
+	margin-bottom: 2.5%;
+}
+
+.pricingbxz-exp {
+	width: 200px;
+	height: 410px;
+}
+
+.pricingbxz {
+	width: 149px;
+	height: 410px;
+}
+
+.pricingcap {
+	height: 140px;
+	width: 100%;
+	background-color: #43576F;
+	border-right: 1px solid #2A4563;
+}
+
+.pricingcap .name {
+	width: 100%;
+	padding-top: 6px;
+	color: white;
+}
+
+.pricingcap .circlewrap {
+	width: 100%;
+}
+
+.pricingbxz-exp .description {
+	height: 32px;
+	width: 100%;
+	padding-left: 52px;
+	color: #9AA7BA;
+}
+
+.pricingbxz .description {
+	height: 32px;
+	width: 100%;
+	padding-left: 27px;
+	color: #9AA7BA;
+}
+
+.pricingbxz .content-color {
+	color: #5E6D77;
+	position: relative;
+	font-size: 16px;
+}
+
+.pricingbxz .description .content-color .dots {
+	position: absolute;
+	top: 10px;
+	left: 1px;
+	font-size: 10px;
+}
+
+#pricingchart-signup-btn {
+	font-size: 16px !important;
+	/*margin-left: 17%;*/
+	margin: 10px 0;
+}

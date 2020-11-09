@@ -1,0 +1,57 @@
+.full-height{
+	height: 100%;
+}
+
+.logo-height{
+	height: 30px;
+}
+
+.comps-div
+{
+	background-color:#F2F3F4;
+	width 			:100%;
+	height 			: 140px;
+	margin-top 		: -4px;
+}
+
+.comps-desc{
+	margin-bottom:25px;
+	font-family: 'Signika', sans-serif;
+	color: #909090;
+}
+
+.signup{
+	background-color:#3691C1 !important; 
+	color:white;
+	font-size:20px;
+}
+.intro1-span{
+	color:#3691C1;
+	font-size:26px;
+	font-weight:100;
+	line-height:27px;
+}
+
+.sdk-banner{
+	margin-left:auto !important;
+	margin-right:auto !important;
+	width:50%;
+	font-weight:100 !important;	
+	font-size:35px;
+}
+
+.carousel-nav{
+	color:black;background:white
+}
+
+.title-style{
+	font-size:35px; 
+	color:#565656;
+	font-weight:100 !important;
+}
+
+.quickstart-btn{
+	background-color:#3691C1 !important; 
+	color:white;
+	font-size:20px;
+}

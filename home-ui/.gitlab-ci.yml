@@ -1,0 +1,112 @@
+# This file is a template, and might need editing before it works on your project.
+# Official docker image.
+image: docker:latest
+stages:
+  - build
+  - deploy
+  - test_deploy
+  - undo_deploy
+
+services:
+  - docker:dind
+
+before_script:
+  - echo "$DOCKERPASSWORD" | docker login registry.gitlab.com -u "$DOCKERUSERNAME" --password-stdin
+
+build:
+  stage: build
+  script:
+    - docker build -t registry.gitlab.com/cloudboost/home-ui:3.1.$CI_PIPELINE_IID .
+    - echo "NO TESTS REQUIRED FOR data-browser"
+    - if [ "$CI_COMMIT_REF_NAME" == "master" ]; then
+    -   docker tag registry.gitlab.com/cloudboost/home-ui:3.1.$CI_PIPELINE_IID registry.gitlab.com/cloudboost/home-ui:master
+    -   docker push registry.gitlab.com/cloudboost/home-ui:master
+    -   docker tag registry.gitlab.com/cloudboost/home-ui:3.1.$CI_PIPELINE_IID registry.gitlab.com/cloudboost/home-ui:master-3.1.$CI_PIPELINE_IID
+    -   docker push registry.gitlab.com/cloudboost/home-ui:master-3.1.$CI_PIPELINE_IID
+    - fi
+    - if [ "$CI_COMMIT_REF_NAME" == "release" ]; then
+    -   docker tag registry.gitlab.com/cloudboost/home-ui:3.1.$CI_PIPELINE_IID registry.gitlab.com/cloudboost/home-ui:latest
+    -   docker push registry.gitlab.com/cloudboost/home-ui:latest
+    -   docker push registry.gitlab.com/cloudboost/home-ui:3.1.$CI_PIPELINE_IID
+    - fi
+
+  only:
+    - master
+    - release
+    
+deploy:
+  stage: deploy
+  script:
+    - apk update && apk add curl curl-dev bash git openssl
+    - curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+    - chmod +x ./kubectl
+    - mv ./kubectl /usr/local/bin/kubectl
+    - git clone https://$KUBE_USERNAME:$KUBE_PWD@gitlab.com/cloudboost/kube-cred.git
+    - cd kube-cred && openssl enc -in config.enc -out config -d -aes256 -k $KUBE_ENC
+    - mkdir -p ~/.kube && mv config ~/.kube/
+    - if [ "$CI_COMMIT_REF_NAME" == "master" ]; then
+    -   kubectl config use-context cloudboost-staging
+    -   kubectl set image deployment cloudboost-home cloudboost-home=registry.gitlab.com/cloudboost/home-ui:master-3.1.$CI_PIPELINE_IID
+    -   kubectl rollout status deployment cloudboost-home
+    - fi
+    - if [ "$CI_COMMIT_REF_NAME" == "release" ]; then
+    -   kubectl config use-context cb-productionmgmt
+    -   kubectl rolling-update cloudboost-home --image=registry.gitlab.com/cloudboost/home-ui:3.1.$CI_PIPELINE_IID --image-pull-policy=Always
+    - fi
+  only:
+    - master
+    - release
+
+smoke_test_staging:
+  stage: test_deploy
+  script:
+    - apk update && apk add curl curl-dev bash git
+    - git clone https://$SMOKE_USERNAME:$SMOKE_PWD@gitlab.com/cloudboost/smoketest.git
+    - cd smoketest && docker build -t cloudboost/smoketest:latest .
+    - docker run -e "PREBOOT_CHROME=true" -e "CONNECTION_TIMEOUT=150000" -p 3000:3000 --restart always -d --name browserless browserless/chrome
+    - docker run --name smoketest --link browserless:chromeless --entrypoint '/bin/sh' cloudboost/smoketest -c 'npm test staging'
+  only:
+    - master
+
+smoke_test_production:
+  stage: test_deploy
+  script:
+    - apk update && apk add curl curl-dev bash git
+    - git clone https://$SMOKE_USERNAME:$SMOKE_PWD@gitlab.com/cloudboost/smoketest.git
+    - cd smoketest && docker build -t cloudboost/smoketest:latest .
+    - docker run -e "PREBOOT_CHROME=true" -e "CONNECTION_TIMEOUT=150000" -p 3000:3000 --restart always -d --name browserless browserless/chrome
+    - docker run --name smoketest --link browserless:chromeless --entrypoint '/bin/sh' cloudboost/smoketest -c 'npm test production'
+  only:
+    - release
+
+revert_deploy_staging:
+  stage: undo_deploy
+  script:
+    - apk update && apk add curl curl-dev bash git openssl
+    - curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+    - chmod +x ./kubectl
+    - mv ./kubectl /usr/local/bin/kubectl
+    - git clone https://$KUBE_USERNAME:$KUBE_PWD@gitlab.com/cloudboost/kube-cred.git
+    - cd kube-cred && openssl enc -in config.enc -out config -d -aes256 -k $KUBE_ENC
+    - mkdir -p ~/.kube && mv config ~/.kube/
+    - kubectl config use-context cloudboost-staging
+    - kubectl rollout undo deployment cloudboost-home
+  when: on_failure
+  only:
+    - master
+
+revert_deploy_production:
+  stage: undo_deploy
+  script:
+    - apk update && apk add curl curl-dev bash git openssl
+    - curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+    - chmod +x ./kubectl
+    - mv ./kubectl /usr/local/bin/kubectl
+    - git clone https://$KUBE_USERNAME:$KUBE_PWD@gitlab.com/cloudboost/kube-cred.git
+    - cd kube-cred && openssl enc -in config.enc -out config -d -aes256 -k $KUBE_ENC
+    - mkdir -p ~/.kube && mv config ~/.kube/
+    - kubectl config use-context cb-productionmgmt
+    - kubectl rolling-update cloudboost-home --rollback
+  when: on_failure
+  only:
+   - release

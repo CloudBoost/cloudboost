@@ -1,0 +1,94 @@
+/* = FONT STACKS
+----------------------------------------------------------------------------------------------------------------------*/
+body    { font-family: Geneva, 'Lucida Sans', 'Lucida Grande', 'Lucida Sans Unicode', Verdana, sans-serif } /* "wide" sans serif */
+/*body    { font-family: Tahoma, Arial, Helvetica, sans-serif } /* "narrow" sans serif */
+/*body    { font-family: Georgia, Utopia, Palatino, 'Palatino Linotype', serif } /* "wide" serif */
+/*body    { font-family: 'Times New Roman', Times, serif } /* "narrow" serif */
+
+
+/*  transform the font size so that 1em is 10px so that you can use em's
+    but think in pixels as now 1em is 10px, 1.2em is 12px and so on */
+
+html { font-size: 62.5% }
+
+body {
+    font-size: 1.3em;
+    margin: 0;
+    padding: 0;
+    outline: 0;
+    border: 0;
+    text-align: center; /*  this is for IE6 so that it will center the main wrapper */
+    line-height: 1.2;   /*  unit-less line-height does not inherit a percentage value of its parent element */
+                        /*  but instead is based on a multiplier of the font-size */
+}
+
+div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, aabbr, acronym, address,
+big, cite, code, del, dfn, em, font, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i,
+center, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td {
+
+    margin: 0;
+    padding: 0;
+    outline: 0;
+    border: 0;
+    font-family: inherit;
+    font-weight: inherit;
+    font-style: inherit;
+    line-height: inherit;
+
+}
+
+a, blockquote, dd, div, dl, dt, fieldset, form, h1, h2, h3, h4, h5, h6, img, input, label, li, ol, p, pre, span, table, ul {
+
+    position: relative
+
+}
+
+p, h1, h2, h3, h4, h5, h6 { font-size: 100%; font-weight: normal }
+
+small
+sup,
+sub     { font-size: 70% }
+
+p small   { display: block; line-height: 1 }
+
+strong, b   { font-weight: bold }
+em, i       { font-style: italic }
+
+/* = CLEARFIX
+----------------------------------------------------------------------------------------------------------------------*/
+.clearfix:before,
+.clearfix:after     { content: "\0020"; display: block; height: 0; visibility: hidden; font-size: 0 }
+.clearfix:after     { clear: both }
+.clearfix           { *zoom: 1 } /* for IE only */
+
+/* = TABLES
+----------------------------------------------------------------------------------------------------------------------*/
+table {
+
+    border-collapse: collapse;
+    border-spacing: 0;
+    /* tables still need cellspacing="0" */
+
+} 
+
+/* = LISTS
+----------------------------------------------------------------------------------------------------------------------*/
+ul, ol          { list-style: none }
+
+ul.float li,
+ol.float li     { float: left }
+
+ul.default,
+ol.default,
+ol.default ul,
+ul.default ul,
+ul.default ol,
+ol.default ol   { padding-left: 1.5em }
+
+ul.default,
+ol.default ul,
+ul.default ul   { list-style-type: square }
+
+ol.default,
+ul.default ol,
+ol.default ol   { list-style-type: decimal }

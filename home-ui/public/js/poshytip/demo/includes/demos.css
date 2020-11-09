@@ -1,0 +1,422 @@
+	/* ==================== | DEFAULT FONTS | ==================== */
+
+body {
+	font:12px 'lucida sans unicode','lucida sans','lucida grande',helvetica,arial,sans-serif;
+}
+table, th, td, input, select, textarea {
+	font:1em 'lucida sans unicode','lucida sans','lucida grande',helvetica,arial,sans-serif;
+}
+
+
+
+	/* ==================== | DEFAULT STYLES | ==================== */
+
+html, body, h1, h2, h3, h4, p, ul, ol, li, form, input, select, dl, dt, dd, fieldset, blockquote {
+	margin:0;
+	padding:0;
+}
+a img {
+	border:none;
+}
+a.sup {
+	text-decoration:none;
+}
+fieldset {
+	display:block;
+	border:0;
+}
+abbr {
+	border-bottom:1px dotted;
+}
+
+
+
+	/*  ==================== | LINKS | ==================== */
+
+a {
+	text-decoration:none;
+	color:#860404;
+}
+
+
+
+	/* ==================== | LAYOUT | ==================== */
+
+body {
+	background:#F4F4F4 url(sheet_bg.jpg) fixed no-repeat;
+	color:#434343;
+	text-align:center;
+}
+#holder {
+	width:800px;
+	margin:20px auto;
+	border:solid #ddd;
+	border-width:5px 0;
+	border-radius:5px;
+	-moz-border-radius:5px;
+	-webkit-border-radius:5px;
+	padding:30px 0;
+	background:#fff;
+	text-align:left;
+}
+#content {
+	margin-left:30px;
+	width:520px;
+}
+#nav {
+	float:right;
+	margin:50px 20px 0 0;
+	width:200px;
+	display:inline;
+}
+
+
+
+	/* ==================== | CONTENT COLUMN | ==================== */
+
+#content {
+	font-size:14px;
+}
+#content h1, #content h2, #content h3, #content h4 {
+	margin:1.5em 0 0.5em 0;
+	font-weight:normal;
+	color:#860404;
+}
+#content h1 {
+	position:relative;
+	height:50px;
+	margin:0 -230px 0 -10px;
+	border-bottom:1px solid #efefef;
+	font-family:georgia,'times new roman',times,serif;
+	font-size:30px;
+}
+#content h1 span {
+	position:absolute;
+	left:0;
+	margin:-15px 0 0 7px;
+	font-size:15px;
+	font-style:italic;
+	color:#888;
+}
+#content h2 {
+	font-family:arial,helvetica,sans-serif;
+	font-size:18px;
+}
+#content h3 {
+	font-size:16px;
+}
+#content h4 {
+	font-size:14px;
+}
+#content p, #content ul, #content ol, #content dd, #content table {
+	margin-bottom:1em;
+	line-height:22px;
+}
+#content ul ul {
+	margin:2px 0 0 0;
+	list-style-type:circle;
+}
+#content li {
+	margin:0 0 2px 28px;
+}
+#content ul li {
+	margin:0 0 2px 14px;
+	padding:0 0 0 14px;
+	list-style-type:none;
+	background:url(bullet.png) no-repeat 0 0.21em;
+}
+#content dd {
+	margin-left:0;
+}
+#content dt {
+	font-weight:normal;
+	margin-bottom:2px;
+}
+#content code {
+	background:#ffffe1;
+	font-family:monospace;
+}
+#content a {
+	border-bottom:2px solid #cfcdf0;
+	background-color:#f1ffe2;
+	color:#434343;
+	text-decoration:none;
+}
+#content a:visited {
+	background-color:#fbf0ff;
+}
+#content a:hover, #content a:focus, #content a:active {
+	border-color:#908dc0;
+	background-color:#e9ffd3;
+}
+a.image {
+	display:block;
+	margin:0;
+	width:150px;
+	border:2px solid #cae8b7 !important;
+	padding:1px !important;
+	background:transparent !important;
+}
+a.image:hover, a.image:focus, a.image:active {
+	border-color:#9ec883 !important;
+}
+a.image img {
+	border:none !important;
+}
+dl.options {
+	font-size:13px;
+}
+dl.options dt {
+	position:relative;
+	border-top:1px solid #efefef;
+	padding:2px 0;
+	background:#f8f8f8;
+}
+dl.options dt i {
+	position:absolute;
+	right:0;
+	font-size:12px;
+	color:#888888;
+}
+dl.options div.possible-values {
+	margin-bottom:4px;
+	font-size:11px;
+	color:#888888;
+}
+dl.options div.possible-values span {
+	margin-bottom:4px;
+	color:#434343;
+}
+dl.options div.signature {
+	padding-left:20px;
+}
+
+
+
+	/* ==================== | NAVIGATION | ==================== */
+
+#nav h2 {
+	margin:1.93em 0 0.5em 0;
+	padding-left:6px;
+	font-family:georgia,'times new roman',times,serif;
+	font-size:15px;
+	font-weight:normal;
+	font-style:italic;
+	color:#888;
+}
+#nav ul, #nav li {
+	display:block;
+	list-style:none;
+}
+#nav ul, #nav p {
+	margin-bottom:1em;
+}
+#nav ul ul {
+	margin-bottom:0;
+}
+#nav li {
+	border-top:1px solid #e9d08e;
+}
+#nav li.first {
+	border:0;
+}
+#nav a {
+	display:block;
+	padding:5px 12px;
+	background:#f2d995;
+	zoom:1;
+}
+#nav a:hover, #nav a:focus, #nav a:active, #nav a.current {
+	color:#151515;
+	background:#fbebc1;
+}
+#nav li.first a {
+	border-radius:5px 5px 0 0;
+	-moz-border-radius:5px 5px 0 0;
+	-webkit-border-radius:5px 5px 0 0;
+}
+#nav li.last a {
+	border-radius:0 0 5px 5px;
+	-moz-border-radius:0 0 5px 5px;
+	-webkit-border-radius:0 0 5px 5px;
+}
+#nav ul ul a {
+	padding-left:24px;
+	background:#f9e09b;
+	border-radius:0 !important;
+	-moz-border-radius:0 !important;
+	-webkit-border-radius:0 !important;
+}
+#nav ul ul ul a {
+	padding-left:36px;
+	background:#ffe5a0;
+	border-radius:0 !important;
+	-moz-border-radius:0 !important;
+	-webkit-border-radius:0 !important;
+}
+
+
+
+	/* ==================== | SHJS (syntax highlighter) | ==================== */
+
+div.code-block {
+	position:relative;
+	margin:0 0 1em 0;
+	border-left:4px solid #d9d9d9;
+	padding:3px 6px;
+	background:#f8f8f8;
+	zoom:1;
+}
+div.code-block textarea {
+	position:absolute;
+	margin:-2px 0 0 -2px;
+	overflow:auto;
+	border:1px solid;
+	border-color:#777 #ccc #f8f8f8 #ccc;
+	padding:1px;
+	background:#fff;
+	color:#000;
+	font-family:consolas,'lucida console',monaco,'courier new',courier,monospace,mono,serif;
+	font-size:13px;
+	font-weight:normal;
+	font-style:normal;
+	z-index:1000;
+}
+#content div.code-block a.view-plain, #content div.code-block a.view-plain:visited {
+	display:none;
+	position:absolute;
+	bottom:100%;
+	right:0;
+	border-bottom:1px dashed #d5d5d5;
+	padding:3px 4px;
+	text-align:right;
+	background:#fff;
+	color:#888888;
+	font:0.8em arial,helvetica,sans-serif;
+}
+#content div.code-block a.view-plain:hover {
+	background:#aaa;
+	color:#fff;
+}
+div.code-block pre {
+	display:block;
+	width:100%;
+	margin:0;
+	overflow:auto;
+	cursor:text;
+	color: #434343;
+	font-family:consolas,'lucida console',monaco,'courier new',courier,monospace,mono,serif;
+	font-size:13px;
+	font-weight:normal;
+	font-style:normal;
+}
+pre.sh_sourceCode .sh_keyword {
+	color: #aa0d91;
+	font-weight: normal;
+	font-style: normal;
+}
+pre.sh_sourceCode .sh_type {
+	color: #008000;
+	font-weight: normal;
+	font-style: normal;
+}
+pre.sh_sourceCode .sh_string {
+	color: #c80000;
+	font-weight: normal;
+	font-style: normal;
+}
+pre.sh_sourceCode .sh_regexp {
+	color: #008000;
+	font-weight: normal;
+	font-style: normal;
+}
+pre.sh_sourceCode .sh_specialchar {
+	color: #ff00ff;
+	font-weight: normal;
+	font-style: normal;
+}
+pre.sh_sourceCode .sh_comment {
+	color: #007400;
+	font-weight: normal;
+	font-style: normal;
+}
+pre.sh_sourceCode .sh_number {
+	color: #3200ff;
+	font-weight: normal;
+	font-style: normal;
+}
+pre.sh_sourceCode .sh_preproc {
+	color: #008200;
+	font-weight: normal;
+	font-style: normal;
+}
+pre.sh_sourceCode .sh_function {
+	color: #000000;
+	font-weight: normal;
+	font-style: normal;
+}
+pre.sh_sourceCode .sh_url {
+	color: #008000;
+	font-weight: normal;
+	font-style: normal;
+}
+pre.sh_sourceCode .sh_date {
+	color: #000000;
+	font-weight: bold;
+	font-style: normal;
+}
+pre.sh_sourceCode .sh_time {
+	color: #000000;
+	font-weight: bold;
+	font-style: normal;
+}
+pre.sh_sourceCode .sh_file {
+	color: #000000;
+	font-weight: bold;
+	font-style: normal;
+}
+pre.sh_sourceCode .sh_ip {
+	color: #008000;
+	font-weight: normal;
+	font-style: normal;
+}
+pre.sh_sourceCode .sh_name {
+	color: #008000;
+	font-weight: normal;
+	font-style: normal;
+}
+pre.sh_sourceCode .sh_variable {
+	color: #000000;
+	font-weight: bold;
+	font-style: normal;
+}
+pre.sh_sourceCode .sh_oldfile {
+	color: #ff00ff;
+	font-weight: normal;
+	font-style: normal;
+}
+pre.sh_sourceCode .sh_newfile {
+	color: #008000;
+	font-weight: normal;
+	font-style: normal;
+}
+pre.sh_sourceCode .sh_difflines {
+	color: #000000;
+	font-weight: bold;
+	font-style: normal;
+}
+pre.sh_sourceCode .sh_selector {
+	color: #000000;
+	font-weight: normal;
+	font-style: normal;
+}
+pre.sh_sourceCode .sh_property {
+	color: #c80000;
+	font-weight: normal;
+	font-style: normal;
+}
+pre.sh_sourceCode .sh_value {
+	color: #3200ff;
+	font-weight: normal;
+	font-style: normal;
+}

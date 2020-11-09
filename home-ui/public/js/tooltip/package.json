@@ -1,0 +1,37 @@
+{
+  "name": "zebra_tooltips",
+  "description": "A lightweight and highly configurable jQuery plugin for creating simple but smart and attractive tooltips",
+  "author": {
+    "name": "Stefan Gabos",
+    "email": "contact@stefangabos.ro"
+  },
+  "homepage": "http://www.stefangabos.ro/jquery/zebra-tooltips/",
+  "main": "public/javascript/zebra_tooltips.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stefangabos/Zebra_Tooltips.git"
+  },
+  "licenses": [
+    {
+      "type": "LGPL",
+      "url": "https://www.gnu.org/licenses/lgpl-3.0.txt"
+    }
+  ],
+  "version": "1.2.4",
+  "keywords": [
+    "tooltip",
+    "tooltips",
+    "jquery"
+  ],
+  "bugs": {
+    "url": "http://github.com/stefangabos/Zebra_Tooltips/issues",
+    "email": "contact@stefangabos.ro"
+  },
+  "devDependencies": {
+    "grunt": "*",
+    "grunt-cli": "*",
+    "grunt-contrib-jshint": "*",
+    "grunt-contrib-uglify": "*",
+    "grunt-contrib-watch": "*"
+  }
+}

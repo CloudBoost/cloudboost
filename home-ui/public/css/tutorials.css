@@ -1,0 +1,104 @@
+.tutorials-parent{
+	margin-bottom: 100px;
+}
+.tutorials-loading{
+	height: 300px;
+	width: 100%;
+	padding-top: 50px;
+}
+.tut-heading h1{
+	margin: 0;
+}
+.tut-heading span{
+	margin-top: 10px;
+}
+.tut-bx-wrapper{
+	height: auto;
+	/* Flex row rules */
+    display: flex;
+    display:-webkit-flex;
+    display:-moz-flex;
+
+    flex-flow:row wrap;
+    -moz-flex-flow:row wrap;
+    -webkit-flex-flow:row wrap;
+
+    justify-content:center;
+    -moz-justify-content: center;
+    -webkit-justify-content: center;
+
+    align-items:center;
+    -moz-align-items: center;
+    -webkit-align-items:center;
+}
+
+.cb-tutorials:first-child {
+	margin-top:0;
+}
+.cb-tutorials {
+	margin-bottom: 10px;
+}
+.cb-tutorials .bx-list{
+	margin-top:4% !important;
+}
+.cb-tutorials:first-child{
+	margin-top:0;
+}
+
+.tut-bx-container{
+	cursor: pointer;
+	padding: 10px;
+	width: 300px;
+	height:320px;
+	background-color: white;
+	-webkit-box-shadow: 0 0 4px 1px gray;
+    -moz-box-shadow: 0 0 4px 1px gray;
+    box-shadow: 0 0 4px 1px gray;
+    margin-left: 30px;
+}
+
+.tut-bx-container-gray-bx{
+	width: 300px;
+	height:320px;
+	opacity: 0.9;
+	top: 0;
+	left: 30px;
+	position: absolute !important;
+	z-index: 1;
+	background-color: #383636;
+	visibility: hidden;
+}
+
+.tut-desc{
+	font-size: 12px;
+	height: 74px;
+	margin-top: 10px;
+	overflow: hidden;
+	padding-left: 10px;
+	padding-right: 10px;
+}
+.tut-view-btn{
+	border: 1px solid white;
+	width: 90px;
+	height:40px;
+	background-color: #383636;
+	color: white;
+	border-radius: 2px;
+}
+.tut-view-btn:hover{
+	width: 90px;
+	height:40px;
+	background-color: white;
+	color: black;
+	border-radius: 2px;
+}
+.langIcon{
+    margin-left: 10px;
+}
+.langIcon:first-child {
+    margin-left:0;
+}
+.prog-lang-list{
+	color:#c1c1c1;
+	margin-top: 10px;
+}

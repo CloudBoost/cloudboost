@@ -1,0 +1,242 @@
+<!-- Lazy Loader Script -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    let lazyImages = [].slice.call(document.querySelectorAll("img.lazy"));
+    let active = false;
+  
+    const lazyLoad = function() {
+      if (active === false) {
+        active = true;
+  
+        setTimeout(function() {
+          lazyImages.forEach(function(lazyImage) {
+            if ((lazyImage.getBoundingClientRect().top <= window.innerHeight && lazyImage.getBoundingClientRect().bottom >= 0) && getComputedStyle(lazyImage).display !== "none") {
+              lazyImage.src = lazyImage.dataset.src;
+              lazyImage.classList.remove("lazy");
+  
+              lazyImages = lazyImages.filter(function(image) {
+                return image !== lazyImage;
+              });
+  
+              if (lazyImages.length === 0) {
+                document.removeEventListener("scroll", lazyLoad);
+                window.removeEventListener("resize", lazyLoad);
+                window.removeEventListener("orientationchange", lazyLoad);
+              }
+            }
+          });
+  
+          active = false;
+        }, 200);
+      }
+    };
+  
+    document.addEventListener("scroll", lazyLoad);
+    window.addEventListener("resize", lazyLoad);
+    window.addEventListener("orientationchange", lazyLoad);
+  });
+</script>
+<div class="container letsbuildcontainer">
+    <h4 class="title" style="margin: 0px;
+    padding: 0px;
+    font-size: 15px; font-weight:400;color:#b1d8ec;"><b>CONSULTING AND SOFTWARE DEVELOPMENT SERVICES</b></h4>
+    <h2 class="title" style="margin:30px; font-family: 'Signika', sans-serif; font-weight:700;font-size:50px">Let's build something great.</h2>
+    <p class="intro"> We also help the world’s leading companies and startups build amazing websites, apps and services that are simple, beautiful
+        and easy to use.</p><br/>
+    <a id="home-footer-signup-btn" href="/consulting" class="whiteButton">
+        &nbsp;&nbsp;See our work&nbsp;&nbsp;
+    </a>
+    <section class="container-wide" id="showcase-wide">
+        <ul>
+            <li>
+                <a href="/consulting"><img class="lazy" style="height:300px" data-src="/images/work/1-min.png" alt="portfolio"></a>
+            </li>
+            <li>
+                <a href="/consulting"><img class="lazy" style="height:340px" data-src="/images/work/2-min.png" alt="portfolio"></a>
+            </li>
+            <li>
+                <a href="/consulting"><img class="lazy"data-src="/images/work/3-min.png" alt="portfolio"></a>
+            </li>
+            <li>
+                <a href="/consulting"><img class="lazy" style="height:352px" data-src="/images/work/5-min.png" alt="portfolio"></a>
+            </li>
+            <li>
+                <a href="/consulting"><img class="lazy" data-src="/images/work/4-min.png" alt="portfolio"></a>
+            </li>
+        </ul>
+    </section>
+</div>
+<style>
+    .letsbuildcontainer {
+        width: 100% !important;
+        padding-left: 0px !important;
+        padding-right: 0px !important;
+        margin-bottom: -80px;
+    }
+
+    #showcase-wide {
+        position: relative;
+        float: left;
+        overflow: hidden;
+        margin-top: 100px;
+        width: 100%;
+        height: 340px;
+    }
+
+    #showcase-wide ul {
+        position: relative;
+        list-style-type: none;
+    }
+
+    #showcase-wide ul li {
+        position: absolute;
+        width: 478px;
+        border-radius: 4px 4px 0 0;
+        box-shadow: 0 0 15px 0px rgba(0, 0, 0, 0.22);
+        -webkit-transition: margin 0.3s;
+        transition: margin 0.3s;
+    }
+
+    #showcase-wide ul li img {
+        max-width: 100%;
+        border-radius: 3px;
+    }
+
+    #showcase-wide ul li:first-child {
+        top: 40px;
+        left: -12%;
+        z-index: 8;
+        width: auto !important;
+    }
+
+    #showcase-wide ul li:nth-child(2) {
+        top: 80px;
+        left: 7%;
+        z-index: 9;
+    }
+
+    #showcase-wide ul li:nth-child(3) {
+        top: 120px;
+        left: 50%;
+        z-index: 10;
+        margin-left: -200px;
+    }
+
+    #showcase-wide ul li:nth-child(4) {
+        top: 70px;
+        right: 3%;
+        z-index: 9;
+    }
+
+    #showcase-wide ul li:nth-child(5) {
+        top: 20px;
+        right: -20%;
+        z-index: 8;
+    }
+
+    #showcase-wide ul li:hover {
+        z-index: 100;
+    }
+
+    #showcase-wide ul li:first-child:hover {
+        top: 40px;
+        margin: 0px 0 0 40px;
+    }
+
+    #showcase-wide ul li:nth-child(2):hover {
+        margin: 0px 0 0 10px;
+    }
+
+    #showcase-wide ul li:nth-child(3):hover {
+        margin-top: -20px;
+    }
+
+    #showcase-wide ul li:nth-child(4):hover {
+        margin-right: 10px;
+    }
+
+    #showcase-wide ul li:nth-child(5):hover {
+        margin-right: 40px;
+    }
+
+    @media (min-width: 1575px) {
+        #showcase-wide ul li:first-child {
+            /*top: 0px;*/
+            left: 0;
+        }
+        #showcase-wide ul li:nth-child(2) {
+            /*top: 40px;*/
+            left: 13%;
+        }
+        #showcase-wide ul li:nth-child(3) {
+            top: 120px;
+            left: 48%;
+            margin-left: -200px;
+        }
+        #showcase-wide ul li:nth-child(4) {
+            top: 70px;
+            right: 18%;
+        }
+        #showcase-wide ul li:nth-child(5) {
+            /*top: 0px;*/
+            right: 0;
+        }
+    }
+
+    @media (max-width: 770px) {
+        #showcase-wide ul li:first-child {
+            /*top: 0px; */
+            left: -22%;
+        }
+        #showcase-wide ul li:nth-child(2) {
+            top: 102px;
+            left: -20%;
+        }
+        #showcase-wide ul li:nth-child(3) {
+            top: 159px;
+            left: 50%;
+            margin-left: -200px;
+        }
+        #showcase-wide ul li:nth-child(4) {
+            top: 70px;
+            right: -20%;
+        }
+        #showcase-wide ul li:nth-child(5) {
+            /*top: 0px; */
+            right: -35%;
+        }
+    }
+
+    @media (max-width: 425px) {
+        #showcase-wide ul li img {
+            width: 100% !important;
+        }
+        #showcase-wide ul li:first-child {
+            top: 0px;
+            left: 5%;
+            right: 5%;
+        }
+        #showcase-wide ul li:nth-child(2) {
+            top: 50px;
+            left: 0;
+            right: 0;
+        }
+        #showcase-wide ul li:nth-child(3) {
+            top: 100px;
+            left: 0;
+            margin-left: 0;
+        }
+        #showcase-wide ul li:nth-child(4) {
+            top: 150px;
+            left: 0;
+            right: 0;
+            z-index: 10;
+        }
+        #showcase-wide ul li:nth-child(5) {
+            top: 200px;
+            left: 0;
+            right: 0;
+            z-index: 10;
+        }
+    }
+</style>

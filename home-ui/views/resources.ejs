@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en" if="twitter-wjs">
+
+<head>
+  <title>CloudBoost | Resources</title>
+  <base href="/">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="title" content="CloudBoost | Resources" />
+  <meta name="description" content="CloudBoost Resources. Whitepapers, Case-studies and more. ">
+  <meta name="keywords" content="pricing, baas, backend as a service, database as a service, hybrid database, cloudboost, search, realtime, storage, app storage, signup, cloudboost">
+  <meta name="fragment" content="!" />
+  <!--common head links-->
+  <% include ./partials/commonHead %>
+</head>
+
+<body>
+  <section class="contact-headline-bg">
+    <!--header-->
+    <header id="header" class="header">
+      <% include ./partials/header %>
+    </header>
+
+    <!--Content-->
+    <!--********************************************************************************************-->
+    <!-- ******Contact Section****** -->
+    <section class="contact-section section section-on-bg development-service">
+      <div class="container">
+        <center>
+          <h1 style="color:white; font-size:44px; font-family: 'Signika', sans-serif; font-weight: 300;">
+            <span style="font-family: 'Signika', sans-serif; font-weight:700;font-size:50px">Resources</span>
+          </h1>
+          <div>
+            <h3 style="color:white; font-size:30px; font-family: 'Signika', sans-serif; font-weight: 300;">
+              <span style="color:#b1d8ec; font-family: 'Signika', sans-serif; font-weight: 300;">Check out our whitepapers, case-studies &amp; more.</span>
+            </h3>
+          </div>
+
+        </center>
+      </div>
+      <!--//container-->
+    </section>
+  </section>
+  <section class="resources-list">
+
+    <div class="container">
+      <div class="row text-center">
+        <% if(resourceList.length) {%>
+          <section id="" class="cb-tutorials">
+            <div class="container bx-list">
+              <!--Heading-->
+              <div class="tut-heading flex-general-column-wrapper-center" style="margin-bottom:30px !important;">
+                <h1 style="color:#737373; font-family:Signika, sans-serif; font-weight: 700; ">Whitepapers</h1>
+                <span style="margin-top:10px; color:#737373; font-family: Signika, sans-serif; font-weight: 300; ">Covering topics such as architecture, security, and economics. <br/>These are authored by the CloudBoost team, independent analysts, or the CloudBoost community. </span>
+              </div>
+              <!--Boxes-->
+              <div class="tut-bx-wrapper flex-general-row-wrapper">
+              <% for(var i =0; i < resourceList.length; i++) { %>
+                <% if(resourceList[i].type === "whitepaper") {%>
+
+
+                  <!--******BOX*******-->
+                  <div style="position:relative; margin-top:20px; margin-bottom:5px;">
+                    <div id="tut_box" class="tut-bx-container" data-boxid="datastr<%= resourceList[i].order %>">
+                      <div class="tut-name">
+                        <h3 class="flex-general-column-wrapper-center" style="margin-top:30px;color:#737373; font-family: Signika, sans-serif; font-weight: 300; font-size:22px; ">
+                          <%= resourceList[i].title %>
+                        </h3>
+                      </div>
+                      <div class="tut-desc">
+                        <div class="flex-general-column-wrapper-center">
+                          <span style="color:#737373; font-family: Signika, sans-serif; font-weight: 300; font-size:15px">  <%= resourceList[i].description %></span>
+                        </div>
+                      </div>
+                      <div class="tut-labels flex-general-row-wrapper-center" style="margin-top:30px;">
+                        <div class="flex-general-row-wrapper" style="width:85%; color:#737373;">
+                          <div class="flex-equal-ratio-items flex-general-row-wrapper-center">
+                            <i class="fa fa-user" style="color:#BEB7BF !important"></i>
+                            <span style="color:#BEB7BF !important">&nbsp;<%= resourceList[i].readerRole %></span>
+                          </div>
+                          <div class="flex-equal-ratio-items flex-general-row-wrapper-center">
+                            <i class="fa fa-clock-o" style="color:#BEB7BF !important"></i><span style="color:#BEB7BF !important">&nbsp;<%= resourceList[i].howLong %></span>
+                          </div>
+                        </div>
+                      </div>
+                      <div style="border-top:1px solid #BCBABA;margin-top:25px;"></div>
+                      <div class="tut-prog-langs" style="margin-top:5px;">
+                        <div class="flex-general-column-wrapper-center" style="margin:0;">
+                          <span style="margin:0;color:#BCBABA;">Available in</span>
+                        </div>
+                        <div class="prog-lang-list flex-general-column-wrapper-center">
+                          <div class="flex-general-row-wrapper" style="margin-top:-4px;">
+                            <div class="flex-equal-ratio-items langIcon">
+                              <i class="fa fa-file-pdf-o fa-lg"></i>
+                            </div>
+
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div id="datastr<%= resourceList[i].order %>" class="tut-bx-container-gray-bx flex-general-column-wrapper-center animated fadeIn" style="visibility: hidden;">
+                      <a href="/enterprise/resources/<%= resourceList[i].type %>/<%= resourceList[i].slug %>" target="_blank" class="btn tut-view-btn" style="display: initial;">
+                        <p style="margin-top:3px;">View</p>
+                      </a>
+                    </div>
+                  </div>
+              <% } %>
+          <% } %>
+          </div>
+        </div>
+      </section>
+        <% } else { %>
+          <h4 class="no-resource" style="font-weight:100;color:#b5b5b5">Oops, we're having problems retrieving reosurces from the server. </h4>
+        <% } %>
+      </div>
+    </div>
+  </section>
+  <!--footer-->
+  <footer class="footer">
+    <% include ./partials/footer %>
+  </footer>
+
+  <!--scripts-->
+  <% include ./partials/commonScripts %>
+  <link rel="stylesheet" href="/css/resources.css">
+  <script async type="text/javascript" src="/controllers/resourcesController.js"></script>
+</body>
+
+</html>

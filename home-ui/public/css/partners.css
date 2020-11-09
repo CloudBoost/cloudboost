@@ -1,0 +1,20 @@
+.newpartner-field{
+	padding-left: 12px;
+	padding-top: 2px;
+	border-radius: 4px;
+	border:1px solid gray;
+}
+
+.headline-partner-bg {
+  position: absolute;
+  width: 100%;
+  top: 0;
+  left: 0;
+  height: 350px;
+  background: #253340 url('../images/background/try3.jpg') no-repeat 50% top;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;  
+}
+

@@ -1,0 +1,16 @@
+{
+    "name": "Cloudboost",
+    "short_name": "cloudboost",
+    "description": "The realtime JavaScript backend",
+    "background_color": "#ffffff",
+    "theme_color":"#3394c9",
+    "start_url":"/",
+    "display":"fullscreen",
+    "icons": [
+      {
+        "src": "/images/CbLogoIcon.png",
+        "sizes": "512x512",
+        "type": "image/png"
+      }
+    ]
+  }

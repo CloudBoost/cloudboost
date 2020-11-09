@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>CloudBoost | Quickstart</title>
+    <base href="/">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="title" content="CloudBoost | Quickstart"/>
+    <meta name="description" content="Quickstart : Start building your app in under 2 minutes.">
+    <meta name="keywords" content="quickstart, cloudbost quickstart, baas, backend as a service, database as a service, hybrid database, cloudboost, search, realtime, storage, app storage">
+    <meta name="fragment" content="!"/>
+    <!--common head links-->
+    <% include ./partials/commonHead %>
+</head>
+
+<body style="background-color:#F5F5F5;">
+
+<!--header-->
+<header id="header" class="header">
+  <% include ./partials/header %>
+</header>
+
+<!--Content-->
+<!--********************************************************************************************-->
+    <div class="headline-bg" style="height:400px;">
+    </div><!--//headline-bg-->
+
+    <section class="pricing section section-on-bg newpricingbg">
+        <div class="container">
+            <center>
+                <h1 style="color:white; font-size:44px;">
+                    <span style="font-family: 'Signika', sans-serif; font-weight:700;font-size:50px">Get Started.</span>
+                </h1>
+
+                <div>
+                    <h3 style="color:white; font-size:30px; -family: 'Signika', sans-serif; font-weight: 300; ">
+                        <span style="color:#b1d8ec; font-family: 'Signika', sans-serif; font-weight: 300;">Jump start with CloudBoost and build your first app in under 10 minutes.</span>
+                    </h3>
+                </div>
+
+            </center>
+        </div>
+    </section>
+
+    <section class="quickstart-strip" style="margin-top:75px">
+        <div class="container text-center" style="margin-top:7px;">
+
+            <div class="col-md-9">
+                <div class="padding-left:30px">
+                   <h1 style="color:#737373; font-family: 'Signika', sans-serif; font-weight: 700; ">CloudBoost Quick Start Guide</h1>
+                  <span style="margin-top:8px; color:#737373; font-family: 'Signika', sans-serif; font-weight: 300; margin-left:13%;">Be up & running with CloudBoost and build your first app in under 10 minutes.</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                 <p class="text-center">
+                    <a class="text-center btn btn-cta btn-cta-primary quickstart-getstarted-btn" style="font-size:20px;margin-top:40px;" href="https://tutorials.cloudboost.io/en/gettingstarted/yourfirstapp" target="_blank">
+                        <i class="fa fa-arrow-circle-right"></i>&nbsp;Get Started
+                    </a>
+                </p>
+            </div>
+
+        </div><!--//container-->
+    </section><!--//promo-->
+
+
+    <!--Tutorials Loading-->
+    <div class="tutorials-loading flex-general-column-wrapper-center">
+        <div>
+            <i class="fa fa-spinner fa-spin fa-2x"></i>
+        </div>
+    </div>
+    <!--/End Tutorials Loading-->
+
+    <!--Tutorials-->
+    <div class="tutorials-parent">
+    </div>
+    <!--/End Tutorials-->
+
+    <!-- Video Modal -->
+    <div class="modal modal-video" id="modal-video" tabindex="-1" role="dialog" aria-labelledby="videoModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 id="videoModalLabel"></h4>
+                </div>
+                <div class="modal-body">
+                    <div class="video-container">
+                        <iframe width="720" height="405" src="https://www.youtube.com/embed/pYnPdzoV67w" frameborder="0" allowfullscreen></iframe>
+                    </div><!--//video-container-->
+                </div><!--//modal-body-->
+            </div><!--//modal-content-->
+        </div><!--//modal-dialog-->
+    </div><!--//modal-->
+
+    <section id="cta" class="section cta-section text-center home-cta-section">
+        <% include ./partials/bottom_banner %>
+    </section>
+
+    <!--footer-->
+    <footer class="footer">
+        <% include ./partials/footer %>
+    </footer>
+
+    <!--scripts-->
+    <% include ./partials/commonScripts %>
+
+<!--********************************************************************************************-->
+    <script type="text/javascript" src="/controllers/quickStartController.js"></script>
+</body>
+</html>

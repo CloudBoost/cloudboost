@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>CloudBoost | Page not found</title>
+    <base href="/">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="title" content="CloudBoost | About us" />
+    <meta name="description" content="Meet the team who builds CloudBoost everyday.">
+    <meta name="keywords" content="about cloudboost, realtime, backend as a service, websockets,  database service,database as a service, hybrid database, cloudboost, search, realtime, storage, app storage, nosql, instant API,Automatic Scaling, Real-time Synchronization,hosted, full-text, facet, faceted, numerical, geolocation, search, rest, api, relevance, popularity nosql database">
+    <meta name="fragment" content="!" />
+    <!--common head links-->
+    <% include ./partials/commonHead %>
+    <style type="text/css">
+        .start-demo {
+
+            color: white;
+            padding-top: 10px;
+            padding-left: 25px;
+            padding-right: 25px;
+            padding-bottom: 10px;
+            border-radius: 20px;
+            height: 35px;
+            width: auto;
+            position: relative;
+            top:40px;
+            margin-right: 20px;
+            border: none;
+            background-color: #E9EAED;
+            font-size: 18px;
+        }
+        .start-demo:hover
+        {
+            cursor: pointer;
+            color:white;
+        }
+        @media (max-width: 767px) {
+            .start-demo
+            {
+                float: left;
+                margin-bottom: 15px;
+                
+                padding-bottom: 30px;
+            }
+            .pricing
+            {
+                padding: 20px 0 0 20px !important;
+            }
+            .pricing h3
+            {
+                font-size: 18px !important;
+                word-wrap: break-word;
+            }
+            
+        }
+    </style>
+</head>
+
+<body>
+
+    <!--header-->
+    <header id="header" class="header">
+        <% include ./partials/header %>
+    </header>
+
+    <!--Content-->
+    <!--********************************************************************************************-->
+    <div class="headline-bg about-headline-bg" style="height:100%;">
+    </div>
+    <!--//headline-bg-->
+
+    <!-- ******Video Section****** -->
+    <section class="pricing section section-on-bg newpricingbg" style="padding:100px 0 0 100px;height:500px">
+
+
+      <h1 style="color:white; font-size:44px;">
+
+          <span style="font-family: 'Signika', sans-serif; font-weight:700;font-size:50px">404</span>
+      </h1>
+      <h3 style="color:white;font-family: 'Signika',sans-serif;">Sorry but the page you're looking for does not exist.</h3>
+
+      <a href="https://cloudboost.io" class="start-demo " style="background-color:#005e87">Go back to the home page &nbsp;<i class="fa fa-angle-right bounce-arrow" style="font-size:18px"></i></button>
+      <a href="mailto:support@cloudboost.io" class="start-demo " style="background-color:#005e87">Report a problem &nbsp;<i class="fa fa-angle-right bounce-arrow" style="font-size:18px"></i></button>
+
+  </section>
+
+
+  <!--scripts-->
+  <% include ./partials/commonScripts %>
+  <script type="text/javascript">
+            //Initialization
+            $(document).ready(function() {
+                mixpanel.track('Visted About Page', {
+                    "visited": "visited About Page"
+                });
+                amplitude.getInstance().logEvent('Visted About Page', {
+                    "visited": "visited About Page"
+                });
+            });
+            //Initialization
+
+            $("#about-bottom-joinus-btn").click(function() {
+                mixpanel.track('Aboutpage Bottom JoinUs Button', {
+                    "Clicked": "Aboutpage Bottom JoinUs Button"
+                });
+                amplitude.getInstance().logEvent('Aboutpage Bottom JoinUs Button', {
+                    "Clicked": "Aboutpage Bottom JoinUs Button"
+                });
+            });
+        </script>
+
+        <!--********************************************************************************************-->
+
+    </body>
+    <footer class="footer">
+        <% include ./partials/footer %>
+    </footer>
+    </html>

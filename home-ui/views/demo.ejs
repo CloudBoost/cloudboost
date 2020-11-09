@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en" if="twitter-wjs">
+
+<head>
+    <title>CloudBoost | Request a Demo</title>
+    <base href="/">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="title" content="CloudBoost | Request a demo" />
+    <meta name="description" content="CloudBoost Demo. Request a demo from us.">
+    <meta name="keywords" content="pricing, baas, backend as a service, database as a service, hybrid database, cloudboost, search, realtime, storage, app storage, signup, cloudboost">
+    <meta name="fragment" content="!" />
+    <!--common head links-->
+    <% include ./partials/commonHead %>
+
+</head>
+
+<body>
+    <header id="header" class="header demo-header">
+        <% include ./partials/header %>
+    </header>
+    <main>
+        <div class="container">
+            <div class="contact-form-description picturefill-background col-md-6 col-xs-12">
+                <h1>Demo: CloudBoost for Enterprises</h1>
+                <p>Fill in the form for a demo from us and discover how easy it is to setup CloudBoost in your infrastructure and get going.</p>
+                <p style="margin: 20px 0;">Sign up for a demo and learn how CloudBoost can help you: </p>
+                <ul>
+                    <li>Save 60% of your development costs.</li>
+                    <li>Reduce 70% of your development time.</li>
+                    <li>Automate Ops.</li>
+                    <li>Hire fewer backend developers.</li>
+                    <li>Move faster than competition, ship software twice as fast.</li>
+                </ul>
+                
+            </div>
+            <div class="contact-form-container col-md-6 col-xs-12">
+                <form>
+                    <div class="form-group">
+                        <label for="firstName"></label>
+                        <input type="text" class="form-control" id="firstName" placeholder="First Name" autocomplete="off">
+                        <p class="help-block hidden firstName">*This field is required.</p>
+                    </div>
+                    <div class="form-group">
+                        <label for="lastName"></label>
+                        <input type="text" class="form-control" id="lastName" placeholder="Last Name" autocomplete="off">
+                        <p class="help-block hidden lastName">*This field is required.</p>
+                    </div>
+                    <div class="form-group">
+                        <label for="salesEmail"></label>
+                        <input type="email" class="form-control" id="salesEmail" placeholder="Email" autocomplete="off">
+                        <p class="help-block hidden salesEmail">*This field is required.</p>
+                    </div>
+                    <div class="form-group">
+                        <label for="jobTitle"></label>
+                        <input type="text" class="form-control" id="jobTitle" placeholder="Job Title" autocomplete="off">
+                        <p class="help-block hidden jobTitle">*This field is required.</p>
+                    </div>
+                    <div class="form-group">
+                        <label for="company"></label>
+                        <input type="text" class="form-control" id="company" placeholder="Company" autocomplete="off">
+                        <p class="help-block hidden company">*This field is required.</p>
+                    </div>
+                    <div class="form-group">
+                        <label for="companySize"></label>
+                        <select class="form-control" id="companySize" placeholder="Select Company Size">
+                            <option value>Select Company Size</option>
+                            <option value="8,000+">8,000+</option>
+                            <option value="1,251 - 8000">1,251 - 8000</option>
+                            <option value="401 - 1,250">401 - 1,250</option>
+                            <option value="51 - 400">51 - 400</option>
+                            <option value="26 - 50">26 - 50</option>
+                            <option value="0 - 25">0 - 25</option>
+                        </select>
+                        <p class="help-block hidden companySize">*This field is required.</p>
+                    </div>
+                    <div class="form-group">
+                        <label for="phoneNo"></label>
+                        <input type="text" class="form-control" id="phoneNo" placeholder="Phone" autocomplete="off">
+                        <p class="help-block hidden phoneNo">*This field is required.</p>
+                    </div>
+                    <div class="form-group">
+                        <label for="selectCountry"></label>
+                        <select class="form-control" id="selectCountry" placeholder="Select Country">
+                            <option value>Select Country</option>
+                        </select>
+                        <p class="help-block hidden selectCountry">*This field is required.</p>
+                    </div>
+                    <div class="form-group">
+                        <label for="interestedFor"></label>
+                        <textarea class="form-control" id="interestedFor" rows="4" placeholder="Tell us about your interest in CloudBoost."></textarea>
+                        <p class="help-block hidden interestedFor">*This field is required.</p>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                        <input type="checkbox" id="wantToSubscribe"> I agree to receive emails from CloudBoost on educational resources, events, product and service updates.
+                        </label>
+                    </div>
+                    <button id="requestDemoBtn" class="btn btn-primary btn-cta" disabled>Register</button>
+                    <p class="help-block hidden demo-message">*You have already requested a demo OR something went wrong on our side.</p>
+                    <p class="form-disclaimer">By submitting this form, you agree to CloudBoost's <a href="/terms">Terms of Service</a> and <a href="/privacy">Privacy Policy</a>.</p>
+                </form>
+            </div>
+        </div>
+    </main>
+    <!--footer-->
+    <footer class="footer">
+        <% include ./partials/footer %>
+    </footer>
+
+    <!--scripts-->
+    <% include ./partials/commonScripts %>
+    <link rel="stylesheet" href="/css/demo.css">
+    <script src="/js/countrylist.js"></script>
+    <script src="/controllers/demoController.js"></script>
+</body>
+
+</html>

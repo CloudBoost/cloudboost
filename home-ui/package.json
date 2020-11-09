@@ -1,0 +1,37 @@
+{
+  "name": "cloudboostfrontend",
+  "version": "0.1.0",
+  "scripts": {
+    "start": "node server.js",
+    "build": "grunt build",
+    "test": "jest tests/Lighthouse/index.test.js --verbose",
+    "lighthouse": "start-server-and-test http://localhost:1444"
+  },
+  "dependencies": {
+    "body-parser": "^1.14.1",
+    "compression": "^1.7.0",
+    "ejs": "^2.3.1",
+    "express": "^4.12.3",
+    "express-minify": "^1.0.0",
+    "express-minify-html": "^0.9.0",
+    "express-seojs": "0.0.5",
+    "path": "^0.11.14",
+    "prerender-node": "^1.2.1",
+    "q": "^1.4.1",
+    "request": "^2.65.0",
+    "response-time": "^2.3.2",
+    "twitter-node-client": "0.0.6"
+  },
+  "devDependencies": {
+    "chrome-launcher": "^0.10.2",
+    "grunt": "^1.0.2",
+    "grunt-contrib-concat": "^1.0.1",
+    "grunt-contrib-cssmin": "^2.2.1",
+    "grunt-contrib-imagemin": "^2.0.1",
+    "grunt-contrib-uglify": "^3.3.0",
+    "grunt-uncss": "^0.8.4",
+    "jest": "^23.4.2",
+    "lighthouse": "^2.9.4",
+    "start-server-and-test": "^1.7.0"
+  }
+}

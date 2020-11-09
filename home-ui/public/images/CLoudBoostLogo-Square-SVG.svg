@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" baseProfile="full" width="590" height="590" viewBox="0 0 590.00 590.00" enable-background="new 0 0 590.00 590.00" xml:space="preserve">
+	<g>
+		<rect x="0" y="-2.00272e-005" fill="#549AFC" fill-opacity="1" stroke-linejoin="round" width="590" height="590"/>
+		<ellipse fill="#F8F8F8" fill-opacity="1" stroke-linejoin="round" cx="200.305" cy="320.143" rx="17.6667" ry="16.6667"/>
+		<ellipse fill="#F8F8F8" fill-opacity="1" stroke-linejoin="round" cx="145.971" cy="319.81" rx="17.6667" ry="16.6667"/>
+		<ellipse fill="#F8F8F8" fill-opacity="1" stroke-linejoin="round" cx="172.638" cy="369.81" rx="17.6667" ry="16.6667"/>
+		<ellipse fill="#F8F8F8" fill-opacity="1" stroke-linejoin="round" cx="230.638" cy="370.476" rx="17.6667" ry="16.6667"/>
+		<ellipse fill="#F8F8F8" fill-opacity="1" stroke-linejoin="round" cx="114.638" cy="369.81" rx="17.6667" ry="16.6667"/>
+		<ellipse fill="#F8F8F8" fill-opacity="1" stroke-linejoin="round" cx="144.638" cy="421.143" rx="17.6667" ry="16.6667"/>
+		<ellipse fill="#F8F8F8" fill-opacity="1" stroke-linejoin="round" cx="201.305" cy="421.143" rx="17.6667" ry="16.6667"/>
+		<path fill="#FFFFFF" fill-opacity="0.976471" stroke-linejoin="round" d="M 267.463,392.334L 267.431,425.242L 424.901,425.191C 424.901,425.191 491.466,413.316 492.618,344.076C 493.234,307.024 460.618,281.617 458.951,278.617C 457.285,275.618 463.706,233.249 426.963,205.167C 383.129,171.667 343.201,191.326 339.868,190.326C 336.535,189.326 310.338,151.584 259.463,153.167C 165.436,156.094 156.754,239.792 155.379,246.292C 154.975,248.207 129.393,258.181 118.235,281.357C 117.043,283.832 151.85,284.462 159.568,282.357C 163.235,281.357 167.51,273.099 187.568,268.357C 188.9,268.042 176.421,216.438 230.671,192.938C 294.199,165.419 328.188,229.204 327.421,239.938C 327.171,243.438 349.802,204.659 395.421,224.438C 436.912,242.428 426.412,296.845 420.421,297.188C 415.209,297.487 461.637,307.737 459.171,347.188C 456.671,387.188 419.171,393.188 414.568,392.691C 408.52,392.037 267.796,392.334 267.463,392.334 Z "/>
+	</g>
+</svg>

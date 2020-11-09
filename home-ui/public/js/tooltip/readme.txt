@@ -1,0 +1,1 @@
+See http://stefangabos.ro/jquery/zebra-tooltips/

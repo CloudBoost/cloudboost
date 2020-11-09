@@ -1,0 +1,20 @@
+{
+    "name": "slick-carousel",
+    "version": "1.5.8",
+    "description": "the last carousel you'll ever need",
+    "main": "slick/slick.js",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/kenwheeler/slick.git"
+    },
+    "keywords": [
+        "carousel",
+        "slick",
+        "responsive"
+    ],
+    "author": "Ken Wheeler",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/kenwheeler/slick/issues"
+    }
+}

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>CloudBoost | Partners Details</title> 
+    <base href="/">   
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="title" content="CloudBoost | Partners Details"/>
+    <meta name="description" content="CloudBoost Partners Details: Join the CloudBoost Partner Program to earn client revenue share and access exclusive resources.">
+    <meta name="keywords" content="partner details, become a cloudboost partner,  baas, backend as a service, database as a service, hybrid database, cloudboost, search, realtime, storage, app storage, signup, cloudboost">
+    <meta name="fragment" content="!"/>  
+    <!--common head links-->  
+    <% include ./partials/commonHead %>
+    <link rel="stylesheet" type="text/css" href="/css/partners.css"/>
+</head>
+
+<body>
+
+<!--header-->
+<header id="header" class="header">
+  <% include ./partials/header %>
+</header>
+
+<!--Content-->
+<!--********************************************************************************************-->
+    <!--background-image-->    
+    <div class="headline-partner-bg">
+    </div>
+
+    <section class="contact-section section section-on-bg" style="margin-bottom:-40px">
+        <div class="solo-horizontal-center" style="width:100%; height:auto; margin-top: -30px;">
+           <div class="card-4" style="width:60%;height: auto;background-color: white;padding:30px;">                 
+
+                <div class="flex-general-row-wrapper" style="width: 100%;">
+                    <div style="width:68%">
+
+                        <div style="width: 100%;">
+                            <span style="font-size: 30px;font-weight: 700;color:#0BA7C0;"><%= partnerDetails.companyName %></span>
+                        </div>
+
+                        <div  style="width: 100%;">
+                            <span style="color:black;"><%= partnerDetails.companyDescription %></span>
+                        </div>
+                    </div>
+
+                    <div style="width:28%;margin-left: 25px;margin-top: 10px;">
+                        <!--CLOUDBOOST PARTNER-->
+                        <div class="solo-horizontal-center" style="width: 100%;">
+                            <div>
+                                <img src="/images/Partner.png" style="width: 190px; height: 90px;">
+                            </div>                                      
+                        </div>
+                    </div>                   
+                </div>             
+
+                <div class="flex-general-row-wrapper" style="width: 100%;margin-top: 37px;">
+                    <div style="width:48%;" class="solo-horizontal-center">
+                        <div>
+                            <div style="width: 100%;">
+                                <div  style="width: 100%;">
+                                    <span style="color:#AAAAAA;">CONTACT</span>
+                                </div>
+
+                                <div  style="width: 100%;">
+                                    <span style="color:black;"><%= partnerDetails.personName %></span>
+                                </div>
+                                
+                            </div> 
+
+                            <div style="width: 100%;margin-top: 20px;">
+                                <div  style="width: 100%;">
+                                    <span style="color:#AAAAAA;">SPECIALIZES IN</span>
+                                </div>
+
+                                <div  style="width: 100%;">
+                                    <span style="color:black;"><%= partnerDetails.appSpecilizedIn %></span>
+                                </div>
+                                
+                            </div> 
+
+                            <div style="width: 100%;margin-top: 20px;">
+                                <div  style="width: 100%;">
+                                    <span style="color:#AAAAAA;">TEAM SIZE</span>
+                                </div>
+
+                                <div  style="width: 100%;">
+                                    <span style="color:black;"><%= partnerDetails.companySize %></span>
+                                </div>
+                                
+                            </div>
+
+                            <div style="width: 100%;margin-top: 20px;">
+                                <div  style="width: 100%;">
+                                    <span style="color:#AAAAAA;">WEBSITE</span>
+                                </div>
+
+                                <div  style="width: 100%;">
+                                    <span style="color:black;"><%= partnerDetails.companyWebsite %></span>
+                                </div>
+                                
+                            </div>
+                        </div>                      
+                    </div>
+
+                    <div style="width:50%;margin-left: 5px;">
+                        <div style="width: 100%;">
+                            <div  style="width: 100%;" class="">
+                                <span style="color:#AAAAAA;">ADDRESS</span>
+                            </div>
+
+                            <div  style="width: 100%;" class="">
+                                <span style="color:black;"><%= partnerDetails.companyAddress %></span>
+                            </div>
+                            
+                        </div> 
+
+                        <div style="width: 100%;margin-top: 20px;">
+                            <div  style="width: 100%;" class="">
+                                <span style="color:#AAAAAA;">COUNTRY</span>
+                            </div>
+
+                            <div  style="width: 100%;" class="">
+                                <span style="color:black;"><%= partnerDetails.companyCountry %></span>
+                            </div>
+                            
+                        </div>
+                        
+                    </div>                   
+                </div>
+
+                 
+
+                <!--Buttons-->
+                <div class="flex-general-row-wrapper" style="width: 100%; margin-top: 50px;">
+                    <div style="width:50%;">
+                        <div  style="height: 20px; width:100%;">
+                            <div class="pull-right">
+                                <a href="<%= partnerDetails.companyWebsite %>"  target="_blank" style="text-decoration:none; width: 200px;height: 34px; background-color: #0ba7c0;;color:white;display: block; border-radius: 3px;">
+                                    <div class="flex-general-column-wrapper-center" style="height: 100%;width: 100%">
+                                     <span><i class="fa fa-globe" aria-hidden="true"></i>&nbsp;Website</span>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="width:48%;margin-left: 5px;">
+                        <div  style="height: 20px; width:100%;">
+                            <div class="pull-left">
+                                <a href="mailto:<%= partnerDetails.companyEmail %>"  target="_blank" style="text-decoration:none; width: 220px;height: 34px; background-color: #0ba7c0;;color:white;display: block;border-radius: 3px;">
+                                    <div class="flex-general-column-wrapper-center" style="height: 100%;width: 100%">
+                                        <span><i class="fa fa-envelope" aria-hidden="true"></i>&nbsp;Contact the Agency</span>     
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>                   
+                </div>                
+
+           </div>
+        </div>
+    </section>
+     
+
+    <!--footer-->
+    <footer class="footer">
+        <% include ./partials/footer %>
+    </footer>   
+    
+    <% include ./partials/commonScripts %>  
+
+<!--********************************************************************************************-->
+
+</body>
+</html>
