@@ -34,7 +34,7 @@
     "fb": "^1.1.1",
     "form-data": "^2.1.2",
     "github": "^0.2.4",
-    "googleapis": "^16.1.0",
+    "googleapis": "^26.0.1",
     "gridfs-stream": "^1.1.1",
     "icg-json-to-xlsx": "^0.2.5",
     "ioredis": "^2.0.0",
@@ -71,7 +71,7 @@
     "url-parse": "^1.4.6",
     "uuid": "^2.0.1",
     "web-push": "^2.2.0",
-    "winston": "^1.1.2",
+    "winston": "^3.3.0",
     "winston-bishop-slack": "^0.2.1",
     "winston-loggly": "^1.3.1",
     "winston-loggly-transport": "^1.0.3"
