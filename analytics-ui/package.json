@@ -27,7 +27,7 @@
     "cloudboost": "^2.0.262",
     "cross-env": "^1.0.8",
     "css-loader": "^0.23.1",
-    "ejs": "^2.5.5",
+    "ejs": "^3.1.7",
     "eslint": "^3.18.0",
     "eslint-loader": "^1.6.3",
     "expect": "^1.20.1",
