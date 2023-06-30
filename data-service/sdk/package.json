@@ -23,7 +23,7 @@
       "bluebird": "^3.4.6",
       "deep-equal": "^1.0.1",
       "form-data": "^2.1.2",
-      "jsdom": "^9.10.0",
+      "jsdom": "^16.5.0",
       "localStorage": "^1.0.3",
       "localforage": "^1.5.0",
       "socket.io-client": "^1.7.1",
