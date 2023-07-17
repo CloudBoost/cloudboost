@@ -50,7 +50,7 @@
     "mixpanel": "^0.1.1",
     "moment": "^2.22.2",
     "mongodb": "^2.0.20",
-    "mongoose": "^4.1.1",
+    "mongoose": "^5.13.20",
     "mongoose-session": "0.0.2",
     "node-uuid": "^1.4.7",
     "nodemailer": "^2.4.1",
