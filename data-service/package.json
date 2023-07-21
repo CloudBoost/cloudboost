@@ -26,7 +26,7 @@
     "crypto": "^0.0.3",
     "csv2json": "^1.4.2",
     "deep-equal": "^1.0.1",
-    "ejs": "^2.4.1",
+    "ejs": "^3.1.7",
     "express": "^4.13.4",
     "express-mung": "^0.5.0",
     "express-session": "^1.16.1",
