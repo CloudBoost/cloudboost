@@ -34,7 +34,7 @@
     "fb": "^1.1.1",
     "form-data": "^2.1.2",
     "github": "^0.2.4",
-    "googleapis": "^16.1.0",
+    "googleapis": "^49.0.0",
     "gridfs-stream": "^1.1.1",
     "icg-json-to-xlsx": "^0.2.5",
     "ioredis": "^2.0.0",
