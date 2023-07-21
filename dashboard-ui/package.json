@@ -61,7 +61,7 @@
     "chart.js": "^2.5.0",
     "cloudboost": "^2.0.262",
     "css-loader": "^0.26.1",
-    "ejs": "^2.5.3",
+    "ejs": "^3.1.7",
     "express": "^4.14.0",
     "file-saver": "^2.0.1",
     "jquery": "^3.1.0",
