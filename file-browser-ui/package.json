@@ -10,7 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "async-props": "^0.3.2",
-    "axios": "^0.15.3",
+    "axios": "^0.16.1",
     "babel-cli": "^6.18.0",
     "babel-core": "^6.10.4",
     "babel-eslint": "^7.1.1",
