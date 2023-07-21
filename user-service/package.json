@@ -72,7 +72,7 @@
     "sha1": "^1.1.1",
     "should": "^4.6.5",
     "slack-notify": "^0.1.6",
-    "socket.io": "^2.0.2",
+    "socket.io": "^2.5.0",
     "static-favicon": "^1.0.2",
     "stripe": "^6.7.0",
     "underscore": "^1.8.3",
