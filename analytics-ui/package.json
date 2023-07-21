@@ -35,7 +35,7 @@
     "fs": "0.0.1-security",
     "group-by-time": "^1.0.0",
     "material-ui": "^0.18.7",
-    "moment": "^2.18.1",
+    "moment": "^2.29.4",
     "node-libs-browser": "^1.0.0",
     "node-sass": "^3.8.0",
     "path": "^0.12.7",
