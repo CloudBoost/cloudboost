@@ -44,7 +44,7 @@
     "material-ui": "^0.17.1",
     "mobx": "^3.3.1",
     "mobx-react": "^4.3.3",
-    "moment": "^2.18.1",
+    "moment": "^2.29.4",
     "node-libs-browser": "^1.0.0",
     "node-sass": "^4.9.2",
     "path": "^0.12.7",
