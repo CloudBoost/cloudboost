@@ -63,7 +63,7 @@
     "request": "^2.88.0",
     "should": "^4.6.5",
     "slack-node": "^0.1.8",
-    "snyk": "^1.290.1",
+    "snyk": "^1.685.0",
     "socket.io": "^2.0.4",
     "socket.io-client": "^2.0.2",
     "socket.io-redis": "^5.2.0",
