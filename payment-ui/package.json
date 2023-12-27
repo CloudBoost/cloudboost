@@ -45,7 +45,7 @@
         "react-bootstrap": "^0.30.7"
     },
     "dependencies": {
-        "axios": "^0.15.3",
+        "axios": "^1.6.3",
         "card-validator": "^4.0.0"
     }
 }
