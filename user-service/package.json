@@ -18,7 +18,7 @@
     "2checkout-node": "0.0.1",
     "agenda": "^2.0.2",
     "async": "^1.4.2",
-    "axios": "^0.15.3",
+    "axios": "^0.21.1",
     "basic-auth": "^1.0.4",
     "body-parser": "^1.0.2",
     "busboy": "^0.2.12",
