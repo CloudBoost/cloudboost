@@ -19,7 +19,7 @@
     "author": "hello@cloudboost.io",
     "license": "MIT",
     "dependencies": {
-      "axios": "^0.14.0",
+      "axios": "^0.21.1",
       "bluebird": "^3.4.6",
       "deep-equal": "^1.0.1",
       "form-data": "^2.1.2",
