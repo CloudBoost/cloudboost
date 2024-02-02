@@ -53,7 +53,7 @@
     "node-twitter-api": "^1.8.0",
     "node-uuid": "^1.4.7",
     "node-xlsx": "^0.12.0",
-    "nodemailer": "^2.4.1",
+    "nodemailer": "^6.9.9",
     "nodemailer-mailgun-transport": "^1.4.0",
     "oauth": "^0.9.14",
     "octonode": "^0.9.3",
