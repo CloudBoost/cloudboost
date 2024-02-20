@@ -44,7 +44,7 @@
     "jsdom": "^9.1.0",
     "json2xls": "^0.1.1",
     "json2xlsx": "^0.1.6",
-    "mailgun-js": "^0.20.0",
+    "mailgun-js": "^0.22.0",
     "mandrill-api": "^1.0.45",
     "marked-engine": "^0.2.0",
     "mixpanel": "^0.1.1",
