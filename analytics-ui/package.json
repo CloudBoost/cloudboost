@@ -31,7 +31,7 @@
     "eslint": "^3.18.0",
     "eslint-loader": "^1.6.3",
     "expect": "^1.20.1",
-    "express": "^4.14.0",
+    "express": "^4.19.2",
     "fs": "0.0.1-security",
     "group-by-time": "^1.0.0",
     "material-ui": "^0.18.7",
