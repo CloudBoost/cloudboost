@@ -20,7 +20,7 @@
     "ejs": "^2.5.5",
     "express": "^4.14.0",
     "history": "^4.3.0",
-    "lodash": "^4.17.4",
+    "lodash": "^4.17.17",
     "material-ui": "^0.16.0",
     "prop-types": "^15.6.0",
     "react": "~15.2.1",
