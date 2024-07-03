@@ -55,11 +55,11 @@
     "redux-logger": "^2.6.1",
     "redux-promise": "^0.5.3",
     "redux-thunk": "^2.1.0",
-    "sass-loader": "^4.0.0",
+    "sass-loader": "^6.0.7",
     "style-loader": "^0.13.1",
     "underscore": "^1.8.3",
     "url-loader": "^0.5.8",
-    "webpack": "^1.14.0"
+    "webpack": "^4.0.0"
   },
   "devDependencies": {
     "babel-plugin-react-transform": "^2.0.2",
@@ -70,7 +70,7 @@
     "nock": "^9.0.13",
     "redux-mock-store": "^1.2.3",
     "sinon": "^2.3.2",
-    "webpack": "^1.14.0"
+    "webpack": "^4.0.0"
   },
   "description": "analytics-ui\r Analytics Portal for CloudBoost",
   "repository": {
