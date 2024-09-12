@@ -8,10 +8,10 @@
     "lighthouse": "start-server-and-test http://localhost:1444"
   },
   "dependencies": {
-    "body-parser": "^1.14.1",
+    "body-parser": "^1.20.3",
     "compression": "^1.7.0",
     "ejs": "^2.3.1",
-    "express": "^4.12.3",
+    "express": "^4.21.0",
     "express-minify": "^1.0.0",
     "express-minify-html": "^0.9.0",
     "express-seojs": "0.0.5",
