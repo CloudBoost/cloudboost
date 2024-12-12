@@ -77,7 +77,7 @@
     "style-loader": "^0.13.1",
     "underscore": "^1.8.3",
     "webpack": "^1.14.0",
-    "webpack-dev-server": "~1.14.1"
+    "webpack-dev-server": "~5.2.0"
   },
   "devDependencies": {
     "babel-plugin-react-transform": "^2.0.2",
