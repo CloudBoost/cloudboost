@@ -28,8 +28,8 @@
     "cross-env": "^1.0.8",
     "css-loader": "^0.23.1",
     "ejs": "^2.5.5",
-    "eslint": "^3.18.0",
-    "eslint-loader": "^1.6.3",
+    "eslint": "^9.0.0",
+    "eslint-loader": "^4.0.2",
     "expect": "^1.20.1",
     "express": "^4.14.0",
     "fs": "0.0.1-security",
@@ -37,7 +37,7 @@
     "material-ui": "^0.18.7",
     "moment": "^2.18.1",
     "node-libs-browser": "^1.0.0",
-    "node-sass": "^3.8.0",
+    "node-sass": "^9.0.0",
     "path": "^0.12.7",
     "react": "^15.1.0",
     "react-addons-test-utils": "^15.1.0",
@@ -59,7 +59,7 @@
     "style-loader": "^0.13.1",
     "underscore": "^1.8.3",
     "url-loader": "^0.5.8",
-    "webpack": "^1.14.0"
+    "webpack": "^4.43.0"
   },
   "devDependencies": {
     "babel-plugin-react-transform": "^2.0.2",
@@ -70,7 +70,7 @@
     "nock": "^9.0.13",
     "redux-mock-store": "^1.2.3",
     "sinon": "^2.3.2",
-    "webpack": "^1.14.0"
+    "webpack": "^4.43.0"
   },
   "description": "analytics-ui\r Analytics Portal for CloudBoost",
   "repository": {
