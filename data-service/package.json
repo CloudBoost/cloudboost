@@ -29,7 +29,7 @@
     "ejs": "^2.4.1",
     "express": "^4.13.4",
     "express-mung": "^0.5.0",
-    "express-session": "^1.16.1",
+    "express-session": "^1.18.2",
     "express-winston": "^2.5.0",
     "fb": "^1.1.1",
     "form-data": "^2.1.2",
