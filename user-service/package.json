@@ -34,7 +34,7 @@
     "express": "^4.13.3",
     "express-session": "^1.11.3",
     "express-winston": "^3.0.0",
-    "express-xml-bodyparser": "^0.3.0",
+    "express-xml-bodyparser": "^0.4.1",
     "express-xml-parser": "^1.0.0",
     "gridfs-stream": "^1.1.1",
     "html-pdf": "^2.2.0",
