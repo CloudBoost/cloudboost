@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@sauban/cloudboost": "^6.7.6",
-    "zapier-platform-core": "6.0.0"
+    "zapier-platform-core": "17.5.0"
   },
   "devDependencies": {
     "mocha": "3.2.0",
