@@ -71,7 +71,7 @@
     "prop-types": "^15.6.2",
     "query-string": "^6.1.0",
     "react": "^15.0.1",
-    "react-ace": "^4.1.6",
+    "react-ace": "^5.2.2",
     "react-bootstrap": "^0.30.7",
     "react-color": "^2.11.1",
     "react-copy-to-clipboard": "^4.2.3",
